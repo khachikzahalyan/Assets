@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { SectionCard } from '@/components/ui'
-import type { AuditLog, AuditAction } from '@/domain/audit'
+import type { AuditLog } from '@/domain/audit'
 import type { AssetReferenceData } from '@/domain/asset'
 
 export interface AssetHistoryProps {
@@ -8,40 +8,27 @@ export interface AssetHistoryProps {
   ref?: AssetReferenceData | undefined
 }
 
-const ACTION_LABELS: Record<AuditAction, string> = {
-  created: 'Создан',
-  updated: 'Обновлён',
-  status_changed: 'Статус изменён',
-  assigned: 'Назначен',
-  returned: 'Возвращён',
-  transferred: 'Перемещён',
-  upgrade_added: 'Апгрейд добавлен',
-  disposed: 'Списан',
-  sent_to_repair: 'Отправлен в ремонт',
-  repair_completed: 'Ремонт завершён',
-}
-
-/** Short relative / absolute timestamp */
-function shortTs(iso: string): string {
-  try {
-    const d = new Date(iso)
-    const now = Date.now()
-    const diffMs = now - d.getTime()
-    const diffMin = Math.floor(diffMs / 60_000)
-    if (diffMin < 2) return 'только что'
-    if (diffMin < 60) return `${diffMin} мин назад`
-    const diffH = Math.floor(diffMin / 60)
-    if (diffH < 24) return `${diffH} ч назад`
-    const diffD = Math.floor(diffH / 24)
-    if (diffD < 7) return `${diffD} дн назад`
-    return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })
-  } catch {
-    return iso
-  }
-}
-
 export function AssetHistory({ logs }: AssetHistoryProps) {
   const { t } = useTranslation('assets')
+
+  /** Short relative / absolute timestamp — uses outer `t` for i18n */
+  const shortTs = (iso: string): string => {
+    try {
+      const d = new Date(iso)
+      const now = Date.now()
+      const diffMs = now - d.getTime()
+      const diffMin = Math.floor(diffMs / 60_000)
+      if (diffMin < 2) return t('relTime.now')
+      if (diffMin < 60) return t('relTime.minAgo', { n: diffMin })
+      const diffH = Math.floor(diffMin / 60)
+      if (diffH < 24) return t('relTime.hourAgo', { n: diffH })
+      const diffD = Math.floor(diffH / 24)
+      if (diffD < 7) return t('relTime.dayAgo', { n: diffD })
+      return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    } catch {
+      return iso
+    }
+  }
 
   // Newest-first
   const sorted = [...logs].sort((a, b) => b.at.localeCompare(a.at))
@@ -59,7 +46,7 @@ export function AssetHistory({ logs }: AssetHistoryProps) {
             >
               <div className="flex-1 min-w-0">
                 <span className="text-[12.5px] font-medium text-[#F8FAFC]">
-                  {ACTION_LABELS[log.action] ?? log.action}
+                  {t(`history.action.${log.action}`, { defaultValue: log.action })}
                 </span>
                 <span className="ml-2 text-[11.5px] text-[#64748B]">
                   {log.actorUid} · {log.actorRole}
