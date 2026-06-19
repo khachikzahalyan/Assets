@@ -1,54 +1,105 @@
 {
-  "create": "Создать актив",
   "actions": {
     "edit": "Редактировать"
   },
-  "relTime": {
-    "now": "только что",
-    "minAgo": "{{n}} мин назад",
-    "hourAgo": "{{n}} ч назад",
-    "dayAgo": "{{n}} дн назад"
-  },
-  "search": "Поиск по названию, инв. коду, серийному…",
-  "filters": {
-    "group": "Группа",
-    "allGroups": "Все группы",
-    "status": "Статус",
-    "allStatuses": "Все статусы",
-    "branch": "Филиал",
-    "allBranches": "Все филиалы",
-    "sort": "Сортировка",
-    "reset": "Сбросить"
-  },
-  "groups": {
-    "devices": "Устройства",
-    "network": "Сетевые",
-    "furniture": "Мебель"
-  },
-  "sort": {
-    "updated_desc": "Сначала новые",
-    "updated_asc": "Сначала старые",
-    "name_asc": "Название А–Я",
-    "name_desc": "Название Я–А",
-    "inv_asc": "Инв. код"
+  "assignee": {
+    "none": "—",
+    "warehouse": "На складе"
   },
   "cols": {
     "asset": "Актив",
-    "code": "Инв. код",
-    "status": "Статус",
     "assignee": "Назначен",
     "branch": "Филиал",
+    "code": "Инв. код",
+    "status": "Статус",
     "updated": "Обновлено"
   },
-  "assignee": {
-    "warehouse": "На складе",
-    "none": "—"
-  },
+  "create": "Создать актив",
   "empty": {
-    "title": "Активы не найдены",
-    "desc": "Измените фильтры или создайте первый актив."
+    "desc": "Измените фильтры или создайте первый актив.",
+    "title": "Активы не найдены"
+  },
+  "filters": {
+    "allBranches": "Все филиалы",
+    "allGroups": "Все группы",
+    "allStatuses": "Все статусы",
+    "branch": "Филиал",
+    "group": "Группа",
+    "reset": "Сбросить",
+    "sort": "Сортировка",
+    "status": "Статус"
+  },
+  "form": {
+    "addUpgrade": "Добавить апгрейд",
+    "brand": "Бренд",
+    "cancel": "Отмена",
+    "category": "Категория",
+    "change": "Изменить",
+    "createTitle": "Регистрация актива",
+    "editTitle": "Актив {{code}}",
+    "history": "История",
+    "invCode": "Инвентарный код",
+    "model": "Модель",
+    "notFound": "Актив не найден",
+    "return": "Вернуть",
+    "save": "Сохранить",
+    "sendToRepair": "Отправить в ремонт",
+    "serial": "Серийный номер",
+    "specCpu": "Процессор",
+    "specGpu": "Видеокарта",
+    "specRam": "Оперативная память",
+    "specSsd": "Накопитель",
+    "specs": "Характеристики",
+    "type": "Тип",
+    "upgrades": "Апгрейды",
+    "writeOff": "Списать"
+  },
+  "groups": {
+    "devices": "Устройства",
+    "furniture": "Мебель",
+    "network": "Сетевые"
   },
   "pagination": {
     "range": "{{from}}–{{to}} из {{total}}"
+  },
+  "qa": {
+    "branch": "Филиал",
+    "department": "Отдел",
+    "employee": "Сотрудник",
+    "pickRecipient": "Выберите получателя",
+    "title": "Куда назначить",
+    "warehouse": "Склад"
+  },
+  "relTime": {
+    "dayAgo": "{{n}} дн назад",
+    "hourAgo": "{{n}} ч назад",
+    "minAgo": "{{n}} мин назад",
+    "now": "только что"
+  },
+  "search": "Поиск по названию, инв. коду, серийному…",
+  "sort": {
+    "inv_asc": "Инв. код",
+    "name_asc": "Название А–Я",
+    "name_desc": "Название Я–А",
+    "updated_asc": "Сначала старые",
+    "updated_desc": "Сначала новые"
+  },
+  "statusLine": {
+    "derived": "Статус: {{name}}"
+  },
+  "upgrade": {
+    "after": "Стало",
+    "before": "Было",
+    "component": "Компонент",
+    "notTracked": "не отслеживается в характеристиках"
+  },
+  "validation": {
+    "brandModelRequired": "Заполните «Бренд» и «Модель»",
+    "invRequired": "Заполните «Инвентарный код»",
+    "invTaken": "Инвентарный код уже используется",
+    "saveFailed": "Не удалось сохранить. Попробуйте ещё раз.",
+    "serialRequired": "Заполните «Серийный номер»",
+    "serialTaken": "Серийный номер уже используется",
+    "typeRequired": "Заполните «Тип»"
   }
 }

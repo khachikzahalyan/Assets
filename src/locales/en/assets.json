@@ -1,54 +1,105 @@
 {
-  "create": "Create asset",
   "actions": {
     "edit": "Edit"
   },
-  "relTime": {
-    "now": "just now",
-    "minAgo": "{{n}} min ago",
-    "hourAgo": "{{n}} h ago",
-    "dayAgo": "{{n}} days ago"
-  },
-  "search": "Search by name, inv. code, serial…",
-  "filters": {
-    "group": "Group",
-    "allGroups": "All groups",
-    "status": "Status",
-    "allStatuses": "All statuses",
-    "branch": "Branch",
-    "allBranches": "All branches",
-    "sort": "Sort",
-    "reset": "Reset"
-  },
-  "groups": {
-    "devices": "Devices",
-    "network": "Network",
-    "furniture": "Furniture"
-  },
-  "sort": {
-    "updated_desc": "Newest first",
-    "updated_asc": "Oldest first",
-    "name_asc": "Name A–Z",
-    "name_desc": "Name Z–A",
-    "inv_asc": "Inv. code"
+  "assignee": {
+    "none": "—",
+    "warehouse": "In warehouse"
   },
   "cols": {
     "asset": "Asset",
-    "code": "Inv. code",
-    "status": "Status",
     "assignee": "Assigned to",
     "branch": "Branch",
+    "code": "Inv. code",
+    "status": "Status",
     "updated": "Updated"
   },
-  "assignee": {
-    "warehouse": "In warehouse",
-    "none": "—"
-  },
+  "create": "Create asset",
   "empty": {
-    "title": "No assets found",
-    "desc": "Change filters or create the first asset."
+    "desc": "Change filters or create the first asset.",
+    "title": "No assets found"
+  },
+  "filters": {
+    "allBranches": "All branches",
+    "allGroups": "All groups",
+    "allStatuses": "All statuses",
+    "branch": "Branch",
+    "group": "Group",
+    "reset": "Reset",
+    "sort": "Sort",
+    "status": "Status"
+  },
+  "form": {
+    "addUpgrade": "Add upgrade",
+    "brand": "Brand",
+    "cancel": "Cancel",
+    "category": "Category",
+    "change": "Change",
+    "createTitle": "Register asset",
+    "editTitle": "Asset {{code}}",
+    "history": "History",
+    "invCode": "Inventory code",
+    "model": "Model",
+    "notFound": "Asset not found",
+    "return": "Return",
+    "save": "Save",
+    "sendToRepair": "Send to repair",
+    "serial": "Serial number",
+    "specCpu": "CPU",
+    "specGpu": "GPU",
+    "specRam": "RAM",
+    "specSsd": "Storage",
+    "specs": "Specifications",
+    "type": "Type",
+    "upgrades": "Upgrades",
+    "writeOff": "Write off"
+  },
+  "groups": {
+    "devices": "Devices",
+    "furniture": "Furniture",
+    "network": "Network"
   },
   "pagination": {
     "range": "{{from}}–{{to}} of {{total}}"
+  },
+  "qa": {
+    "branch": "Branch",
+    "department": "Department",
+    "employee": "Employee",
+    "pickRecipient": "Choose a recipient",
+    "title": "Assign to",
+    "warehouse": "Warehouse"
+  },
+  "relTime": {
+    "dayAgo": "{{n}} days ago",
+    "hourAgo": "{{n}} h ago",
+    "minAgo": "{{n}} min ago",
+    "now": "just now"
+  },
+  "search": "Search by name, inv. code, serial…",
+  "sort": {
+    "inv_asc": "Inv. code",
+    "name_asc": "Name A–Z",
+    "name_desc": "Name Z–A",
+    "updated_asc": "Oldest first",
+    "updated_desc": "Newest first"
+  },
+  "statusLine": {
+    "derived": "Status: {{name}}"
+  },
+  "upgrade": {
+    "after": "After",
+    "before": "Before",
+    "component": "Component",
+    "notTracked": "not tracked in specifications"
+  },
+  "validation": {
+    "brandModelRequired": "Enter brand and model",
+    "invRequired": "Enter the inventory code",
+    "invTaken": "Inventory code already in use",
+    "saveFailed": "Save failed. Please try again.",
+    "serialRequired": "Enter the serial number",
+    "serialTaken": "Serial number already in use",
+    "typeRequired": "Enter the type"
   }
 }

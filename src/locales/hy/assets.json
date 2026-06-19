@@ -1,55 +1,106 @@
 {
   "_todo": "hy translations are English placeholders — schedule native Armenian review",
-  "create": "Ստեղծել ակտիվ",
   "actions": {
     "edit": "Խմբագրել"
   },
-  "relTime": {
-    "now": "հենց հիմա",
-    "minAgo": "{{n}} րոպե առաջ",
-    "hourAgo": "{{n}} ժ առաջ",
-    "dayAgo": "{{n}} օր առաջ"
-  },
-  "search": "Փնտրել անունով, ինվ. կոդով, սերիայով…",
-  "filters": {
-    "group": "Խումբ",
-    "allGroups": "Բոլոր խմբերը",
-    "status": "Կարգավիճակ",
-    "allStatuses": "Բոլոր կարգավիճակները",
-    "branch": "Մասնաճյուղ",
-    "allBranches": "Բոլոր մասնաճյուղերը",
-    "sort": "Տեսակավորում",
-    "reset": "Զրոյացնել"
-  },
-  "groups": {
-    "devices": "Սարքեր",
-    "network": "Ցանցային",
-    "furniture": "Կահույք"
-  },
-  "sort": {
-    "updated_desc": "Նախ նոր",
-    "updated_asc": "Նախ հին",
-    "name_asc": "Անուն Ա–Ֆ",
-    "name_desc": "Անուն Ֆ–Ա",
-    "inv_asc": "Ինվ. կոդ"
+  "assignee": {
+    "none": "—",
+    "warehouse": "Պահեստում"
   },
   "cols": {
     "asset": "Ակտիվ",
-    "code": "Ինվ. կոդ",
-    "status": "Կարգ.",
     "assignee": "Նշանակված",
     "branch": "Մասնաճյուղ",
+    "code": "Ինվ. կոդ",
+    "status": "Կարգ.",
     "updated": "Թարմ."
   },
-  "assignee": {
-    "warehouse": "Պահեստում",
-    "none": "—"
-  },
+  "create": "Ստեղծել ակտիվ",
   "empty": {
-    "title": "Ակտիվներ չեն գտնվել",
-    "desc": "Փոխեք ֆիլտրերը կամ ստեղծեք առաջին ակտիվը։"
+    "desc": "Փոխեք ֆիլտրերը կամ ստեղծեք առաջին ակտիվը։",
+    "title": "Ակտիվներ չեն գտնվել"
+  },
+  "filters": {
+    "allBranches": "Բոլոր մասնաճյուղերը",
+    "allGroups": "Բոլոր խմբերը",
+    "allStatuses": "Բոլոր կարգավիճակները",
+    "branch": "Մասնաճյուղ",
+    "group": "Խումբ",
+    "reset": "Զրոյացնել",
+    "sort": "Տեսակավորում",
+    "status": "Կարգավիճակ"
+  },
+  "form": {
+    "addUpgrade": "Ավելացնել արդիականացում",
+    "brand": "Ապրանքանիշ",
+    "cancel": "Չեղարկել",
+    "category": "Կատեգորիա",
+    "change": "Փոխել",
+    "createTitle": "Ակտիվի գրանցում",
+    "editTitle": "Ակտիվ {{code}}",
+    "history": "Պատմություն",
+    "invCode": "Գույքագրման կոդ",
+    "model": "Մոդել",
+    "notFound": "Ակտիվը չի գտնվել",
+    "return": "Վերադարձնել",
+    "save": "Պահպանել",
+    "sendToRepair": "Ուղարկել վերանորոգման",
+    "serial": "Սերիական համար",
+    "specCpu": "Պրոցեսոր",
+    "specGpu": "Տեսաքարտ",
+    "specRam": "Օперատիվ հիշողություն",
+    "specSsd": "Կրիչ",
+    "specs": "Բնութագրեր",
+    "type": "Տեսակ",
+    "upgrades": "Արդիականացումներ",
+    "writeOff": "Դուրս գրել"
+  },
+  "groups": {
+    "devices": "Սարքեր",
+    "furniture": "Կահույք",
+    "network": "Ցանցային"
   },
   "pagination": {
     "range": "{{from}}–{{to}} / {{total}}"
+  },
+  "qa": {
+    "branch": "Մասնաճյուղ",
+    "department": "Բաժին",
+    "employee": "Աշխատակից",
+    "pickRecipient": "Ընտրեք ստացողին",
+    "title": "Ուր նշանակել",
+    "warehouse": "Պահեստ"
+  },
+  "relTime": {
+    "dayAgo": "{{n}} օր առաջ",
+    "hourAgo": "{{n}} ժ առաջ",
+    "minAgo": "{{n}} րոպե առաջ",
+    "now": "հենց հիմա"
+  },
+  "search": "Փնտրել անունով, ինվ. կոդով, սերիայով…",
+  "sort": {
+    "inv_asc": "Ինվ. կոդ",
+    "name_asc": "Անուն Ա–Ֆ",
+    "name_desc": "Անուն Ֆ–Ա",
+    "updated_asc": "Նախ հին",
+    "updated_desc": "Նախ նոր"
+  },
+  "statusLine": {
+    "derived": "Կարգավիճակ՝ {{name}}"
+  },
+  "upgrade": {
+    "after": "Դարձավ",
+    "before": "Եղել է",
+    "component": "Բաղադրիչ",
+    "notTracked": "չի հետևվում բնութագրերում"
+  },
+  "validation": {
+    "brandModelRequired": "Լրացրեք «Ապրանքանիշ» և «Մոդել»",
+    "invRequired": "Լրացրեք «Գույքագրման կոդ»",
+    "invTaken": "Գույքագրման կոդն արդեն օգտագործվում է",
+    "saveFailed": "Չհաջողվեց պահպանել։ Կրկին փորձեք։",
+    "serialRequired": "Լրացրեք «Սերիական համար»",
+    "serialTaken": "Սերիական համարն արդեն օգտագործվում է",
+    "typeRequired": "Լրացրեք «Տեսակ»"
   }
 }
