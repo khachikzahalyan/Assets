@@ -168,10 +168,21 @@ service cloud.firestore {
           && resource.data.after != null
           && resource.data.after.assignedToEmployeeId == request.auth.uid
         );
+      // create: server-trusted actor + time, required/allowed key sets, and shape guards
       allow create: if isSignedIn()
         && request.resource.data.actorUid == request.auth.uid
         && request.resource.data.actorRole == role()
         && request.resource.data.at == request.time
+        && request.resource.data.entityType is string
+        && request.resource.data.entityType.size() > 0
+        && request.resource.data.action is string
+        && request.resource.data.action.size() > 0
+        && (!('before' in request.resource.data)
+            || request.resource.data.before == null
+            || request.resource.data.before is map)
+        && (!('after' in request.resource.data)
+            || request.resource.data.after == null
+            || request.resource.data.after is map)
         && request.resource.data.keys().hasAll(
              ['entityType', 'entityId', 'action', 'actorUid', 'actorRole', 'at'])
         && request.resource.data.keys().hasOnly(

@@ -693,3 +693,49 @@ describe('self-service loader collections (asset_statuses + categories)', () => 
     await assertSucceeds(getDocs(collection(authedDb(env, EMP), 'categories')))
   })
 })
+
+describe('audit_logs create-shape hardening', () => {
+  it('a role_assigned user row created by super_admin PASSES the create rule', async () => {
+    const db = authedDb(env, SUPER)
+    await assertSucceeds(
+      setDoc(doc(db, 'audit_logs', 'ra1'), {
+        entityType: 'user', entityId: 'pendX', action: 'role_assigned',
+        actorUid: SUPER, actorRole: 'super_admin',
+        before: { role: null, status: 'no-role' },
+        after: { role: 'asset_admin', status: 'active' },
+        at: serverTimestamp(),
+      }),
+    )
+  })
+
+  it('denies create when before is a non-map, non-null value', async () => {
+    const db = authedDb(env, SUPER)
+    await assertFails(
+      setDoc(doc(db, 'audit_logs', 'bad1'), {
+        entityType: 'user', entityId: 'x', action: 'role_assigned',
+        actorUid: SUPER, actorRole: 'super_admin',
+        before: 'not-a-map', at: serverTimestamp(),
+      }),
+    )
+  })
+
+  it('denies create when entityType is an empty string', async () => {
+    const db = authedDb(env, SUPER)
+    await assertFails(
+      setDoc(doc(db, 'audit_logs', 'bad2'), {
+        entityType: '', entityId: 'x', action: 'created',
+        actorUid: SUPER, actorRole: 'super_admin', at: serverTimestamp(),
+      }),
+    )
+  })
+
+  it('denies create when action is an empty string', async () => {
+    const db = authedDb(env, SUPER)
+    await assertFails(
+      setDoc(doc(db, 'audit_logs', 'bad3'), {
+        entityType: 'asset', entityId: 'x', action: '',
+        actorUid: SUPER, actorRole: 'super_admin', at: serverTimestamp(),
+      }),
+    )
+  })
+})
