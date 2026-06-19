@@ -11,9 +11,10 @@ export interface AssetCreateFormProps {
   onSubmit: (input: CreateAssetInput) => Promise<void>
   submitting: boolean
   error: string | null
+  onCancel?: () => void
 }
 
-export function AssetCreateForm({ ref: refData, onSubmit, submitting, error }: AssetCreateFormProps) {
+export function AssetCreateForm({ ref: refData, onSubmit, submitting, error, onCancel }: AssetCreateFormProps) {
   const { t } = useTranslation('assets')
 
   // Identity fields
@@ -127,7 +128,7 @@ export function AssetCreateForm({ ref: refData, onSubmit, submitting, error }: A
                     id="asset-brand"
                     value={brand}
                     onChange={setBrand}
-                    placeholder="Apple, Dell…"
+                    placeholder={t('placeholders.brand')}
                   />
                 </Field>
                 <Field label={t('form.model')} required>
@@ -135,7 +136,7 @@ export function AssetCreateForm({ ref: refData, onSubmit, submitting, error }: A
                     id="asset-model"
                     value={model}
                     onChange={setModel}
-                    placeholder="XPS 15, MacBook Pro…"
+                    placeholder={t('placeholders.model')}
                   />
                 </Field>
               </div>
@@ -148,7 +149,7 @@ export function AssetCreateForm({ ref: refData, onSubmit, submitting, error }: A
                   id="asset-type"
                   value={typeField}
                   onChange={setTypeField}
-                  placeholder="Стол, Кресло…"
+                  placeholder={t('placeholders.type')}
                 />
               </Field>
             )}
@@ -159,7 +160,7 @@ export function AssetCreateForm({ ref: refData, onSubmit, submitting, error }: A
                 id="asset-inv-code"
                 value={invCode}
                 onChange={setInvCode}
-                placeholder="450/100"
+                placeholder={t('placeholders.invCode')}
                 mono
               />
             </Field>
@@ -171,7 +172,7 @@ export function AssetCreateForm({ ref: refData, onSubmit, submitting, error }: A
                   id="asset-serial"
                   value={serial}
                   onChange={setSerial}
-                  placeholder="SN-XXXX"
+                  placeholder={t('placeholders.serial')}
                 />
               </Field>
             )}
@@ -185,7 +186,7 @@ export function AssetCreateForm({ ref: refData, onSubmit, submitting, error }: A
                       id="asset-spec-cpu"
                       value={cpu}
                       onChange={setCpu}
-                      placeholder="Intel Core i7-12700H"
+                      placeholder={t('placeholders.spec')}
                     />
                   </Field>
                   <Field label={t('form.specRam')}>
@@ -193,7 +194,7 @@ export function AssetCreateForm({ ref: refData, onSubmit, submitting, error }: A
                       id="asset-spec-ram"
                       value={ram}
                       onChange={setRam}
-                      placeholder="16 GB DDR5"
+                      placeholder={t('placeholders.spec')}
                     />
                   </Field>
                   <Field label={t('form.specSsd')}>
@@ -201,7 +202,7 @@ export function AssetCreateForm({ ref: refData, onSubmit, submitting, error }: A
                       id="asset-spec-ssd"
                       value={ssd}
                       onChange={setSsd}
-                      placeholder="512 GB NVMe"
+                      placeholder={t('placeholders.spec')}
                     />
                   </Field>
                   <Field label={t('form.specGpu')}>
@@ -209,7 +210,7 @@ export function AssetCreateForm({ ref: refData, onSubmit, submitting, error }: A
                       id="asset-spec-gpu"
                       value={gpu}
                       onChange={setGpu}
-                      placeholder="NVIDIA RTX 3060"
+                      placeholder={t('placeholders.spec')}
                     />
                   </Field>
                 </div>
@@ -258,7 +259,7 @@ export function AssetCreateForm({ ref: refData, onSubmit, submitting, error }: A
           >
             {t('form.save')}
           </Btn>
-          <Btn variant="ghost" size="md" type="button">
+          <Btn variant="ghost" size="md" type="button" {...(onCancel ? { onClick: onCancel } : {})}>
             {t('form.cancel')}
           </Btn>
         </div>

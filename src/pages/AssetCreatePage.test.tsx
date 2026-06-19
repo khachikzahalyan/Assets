@@ -69,12 +69,12 @@ describe('AssetCreatePage', () => {
     fireEvent.change(categorySelect, { target: { value: 'cat_laptop' } })
 
     // 2. Fill brand
-    await waitFor(() => screen.getByPlaceholderText(/Apple, Dell…/i))
-    const brandInput = screen.getByPlaceholderText(/Apple, Dell…/i)
+    await waitFor(() => screen.getByPlaceholderText(/Apple, Dell/i))
+    const brandInput = screen.getByPlaceholderText(/Apple, Dell/i)
     fireEvent.change(brandInput, { target: { value: 'Dell' } })
 
     // 3. Fill model
-    const modelInput = screen.getByPlaceholderText(/XPS 15, MacBook Pro…/i)
+    const modelInput = screen.getByPlaceholderText(/XPS 15, MacBook Pro/i)
     fireEvent.change(modelInput, { target: { value: 'XPS' } })
 
     // 4. Fill inventory code

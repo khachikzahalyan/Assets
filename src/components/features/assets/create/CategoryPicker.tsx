@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Select } from '@/components/ui'
 import type { CategoryRow } from '@/domain/asset'
 
@@ -27,12 +28,14 @@ export interface CategoryPickerProps {
 
 /** Groups categories by their `group` and renders them as a flat Select with group prefix labels. */
 export function CategoryPicker({ categories, value, onChange }: CategoryPickerProps) {
+  const { t } = useTranslation('assets')
+
   // Build options with group prefix label for visual grouping
   const groups: Array<'devices' | 'network' | 'furniture'> = ['devices', 'network', 'furniture']
   const groupLabels: Record<string, string> = {
-    devices: 'Устройства',
-    network: 'Сетевые',
-    furniture: 'Мебель',
+    devices: t('groups.devices'),
+    network: t('groups.network'),
+    furniture: t('groups.furniture'),
   }
 
   const options = groups.flatMap(g => {
@@ -49,7 +52,7 @@ export function CategoryPicker({ categories, value, onChange }: CategoryPickerPr
       value={value}
       onChange={onChange}
       options={options}
-      placeholder="Выберите категорию"
+      placeholder={t('placeholders.category')}
     />
   )
 }

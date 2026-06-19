@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 import { PageHeader, LoadingState, ErrorState } from '@/components/ui'
 import { AssetCreateForm } from '@/components/features/assets/create/AssetCreateForm'
 import { useAuth } from '@/contexts/AuthContext'
@@ -16,6 +17,7 @@ export interface AssetCreatePageProps {
 export function AssetCreatePage({ repository, onCreated }: AssetCreatePageProps) {
   const { t } = useTranslation('assets')
   const { user, role } = useAuth()
+  const navigate = useNavigate()
 
   // Build the default Firestore repo lazily — only when no test repo is injected.
   // The useMemo factory only executes if repository is undefined at mount time.
@@ -104,6 +106,7 @@ export function AssetCreatePage({ repository, onCreated }: AssetCreatePageProps)
         onSubmit={handleSubmit}
         submitting={submitting}
         error={saveError}
+        onCancel={() => navigate('/assets')}
       />
     </div>
   )

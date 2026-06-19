@@ -100,7 +100,7 @@ export function UpgradesPanel({
 
       {upgrades.length > 0 && (
         <ul className="space-y-2 mb-4">
-          {[...upgrades].reverse().map(ev => (
+          {[...upgrades].sort((a, b) => b.changedAt.localeCompare(a.changedAt)).map(ev => (
             <li
               key={ev.id}
               className="flex items-center gap-3 p-3 bg-[#111315] border border-[#2A2F36] rounded-lg text-[12.5px]"
