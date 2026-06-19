@@ -1,0 +1,57 @@
+{
+  "indexes": [
+    { "collectionGroup": "assets", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "statusId", "order": "ASCENDING" },
+      { "fieldPath": "updatedAt", "order": "DESCENDING" }
+    ]},
+    { "collectionGroup": "assets", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "branchId", "order": "ASCENDING" },
+      { "fieldPath": "updatedAt", "order": "DESCENDING" }
+    ]},
+    { "collectionGroup": "assets", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "statusId", "order": "ASCENDING" },
+      { "fieldPath": "branchId", "order": "ASCENDING" },
+      { "fieldPath": "updatedAt", "order": "DESCENDING" }
+    ]},
+    { "collectionGroup": "assets", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "statusId", "order": "ASCENDING" },
+      { "fieldPath": "invCode", "order": "ASCENDING" }
+    ]},
+    { "collectionGroup": "assets", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "branchId", "order": "ASCENDING" },
+      { "fieldPath": "invCode", "order": "ASCENDING" }
+    ]},
+    { "collectionGroup": "assets", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "statusId", "order": "ASCENDING" },
+      { "fieldPath": "branchId", "order": "ASCENDING" },
+      { "fieldPath": "invCode", "order": "ASCENDING" }
+    ]},
+    { "collectionGroup": "assets", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "statusId", "order": "ASCENDING" },
+      { "fieldPath": "brand", "order": "ASCENDING" }
+    ]},
+    { "collectionGroup": "assets", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "statusId", "order": "ASCENDING" },
+      { "fieldPath": "brand", "order": "DESCENDING" }
+    ]},
+    { "collectionGroup": "assets", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "branchId", "order": "ASCENDING" },
+      { "fieldPath": "brand", "order": "ASCENDING" }
+    ]},
+    { "collectionGroup": "assets", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "branchId", "order": "ASCENDING" },
+      { "fieldPath": "brand", "order": "DESCENDING" }
+    ]},
+    { "collectionGroup": "assets", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "statusId", "order": "ASCENDING" },
+      { "fieldPath": "branchId", "order": "ASCENDING" },
+      { "fieldPath": "brand", "order": "ASCENDING" }
+    ]},
+    { "collectionGroup": "assets", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "statusId", "order": "ASCENDING" },
+      { "fieldPath": "branchId", "order": "ASCENDING" },
+      { "fieldPath": "brand", "order": "DESCENDING" }
+    ]}
+  ],
+  "fieldOverrides": []
+}

@@ -1,0 +1,127 @@
+rules_version = '2';
+
+// AMS — Asset Management System
+// Deny-by-default Firestore security rules.
+// Role is server-trusted: read from /users/{uid}.role via get(), NEVER from
+// client-supplied custom claims. audit_logs are IMMUTABLE for everyone.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---- Helpers ----
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // The caller's own users doc. Only call after isSignedIn().
+    function userDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function role() {
+      return userDoc().role;
+    }
+
+    function isSuperAdmin() {
+      return isSignedIn() && role() == 'super_admin';
+    }
+
+    function isAssetAdmin() {
+      return isSignedIn() && role() == 'asset_admin';
+    }
+
+    function isTechAdmin() {
+      return isSignedIn() && role() == 'tech_admin';
+    }
+
+    function isAnyAdmin() {
+      return isSuperAdmin() || isAssetAdmin() || isTechAdmin();
+    }
+
+    // ---- /users ----
+    // Read: self or super_admin. Create/delete + role/status changes: super_admin only.
+    // A signed-in user may update their OWN doc only if role + status are unchanged
+    // (prevents self role-escalation).
+    match /users/{uid} {
+      allow read: if isSignedIn() && (request.auth.uid == uid || isSuperAdmin());
+      allow create: if isSuperAdmin();
+      allow update: if isSuperAdmin()
+        || (
+          isSignedIn()
+          && request.auth.uid == uid
+          && request.resource.data.role == resource.data.role
+          && request.resource.data.status == resource.data.status
+        );
+      allow delete: if isSuperAdmin();
+    }
+
+    // ---- Operational entities: read any signed-in, write super | asset_admin ----
+    match /assets/{id} {
+      allow read: if isSignedIn();
+      allow write: if isSuperAdmin() || isAssetAdmin();
+    }
+    match /branches/{id} {
+      allow read: if isSignedIn();
+      allow write: if isSuperAdmin() || isAssetAdmin();
+    }
+    match /employees/{id} {
+      allow read: if isSignedIn();
+      allow write: if isSuperAdmin() || isAssetAdmin();
+    }
+
+    // ---- Reference catalogs: read any signed-in, write super only ----
+    match /asset_statuses/{id} {
+      allow read: if isSignedIn();
+      allow write: if isSuperAdmin();
+    }
+    match /categories/{id} {
+      allow read: if isSignedIn();
+      allow write: if isSuperAdmin();
+    }
+    // Departments are reference/catalog data (§5): super_admin only may mutate.
+    match /departments/{id} {
+      allow read: if isSignedIn();
+      allow write: if isSuperAdmin();
+    }
+
+    // ---- /assignments ----
+    // Read: any signed-in. Create: super | asset_admin. Update: super | asset_admin
+    // but ONLY the endedAt / transferComment fields may change. Never deletable.
+    match /assignments/{id} {
+      allow read: if isSignedIn();
+      allow create: if isSuperAdmin() || isAssetAdmin();
+      allow update: if (isSuperAdmin() || isAssetAdmin())
+        && request.resource.data.diff(resource.data)
+             .affectedKeys().hasOnly(['endedAt', 'transferComment']);
+      allow delete: if false;
+    }
+
+    // ---- /audit_logs — IMMUTABLE ----
+    // Reads scoped by role. Creates allowed for any signed-in user (writes happen
+    // inside withAudit transactions in app code; tightened in a later plan).
+    // UPDATE and DELETE are forbidden for EVERYONE, including super_admin. This is
+    // the hard security invariant of the system.
+    match /audit_logs/{id} {
+      allow read: if isAnyAdmin()
+        || (
+          isSignedIn()
+          && resource.data.entityType == 'assignment'
+          && resource.data.after != null
+          && resource.data.after.assignedToEmployeeId == request.auth.uid
+        );
+      allow create: if isSignedIn();
+      allow update, delete: if false;
+    }
+
+    // ---- /settings — super only ----
+    match /settings/{doc} {
+      allow read: if isSuperAdmin();
+      allow write: if isSuperAdmin();
+    }
+
+    // ---- Catch-all: deny everything not matched above ----
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,14 @@
+rules_version = '2';
+
+// AMS — Cloud Storage security rules.
+// Deny-by-default baseline. Granular acts/{assetId}/* write rules (10 MB cap,
+// JPEG/PNG/PDF whitelist, role-matched ownership) ship with the assignment
+// feature in a later plan. Until then NOTHING is readable or writable.
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,439 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =========================================================
+   AMS — Design System Tokens
+   Dark Enterprise palette.
+   ========================================================= */
+
+:root {
+
+  /* ── SURFACES ── */
+  --color-bg:             #111315;
+  --color-surface:        #1B1F24;
+  --color-surface-2:      #22272E;
+  --color-surface-raised: #1B1F24;
+  --color-surface-sunken: #0E1013;
+
+  /* ── BORDERS ── */
+  --color-border:         #2A2F36;
+  --color-border-strong:  #3A4048;
+
+  /* ── TEXT ── */
+  --color-text:           #F8FAFC;
+  --color-text-primary:   #F8FAFC;
+  --color-text-secondary: #CBD5E1;
+  --color-text-tertiary:  #94A3B8;
+  --color-text-muted:     #94A3B8;
+  --color-text-subtle:    #64748B;
+  --color-text-mono:      #FB923C;
+
+  /* ── ACCENT (orange) ── */
+  --color-accent:         #F97316;
+  --color-accent-hover:   #EA580C;
+  --color-accent-light:   #FB923C;
+  --color-accent-dark:    #C2410C;
+  --color-accent-soft:    rgba(249, 115, 22, 0.12);
+  --color-focus-ring:     rgba(249, 115, 22, 0.40);
+
+  /* ── STATUS: SUCCESS ── */
+  --color-stock-ok-bg:       rgba(16, 185, 129, 0.15);
+  --color-stock-ok-text:     #6EE7B7;
+  --color-stock-ok-dot:      #10B981;
+  --color-move-receipt-bg:   rgba(16, 185, 129, 0.15);
+  --color-move-receipt-text: #6EE7B7;
+  --color-move-receipt-dot:  #10B981;
+
+  /* ── STATUS: WARNING / REPAIR ── */
+  --color-stock-low-bg:      rgba(245, 158, 11, 0.15);
+  --color-stock-low-text:    #FCD34D;
+  --color-stock-low-dot:     #F59E0B;
+  --color-move-repair-bg:    rgba(245, 158, 11, 0.15);
+  --color-move-repair-text:  #FCD34D;
+  --color-move-repair-dot:   #F59E0B;
+
+  /* ── STATUS: ERROR ── */
+  --color-stock-empty-bg:    rgba(244, 63, 94, 0.15);
+  --color-stock-empty-text:  #FDA4AF;
+  --color-stock-empty-dot:   #F43F5E;
+
+  /* ── STATUS: INSTALL / INFO ── */
+  --color-move-install-bg:   rgba(56, 189, 248, 0.15);
+  --color-move-install-text: #7DD3FC;
+  --color-move-install-dot:  #38BDF8;
+
+  /* ── STATUS: NEUTRAL / REMOVAL ── */
+  --color-move-removal-bg:   rgba(148, 163, 184, 0.12);
+  --color-move-removal-text: #CBD5E1;
+  --color-move-removal-dot:  #94A3B8;
+
+  /* ── STATUS: GENERIC SEMANTIC ── */
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-error:   #EF4444;
+  --color-info:    #38BDF8;
+
+  /* ── ASSET-DETAIL — surface-soft ── */
+  --color-surface-card:  var(--color-surface-2);
+  --color-surface-hover: var(--color-surface-2);
+
+  /* ── RADII ── */
+  --radius-sm:   0.375rem;
+  --radius-md:   0.5rem;
+  --radius-lg:   0.75rem;
+  --radius-xl:   1rem;
+  --radius-pill: 62.5rem;
+  --radius-card:  16px;
+  --radius-btn:   12px;
+  --radius-input: 12px;
+  --radius-chip:  999px;
+
+  /* ── SHADOWS ── */
+  --shadow-sm:       0 1px 2px 0 rgb(0 0 0 / 0.4);
+  --shadow-md:       0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.2);
+  --shadow-lg:       0 10px 15px -3px rgb(0 0 0 / 0.35), 0 4px 6px -4px rgb(0 0 0 / 0.2);
+  --shadow-xl:       0 20px 25px -5px rgb(0 0 0 / 0.40), 0 8px 10px -6px rgb(0 0 0 / 0.25);
+  --shadow-2xl:      0 25px 50px -12px rgb(0 0 0 / 0.50);
+  --shadow-card:     0 1px 2px rgba(0,0,0,0.4), 0 4px 12px rgba(0,0,0,0.25);
+  --shadow-elevated: 0 8px 24px rgba(0,0,0,0.45);
+  --shadow-popover:  0 12px 32px rgba(0,0,0,0.55);
+
+  /* ── TYPOGRAPHY ── */
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+
+  /* ── LAYOUT ── */
+  --sidebar-width:     260px;
+  --sidebar-min-w:     260px;
+  --sidebar-max-w:     260px;
+  --topbar-height:     4rem;
+  --content-max-width: 1400px;
+  --content-max-w:     1400px;
+  --content-px:        19px;
+  --content-py:        24px;
+
+  /* ── Z-INDEX ── */
+  --z-base:      0;
+  --z-sticky:    10;
+  --z-drawer:    40;
+  --z-overlay:   45;
+  --z-dropdown:  50;
+  --z-modal:     60;
+  --z-modal-pop: 1000;
+  --z-toast:     2000;
+}
+
+/* =========================================================
+   Base
+   ========================================================= */
+html {
+  background-color: var(--color-bg);
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-feature-settings: 'cv11', 'ss01', 'ss03';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 0.875rem; /* 14px default body */
+}
+
+::selection {
+  background: var(--color-accent-soft);
+  color: var(--color-text);
+}
+
+[type="number"]::-webkit-inner-spin-button,
+[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* ── Custom scrollbar — dark ── */
+::-webkit-scrollbar              { width: 10px; height: 10px; }
+::-webkit-scrollbar-track        { background: transparent; }
+::-webkit-scrollbar-thumb        {
+  background: var(--color-border);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover  {
+  background: var(--color-border-strong);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+/* =========================================================
+   Page background — app-shell radial gradients
+   ========================================================= */
+.app-shell-bg {
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(249, 115, 22, 0.04), transparent 60%),
+    radial-gradient(1000px 500px at 110% 10%,  rgba(56, 189, 248, 0.03), transparent 60%),
+    var(--color-bg, #111315);
+}
+
+/* =========================================================
+   Lucide icon host
+   ========================================================= */
+.icon-host {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+  vertical-align: -2px;
+  flex-shrink: 0;
+}
+.icon-host svg {
+  width: 100%;
+  height: 100%;
+  stroke-width: 1.75;
+}
+
+/* =========================================================
+   Animations
+   ========================================================= */
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.anim-fade-slide-in {
+  animation: fadeSlideIn 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes popIn {
+  0%   { opacity: 0; transform: scale(0.96); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.anim-pop-in {
+  animation: popIn 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes modalPop {
+  from { opacity: 0; transform: scale(0.96) translateY(4px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0);   }
+}
+.anim-modal-pop {
+  animation: modalPop 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes backdropFade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.anim-backdrop-fade {
+  animation: backdropFade 140ms ease-out both;
+}
+
+@keyframes drawerSlideIn {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(0); }
+}
+.anim-drawer-slide {
+  animation: drawerSlideIn 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes dropdownIn {
+  from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+.anim-dropdown-in {
+  animation: dropdownIn 160ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform-origin: top center;
+}
+
+@keyframes skeletonShimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.anim-skeleton {
+  background: linear-gradient(90deg,
+    var(--color-surface, #1B1F24) 0%,
+    var(--color-surface-2, #22272E) 50%,
+    var(--color-surface, #1B1F24) 100%);
+  background-size: 800px 100%;
+  animation: skeletonShimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes contentEnter {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+.anim-content-enter {
+  animation: contentEnter 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* =========================================================
+   App-shell layout primitives
+   ========================================================= */
+.app-shell-root {
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-shell-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.app-shell-sidebar {
+  width: var(--sidebar-width);
+  flex-shrink: 0;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.app-shell-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-shell-topbar {
+  height: var(--topbar-height);
+  flex-shrink: 0;
+  background: var(--color-surface);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+}
+
+.app-shell-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--content-py) var(--content-px);
+}
+
+/* ===== Shell parts (Task 4) ===== */
+
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.60);
+  z-index: var(--z-overlay);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+.sidebar-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: var(--sidebar-width);
+  background: var(--color-surface, #1B1F24);
+  border-right: 1px solid var(--color-border, #2A2F36);
+  z-index: calc(var(--z-overlay) + 1);
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-2xl);
+}
+
+.sidebar-section-label {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle, #64748B);
+  padding: 0.875rem 1.125rem 0.5rem;
+}
+
+.sidebar-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  height: 2.875rem;
+  margin: 0 0.625rem;
+  padding: 0 0.75rem;
+  border-radius: var(--radius-md);
+  font-size: 16.5px;
+  font-weight: 500;
+  color: var(--color-text-secondary, #CBD5E1);
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease;
+  user-select: none;
+}
+.sidebar-item:hover {
+  background-color: var(--color-surface-2, #22272E);
+  color: var(--color-text, #F8FAFC);
+}
+.sidebar-item.is-active {
+  background-color: var(--color-accent-soft, rgba(249,115,22,0.12));
+  color: var(--color-accent-light, #FB923C);
+  font-weight: 600;
+}
+
+.sidebar-item-badge {
+  margin-left: auto;
+  font-size: 13.5px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background: var(--color-surface-2, #22272E);
+  color: var(--color-text-secondary, #CBD5E1);
+  font-variant-numeric: tabular-nums;
+}
+.sidebar-item.is-active .sidebar-item-badge {
+  background: var(--color-accent-soft, rgba(249,115,22,0.12));
+  color: var(--color-accent-light, #FB923C);
+}
+
+.card {
+  background: var(--color-surface, #1B1F24);
+  border: 1px solid var(--color-border, #2A2F36);
+  border-radius: var(--radius-card, 16px);
+  box-shadow: var(--shadow-card, 0 1px 2px rgba(0,0,0,0.4), 0 4px 12px rgba(0,0,0,0.25));
+}
+
+.search-input {
+  background: var(--color-bg, #111315);
+  border: 1px solid var(--color-border, #2A2F36);
+  color: var(--color-text, #F8FAFC);
+  border-radius: var(--radius-input, 12px);
+}
+.search-input::placeholder {
+  color: var(--color-text-subtle, #64748B);
+}
+.search-input:focus {
+  outline: none;
+  border-color: var(--color-accent, #F97316);
+  box-shadow: 0 0 0 3px var(--color-focus-ring, rgba(249,115,22,0.40));
+}
+
+.input {
+  background: var(--color-bg, #111315);
+  border: 1px solid var(--color-border, #2A2F36);
+  color: var(--color-text, #F8FAFC);
+  border-radius: var(--radius-input, 12px);
+}
+.input::placeholder {
+  color: var(--color-text-subtle, #64748B);
+}
+.input:focus {
+  outline: none;
+  border-color: var(--color-accent, #F97316);
+  box-shadow: 0 0 0 3px var(--color-focus-ring, rgba(249,115,22,0.40));
+}
+.input:disabled {
+  background: var(--color-surface, #1B1F24);
+  color: var(--color-text-subtle, #64748B);
+}

@@ -1,0 +1,54 @@
+{
+  "create": "Create asset",
+  "actions": {
+    "edit": "Edit"
+  },
+  "relTime": {
+    "now": "just now",
+    "minAgo": "{{n}} min ago",
+    "hourAgo": "{{n}} h ago",
+    "dayAgo": "{{n}} days ago"
+  },
+  "search": "Search by name, inv. code, serial…",
+  "filters": {
+    "group": "Group",
+    "allGroups": "All groups",
+    "status": "Status",
+    "allStatuses": "All statuses",
+    "branch": "Branch",
+    "allBranches": "All branches",
+    "sort": "Sort",
+    "reset": "Reset"
+  },
+  "groups": {
+    "devices": "Devices",
+    "network": "Network",
+    "furniture": "Furniture"
+  },
+  "sort": {
+    "updated_desc": "Newest first",
+    "updated_asc": "Oldest first",
+    "name_asc": "Name A–Z",
+    "name_desc": "Name Z–A",
+    "inv_asc": "Inv. code"
+  },
+  "cols": {
+    "asset": "Asset",
+    "code": "Inv. code",
+    "status": "Status",
+    "assignee": "Assigned to",
+    "branch": "Branch",
+    "updated": "Updated"
+  },
+  "assignee": {
+    "warehouse": "In warehouse",
+    "none": "—"
+  },
+  "empty": {
+    "title": "No assets found",
+    "desc": "Change filters or create the first asset."
+  },
+  "pagination": {
+    "range": "{{from}}–{{to}} of {{total}}"
+  }
+}

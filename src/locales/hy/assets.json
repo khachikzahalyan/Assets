@@ -1,0 +1,55 @@
+{
+  "_todo": "hy translations are English placeholders — schedule native Armenian review",
+  "create": "Ստեղծել ակտիվ",
+  "actions": {
+    "edit": "Խմբագրել"
+  },
+  "relTime": {
+    "now": "հենց հիմա",
+    "minAgo": "{{n}} րոպե առաջ",
+    "hourAgo": "{{n}} ժ առաջ",
+    "dayAgo": "{{n}} օր առաջ"
+  },
+  "search": "Փնտրել անունով, ինվ. կոդով, սերիայով…",
+  "filters": {
+    "group": "Խումբ",
+    "allGroups": "Բոլոր խմբերը",
+    "status": "Կարգավիճակ",
+    "allStatuses": "Բոլոր կարգավիճակները",
+    "branch": "Մասնաճյուղ",
+    "allBranches": "Բոլոր մասնաճյուղերը",
+    "sort": "Տեսակավորում",
+    "reset": "Զրոյացնել"
+  },
+  "groups": {
+    "devices": "Սարքեր",
+    "network": "Ցանցային",
+    "furniture": "Կահույք"
+  },
+  "sort": {
+    "updated_desc": "Նախ նոր",
+    "updated_asc": "Նախ հին",
+    "name_asc": "Անուն Ա–Ֆ",
+    "name_desc": "Անուն Ֆ–Ա",
+    "inv_asc": "Ինվ. կոդ"
+  },
+  "cols": {
+    "asset": "Ակտիվ",
+    "code": "Ինվ. կոդ",
+    "status": "Կարգ.",
+    "assignee": "Նշանակված",
+    "branch": "Մասնաճյուղ",
+    "updated": "Թարմ."
+  },
+  "assignee": {
+    "warehouse": "Պահեստում",
+    "none": "—"
+  },
+  "empty": {
+    "title": "Ակտիվներ չեն գտնվել",
+    "desc": "Փոխեք ֆիլտրերը կամ ստեղծեք առաջին ակտիվը։"
+  },
+  "pagination": {
+    "range": "{{from}}–{{to}} / {{total}}"
+  }
+}

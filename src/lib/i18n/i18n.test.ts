@@ -1,0 +1,10 @@
+import { describe, it, expect, beforeAll } from 'vitest'
+import i18n from './index'
+
+describe('i18n', () => {
+  beforeAll(async () => { await i18n.changeLanguage('ru') })
+  it('resolves a ru nav key', () => { expect(i18n.t('items.dashboard', { ns: 'nav' })).toBe('Дашборд') })
+  it('switches to en', async () => { await i18n.changeLanguage('en'); expect(i18n.t('items.dashboard', { ns: 'nav' })).toBe('Dashboard') })
+  it('switches to hy without throwing and returns a string', async () => { await i18n.changeLanguage('hy'); expect(typeof i18n.t('items.dashboard', { ns: 'nav' })).toBe('string') })
+  it('falls back to ru for an unknown lng', async () => { await i18n.changeLanguage('zz'); expect(i18n.t('app.name')).toBe('AMS') })
+})

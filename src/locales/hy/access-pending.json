@@ -1,0 +1,8 @@
+{
+  "_todo": "hy translations are English placeholders — schedule native Armenian review",
+  "title": "Account not activated",
+  "desc": "You have signed in successfully, but your account has not yet been provisioned by an AMS administrator.",
+  "signedInAs": "Signed in as",
+  "contact": "Contact your system administrator to gain access.",
+  "signOut": "Sign out"
+}

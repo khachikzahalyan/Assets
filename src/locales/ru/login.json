@@ -1,0 +1,25 @@
+{
+  "page": { "title": "Войти в AMS", "subtitle": "Asset Management System" },
+  "admin": {
+    "label": "Для администраторов",
+    "googleBtn": "Войти через Google"
+  },
+  "divider": "или",
+  "employee": {
+    "label": "Для сотрудников",
+    "emailPlaceholder": "Введите ваш email",
+    "linkBtn": "Получить ссылку для входа",
+    "sending": "Отправка…",
+    "successTitle": "Проверьте почту",
+    "successDesc": "Мы отправили ссылку для входа на {{email}}. Ссылка действует 1 час.",
+    "invalidEmail": "Введите корректный email",
+    "tryAnother": "Отправить на другой email"
+  },
+  "confirmEmailPrompt": "Введите email, на который была отправлена ссылка для входа",
+  "error": {
+    "googleFailed": "Не удалось войти через Google. Попробуйте ещё раз.",
+    "linkFailed": "Не удалось отправить ссылку. Проверьте email и попробуйте снова.",
+    "emailLinkFailed": "Ссылка недействительна или устарела. Запросите новую."
+  },
+  "loading": "Проверка ссылки для входа…"
+}
