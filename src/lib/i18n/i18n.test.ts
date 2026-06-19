@@ -8,3 +8,11 @@ describe('i18n', () => {
   it('switches to hy without throwing and returns a string', async () => { await i18n.changeLanguage('hy'); expect(typeof i18n.t('items.dashboard', { ns: 'nav' })).toBe('string') })
   it('falls back to ru for an unknown lng', async () => { await i18n.changeLanguage('zz'); expect(i18n.t('app.name')).toBe('AMS') })
 })
+
+describe('employees namespace', () => {
+  it.each(['ru', 'en', 'hy'] as const)('resolves employees.title in %s', async (lng) => {
+    await i18n.changeLanguage(lng)
+    expect(i18n.t('title', { ns: 'employees' })).toBeTruthy()
+    expect(i18n.t('title', { ns: 'employees' })).not.toBe('title')
+  })
+})

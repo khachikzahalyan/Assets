@@ -1,0 +1,61 @@
+{
+  "create": "Add employee",
+  "detail": {
+    "acts": "Signed acts",
+    "assets": "Assigned assets",
+    "noActs": "No signed acts",
+    "noAssets": "No assigned assets",
+    "profile": "Profile",
+    "reactivate": "Reactivate",
+    "terminate": "Terminate",
+    "viewScan": "Open scan"
+  },
+  "empty": {
+    "desc": "Add the first employee",
+    "title": "No employees yet"
+  },
+  "filter": {
+    "all": "All",
+    "branch": "Branch",
+    "department": "Department",
+    "search": "Search",
+    "status": "Status"
+  },
+  "form": {
+    "branch": "Branch",
+    "cancel": "Cancel",
+    "createTitle": "New employee",
+    "department": "Department",
+    "editTitle": "Edit employee",
+    "email": "Corporate email",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "notFound": "Employee not found",
+    "pickBranch": "Select a branch",
+    "pickDepartment": "Select a department",
+    "position": "Position",
+    "save": "Save",
+    "uid": "User ID (uid)",
+    "uidHint": "The employee's Firebase Auth uid. Matches users/{uid}."
+  },
+  "self": {
+    "myActs": "My acts",
+    "myAssets": "My assets",
+    "noActs": "You have no signed acts",
+    "noAssets": "No assets are assigned to you",
+    "noProfile": "Your profile is not set up yet. Please contact an administrator.",
+    "profile": "My profile"
+  },
+  "status": {
+    "active": "Active",
+    "terminated": "Terminated"
+  },
+  "title": "Employees",
+  "validation": {
+    "emailFormat": "Enter a valid email",
+    "emailTaken": "This email is already in use",
+    "required": "Required field",
+    "saveFailed": "Could not save. Please try again.",
+    "uidRequired": "Provide a uid"
+  }
+}
