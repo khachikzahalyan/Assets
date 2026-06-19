@@ -5,7 +5,6 @@ import i18n from '@/lib/i18n'
 import { AuditDiff } from './AuditDiff'
 import type { AuditLog } from '@/domain/audit'
 
-// The 'audit' namespace is not yet seeded (Task 9), so t() returns raw keys.
 // All assertions target values, structure, or masked strings — not translated labels.
 
 beforeAll(async () => {
@@ -130,9 +129,8 @@ describe('AuditDiff', () => {
     // Arrange + Act
     renderDiff(log)
 
-    // Assert — no table rows rendered; the "noChanges" key is shown as-is
+    // Assert — no table rows rendered; the translated "noChanges" message is shown
     expect(screen.queryByRole('row')).toBeNull()
-    // The t() call returns the raw key because 'audit' namespace isn't seeded yet
-    expect(screen.getByText('diff.noChanges')).toBeInTheDocument()
+    expect(screen.getByText(i18n.t('diff.noChanges', { ns: 'audit' }))).toBeInTheDocument()
   })
 })

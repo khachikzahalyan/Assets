@@ -6,7 +6,6 @@ import { AuditFilterBar } from './AuditFilterBar'
 import type { AuditLogQuery } from '@/domain/audit'
 import type { AuditLogReferenceData } from '@/domain/audit/AuditLogRepository'
 
-// 'audit' namespace is not yet seeded (Task 9), so t() returns raw keys.
 // Assertions are made against query payload shapes, not translated label text.
 
 beforeAll(async () => {
@@ -77,8 +76,7 @@ describe('AuditFilterBar', () => {
     const onChange = vi.fn()
     renderBar(DEFAULT_QUERY, onChange)
 
-    // The search input has type="search" and an aria-label matching the 'search' i18n key.
-    // When the audit namespace is absent t('search') returns 'search'.
+    // The search input has type="search".
     const searchInput = screen.getByRole('searchbox')
 
     // Act

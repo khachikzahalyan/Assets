@@ -7,7 +7,6 @@ import { AuditTable } from './AuditTable'
 import type { AuditLog } from '@/domain/audit'
 import type { AuditLogReferenceData } from '@/domain/audit/AuditLogRepository'
 
-// The 'audit' namespace is not yet seeded (Task 9), so t() returns raw keys.
 // All assertions target values (timestamps, names, entity ids) — not translated chrome.
 
 beforeAll(async () => {
