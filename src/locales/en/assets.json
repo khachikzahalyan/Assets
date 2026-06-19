@@ -80,6 +80,12 @@
     "upgrades": "Upgrades",
     "writeOff": "Write off"
   },
+  "oem": {
+    "keyLabel": "OEM License Key",
+    "keyPlaceholder": "VK7JG-NPHTM-C97JM-9MPGT-3V66T",
+    "secureHint": "The key is stored securely. Only super admins can reveal it.",
+    "sectionTitle": "OEM License"
+  },
   "groups": {
     "devices": "Devices",
     "furniture": "Furniture",

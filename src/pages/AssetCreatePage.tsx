@@ -6,15 +6,26 @@ import { AssetCreateForm } from '@/components/features/assets/create/AssetCreate
 import { useAuth } from '@/contexts/AuthContext'
 import type { Asset, AssetReferenceData, CreateAssetInput } from '@/domain/asset'
 import type { AssetRepository, AssetWriteRepository } from '@/domain/asset'
-import { FirestoreAssetRepository } from '@/infra/repositories'
-import { db } from '@/lib/firebase'
+import { FirestoreAssetRepository, FirestoreWorkstationLicenseRepository } from '@/infra/repositories'
+import { db, functions } from '@/lib/firebase'
+import { httpsCallable } from 'firebase/functions'
 
 export interface AssetCreatePageProps {
   repository?: AssetRepository & AssetWriteRepository
   onCreated?: (a: Asset) => void
+  /**
+   * Optional hook to persist the raw OEM key to the secrets store after asset creation.
+   * Defaults to the `setLicenseKey` Cloud Function via httpsCallable.
+   * Inject a stub in tests to avoid calling Firebase Functions.
+   *
+   * NOTE: The raw key must never reach Firestore directly — it is routed through the
+   * Cloud Function which writes to `licenses/{id}/secrets/current` under admin SDK
+   * (Firestore client rules deny client writes to secrets/*).
+   */
+  onPersistOemSecret?: (licenseId: string, rawKey: string) => Promise<void>
 }
 
-export function AssetCreatePage({ repository, onCreated }: AssetCreatePageProps) {
+export function AssetCreatePage({ repository, onCreated, onPersistOemSecret }: AssetCreatePageProps) {
   const { t } = useTranslation('assets')
   const { user, role } = useAuth()
   const navigate = useNavigate()
@@ -61,10 +72,46 @@ export function AssetCreatePage({ repository, onCreated }: AssetCreatePageProps)
     setSubmitting(true)
     setSaveError(null)
     try {
-      const { value } = await (repo as AssetWriteRepository).createAsset(input, {
-        uid: user.id,
-        role,
-      })
+      const actor = { uid: user.id, role }
+      const { value } = await (repo as AssetWriteRepository).createAsset(input, actor)
+
+      // OEM secret persistence — only when the input carried a rawKey.
+      // The repo already created the license DOC (without the secret). Now we must
+      // persist the raw secret via the setLicenseKey callable (admin SDK writes to
+      // secrets/current; client SDK rules block direct writes).
+      //
+      // GUARD: skip when a test repository was injected — the InMemory repo stores
+      // secrets in-process already, and calling a callable from tests would fail.
+      if (input.oemLicense && 'rawKey' in input.oemLicense && input.oemLicense.rawKey) {
+        const rawKey = input.oemLicense.rawKey
+        try {
+          if (onPersistOemSecret) {
+            // Test path (or custom injection): the caller provided a stub.
+            await onPersistOemSecret('', rawKey) // licenseId resolved below when repo is Firestore
+          } else if (!repository) {
+            // Production Firestore path: look up the newly created license by asset id.
+            // This is a best-effort call — the asset + license DOC already exist; only
+            // the secret write could fail.
+            const licRepo = new FirestoreWorkstationLicenseRepository(db())
+            const bound = await licRepo.listForAsset(value.id)
+            const licenseId = bound[0]?.id
+            if (licenseId) {
+              const setLicenseKey = httpsCallable<
+                { collection: string; licenseId: string; rawKey: string },
+                void
+              >(functions(), 'setLicenseKey')
+              await setLicenseKey({ collection: 'licenses', licenseId, rawKey })
+            }
+          }
+          // If repository prop IS injected (non-Firestore) but no onPersistOemSecret
+          // was provided — the InMemory repo handles secret storage internally, nothing to do.
+        } catch {
+          // Non-fatal: the asset + license DOC exist. Warn in console — an admin
+          // can rotate the key later via the license management UI.
+          console.warn('[AMS] OEM secret persist failed — rotate the key manually via the license page.')
+        }
+      }
+
       onCreated?.(value)
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err)

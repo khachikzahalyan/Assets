@@ -41,7 +41,12 @@ export interface Asset {
 
 /** Reference rows resolved alongside assets so the table can render names. */
 export interface RefRow { id: string; name: string }
-export interface CategoryRow extends RefRow { group: 'devices' | 'network' | 'furniture'; lucideIcon: string }
+export interface CategoryRow extends RefRow {
+  group: 'devices' | 'network' | 'furniture'
+  lucideIcon: string
+  /** When true, the asset-create form renders the OEM License Key section. */
+  hasOemLicense?: boolean
+}
 export interface StatusRow extends RefRow { color: string }
 
 export interface EmployeeRow {

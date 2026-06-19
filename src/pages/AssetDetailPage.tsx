@@ -23,9 +23,11 @@ import type {
 import type { AuditLog } from '@/domain/audit'
 import type { UpgradeEvent } from '@/domain/asset'
 import type { Assignment, AssignmentRepository } from '@/domain/assignment'
-import { FirestoreAssetRepository, FirestoreAssignmentRepository } from '@/infra/repositories'
+import { FirestoreAssetRepository, FirestoreAssignmentRepository, FirestoreWorkstationLicenseRepository } from '@/infra/repositories'
 import { uploadActScan, actScanUrl } from '@/infra/storage'
 import { db, storage } from '@/lib/firebase'
+import type { WorkstationLicenseRepository } from '@/domain/license'
+import { WriteOffAssetService } from '@/domain/services/WriteOffAssetService'
 
 // Map status color strings from ref data to ChipColor values
 function toChipColor(color: string): ChipColor {
@@ -50,9 +52,10 @@ function toChipColor(color: string): ChipColor {
 export interface AssetDetailPageProps {
   repository?: AssetRepository & AssetWriteRepository
   assignmentRepository?: AssignmentRepository
+  licenseRepository?: WorkstationLicenseRepository
 }
 
-export function AssetDetailPage({ repository, assignmentRepository }: AssetDetailPageProps) {
+export function AssetDetailPage({ repository, assignmentRepository, licenseRepository }: AssetDetailPageProps) {
   const { t } = useTranslation('assets')
   const { user, role } = useAuth()
   const { id } = useParams<{ id: string }>()
@@ -73,6 +76,13 @@ export function AssetDetailPage({ repository, assignmentRepository }: AssetDetai
     [],
   )
   const repoAsn = assignmentRepository ?? defaultAsnRepo
+
+  const defaultLicenseRepo = useMemo<WorkstationLicenseRepository>(
+    () => new FirestoreWorkstationLicenseRepository(db()),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  )
+  const licenseRepo = licenseRepository ?? defaultLicenseRepo
 
   // ---- Data state ----
   const [loading, setLoading] = useState(true)
@@ -210,7 +220,8 @@ export function AssetDetailPage({ repository, assignmentRepository }: AssetDetai
     if (!asset) return
     setActionError(null)
     try {
-      await (repo as AssetWriteRepository).changeStatus(asset.id, 'st_disposed', actor)
+      const svc = new WriteOffAssetService(repo as AssetWriteRepository, licenseRepo)
+      await svc.writeOff(asset.id, actor)
       await load()
     } catch {
       setActionError(t('validation.saveFailed'))

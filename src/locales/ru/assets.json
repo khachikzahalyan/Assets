@@ -80,6 +80,12 @@
     "upgrades": "Апгрейды",
     "writeOff": "Списать"
   },
+  "oem": {
+    "keyLabel": "Лицензионный ключ OEM",
+    "keyPlaceholder": "VK7JG-NPHTM-C97JM-9MPGT-3V66T",
+    "secureHint": "Ключ хранится в зашифрованном виде. Только суперадмин может его просмотреть.",
+    "sectionTitle": "OEM-лицензия"
+  },
   "groups": {
     "devices": "Устройства",
     "furniture": "Мебель",

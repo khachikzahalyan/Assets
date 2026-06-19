@@ -5,6 +5,7 @@ import type { AssetReferenceData, CreateAssetInput } from '@/domain/asset'
 import { CategoryPicker, categoryCapabilities } from './CategoryPicker'
 import { QuickAssignment } from './QuickAssignment'
 import type { QAValue } from './QuickAssignment'
+import { maskLicenseKey } from '@/lib/audit/maskSecrets'
 
 export interface AssetCreateFormProps {
   ref: AssetReferenceData
@@ -31,12 +32,16 @@ export function AssetCreateForm({ ref: refData, onSubmit, submitting, error, onC
   const [ssd, setSsd] = useState('')
   const [gpu, setGpu] = useState('')
 
+  // OEM License key (only shown when selectedCategory.hasOemLicense === true)
+  const [oemRawKey, setOemRawKey] = useState('')
+
   // Quick Assignment
   const [qa, setQa] = useState<QAValue>({ picked: null, assignment: null })
 
   // Resolve selected category
   const selectedCategory = refData.categories.find(c => c.id === categoryId) ?? null
   const caps = selectedCategory ? categoryCapabilities(selectedCategory) : null
+  const showOemKey = selectedCategory?.hasOemLicense === true
 
   // Save gating
   const identityMissing: string[] = []
@@ -79,6 +84,12 @@ export function AssetCreateForm({ ref: refData, onSubmit, submitting, error, onC
         ? qa.assignment.departmentId
         : null
 
+    // OEM license: only included when the category has hasOemLicense and a key was typed
+    // TODO(D): free-key picker for existing pool licenses (existingLicenseId path)
+    const oemLicense: CreateAssetInput['oemLicense'] = showOemKey && oemRawKey.trim()
+      ? { rawKey: oemRawKey.trim() }
+      : null
+
     const input: CreateAssetInput = {
       categoryId,
       brand: caps.hasBrandModel ? brand.trim() || null : null,
@@ -90,6 +101,7 @@ export function AssetCreateForm({ ref: refData, onSubmit, submitting, error, onC
       branchId,
       deptId,
       currentSpecs,
+      oemLicense,
     }
 
     await onSubmit(input)
@@ -113,6 +125,7 @@ export function AssetCreateForm({ ref: refData, onSubmit, submitting, error, onC
               setInvCode('')
               setSerial('')
               setCpu(''); setRam(''); setSsd(''); setGpu('')
+              setOemRawKey('')
             }}
           />
         </Field>
@@ -216,7 +229,31 @@ export function AssetCreateForm({ ref: refData, onSubmit, submitting, error, onC
                 </div>
               </SectionCard>
             )}
-          </>
+          {/* OEM License Key — shown only for hasOemLicense categories */}
+          {showOemKey && (
+            <SectionCard title={t('oem.sectionTitle')} icon="key-round">
+              <div className="space-y-2">
+                <Field label={t('oem.keyLabel')}>
+                  <Input
+                    id="asset-oem-key"
+                    value={oemRawKey}
+                    onChange={setOemRawKey}
+                    placeholder={t('oem.keyPlaceholder')}
+                    mono
+                  />
+                </Field>
+                {oemRawKey && (
+                  <p className="text-[11px] font-mono text-[#64748B]">
+                    {maskLicenseKey(oemRawKey)}
+                  </p>
+                )}
+                <p className="text-[11px] text-[#64748B]">
+                  {t('oem.secureHint')}
+                </p>
+              </div>
+            </SectionCard>
+          )}
+        </>
         )}
 
         {/* Quick Assignment — rendered outside <Field> (which uses <label>)

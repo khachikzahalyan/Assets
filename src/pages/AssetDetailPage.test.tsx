@@ -5,7 +5,7 @@ import { I18nextProvider } from 'react-i18next'
 import i18n from '@/lib/i18n'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { AssetDetailPage } from './AssetDetailPage'
-import { InMemoryAssetRepository } from '@/infra/repositories'
+import { InMemoryAssetRepository, InMemoryWorkstationLicenseRepository } from '@/infra/repositories'
 import { createInMemoryAuditStore, inMemoryAuditContext } from '@/lib/audit'
 import type { AssetReferenceData } from '@/domain/asset'
 import type { Role } from '@/config/roles'
@@ -74,6 +74,73 @@ describe('AssetDetailPage', () => {
     await seed('asset_admin')
     await waitFor(() => screen.getByText(/450\/1/))
     expect(screen.queryByRole('button', { name: /Добавить апгрейд/i })).toBeNull()
+  })
+
+  it('write-off decouples a reusable device-bound workstation license', async () => {
+    const store = createInMemoryAuditStore()
+    const auditCtx = inMemoryAuditContext(store)
+    const licenseRepo = new InMemoryWorkstationLicenseRepository(auditCtx)
+    const repo = new InMemoryAssetRepository([], REF, auditCtx, licenseRepo)
+
+    // Seed an asset
+    const { value: asset } = await repo.createAsset(
+      {
+        categoryId: 'cat_laptop',
+        brand: 'Dell',
+        model: 'XPS',
+        invCode: '999/1',
+        serial: 'SN99',
+        assignment: null,
+        branchId: 'b_main',
+        deptId: null,
+        currentSpecs: null,
+      },
+      { uid: 'u1', role: 'asset_admin' },
+    )
+
+    // Seed a reusable license device-bound to the asset
+    await licenseRepo.createLicense(
+      {
+        name: 'Windows 11 Pro',
+        type: 'Retail',
+        isReusable: true,
+        assign: { to: 'device', assetId: asset.id },
+      },
+      { uid: 'u1', role: 'asset_admin' },
+    )
+
+    // Confirm it is bound before the write-off
+    const boundBefore = await licenseRepo.listForAsset(asset.id)
+    expect(boundBefore).toHaveLength(1)
+
+    render(
+      <I18nextProvider i18n={i18n}>
+        <AuthProvider initialRole="asset_admin">
+          <MemoryRouter initialEntries={[`/assets/${asset.id}`]}>
+            <Routes>
+              <Route
+                path="/assets/:id"
+                element={<AssetDetailPage repository={repo} licenseRepository={licenseRepo} />}
+              />
+            </Routes>
+          </MemoryRouter>
+        </AuthProvider>
+      </I18nextProvider>,
+    )
+
+    // Wait for detail page to load, then click write-off
+    await waitFor(() => screen.getByText(/999\/1/))
+    const writeOffBtn = screen.getByRole('button', { name: /Списать/i })
+    fireEvent.click(writeOffBtn)
+
+    // After the async service call, asset is disposed and license is decoupled
+    await waitFor(async () => {
+      const updated = await repo.getAsset(asset.id)
+      expect(updated?.statusId).toBe('st_disposed')
+    })
+
+    const boundAfter = await licenseRepo.listForAsset(asset.id)
+    expect(boundAfter).toHaveLength(0)
   })
 
   it('tech_admin can add an upgrade and the audit/upgrade list updates', async () => {
