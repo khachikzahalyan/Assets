@@ -22,7 +22,7 @@ export function ConfirmDeleteDialog(p: ConfirmDeleteDialogProps) {
         <div className="flex justify-end gap-2">
           <Btn variant="secondary" size="sm" onClick={p.onCancel}>{p.cancelLabel}</Btn>
           {!p.blockedMessage && (
-            <Btn variant="danger" size="sm" disabled={p.busy} onClick={p.onConfirm}>{p.confirmLabel}</Btn>
+            <Btn variant="danger" size="sm" disabled={!!p.busy} onClick={p.onConfirm}>{p.confirmLabel}</Btn>
           )}
         </div>
       </div>

@@ -44,7 +44,7 @@ export function DepartmentFormDialog(p: DepartmentFormDialogProps) {
         </div>
         <div className="flex justify-end gap-2 mt-5">
           <Btn variant="secondary" size="sm" onClick={p.onCancel}>{t('form.cancel')}</Btn>
-          <Btn variant="primary" size="sm" disabled={p.submitting} onClick={submit}>{t('form.save')}</Btn>
+          <Btn variant="primary" size="sm" disabled={!!p.submitting} onClick={submit}>{t('form.save')}</Btn>
         </div>
       </div>
     </div>

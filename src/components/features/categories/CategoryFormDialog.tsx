@@ -97,7 +97,7 @@ export function CategoryFormDialog(p: CategoryFormDialogProps) {
               <Input
                 value={prefix}
                 onChange={setPrefix}
-                disabled={p.prefixLocked}
+                disabled={!!p.prefixLocked}
               />
             </Field>
             {p.prefixLocked && (
@@ -135,7 +135,7 @@ export function CategoryFormDialog(p: CategoryFormDialogProps) {
 
         <div className="flex justify-end gap-2 mt-5">
           <Btn variant="secondary" size="sm" onClick={p.onCancel}>{t('form.cancel')}</Btn>
-          <Btn variant="primary" size="sm" disabled={p.submitting} onClick={submit}>{t('form.save')}</Btn>
+          <Btn variant="primary" size="sm" disabled={!!p.submitting} onClick={submit}>{t('form.save')}</Btn>
         </div>
       </div>
     </div>

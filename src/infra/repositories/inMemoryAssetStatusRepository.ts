@@ -72,8 +72,9 @@ export class InMemoryAssetStatusRepository implements AssetStatusRepository {
 
     // For system statuses: strip isFinal and isSystem from the applied patch
     // (display fields only: name/color/sortOrder pass through)
-    let effectivePatch: Omit<UpdateAssetStatusInput, 'isFinal'> & { isFinal?: never } = patch
+    let effectivePatch: UpdateAssetStatusInput = patch
     if (before.isSystem) {
+      // System statuses: only display fields (name/color/sortOrder) may change.
       const { isFinal: _isFinal, ...rest } = patch
       void _isFinal
       effectivePatch = rest
