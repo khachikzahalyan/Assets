@@ -117,16 +117,25 @@ export class FirestoreAssignmentRepository implements AssignmentRepository {
     if (!active) throw new Error(`No active assignment for asset: ${assetId}`)
     const assetRef = doc(this.db, 'assets', assetId)
     const asnRef = doc(this.db, 'assignments', active.id)
+    const now = new Date().toISOString()
 
     const r = await withAudit(this.audit,
       {
         entityType: 'assignment', entityId: active.id, action: 'returned',
         actorUid: actor.uid, actorRole: actor.role,
         before: { assetId, mode: active.mode },
-        after: { assetId, ended: true },
+        after: { assetId, endedAt: now },
       },
       async (txn) => {
         const t = txn as unknown as Transaction
+        // Re-read asnRef INSIDE the transaction before any writes to close the
+        // TOCTOU window: if a concurrent returnAsset already set endedAt, the
+        // in-transaction read sees the committed value and we abort. Firestore
+        // serialises the asnRef doc, so only one caller wins the contention.
+        const snap = await t.get(asnRef)
+        if (!snap.exists() || (snap.data() as Record<string, unknown>).endedAt != null) {
+          throw new Error(`No active assignment for asset: ${assetId}`)
+        }
         t.set(asnRef, { endedAt: serverTimestamp() }, { merge: true })
         t.set(assetRef, { statusId: 'st_warehouse', assignment: null, updatedBy: actor.uid, updatedAt: serverTimestamp() }, { merge: true })
         return { value: undefined as unknown as void }

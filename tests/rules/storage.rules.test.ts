@@ -38,6 +38,12 @@ describe('acts/* write', () => {
   it('rejects a disallowed content type', async () => {
     await assertFails(up(authedStorage(env, ASSET), 'acts/a1/scan.txt', 'text/plain'))
   })
+  it('rejects an upload larger than 10 MB even for asset_admin', async () => {
+    const BIG = new Uint8Array(10 * 1024 * 1024 + 1)
+    await assertFails(
+      uploadBytes(ref(authedStorage(env, ASSET), 'acts/a1/big.pdf'), BIG, { contentType: 'application/pdf' })
+    )
+  })
 })
 
 describe('acts/* read', () => {
