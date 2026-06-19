@@ -1,13 +1,11 @@
 import type { AuditLog, ActorRef } from '@/domain/audit'
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-
 /** DD/Mon/YYYY HH:MM — the AMS-standard timestamp format. Returns the raw input on parse failure. */
-export function formatAuditTs(iso: string): string {
+export function formatAuditTs(iso: string, locale: string = 'en'): string {
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return iso
   const dd = String(d.getDate()).padStart(2, '0')
-  const mon = MONTHS[d.getMonth()] ?? '???'
+  const mon = new Intl.DateTimeFormat(locale, { month: 'short' }).format(d)
   const yyyy = d.getFullYear()
   const hh = String(d.getHours()).padStart(2, '0')
   const mm = String(d.getMinutes()).padStart(2, '0')

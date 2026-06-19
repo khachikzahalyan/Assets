@@ -12,7 +12,7 @@ export interface AuditTableProps {
 }
 
 export function AuditTable({ rows, ref: refData }: AuditTableProps) {
-  const { t } = useTranslation('audit')
+  const { t, i18n } = useTranslation('audit')
   const navigate = useNavigate()
   const [expanded, setExpanded] = useState<string | null>(null)
 
@@ -48,7 +48,7 @@ export function AuditTable({ rows, ref: refData }: AuditTableProps) {
                     />
                   </td>
                   <td className="py-2 pr-3 text-[#94A3B8] whitespace-nowrap font-mono text-[12px]">
-                    {formatAuditTs(log.at)}
+                    {formatAuditTs(log.at, i18n.language)}
                   </td>
                   <td className="py-2 pr-3 text-[#F8FAFC]">
                     {resolveActorName(log.actorUid, refData.actors)}

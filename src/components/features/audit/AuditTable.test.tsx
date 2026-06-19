@@ -67,10 +67,11 @@ describe('AuditTable', () => {
       // Act
       renderTable([log])
 
-      // Assert — timestamp uses DD/Mon/YYYY HH:MM format
-      // formatAuditTs localises to the machine's timezone; we verify format shape.
-      // The month abbreviation is always a 3-letter English month from auditFormat.ts.
-      const tsPattern = /\d{2}\/[A-Z][a-z]{2}\/\d{4} \d{2}:\d{2}/
+      // Assert — timestamp uses DD/Mon/YYYY HH:MM format.
+      // formatAuditTs is now locale-aware; when i18n.language='ru', Intl 'short'
+      // month for Russian produces tokens like "янв." (Cyrillic + period).
+      // We match: 2-digit day / any non-digit non-slash chars (the month token) / 4-digit year SPACE HH:MM.
+      const tsPattern = /\d{2}\/[^/\d]+\/\d{4} \d{2}:\d{2}/
       const tsEl = screen.getByText(tsPattern)
       expect(tsEl).toBeInTheDocument()
     })

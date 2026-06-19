@@ -55,20 +55,17 @@ export function useAuditLogs(
 
   const currentCursor = cursorStack[cursorStack.length - 1] ?? null
 
+  // Page fetch — re-runs on every page turn, filter change, or explicit reload.
   useEffect(() => {
     let active = true
     setLoading(true)
     setError(null)
     void (async () => {
       try {
-        const [page, refData] = await Promise.all([
-          repository.listAuditLogs(query, currentCursor),
-          repository.loadReferenceData(),
-        ])
+        const page = await repository.listAuditLogs(query, currentCursor)
         if (!active) return
         setRows(page.rows)
         setNextCursor(page.nextCursor)
-        setRef(refData)
       } catch (err) {
         if (!active) return
         setError(err instanceof Error ? err : new Error(String(err)))
@@ -79,6 +76,24 @@ export function useAuditLogs(
     return () => { active = false }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [repository, queryKey, currentCursor, tick])
+
+  // Reference data fetch — re-runs only when the repository changes or on reload.
+  // Stable actor/reference data does not need to be re-fetched on every page turn.
+  useEffect(() => {
+    let active = true
+    void (async () => {
+      try {
+        const refData = await repository.loadReferenceData()
+        if (!active) return
+        setRef(refData)
+      } catch (err) {
+        if (!active) return
+        setError(err instanceof Error ? err : new Error(String(err)))
+      }
+    })()
+    return () => { active = false }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [repository, tick])
 
   const next = useCallback(() => {
     if (nextCursor != null) setCursorStack(s => [...s, nextCursor])

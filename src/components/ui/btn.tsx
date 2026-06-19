@@ -1,14 +1,10 @@
-import { type ReactNode } from 'react'
+import { type ReactNode, type ButtonHTMLAttributes } from 'react'
 
-export interface BtnProps {
+export interface BtnProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'onClick'> {
   children: ReactNode
   onClick?: () => void
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger'
   size?: 'sm' | 'md' | 'lg'
-  className?: string
-  disabled?: boolean
-  type?: 'button' | 'submit' | 'reset'
-  title?: string
 }
 
 export function Btn({
@@ -20,6 +16,7 @@ export function Btn({
   disabled,
   type = 'button',
   title,
+  ...rest
 }: BtnProps) {
   const variants = {
     primary:   'bg-[#F97316] text-white shadow-sm shadow-[#F97316]/20 hover:bg-[#EA580C] hover:shadow-md ring-1 ring-[#C2410C]/20 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(249,115,22,0.40)]',
@@ -39,6 +36,7 @@ export function Btn({
       onClick={onClick}
       title={title}
       className={`inline-flex items-center justify-center rounded-lg font-medium tracking-tight transition-all duration-150 ${sizes[size]} ${variants[variant]} ${className}`}
+      {...rest}
     >
       {children}
     </button>

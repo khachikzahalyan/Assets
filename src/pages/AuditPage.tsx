@@ -57,10 +57,10 @@ export function AuditPage({ repository }: AuditPageProps) {
         <div className="flex items-center justify-between pt-4 border-t border-[#2A2F36] mt-2">
           <span className="text-[12px] text-[#64748B]">{t('pagination.page', { page })}</span>
           <div className="flex items-center gap-2">
-            <Btn variant="secondary" size="sm" disabled={!hasPrev} onClick={prev}>
+            <Btn variant="secondary" size="sm" disabled={!hasPrev} onClick={prev} aria-label={t('pagination.prev')}>
               <Icon name="chevron-right" size={13} className="rotate-180" />
             </Btn>
-            <Btn variant="secondary" size="sm" disabled={!hasNext} onClick={next}>
+            <Btn variant="secondary" size="sm" disabled={!hasNext} onClick={next} aria-label={t('pagination.next')}>
               <Icon name="chevron-right" size={13} />
             </Btn>
           </div>
