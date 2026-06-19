@@ -91,4 +91,25 @@ describe('InMemoryAuditLogRepository', () => {
     expect(byUid['u_1']).toBe('Khach')
     expect(byUid['u_2']).toBe('Anna')
   })
+
+  it('breaks at-timestamp ties by id DESC', async () => {
+    // Two logs share the exact same `at` value — the one with the lexicographically
+    // greater id must appear first in the sorted output.
+    const tied = [
+      log({ id: 'al_b', at: '2026-06-05T10:00:00.000Z', actorUid: 'u_1' }),
+      log({ id: 'al_a', at: '2026-06-05T10:00:00.000Z', actorUid: 'u_1' }),
+      log({ id: 'al_c', at: '2026-06-05T10:00:00.000Z', actorUid: 'u_1' }),
+    ]
+    const repo = new InMemoryAuditLogRepository(tied)
+    const page = await repo.listAuditLogs(Q, null)
+    expect(page.rows.map(r => r.id)).toEqual(['al_c', 'al_b', 'al_a'])
+  })
+
+  it('applies combined filters (entityType + actorUid) correctly', async () => {
+    // Only al_1 is entityType='asset' AND actorUid='u_1'.
+    // al_2 is asset but u_2; al_3 is employee and u_1 — both must be excluded.
+    const repo = new InMemoryAuditLogRepository([...seed])
+    const page = await repo.listAuditLogs({ ...Q, entityType: 'asset', actorUid: 'u_1' }, null)
+    expect(page.rows.map(r => r.id)).toEqual(['al_1'])
+  })
 })
