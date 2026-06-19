@@ -290,6 +290,55 @@ export class FirestoreWorkstationLicenseRepository implements WorkstationLicense
     return { value: next, auditId: r.auditId }
   }
 
+  async retireLicense(
+    id: string,
+    assetId: string,
+    actor: Actor,
+  ): Promise<AuditedResult<WorkstationLicense>> {
+    const existing = await this.getLicense(id)
+    if (!existing) throw new Error(`WorkstationLicense not found: ${id}`)
+
+    const before = {
+      assignmentType: existing.assignmentType,
+      assignedToAssetId: existing.assignedToAssetId ?? null,
+      assignedToEmployeeId: existing.assignedToEmployeeId ?? null,
+      lifecycleStatus: existing.lifecycleStatus,
+    }
+
+    const ref = doc(this.db, COL, id)
+    const patch: Record<string, unknown> = {
+      lifecycleStatus: 'retired',
+      retiredAt: serverTimestamp(),
+      retiredWithAssetId: assetId,
+      assignmentType: 'unassigned',
+      assignedToAssetId: null,
+      assignedToEmployeeId: null,
+      assignedAt: null,
+      assignedBy: null,
+      updatedAt: serverTimestamp(),
+      updatedBy: actor.uid,
+    }
+
+    const safeSpec = sanitizeLicenseAuditPayload({
+      entityType: 'license' as const,
+      entityId: id,
+      action: 'license_retired_with_asset' as const,
+      actorUid: actor.uid,
+      actorRole: actor.role,
+      before: before as Record<string, unknown>,
+      after: { lifecycleStatus: 'retired', retiredWithAssetId: assetId },
+    })
+
+    const r = await withAudit(this.audit, safeSpec, async (txn) => {
+      ;(txn as unknown as Transaction).set(ref, patch, { merge: true })
+      return { value: undefined as unknown as void }
+    })
+
+    const next = await this.getLicense(id)
+    if (!next) throw new Error('License retire succeeded but readback failed')
+    return { value: next, auditId: r.auditId }
+  }
+
   // Secret persistence is owned by the setLicenseKey Cloud Function; this method only records
   // the rotation + masked audit. Callers persist the raw key via the callable.
   async rotateKey(

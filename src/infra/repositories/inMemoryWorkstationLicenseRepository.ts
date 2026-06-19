@@ -273,6 +273,52 @@ export class InMemoryWorkstationLicenseRepository implements WorkstationLicenseR
     })
   }
 
+  async retireLicense(
+    id: string,
+    assetId: string,
+    actor: Actor,
+  ): Promise<AuditedResult<WorkstationLicense>> {
+    const existing = this.docs.get(id)
+    if (!existing) throw new Error(`WorkstationLicense not found: ${id}`)
+
+    const before = {
+      assignmentType: existing.assignmentType,
+      assignedToAssetId: existing.assignedToAssetId ?? null,
+      assignedToEmployeeId: existing.assignedToEmployeeId ?? null,
+      lifecycleStatus: existing.lifecycleStatus,
+    }
+    const now = new Date().toISOString()
+
+    const updated: WorkstationLicense = {
+      ...existing,
+      lifecycleStatus: 'retired',
+      retiredAt: now,
+      retiredWithAssetId: assetId,
+      assignmentType: 'unassigned',
+      assignedToAssetId: null,
+      assignedToEmployeeId: null,
+      assignedAt: null,
+      assignedBy: null,
+      updatedAt: now,
+      updatedBy: actor.uid,
+    }
+
+    const safeSpec = sanitizeLicenseAuditPayload({
+      entityType: 'license' as const,
+      entityId: id,
+      action: 'license_retired_with_asset' as const,
+      actorUid: actor.uid,
+      actorRole: actor.role,
+      before: before as Record<string, unknown>,
+      after: { lifecycleStatus: 'retired', retiredWithAssetId: assetId },
+    })
+
+    return withAudit(this.ctx, safeSpec, async () => {
+      this.docs.set(id, updated)
+      return { value: this.cloneDoc(updated) }
+    })
+  }
+
   async rotateKey(
     id: string,
     rawKey: string,

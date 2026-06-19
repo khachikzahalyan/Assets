@@ -31,5 +31,12 @@ export interface WorkstationLicenseRepository {
   createLicense(input: CreateWorkstationLicenseInput, actor: Actor): Promise<AuditedResult<WorkstationLicense>>
   assignLicense(id: string, input: AssignWorkstationLicenseInput, actor: Actor): Promise<AuditedResult<WorkstationLicense>>
   decoupleLicense(id: string, actor: Actor): Promise<AuditedResult<WorkstationLicense>>
+  /**
+   * RETIRE a non-reusable license because the asset it was bound to is being
+   * written off. Sets `lifecycleStatus` to `'retired'`, stamps `retiredAt` and
+   * `retiredWithAssetId`, clears the assignment, and records a
+   * `'license_retired_with_asset'` audit entry.
+   */
+  retireLicense(id: string, assetId: string, actor: Actor): Promise<AuditedResult<WorkstationLicense>>
   rotateKey(id: string, rawKey: string, actor: Actor): Promise<AuditedResult<WorkstationLicense>>
 }
