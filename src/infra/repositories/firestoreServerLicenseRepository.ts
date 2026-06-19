@@ -10,7 +10,7 @@ import type {
 } from '@/domain/license'
 import type { ServerLicenseRepository, ServerLicenseListQuery } from '@/domain/license'
 import { firestoreAuditContext, withAudit } from '@/lib/audit'
-import { maskLicenseKey, sanitizeLicenseAuditPayload } from '@/lib/audit'
+import { sanitizeLicenseAuditPayload } from '@/lib/audit'
 
 const COL = 'server_licenses'
 
@@ -92,7 +92,7 @@ export class FirestoreServerLicenseRepository implements ServerLicenseRepository
     const afterPayload: Record<string, unknown> = {
       id,
       name: input.name,
-      ...(input.rawKey ? { key: maskLicenseKey(input.rawKey) } : {}),
+      ...(input.rawKey ? { key: input.rawKey } : {}),
     }
     const safeSpec = sanitizeLicenseAuditPayload({
       entityType: 'server_license' as const,
@@ -184,7 +184,7 @@ export class FirestoreServerLicenseRepository implements ServerLicenseRepository
       actorUid: actor.uid,
       actorRole: actor.role,
       before: null,
-      after: { id, key: maskLicenseKey(rawKey) } as Record<string, unknown>,
+      after: { id, key: rawKey } as Record<string, unknown>,
     })
 
     const r = await withAudit(this.audit, safeSpec, async (txn) => {

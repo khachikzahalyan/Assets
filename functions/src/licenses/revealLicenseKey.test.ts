@@ -204,6 +204,20 @@ describe('revealCore', () => {
     ).rejects.toMatchObject({ code: 'invalid-argument' })
   })
 
+  it('throws invalid-argument for a licenseId containing "/" and writes NO audit', async () => {
+    await expect(
+      revealCore({ uid: 'uid-super', collection: 'licenses', licenseId: 'a/b/c' }, db),
+    ).rejects.toMatchObject({ code: 'invalid-argument' })
+    expect(auditAdds).toHaveLength(0)
+  })
+
+  it('throws invalid-argument for an empty licenseId and writes NO audit', async () => {
+    await expect(
+      revealCore({ uid: 'uid-super', collection: 'licenses', licenseId: '' }, db),
+    ).rejects.toMatchObject({ code: 'invalid-argument' })
+    expect(auditAdds).toHaveLength(0)
+  })
+
   // ---- Missing secret -------------------------------------------------------
 
   it('throws not-found when the secret doc does not exist', async () => {

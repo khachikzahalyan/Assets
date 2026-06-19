@@ -70,6 +70,18 @@ export async function setKeyCore(
     )
   }
 
+  // 1b. Validate licenseId: must be a non-empty string, no '/' chars, <= 200 chars.
+  // This prevents an attacker-controlled id from redirecting db.doc() to an
+  // unintended nested path (e.g. 'a/b/c' would silently traverse subcollections).
+  if (
+    !args.licenseId ||
+    typeof args.licenseId !== 'string' ||
+    args.licenseId.includes('/') ||
+    args.licenseId.length > 200
+  ) {
+    throw new HttpsError('invalid-argument', 'Invalid licenseId')
+  }
+
   // 2. Validate rawKey.
   if (!args.rawKey || typeof args.rawKey !== 'string') {
     throw new HttpsError('invalid-argument', 'rawKey must be a non-empty string')

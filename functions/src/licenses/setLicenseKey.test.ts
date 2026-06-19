@@ -185,6 +185,22 @@ describe('setKeyCore — argument validation', () => {
       ),
     ).rejects.toMatchObject({ code: 'invalid-argument' })
   })
+
+  it('throws invalid-argument for a licenseId containing "/" and writes NO secret, NO audit', async () => {
+    await expect(
+      setKeyCore({ uid: 'uid-super', collection: 'licenses', licenseId: 'a/b/c', rawKey: RAW_KEY }, db),
+    ).rejects.toMatchObject({ code: 'invalid-argument' })
+    expect(state.secretSets).toHaveLength(0)
+    expect(state.auditAdds).toHaveLength(0)
+  })
+
+  it('throws invalid-argument for an empty licenseId and writes NO secret, NO audit', async () => {
+    await expect(
+      setKeyCore({ uid: 'uid-super', collection: 'licenses', licenseId: '', rawKey: RAW_KEY }, db),
+    ).rejects.toMatchObject({ code: 'invalid-argument' })
+    expect(state.secretSets).toHaveLength(0)
+    expect(state.auditAdds).toHaveLength(0)
+  })
 })
 
 // ---- Missing parent --------------------------------------------------------

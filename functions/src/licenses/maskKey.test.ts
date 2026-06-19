@@ -10,8 +10,8 @@ describe('maskKey', () => {
     expect(maskKey('ABCD1234')).toBe('****1234')
   })
 
-  it('returns as-is when there are 4 or fewer alphanumeric chars', () => {
-    expect(maskKey('AB')).toBe('AB')
+  it('fully masks when there are 2 alphanumeric chars (short key)', () => {
+    expect(maskKey('AB')).toBe('**')
   })
 
   it('returns an empty string unchanged', () => {
@@ -22,8 +22,15 @@ describe('maskKey', () => {
     expect(maskKey('AAAA BBBB-CCCC')).toBe('**** ****-CCCC')
   })
 
-  it('does not mask when exactly 4 alphanumeric chars', () => {
-    expect(maskKey('ABCD')).toBe('ABCD')
-    expect(maskKey('A-B-C-D')).toBe('A-B-C-D')
+  it('fully masks when exactly 4 alphanumeric chars (no separators)', () => {
+    expect(maskKey('ABCD')).toBe('****')
+  })
+
+  it('fully masks when exactly 4 alphanumeric chars with separators', () => {
+    expect(maskKey('A-B-C-D')).toBe('*-*-*-*')
+  })
+
+  it('fully masks when exactly 4 alphanumeric chars separated by dashes (AB-CD)', () => {
+    expect(maskKey('AB-CD')).toBe('**-**')
   })
 })

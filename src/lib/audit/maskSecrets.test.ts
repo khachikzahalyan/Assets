@@ -18,21 +18,20 @@ describe('maskLicenseKey', () => {
     expect(maskLicenseKey('AAAA BBBB-CCCC')).toBe('**** ****-CCCC')
   })
 
-  it('does NOT mask when total alnum chars is exactly 4', () => {
-    // 'AB' has only 2 alnum chars — nothing masked
-    expect(maskLicenseKey('AB')).toBe('AB')
+  it('fully masks when total alnum chars is 2 (short key)', () => {
+    expect(maskLicenseKey('AB')).toBe('**')
   })
 
-  it('does NOT mask when total alnum chars is 2', () => {
-    expect(maskLicenseKey('AB')).toBe('AB')
+  it('fully masks when total alnum chars is exactly 4 (no separators)', () => {
+    expect(maskLicenseKey('ABCD')).toBe('****')
   })
 
-  it('does NOT mask a 4-alnum key', () => {
-    expect(maskLicenseKey('ABCD')).toBe('ABCD')
+  it('fully masks when total alnum chars is exactly 4 with separators (AB-CD)', () => {
+    expect(maskLicenseKey('AB-CD')).toBe('**-**')
   })
 
-  it('does NOT mask a key with 4 alnum chars separated by dashes', () => {
-    expect(maskLicenseKey('A-B-C-D')).toBe('A-B-C-D')
+  it('fully masks a key with 4 alnum chars separated by dashes', () => {
+    expect(maskLicenseKey('A-B-C-D')).toBe('*-*-*-*')
   })
 
   it('returns an empty string for empty input', () => {
@@ -55,8 +54,8 @@ describe('maskLicenseKey', () => {
     expect(maskLicenseKey('1234 5678')).toBe('**** 5678')
   })
 
-  it('handles a single alphanumeric character (no masking)', () => {
-    expect(maskLicenseKey('A')).toBe('A')
+  it('fully masks a single alphanumeric character (short key)', () => {
+    expect(maskLicenseKey('A')).toBe('*')
   })
 
   it('handles a string of only separators', () => {
@@ -92,7 +91,7 @@ describe('sanitizeLicenseAuditPayload', () => {
     const input = [{ key: 'ABCD1234' }, { key: 'AB' }]
     const result = sanitizeLicenseAuditPayload(input)
     expect(result[0]?.key).toBe('****1234')
-    expect(result[1]?.key).toBe('AB')
+    expect(result[1]?.key).toBe('**')
   })
 
   it('passes through primitives unchanged', () => {

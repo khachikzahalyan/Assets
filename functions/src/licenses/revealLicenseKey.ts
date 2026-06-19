@@ -46,6 +46,18 @@ export async function revealCore(
     )
   }
 
+  // Validate licenseId: must be a non-empty string, no '/' chars, <= 200 chars.
+  // This prevents an attacker-controlled id from redirecting db.doc() to an
+  // unintended nested path (e.g. 'a/b/c' would silently traverse subcollections).
+  if (
+    !args.licenseId ||
+    typeof args.licenseId !== 'string' ||
+    args.licenseId.includes('/') ||
+    args.licenseId.length > 200
+  ) {
+    throw new HttpsError('invalid-argument', 'Invalid licenseId')
+  }
+
   const role = await assertSuperAdmin(args.uid, db)
 
   const secretRef = db.doc(`${args.collection}/${args.licenseId}/secrets/current`)

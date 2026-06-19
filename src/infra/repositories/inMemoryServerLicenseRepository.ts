@@ -9,7 +9,7 @@ import {
   withAudit,
   type AuditContext,
 } from '@/lib/audit'
-import { maskLicenseKey, sanitizeLicenseAuditPayload } from '@/lib/audit'
+import { sanitizeLicenseAuditPayload } from '@/lib/audit'
 
 export class InMemoryServerLicenseRepository implements ServerLicenseRepository {
   private docs = new Map<string, ServerLicense>()
@@ -77,7 +77,7 @@ export class InMemoryServerLicenseRepository implements ServerLicenseRepository 
     const afterPayload: Record<string, unknown> = {
       id,
       name: doc.name,
-      ...(input.rawKey ? { key: maskLicenseKey(input.rawKey) } : {}),
+      ...(input.rawKey ? { key: input.rawKey } : {}),
     }
     const safeSpec = sanitizeLicenseAuditPayload({
       entityType: 'server_license' as const,
@@ -164,7 +164,7 @@ export class InMemoryServerLicenseRepository implements ServerLicenseRepository 
       actorUid: actor.uid,
       actorRole: actor.role,
       before: null,
-      after: { id, key: maskLicenseKey(rawKey) } as Record<string, unknown>,
+      after: { id, key: rawKey } as Record<string, unknown>,
     })
 
     return withAudit(this.ctx, safeSpec, async () => {

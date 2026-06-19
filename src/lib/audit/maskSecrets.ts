@@ -6,16 +6,19 @@
  *
  * Mask format (non-negotiable):
  *   - Collect all alphanumeric characters in the raw string.
- *   - Preserve the LAST up-to-4 of those characters in their original positions.
- *   - Replace every OTHER alphanumeric character with '*'.
+ *   - Preserve the LAST up-to-4 of those characters in their original positions
+ *     ONLY IF the key has STRICTLY MORE THAN 4 alphanumeric characters.
+ *   - If the key has 4 OR FEWER alphanumeric characters, mask ALL of them.
+ *   - Replace every masked alphanumeric character with '*'.
  *   - All non-alphanumeric characters (dashes, spaces, etc.) keep their positions.
- *   - If the key has 4 or fewer alphanumeric characters in total, nothing is masked.
  *
  * Examples:
  *   'XCVF-7TR5-9HJK-5592'  ->  '****-****-****-5592'
  *   'ABCD1234'              ->  '****1234'
  *   'AAAA BBBB-CCCC'        ->  '**** ****-CCCC'
- *   'AB'                    ->  'AB'
+ *   'AB'                    ->  '**'   (short key — fully masked)
+ *   'ABCD'                  ->  '****' (exactly 4 alnum — fully masked)
+ *   'AB-CD'                 ->  '**-**' (4 alnum with separator — fully masked)
  *   ''                      ->  ''
  */
 
@@ -48,13 +51,10 @@ export function maskLicenseKey(raw: string): MaskedKey {
     }
   }
 
-  // If 4 or fewer alnum chars, nothing is masked — return as-is.
-  if (alnumIndices.length <= 4) {
-    return raw as MaskedKey
-  }
-
-  // The last up-to-4 alnum indices are preserved; everything before them is masked.
-  const keepSet = new Set(alnumIndices.slice(-4))
+  // Preserve last 4 alnum chars ONLY when there are strictly more than 4;
+  // if there are 4 or fewer, mask them all (keepCount = 0).
+  const keepCount = alnumIndices.length > 4 ? 4 : 0
+  const keepSet = new Set(alnumIndices.slice(alnumIndices.length - keepCount))
 
   // Rebuild the string character by character.
   let result = ''

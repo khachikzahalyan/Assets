@@ -7,15 +7,17 @@
  *
  * Algorithm:
  *   - Collect indices of all alphanumeric characters in the raw string.
- *   - If there are 4 or fewer alphanumeric characters, return the key as-is.
- *   - Otherwise preserve the LAST up-to-4 alphanumeric characters unchanged.
- *   - Replace every other alphanumeric character with '*'.
+ *   - Preserve the last 4 alphanumeric characters ONLY IF the key has STRICTLY
+ *     MORE THAN 4 alphanumeric characters; otherwise mask ALL of them.
+ *   - Replace every masked alphanumeric character with '*'.
  *   - Non-alphanumeric characters (dashes, spaces, etc.) keep their positions.
  *
  * Examples:
  *   'XCVF-7TR5-9HJK-5592'  ->  '****-****-****-5592'
  *   'ABCD1234'              ->  '****1234'
- *   'AB'                    ->  'AB'
+ *   'AB'                    ->  '**'   (short key — fully masked)
+ *   'ABCD'                  ->  '****' (exactly 4 alnum — fully masked)
+ *   'AB-CD'                 ->  '**-**' (4 alnum with separator — fully masked)
  *   ''                      ->  ''
  */
 export function maskKey(raw: string): string {
@@ -28,10 +30,10 @@ export function maskKey(raw: string): string {
     }
   }
 
-  // 4 or fewer alphanumeric chars → nothing masked
-  if (alnumIndices.length <= 4) return raw
-
-  const keepSet = new Set(alnumIndices.slice(-4))
+  // Preserve last 4 alnum chars ONLY when there are strictly more than 4;
+  // if there are 4 or fewer, mask them all (keepCount = 0).
+  const keepCount = alnumIndices.length > 4 ? 4 : 0
+  const keepSet = new Set(alnumIndices.slice(alnumIndices.length - keepCount))
 
   let result = ''
   for (let i = 0; i < raw.length; i++) {

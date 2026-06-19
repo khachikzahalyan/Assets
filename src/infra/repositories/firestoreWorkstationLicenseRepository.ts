@@ -12,7 +12,7 @@ import type {
 } from '@/domain/license'
 import type { WorkstationLicenseRepository, WorkstationLicenseListQuery } from '@/domain/license'
 import { firestoreAuditContext, withAudit } from '@/lib/audit'
-import { maskLicenseKey, sanitizeLicenseAuditPayload } from '@/lib/audit'
+import { sanitizeLicenseAuditPayload } from '@/lib/audit'
 
 const COL = 'licenses'
 
@@ -172,7 +172,7 @@ export class FirestoreWorkstationLicenseRepository implements WorkstationLicense
       name: input.name,
       assignmentType: assignmentFields.assignmentType,
       lifecycleStatus: 'active',
-      ...(input.rawKey ? { key: maskLicenseKey(input.rawKey) } : {}),
+      ...(input.rawKey ? { key: input.rawKey } : {}),
     }
     const safeSpec = sanitizeLicenseAuditPayload({
       entityType: 'license' as const,
@@ -313,7 +313,7 @@ export class FirestoreWorkstationLicenseRepository implements WorkstationLicense
       actorUid: actor.uid,
       actorRole: actor.role,
       before: null,
-      after: { id, key: maskLicenseKey(rawKey) } as Record<string, unknown>,
+      after: { id, key: rawKey } as Record<string, unknown>,
     })
 
     const r = await withAudit(this.audit, safeSpec, async (txn) => {

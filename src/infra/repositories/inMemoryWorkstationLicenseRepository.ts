@@ -11,7 +11,7 @@ import {
   withAudit,
   type AuditContext,
 } from '@/lib/audit'
-import { maskLicenseKey, sanitizeLicenseAuditPayload } from '@/lib/audit'
+import { sanitizeLicenseAuditPayload } from '@/lib/audit'
 
 export class InMemoryWorkstationLicenseRepository implements WorkstationLicenseRepository {
   private docs = new Map<string, WorkstationLicense>()
@@ -156,13 +156,14 @@ export class InMemoryWorkstationLicenseRepository implements WorkstationLicenseR
       updatedBy: actor.uid,
     }
 
-    // Build audit after payload — key is masked if present, never raw
+    // Build audit after payload — sanitizeLicenseAuditPayload is the sole masking
+    // step; pass the raw key so it is masked exactly once.
     const afterPayload: Record<string, unknown> = {
       id,
       name: doc.name,
       assignmentType: doc.assignmentType,
       lifecycleStatus: doc.lifecycleStatus,
-      ...(input.rawKey ? { key: maskLicenseKey(input.rawKey) } : {}),
+      ...(input.rawKey ? { key: input.rawKey } : {}),
     }
     const safeSpec = sanitizeLicenseAuditPayload({
       entityType: 'license' as const,
@@ -294,7 +295,7 @@ export class InMemoryWorkstationLicenseRepository implements WorkstationLicenseR
       actorUid: actor.uid,
       actorRole: actor.role,
       before: null,
-      after: { id, key: maskLicenseKey(rawKey) } as Record<string, unknown>,
+      after: { id, key: rawKey } as Record<string, unknown>,
     })
 
     return withAudit(this.ctx, safeSpec, async () => {
