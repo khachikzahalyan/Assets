@@ -15,6 +15,7 @@ import type { UpgradeComponent, UpgradeEvent } from '@/domain/asset'
 import { deriveCreateStatus, isSpecTracked, SPEC_KEY } from '@/domain/asset'
 import { firestoreAuditContext, withAudit } from '@/lib/audit'
 import type { AuditedResult, AuditLog } from '@/domain/audit'
+import type { WorkstationLicenseRepository } from '@/domain/license'
 
 const SERVER_SORT: Record<AssetSort, [string, 'asc' | 'desc']> = {
   updated_desc: ['updatedAt', 'desc'],
@@ -56,7 +57,21 @@ function toAsset(id: string, d: Record<string, unknown>): Asset {
  * matching the org-scale dataset (hundreds of assets).
  */
 export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepository {
-  constructor(private readonly db: Firestore) {}
+  constructor(
+    private readonly db: Firestore,
+    /**
+     * Optional workstation-license repository. When provided, `createAsset` creates
+     * or re-binds a device-bound OEM license whenever `input.oemLicense` is set.
+     * The license doc is written as a SEPARATE audited call after the asset transaction
+     * (not inside the same `runTransaction`). The raw OEM secret is persisted by the
+     * `setLicenseKey` callable in the create page — never in this repo.
+     *
+     * Asset + license-doc are created as sequential audited writes; the raw OEM secret
+     * is persisted by the setLicenseKey callable in the create page. A future hardening
+     * could merge the two doc writes into one runTransaction.
+     */
+    private readonly licenses?: WorkstationLicenseRepository,
+  ) {}
 
   // Lazy audit context — avoids constructing the context (and any circular import
   // evaluation) until the first write call.
@@ -178,13 +193,37 @@ export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepo
         after: { invCode: input.invCode, statusId } },
       async (txn) => {
         ;(txn as unknown as Transaction).set(ref, data)
-        // STUB: license write seam — when category hasOemLicense and input.oemLicense is present,
-        // the OEM license doc + its secret will be written here in the SAME transaction once the
-        // license plan lands. Intentionally a no-op now (no license collection exists yet).
         return { value: undefined as unknown as void }
       })
     const created = await this.getAsset(ref.id)
     if (!created) throw new Error('Asset create succeeded but readback failed')
+
+    // License coupling — runs AFTER the asset transaction so the new asset id is stable.
+    // The license doc (and its masked audit entry) are written by the license repo in a
+    // separate audited call. The raw OEM secret is NOT written here — the create page
+    // calls the setLicenseKey Cloud Function after this method returns.
+    // Asset + license-doc are created as sequential audited writes; a future hardening
+    // could merge the two doc writes into one runTransaction.
+    if (input.oemLicense && this.licenses) {
+      if ('rawKey' in input.oemLicense) {
+        const name = [`OEM —`, input.brand, input.model].filter(Boolean).join(' ').replace(/^OEM —\s*$/, 'OEM License')
+        await this.licenses.createLicense({
+          name,
+          type: 'OEM',
+          isReusable: false,
+          rawKey: input.oemLicense.rawKey,
+          assign: { to: 'device', assetId: ref.id },
+        }, actor)
+      } else {
+        // existingLicenseId branch — re-bind an existing unassigned license to this device
+        await this.licenses.assignLicense(
+          input.oemLicense.existingLicenseId,
+          { to: 'device', assetId: ref.id },
+          actor,
+        )
+      }
+    }
+
     return { value: created, auditId: r.auditId }
   }
 

@@ -10,6 +10,7 @@ import {
 } from '@/domain/asset'
 import { withAudit, type AuditContext, createInMemoryAuditStore, inMemoryAuditContext } from '@/lib/audit'
 import type { AuditLog } from '@/domain/audit'
+import type { WorkstationLicenseRepository } from '@/domain/license'
 
 const SORTERS: Record<AssetSort, (a: Asset, b: Asset) => number> = {
   updated_desc: (a, b) => b.updatedAt.localeCompare(a.updatedAt),
@@ -28,6 +29,12 @@ export class InMemoryAssetRepository implements AssetRepository, AssetWriteRepos
     private readonly assets: Asset[],
     private readonly ref: AssetReferenceData,
     private readonly audit: AuditContext = inMemoryAuditContext(createInMemoryAuditStore()),
+    /**
+     * Optional workstation-license repository. When provided, `createAsset` will
+     * create or re-bind a device-bound OEM license whenever `input.oemLicense` is
+     * set. The license write produces its own audit entry via the license repo.
+     */
+    private readonly licenses?: WorkstationLicenseRepository,
   ) {}
 
   private seq = 0
@@ -143,6 +150,29 @@ export class InMemoryAssetRepository implements AssetRepository, AssetWriteRepos
       },
     )
     this.mirror(id, r, 'created', actor.uid, actor.role, null, { ...asset } as Record<string, unknown>)
+
+    // License coupling — runs AFTER the asset write so the new asset id is stable.
+    // Produces its own audit entry via the license repo (two total: asset created + license created/assigned).
+    if (input.oemLicense && this.licenses) {
+      if ('rawKey' in input.oemLicense) {
+        const name = [`OEM —`, input.brand, input.model].filter(Boolean).join(' ').replace(/^OEM —\s*$/, 'OEM License')
+        await this.licenses.createLicense({
+          name,
+          type: 'OEM',
+          isReusable: false,
+          rawKey: input.oemLicense.rawKey,
+          assign: { to: 'device', assetId: id },
+        }, actor)
+      } else {
+        // existingLicenseId branch
+        await this.licenses.assignLicense(
+          input.oemLicense.existingLicenseId,
+          { to: 'device', assetId: id },
+          actor,
+        )
+      }
+    }
+
     return r
   }
 

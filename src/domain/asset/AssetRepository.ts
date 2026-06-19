@@ -56,8 +56,17 @@ export interface CreateAssetInput {
   branchId: string
   deptId: string | null
   currentSpecs?: AssetSpecs | null
-  /** STUB seam (license plan): masked OEM key when category has hasOemLicense. */
-  oemLicense?: { keyMasked: string } | null
+  /**
+   * OEM license to create or re-bind when the asset is created.
+   *
+   * - `{ rawKey }`: asset-create creates a new device-bound OEM workstation license.
+   *   The raw secret itself is persisted by the `setLicenseKey` callable in the page
+   *   layer (Firestore rules deny `secrets/*` from the client SDK).
+   * - `{ existingLicenseId }`: the identified license is re-bound to the new asset
+   *   as a device assignment (it must currently exist in the workstation-license store).
+   * - Absent / null: no license action is taken (backwards-compatible default).
+   */
+  oemLicense?: { rawKey: string } | { existingLicenseId: string } | null
 }
 
 export interface UpdateAssetInput {
