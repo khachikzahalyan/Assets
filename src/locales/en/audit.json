@@ -1,0 +1,37 @@
+{
+  "search": "Search by entity ID or actor…",
+  "col": {
+    "time": "Time", "actor": "Actor", "role": "Role",
+    "entity": "Entity", "action": "Action", "entityId": "Entity ID"
+  },
+  "entity": {
+    "asset": "Asset", "assignment": "Assignment", "upgrade": "Upgrade", "license": "License",
+    "employee": "Employee", "user": "User", "branch": "Branch",
+    "department": "Department", "category": "Category", "asset_status": "Asset status"
+  },
+  "action": {
+    "created": "Created", "updated": "Updated", "status_changed": "Status changed",
+    "assigned": "Assigned", "returned": "Returned", "transferred": "Transferred",
+    "upgrade_added": "Upgrade added", "disposed": "Disposed",
+    "sent_to_repair": "Sent to repair", "repair_completed": "Repair completed",
+    "terminated": "Terminated", "reactivated": "Reactivated",
+    "role_assigned": "Role assigned", "deleted": "Deleted"
+  },
+  "role": {
+    "super_admin": "Super Admin", "asset_admin": "Asset Admin",
+    "tech_admin": "Tech Admin", "employee": "Employee"
+  },
+  "filters": {
+    "allEntities": "All entities", "allActions": "All actions", "allActors": "All actors",
+    "from": "From", "to": "To", "reset": "Reset"
+  },
+  "diff": {
+    "field": "Field", "before": "Before", "after": "After",
+    "comment": "Comment", "noChanges": "No field changes"
+  },
+  "pagination": { "page": "Page {{page}}" },
+  "empty": {
+    "title": "No entries",
+    "desc": "Audit log entries will appear here as changes are made in the system."
+  }
+}

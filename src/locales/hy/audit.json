@@ -1,0 +1,37 @@
+{
+  "search": "Որոնել ըստ օբյեկտի ID-ի կամ օգտատիրոջ…",
+  "col": {
+    "time": "Ժամ", "actor": "Օգտատեր", "role": "Դեր",
+    "entity": "Օբյեկտ", "action": "Գործողություն", "entityId": "Օբյեկտի ID"
+  },
+  "entity": {
+    "asset": "Ակտիվ", "assignment": "Հանձնում", "upgrade": "Արդիականացում", "license": "Լիցենզիա",
+    "employee": "Աշխատակից", "user": "Օգտատեր", "branch": "Մասնաճյուղ",
+    "department": "Բաժին", "category": "Կատեգորիա", "asset_status": "Ակտիվի կարգավիճակ"
+  },
+  "action": {
+    "created": "Ստեղծված", "updated": "Թարմացված", "status_changed": "Կարգավիճակը փոխված",
+    "assigned": "Հանձնված", "returned": "Վերադարձված", "transferred": "Տեղափոխված",
+    "upgrade_added": "Արդիականացում ավելացված", "disposed": "Դուրս գրված",
+    "sent_to_repair": "Ուղարկված նորոգման", "repair_completed": "Նորոգումն ավարտված",
+    "terminated": "Աշխատանքից ազատված", "reactivated": "Վերականգնված",
+    "role_assigned": "Դեր նշանակված", "deleted": "Ջնջված"
+  },
+  "role": {
+    "super_admin": "Սուպեր Ադմին", "asset_admin": "Ակտիվների Ադմին",
+    "tech_admin": "Տեխ. Ադմին", "employee": "Աշխատակից"
+  },
+  "filters": {
+    "allEntities": "Բոլոր օբյեկտները", "allActions": "Բոլոր գործողությունները", "allActors": "Բոլոր օգտատերերը",
+    "from": "Սկսած", "to": "Մինչև", "reset": "Զրոյացնել"
+  },
+  "diff": {
+    "field": "Դաշտ", "before": "Նախկինում", "after": "Հետո",
+    "comment": "Մեկնաբանություն", "noChanges": "Դաշտերի փոփոխություններ չկան"
+  },
+  "pagination": { "page": "Էջ {{page}}" },
+  "empty": {
+    "title": "Գրառումներ չկան",
+    "desc": "Աուդիտի մատյանի գրառումները կհայտնվեն այստեղ համակարգում փոփոխությունների հետ։"
+  }
+}

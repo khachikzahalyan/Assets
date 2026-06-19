@@ -1,0 +1,37 @@
+{
+  "search": "Поиск по ID объекта или пользователю…",
+  "col": {
+    "time": "Время", "actor": "Пользователь", "role": "Роль",
+    "entity": "Объект", "action": "Действие", "entityId": "ID объекта"
+  },
+  "entity": {
+    "asset": "Актив", "assignment": "Выдача", "upgrade": "Апгрейд", "license": "Лицензия",
+    "employee": "Сотрудник", "user": "Пользователь", "branch": "Филиал",
+    "department": "Отдел", "category": "Категория", "asset_status": "Статус актива"
+  },
+  "action": {
+    "created": "Создано", "updated": "Обновлено", "status_changed": "Статус изменён",
+    "assigned": "Выдано", "returned": "Возвращено", "transferred": "Перемещено",
+    "upgrade_added": "Апгрейд добавлен", "disposed": "Списано",
+    "sent_to_repair": "Отправлено в ремонт", "repair_completed": "Ремонт завершён",
+    "terminated": "Уволен", "reactivated": "Восстановлен",
+    "role_assigned": "Роль назначена", "deleted": "Удалено"
+  },
+  "role": {
+    "super_admin": "Супер Админ", "asset_admin": "Админ активов",
+    "tech_admin": "Тех. Админ", "employee": "Сотрудник"
+  },
+  "filters": {
+    "allEntities": "Все объекты", "allActions": "Все действия", "allActors": "Все пользователи",
+    "from": "С", "to": "По", "reset": "Сбросить"
+  },
+  "diff": {
+    "field": "Поле", "before": "Было", "after": "Стало",
+    "comment": "Комментарий", "noChanges": "Нет изменений полей"
+  },
+  "pagination": { "page": "Страница {{page}}" },
+  "empty": {
+    "title": "Записей нет",
+    "desc": "Записи журнала аудита появятся здесь по мере изменений в системе."
+  }
+}
