@@ -738,4 +738,24 @@ describe('audit_logs create-shape hardening', () => {
       }),
     )
   })
+
+  it('denies create when after is a non-map, non-null value', async () => {
+    const db = authedDb(env, SUPER)
+    await assertFails(
+      setDoc(doc(db, 'audit_logs', 'bad4'), {
+        entityType: 'asset', entityId: 'x', action: 'updated',
+        actorUid: SUPER, actorRole: 'super_admin', after: 42, at: serverTimestamp(),
+      }),
+    )
+  })
+
+  it('denies create when comment is a non-string, non-null value', async () => {
+    const db = authedDb(env, SUPER)
+    await assertFails(
+      setDoc(doc(db, 'audit_logs', 'bad5'), {
+        entityType: 'asset', entityId: 'x', action: 'updated',
+        actorUid: SUPER, actorRole: 'super_admin', comment: { not: 'a string' }, at: serverTimestamp(),
+      }),
+    )
+  })
 })

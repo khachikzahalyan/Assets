@@ -183,6 +183,9 @@ service cloud.firestore {
         && (!('after' in request.resource.data)
             || request.resource.data.after == null
             || request.resource.data.after is map)
+        && (!('comment' in request.resource.data)
+            || request.resource.data.comment == null
+            || request.resource.data.comment is string)
         && request.resource.data.keys().hasAll(
              ['entityType', 'entityId', 'action', 'actorUid', 'actorRole', 'at'])
         && request.resource.data.keys().hasOnly(
