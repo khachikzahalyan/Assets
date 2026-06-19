@@ -65,6 +65,6 @@ describe('AuthContext', () => {
     await act(async () => { cb({ uid: 'u9', email: 'p@x', displayName: 'P' }) })
     expect(screen.getByTestId('s').textContent).toBe('no-role')
     expect(claimSpy).toHaveBeenCalledTimes(1)
-    expect(claimSpy.mock.calls[0][0]).toMatchObject({ uid: 'u9' })
+    expect(claimSpy.mock.calls[0]![0]).toMatchObject({ uid: 'u9' })
   })
 })
