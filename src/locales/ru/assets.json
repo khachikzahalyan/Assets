@@ -59,6 +59,20 @@
     "furniture": "Мебель",
     "network": "Сетевые"
   },
+  "history": {
+    "action": {
+      "assigned": "Назначен",
+      "created": "Создан",
+      "disposed": "Списан",
+      "repair_completed": "Ремонт завершён",
+      "returned": "Возвращён",
+      "sent_to_repair": "Отправлен в ремонт",
+      "status_changed": "Статус изменён",
+      "transferred": "Перемещён",
+      "updated": "Обновлён",
+      "upgrade_added": "Апгрейд добавлен"
+    }
+  },
   "pagination": {
     "range": "{{from}}–{{to}} из {{total}}"
   },

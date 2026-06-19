@@ -59,6 +59,20 @@
     "furniture": "Furniture",
     "network": "Network"
   },
+  "history": {
+    "action": {
+      "assigned": "Assigned",
+      "created": "Created",
+      "disposed": "Written off",
+      "repair_completed": "Repair completed",
+      "returned": "Returned",
+      "sent_to_repair": "Sent to repair",
+      "status_changed": "Status changed",
+      "transferred": "Transferred",
+      "updated": "Updated",
+      "upgrade_added": "Upgrade added"
+    }
+  },
   "pagination": {
     "range": "{{from}}–{{to}} of {{total}}"
   },

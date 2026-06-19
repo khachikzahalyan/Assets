@@ -60,6 +60,20 @@
     "furniture": "Կահույք",
     "network": "Ցանցային"
   },
+  "history": {
+    "action": {
+      "assigned": "Նշանակված",
+      "created": "Ստեղծված",
+      "disposed": "Դուրս գրված",
+      "repair_completed": "Վերանորոգումն ավարտված է",
+      "returned": "Վերադարձված",
+      "sent_to_repair": "Ուղարկված վերանորոգման",
+      "status_changed": "Կարգավիճակը փոխված է",
+      "transferred": "Տեղափոխված",
+      "updated": "Թարմացված",
+      "upgrade_added": "Արդիականացումն ավելացված է"
+    }
+  },
   "pagination": {
     "range": "{{from}}–{{to}} / {{total}}"
   },
