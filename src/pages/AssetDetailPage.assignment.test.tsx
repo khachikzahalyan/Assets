@@ -38,7 +38,7 @@ function refData(): AssetReferenceData {
     branches: [{ id: 'br_main', name: 'Главный' }, { id: 'br_2', name: 'Филиал 2' }],
     departments: [],
     categories: [{ id: 'cat_laptop', name: 'Ноутбук', group: 'devices', lucideIcon: 'laptop' }],
-    employees: [{ id: 'e_1', firstName: 'Иван', lastName: 'Петров', email: null }],
+    employees: [{ id: 'e_1', firstName: 'Иван', lastName: 'Петров', email: 'ivan@x.com' }],
   }
 }
 
@@ -160,9 +160,9 @@ describe('AssetDetailPage assignment flow', () => {
   })
 
   // ---------------------------------------------------------------------------
-  // 2. ASSIGN TO EMPLOYEE — no email on EmployeeRow → no mail enqueued
+  // 2. ASSIGN TO EMPLOYEE — email on EmployeeRow → mail enqueued
   // ---------------------------------------------------------------------------
-  it('assign to employee: updates asset with employee assignment and does NOT enqueue mail (EmployeeRow has no email)', async () => {
+  it('assign to employee: updates asset with employee assignment and enqueues mail (EmployeeRow has email)', async () => {
     const assets = [mkAsset()]; const mail: MailEntry[] = []
     const { store } = renderPage(assets, mail)
 
@@ -184,8 +184,11 @@ describe('AssetDetailPage assignment flow', () => {
       expect(assets[0]!.assignment).toEqual({ mode: 'employee', employeeId: 'e_1' })
     })
 
-    // No mail enqueued — EmployeeRow has no email field
-    expect(mail).toHaveLength(0)
+    // Mail enqueued with the employee's real email
+    await waitFor(() => {
+      expect(mail).toHaveLength(1)
+      expect(mail[0]!.to).toEqual(['ivan@x.com'])
+    })
 
     // One audit entry with action 'assigned'
     expect(store.logs.filter(l => l.action === 'assigned')).toHaveLength(1)
@@ -243,6 +246,30 @@ describe('AssetDetailPage assignment flow', () => {
   // ---------------------------------------------------------------------------
   // 4. ROLE GATING — tech_admin cannot see the Assign button
   // ---------------------------------------------------------------------------
+
+  // ---------------------------------------------------------------------------
+  // 5. EMAIL THREADING — assigning to an employee forwards their email to repo
+  // ---------------------------------------------------------------------------
+  it('assigning to an employee resolves and forwards their email to the repo', async () => {
+    const assets = [mkAsset()]; const mail: MailEntry[] = []
+    renderPage(assets, mail)
+
+    await userEvent.click(await screen.findByRole('button', { name: /Назначить/ }))
+    // Employee mode is default; select the employee
+    const employeeSelect = await screen.findByDisplayValue('Выберите сотрудника')
+    await userEvent.selectOptions(employeeSelect, 'e_1')
+
+    const assignBtns = screen.getAllByRole('button', { name: /Назначить/ })
+    const formSubmit = assignBtns[assignBtns.length - 1]!
+    await userEvent.click(formSubmit)
+
+    // After a successful employee assignment with a real email in ref data, mail is enqueued.
+    await waitFor(() => {
+      expect(mail).toHaveLength(1)
+      expect(mail[0]!.to).toEqual(['ivan@x.com'])
+    })
+  })
+
   it('tech_admin sees no Assign button for a warehouse asset', async () => {
     const assets = [mkAsset()]; const mail: MailEntry[] = []
     renderPage(assets, mail, 'tech_admin')

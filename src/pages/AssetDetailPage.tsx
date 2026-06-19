@@ -239,14 +239,14 @@ export function AssetDetailPage({ repository, assignmentRepository }: AssetDetai
         actPath = await uploadActScan(storage(), asset.id, v.file)
       }
 
-      // Resolve employee name from ref data.
-      // Note: EmployeeRow has no email field — employeeEmail stays null.
-      // The Firestore repo will skip mail enqueue for null email, which is best-effort.
+      // Resolve the employee's email so the assignment repo can enqueue the notification mail.
       let employeeName: string | null = null
+      let employeeEmail: string | null = null
       if (v.mode === 'employee' && v.employeeId && ref) {
         const emp = ref.employees.find(e => e.id === v.employeeId)
         if (emp) {
           employeeName = [emp.firstName, emp.lastName].filter(Boolean).join(' ') || null
+          employeeEmail = emp.email ?? null
         }
       }
 
@@ -260,7 +260,7 @@ export function AssetDetailPage({ repository, assignmentRepository }: AssetDetai
       if (v.employeeId) assignInput.employeeId = v.employeeId
       if (v.branchId) assignInput.branchId = v.branchId
       if (employeeName) assignInput.employeeName = employeeName
-      // employeeEmail is always null for now (EmployeeRow has no email field)
+      if (employeeEmail) assignInput.employeeEmail = employeeEmail
       await repoAsn.assign(assignInput, actor)
       setAssigning(false)
       await load()
