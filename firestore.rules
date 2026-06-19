@@ -59,6 +59,14 @@ service cloud.firestore {
     match /assets/{id} {
       allow read: if isSignedIn();
       allow write: if isSuperAdmin() || isAssetAdmin();
+
+      // Upgrade events: append-only business trail. tech_admin and super_admin only
+      // (tech attributes / component upgrades are tech_admin per the role matrix).
+      match /upgrades/{upgradeId} {
+        allow read: if isSignedIn();
+        allow create: if isSuperAdmin() || isTechAdmin();
+        allow update, delete: if false;
+      }
     }
     match /branches/{id} {
       allow read: if isSignedIn();
@@ -109,7 +117,11 @@ service cloud.firestore {
           && resource.data.after != null
           && resource.data.after.assignedToEmployeeId == request.auth.uid
         );
-      allow create: if isSignedIn();
+      allow create: if isSignedIn()
+        && request.resource.data.actorUid == request.auth.uid
+        && request.resource.data.actorRole == role()
+        && request.resource.data.keys().hasAll(
+             ['entityType', 'entityId', 'action', 'actorUid', 'actorRole', 'at']);
       allow update, delete: if false;
     }
 

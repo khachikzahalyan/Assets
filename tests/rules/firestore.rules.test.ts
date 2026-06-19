@@ -69,7 +69,7 @@ describe('audit_logs immutability (marquee invariant)', () => {
     })
   }
 
-  it('a signed-in user CAN create an audit_logs entry', async () => {
+  it('a signed-in user with a matching actorUid/actorRole CAN create an audit_logs entry', async () => {
     const db = authedDb(env, ASSET)
     await assertSucceeds(
       setDoc(doc(db, 'audit_logs', 'new1'), {
@@ -78,6 +78,37 @@ describe('audit_logs immutability (marquee invariant)', () => {
         action: 'updated',
         actorUid: ASSET,
         actorRole: 'asset_admin',
+        at: new Date(),
+      }),
+    )
+  })
+
+  it('denies create when actorUid does NOT match the caller (spoof attempt)', async () => {
+    const db = authedDb(env, ASSET)
+    await assertFails(
+      setDoc(doc(db, 'audit_logs', 'spoof1'), {
+        entityType: 'asset', entityId: 'a3', action: 'created',
+        actorUid: 'someone-else', actorRole: 'asset_admin', at: new Date(),
+      }),
+    )
+  })
+
+  it('denies create when actorRole is escalated above the caller\'s real role', async () => {
+    const db = authedDb(env, EMP) // EMP is an employee
+    await assertFails(
+      setDoc(doc(db, 'audit_logs', 'spoof2'), {
+        entityType: 'asset', entityId: 'a4', action: 'created',
+        actorUid: EMP, actorRole: 'super_admin', at: new Date(),
+      }),
+    )
+  })
+
+  it('denies create when required keys are missing (no at)', async () => {
+    const db = authedDb(env, ASSET)
+    await assertFails(
+      setDoc(doc(db, 'audit_logs', 'missing1'), {
+        entityType: 'asset', entityId: 'a5', action: 'created',
+        actorUid: ASSET, actorRole: 'asset_admin',
       }),
     )
   })
@@ -285,5 +316,39 @@ describe('assignments', () => {
     await seedDoc(env, 'assignments/g4', { assetId: 'a1', assignedToEmployeeId: EMP })
     await assertFails(deleteDoc(doc(authedDb(env, SUPER), 'assignments', 'g4')))
     await assertFails(deleteDoc(doc(authedDb(env, ASSET), 'assignments', 'g4')))
+  })
+})
+
+describe('assets/{id}/upgrades sub-collection (append-only, tech/super only)', () => {
+  beforeEach(async () => {
+    await seedDoc(env, 'assets/asset_up', { invCode: '450/1', statusId: 'st_warehouse' })
+  })
+
+  it('tech_admin CAN create an upgrade event', async () => {
+    await assertSucceeds(
+      setDoc(doc(authedDb(env, TECH), 'assets', 'asset_up', 'upgrades', 'u1'),
+        { component: 'RAM', before: '8', after: '16', changedBy: TECH, changedAt: new Date() }),
+    )
+  })
+  it('super_admin CAN create an upgrade event', async () => {
+    await assertSucceeds(
+      setDoc(doc(authedDb(env, SUPER), 'assets', 'asset_up', 'upgrades', 'u2'),
+        { component: 'SSD', before: null, after: '1TB', changedBy: SUPER, changedAt: new Date() }),
+    )
+  })
+  it('asset_admin CANNOT create an upgrade event (tech attribute)', async () => {
+    await assertFails(
+      setDoc(doc(authedDb(env, ASSET), 'assets', 'asset_up', 'upgrades', 'u3'),
+        { component: 'CPU', before: 'i5', after: 'i7', changedBy: ASSET, changedAt: new Date() }),
+    )
+  })
+  it('any signed-in user CAN read upgrade events', async () => {
+    await seedDoc(env, 'assets/asset_up/upgrades/seed', { component: 'GPU', after: 'RTX', changedBy: TECH, changedAt: new Date() })
+    await assertSucceeds(getDoc(doc(authedDb(env, EMP), 'assets', 'asset_up', 'upgrades', 'seed')))
+  })
+  it('nobody can update or delete an upgrade event (append-only)', async () => {
+    await seedDoc(env, 'assets/asset_up/upgrades/locked', { component: 'RAM', after: '32', changedBy: TECH, changedAt: new Date() })
+    await assertFails(updateDoc(doc(authedDb(env, SUPER), 'assets', 'asset_up', 'upgrades', 'locked'), { after: '64' }))
+    await assertFails(deleteDoc(doc(authedDb(env, SUPER), 'assets', 'asset_up', 'upgrades', 'locked')))
   })
 })
