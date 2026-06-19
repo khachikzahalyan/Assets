@@ -35,3 +35,14 @@ describe('audit extension for catalogs', () => {
     expect(types.length).toBe(4)
   })
 })
+
+describe('audit extension for licenses', () => {
+  it('license audit extensions present', () => {
+    expect(AUDIT_ACTIONS).toContain('key_revealed')
+    expect(AUDIT_ACTIONS).toContain('license_decoupled')
+    expect(AUDIT_ACTIONS).toContain('license_retired_with_asset')
+    expect(AUDIT_ACTIONS).toContain('key_rotated')
+    const t: AuditEntityType = 'server_license'
+    expect(t).toBe('server_license')
+  })
+})
