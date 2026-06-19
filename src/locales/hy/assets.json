@@ -3,6 +3,31 @@
   "actions": {
     "edit": "Խմբագրել"
   },
+  "assign": {
+    "action": "Նշանակել",
+    "actScan": "Ընդունման ակտի սկան",
+    "actScanHint": "JPEG, PNG կամ PDF, մինչև 10 ՄԲ",
+    "active": "Ակտիվ",
+    "assignFailed": "Չհաջողվեց նշանակել։ Փորձեք կրկին։",
+    "branch": "Մասնաճյուղ",
+    "cancel": "Չեղարկել",
+    "comment": "Մեկնաբանություն",
+    "commentPlaceholder": "Օր․՝ ակտ №123",
+    "employee": "Աշխատակից",
+    "ended": "Ավարտված",
+    "fileBadType": "Թույլատրվում է միայն JPEG, PNG, PDF",
+    "fileTooLarge": "Ֆայլը 10 ՄԲ-ից մեծ է",
+    "history": "Նշանակումների պատմություն",
+    "mode": "Ում",
+    "noHistory": "Նշանակումներ դեռ չկան",
+    "pickBranch": "Ընտրեք մասնաճյուղը",
+    "pickEmployee": "Ընտրեք աշխատակցին",
+    "returnFailed": "Չհաջողվեց վերադարձնել։ Փորձեք կրկին։",
+    "started": "Սկսված",
+    "submit": "Նշանակել",
+    "title": "Ակտիվի նշանակում",
+    "viewScan": "Բացել սկանը"
+  },
   "assignee": {
     "none": "—",
     "warehouse": "Պահեստում"

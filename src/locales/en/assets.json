@@ -2,6 +2,31 @@
   "actions": {
     "edit": "Edit"
   },
+  "assign": {
+    "action": "Assign",
+    "actScan": "Act-of-acceptance scan",
+    "actScanHint": "JPEG, PNG or PDF, up to 10 MB",
+    "active": "Active",
+    "assignFailed": "Could not assign. Please try again.",
+    "branch": "Branch",
+    "cancel": "Cancel",
+    "comment": "Comment",
+    "commentPlaceholder": "e.g. act No. 123",
+    "employee": "Employee",
+    "ended": "Ended",
+    "fileBadType": "Only JPEG, PNG, PDF allowed",
+    "fileTooLarge": "File is larger than 10 MB",
+    "history": "Assignment history",
+    "mode": "Assign to",
+    "noHistory": "No assignments yet",
+    "pickBranch": "Select a branch",
+    "pickEmployee": "Select an employee",
+    "returnFailed": "Could not return. Please try again.",
+    "started": "Started",
+    "submit": "Assign",
+    "title": "Assign asset",
+    "viewScan": "Open scan"
+  },
   "assignee": {
     "none": "—",
     "warehouse": "In warehouse"

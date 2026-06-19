@@ -2,6 +2,31 @@
   "actions": {
     "edit": "Редактировать"
   },
+  "assign": {
+    "action": "Назначить",
+    "actScan": "Скан акта приёма-передачи",
+    "actScanHint": "JPEG, PNG или PDF, до 10 МБ",
+    "active": "Активно",
+    "assignFailed": "Не удалось назначить. Попробуйте ещё раз.",
+    "branch": "Филиал",
+    "cancel": "Отмена",
+    "comment": "Комментарий",
+    "commentPlaceholder": "Например: акт №123",
+    "employee": "Сотрудник",
+    "ended": "Завершено",
+    "fileBadType": "Допустимы только JPEG, PNG, PDF",
+    "fileTooLarge": "Файл больше 10 МБ",
+    "history": "История назначений",
+    "mode": "Кому",
+    "noHistory": "Назначений ещё не было",
+    "pickBranch": "Выберите филиал",
+    "pickEmployee": "Выберите сотрудника",
+    "returnFailed": "Не удалось вернуть. Попробуйте ещё раз.",
+    "started": "Начато",
+    "submit": "Назначить",
+    "title": "Назначение актива",
+    "viewScan": "Открыть скан"
+  },
   "assignee": {
     "none": "—",
     "warehouse": "На складе"
