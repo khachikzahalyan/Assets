@@ -124,7 +124,20 @@ service cloud.firestore {
     // ---- Reference catalogs: read any signed-in, write super only ----
     match /asset_statuses/{id} {
       allow read: if isSignedIn();
-      allow write: if isSuperAdmin();
+      // create: super only; new docs must be non-system (clients cannot mint system statuses)
+      allow create: if isSuperAdmin()
+        && (!('isSystem' in request.resource.data) || request.resource.data.isSystem == false);
+      // update: super only; a system doc must stay isSystem:true AND keep its isFinal unchanged
+      allow update: if isSuperAdmin()
+        && (
+          resource.data.isSystem != true
+          || (
+            request.resource.data.isSystem == true
+            && request.resource.data.isFinal == resource.data.isFinal
+          )
+        );
+      // delete: super only AND never a system doc
+      allow delete: if isSuperAdmin() && resource.data.isSystem != true;
     }
     match /categories/{id} {
       allow read: if isSignedIn();
