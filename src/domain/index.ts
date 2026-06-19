@@ -1,5 +1,6 @@
 export * from './asset'
 export * from './assignment'
 export * from './branch'
+export * from './department'
 export * from './employee'
 export * from './shared'
