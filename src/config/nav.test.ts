@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { navForRole, defaultRouteForRole } from './nav'
+import { navForRole, defaultRouteForRole, PHASE_STUB_ROUTES } from './nav'
 
 describe('navForRole', () => {
   it('super_admin sees all 5 admin groups', () => { expect(navForRole('super_admin')).toHaveLength(5) })
@@ -24,5 +24,13 @@ describe('navForRole', () => {
   it('default route per role', () => {
     expect(defaultRouteForRole('employee')).toBe('my-assets')
     expect(defaultRouteForRole('super_admin')).toBe('dashboard')
+  })
+})
+
+describe('employees + self-service routes are real', () => {
+  it('removes employees/my-assets/my-acts/profile from the stub list', () => {
+    for (const id of ['employees', 'my-assets', 'my-acts', 'profile']) {
+      expect(PHASE_STUB_ROUTES).not.toContain(id)
+    }
   })
 })

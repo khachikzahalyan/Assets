@@ -1,6 +1,9 @@
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import { AppShell } from '@/components/common'
-import { DashboardPage, StubPage, LoginPage, AssetsPage, AssetCreatePage, AssetDetailPage } from '@/pages'
+import {
+  DashboardPage, StubPage, LoginPage, AssetsPage, AssetCreatePage, AssetDetailPage,
+  EmployeesPage, EmployeeCreatePage, EmployeeDetailPage, MyAssetsPage, MyActsPage, ProfilePage,
+} from '@/pages'
 import { RequireAuth, RoleGate } from '@/components/routing'
 import { PHASE_STUB_ROUTES } from './nav'
 import { routeRoles } from './access'
@@ -78,6 +81,25 @@ export function AppRoutes() {
               </RoleGate>
             }
           />
+
+          <Route path="/employees" element={
+            <RoleGate roles={routeRoles('employees')}><EmployeesPage /></RoleGate>
+          } />
+          <Route path="/employees/new" element={
+            <RoleGate roles={['super_admin', 'asset_admin']}><EmployeeCreatePage /></RoleGate>
+          } />
+          <Route path="/employees/:id" element={
+            <RoleGate roles={routeRoles('employees')}><EmployeeDetailPage /></RoleGate>
+          } />
+          <Route path="/my-assets" element={
+            <RoleGate roles={routeRoles('my-assets')}><MyAssetsPage /></RoleGate>
+          } />
+          <Route path="/my-acts" element={
+            <RoleGate roles={routeRoles('my-acts')}><MyActsPage /></RoleGate>
+          } />
+          <Route path="/profile" element={
+            <RoleGate roles={routeRoles('profile')}><ProfilePage /></RoleGate>
+          } />
 
           {PHASE_STUB_ROUTES.map((id) => (
             <Route
