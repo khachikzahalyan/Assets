@@ -8,7 +8,6 @@ import type { ServerLicenseRepository, ServerLicenseListQuery } from '@/domain/l
 import {
   withAudit,
   type AuditContext,
-  type InMemoryAuditStore,
 } from '@/lib/audit'
 import { maskLicenseKey, sanitizeLicenseAuditPayload } from '@/lib/audit'
 
@@ -19,7 +18,6 @@ export class InMemoryServerLicenseRepository implements ServerLicenseRepository 
 
   constructor(
     private readonly ctx: AuditContext,
-    private readonly store: InMemoryAuditStore,
   ) {}
 
   // ---- Helpers ---------------------------------------------------------------

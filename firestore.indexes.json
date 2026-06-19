@@ -103,7 +103,8 @@
     ]},
     { "collectionGroup": "licenses", "queryScope": "COLLECTION", "fields": [
       { "fieldPath": "assignmentType", "order": "ASCENDING" },
-      { "fieldPath": "assignedToAssetId", "order": "ASCENDING" }
+      { "fieldPath": "assignedToAssetId", "order": "ASCENDING" },
+      { "fieldPath": "lifecycleStatus", "order": "ASCENDING" }
     ]},
     { "collectionGroup": "licenses", "queryScope": "COLLECTION", "fields": [
       { "fieldPath": "lifecycleStatus", "order": "ASCENDING" },

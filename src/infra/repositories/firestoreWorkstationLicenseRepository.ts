@@ -117,10 +117,10 @@ export class FirestoreWorkstationLicenseRepository implements WorkstationLicense
       collection(this.db, COL),
       where('assignmentType', '==', 'device'),
       where('assignedToAssetId', '==', assetId),
+      where('lifecycleStatus', '==', 'active'),
     ))
     return snap.docs
       .map(d => toWorkstationLicense(d.id, d.data() as Record<string, unknown>))
-      .filter(l => l.lifecycleStatus === 'active')
       .sort((a, b) => a.name.localeCompare(b.name, 'ru'))
   }
 

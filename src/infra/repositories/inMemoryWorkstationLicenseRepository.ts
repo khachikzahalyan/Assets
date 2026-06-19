@@ -10,7 +10,6 @@ import type { WorkstationLicenseRepository, WorkstationLicenseListQuery } from '
 import {
   withAudit,
   type AuditContext,
-  type InMemoryAuditStore,
 } from '@/lib/audit'
 import { maskLicenseKey, sanitizeLicenseAuditPayload } from '@/lib/audit'
 
@@ -21,7 +20,6 @@ export class InMemoryWorkstationLicenseRepository implements WorkstationLicenseR
 
   constructor(
     private readonly ctx: AuditContext,
-    private readonly store: InMemoryAuditStore,
   ) {}
 
   // ---- Helpers ---------------------------------------------------------------

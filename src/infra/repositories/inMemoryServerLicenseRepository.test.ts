@@ -11,7 +11,7 @@ const ACTOR = { uid: 'u1', role: 'super_admin' as const }
 function makeRepo() {
   const store = createInMemoryAuditStore()
   const ctx = inMemoryAuditContext(store)
-  const repo = new InMemoryServerLicenseRepository(ctx, store)
+  const repo = new InMemoryServerLicenseRepository(ctx)
   return { repo, store }
 }
 
@@ -48,6 +48,8 @@ describe('InMemoryServerLicenseRepository', () => {
       )
       const log = store.logs[store.logs.length - 1]!
       const serialized = JSON.stringify(log)
+      expect(serialized).not.toContain('XCVF')
+      expect(serialized).not.toContain('7TR5')
       expect(serialized).not.toContain(RAW_FRAGMENT)
       expect(serialized).toContain(MASKED_KEY)
     })
@@ -187,6 +189,8 @@ describe('InMemoryServerLicenseRepository', () => {
       await repo.rotateKey(value.id, NEW_KEY, ACTOR)
       const log = store.logs[store.logs.length - 1]!
       const serialized = JSON.stringify(log)
+      expect(serialized).not.toContain('AAAA')
+      expect(serialized).not.toContain('BBBB')
       expect(serialized).not.toContain(NEW_RAW_FRAGMENT)
       expect(serialized).toContain(NEW_MASKED)
     })
