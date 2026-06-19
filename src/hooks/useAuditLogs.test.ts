@@ -11,7 +11,7 @@ import { renderHook, waitFor } from '@testing-library/react'
 import { describe, it, expect } from 'vitest'
 import { useAuditLogs } from './useAuditLogs'
 import { InMemoryAuditLogRepository } from '@/infra/repositories/inMemoryAuditLogRepository'
-import type { AuditLog, AuditLogQuery } from '@/domain/audit'
+import type { AuditLog, AuditLogQuery, AuditLogRepository } from '@/domain/audit'
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -210,6 +210,40 @@ describe('useAuditLogs — pagination state machine', () => {
 
     // Assert — same page 2 rows returned; page did not reset to 1
     expect(result.current.rows.map(r => r.id)).toEqual(page2Rows)
+  })
+
+  it('loadReferenceData is called exactly once across page turns (not per-page)', async () => {
+    // Arrange — spy repo that counts loadReferenceData calls
+    let loadRefCallCount = 0
+    const baseRepo = makeRepo()
+    const spyRepo: AuditLogRepository = {
+      listAuditLogs: (...args) => baseRepo.listAuditLogs(...args),
+      loadReferenceData: async () => {
+        loadRefCallCount++
+        return baseRepo.loadReferenceData()
+      },
+    }
+
+    const { result } = renderHook(() => useAuditLogs(spyRepo, BASE_QUERY))
+
+    // Wait for initial load (both page + ref effects settle)
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    await waitFor(() => expect(result.current.ref).not.toBeNull())
+    const afterInitialLoad = loadRefCallCount
+
+    // Act — navigate to page 2
+    result.current.next()
+    await waitForPage(result, 2)
+
+    // Act — navigate back to page 1
+    result.current.prev()
+    await waitForPage(result, 1)
+
+    // Assert — loadReferenceData must not have been called again for page turns;
+    // only the initial mount call (possibly plus one if the effect ran twice due to StrictMode)
+    // should have fired. The key invariant: count did NOT increment during next()/prev().
+    expect(loadRefCallCount).toBe(afterInitialLoad)
+    expect(loadRefCallCount).toBeGreaterThanOrEqual(1)
   })
 
   it('exposes reference data alongside rows', async () => {

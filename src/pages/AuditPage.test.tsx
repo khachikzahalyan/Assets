@@ -211,6 +211,46 @@ describe('AuditPage', () => {
     })
   })
 
+  // ── (c-2) pagination button accessible names (aria-label) ───────────────────
+  describe('(c-2) pagination button accessible names', () => {
+    it('prev button exposes an accessible name matching pagination.prev i18n key', async () => {
+      // Arrange — 25 logs so pagination controls render; locale is 'ru' (set in beforeAll)
+      const logs = makePageLogs(25, 'uid-alice')
+      const repo = new InMemoryAuditLogRepository(logs, ACTOR_NAMES)
+      renderPage(repo)
+
+      // Wait for rows to load
+      await waitFor(() => {
+        expect(screen.getAllByText('Alice Admin').length).toBeGreaterThanOrEqual(1)
+      })
+
+      // Assert — the prev button is identifiable by its aria-label
+      const expectedPrev = i18n.t('pagination.prev', { ns: 'audit' })
+      const prevBtn = screen.getByRole('button', { name: expectedPrev })
+      expect(prevBtn).toBeInTheDocument()
+      // On page 1, Prev is disabled
+      expect(prevBtn).toBeDisabled()
+    })
+
+    it('next button exposes an accessible name matching pagination.next i18n key', async () => {
+      // Arrange — 25 logs so next is enabled
+      const logs = makePageLogs(25, 'uid-alice')
+      const repo = new InMemoryAuditLogRepository(logs, ACTOR_NAMES)
+      renderPage(repo)
+
+      // Wait for rows to load
+      await waitFor(() => {
+        expect(screen.getAllByText('Alice Admin').length).toBeGreaterThanOrEqual(1)
+      })
+
+      // Assert — the next button is identifiable by its aria-label and is enabled
+      const expectedNext = i18n.t('pagination.next', { ns: 'audit' })
+      const nextBtn = screen.getByRole('button', { name: expectedNext })
+      expect(nextBtn).toBeInTheDocument()
+      expect(nextBtn).not.toBeDisabled()
+    })
+  })
+
   // ── (d) pagination ───────────────────────────────────────────────────────────
   describe('(d) pagination', () => {
     it('first page shows exactly PAGE_SIZE (20) rows when 25 logs are seeded', async () => {

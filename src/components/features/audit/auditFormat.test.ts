@@ -13,6 +13,28 @@ describe('formatAuditTs', () => {
     expect(formatAuditTs('not-a-date')).toBe('not-a-date')
   })
   // (d) Zero-padding: single-digit day, hour, and minute must be padded to 2 digits
+  it('locale-aware: en and ru produce different month tokens for June', () => {
+    // June is 'Jun' in English short format and 'июн.' in Russian short format.
+    // Both must still match the DD/Mon/YYYY HH:MM shape.
+    const iso = '2026-06-15T12:30:00.000Z'
+    const enOut = formatAuditTs(iso, 'en')
+    const ruOut = formatAuditTs(iso, 'ru')
+
+    // Both must match the structural shape: DD/<month>/<year> HH:MM
+    expect(enOut).toMatch(/^\d{2}\/.+\/\d{4} \d{2}:\d{2}$/)
+    expect(ruOut).toMatch(/^\d{2}\/.+\/\d{4} \d{2}:\d{2}$/)
+
+    // The month tokens must differ between locales for June
+    const enMonth = enOut.split('/')[1]!
+    const ruMonth = ruOut.split('/')[1]!
+    expect(enMonth).not.toBe(ruMonth)
+
+    // Spot-check known tokens (Intl short month for June):
+    // en → 'Jun', ru → 'июн.'
+    expect(enMonth).toBe('Jun')
+    expect(ruMonth).toMatch(/июн/i)
+  })
+
   it('zero-pads a single-digit day', () => {
     // Use a date where the local day is 1 — pick a UTC midnight that stays day-1 in any tz within ±14h
     // 2026-01-15T00:00:00Z is day 14 or 15 depending on tz; instead we use getDate() from the result.
