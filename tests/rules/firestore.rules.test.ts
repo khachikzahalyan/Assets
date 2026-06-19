@@ -759,3 +759,58 @@ describe('audit_logs create-shape hardening', () => {
     )
   })
 })
+
+describe('audit_logs viewer read authorization', () => {
+  // Seed a generic asset audit row that no employee should be able to read.
+  // Admin roles must be able to read it (isAnyAdmin() grants full read).
+  beforeEach(async () => {
+    await seedDoc(env, 'audit_logs/view_asset1', {
+      entityType: 'asset',
+      entityId: 'a99',
+      action: 'updated',
+      actorUid: ASSET,
+      actorRole: 'asset_admin',
+      before: { name: 'Old Name' },
+      after: { name: 'New Name' },
+    })
+  })
+
+  it('super_admin CAN read an arbitrary (asset) audit_logs entry', async () => {
+    await assertSucceeds(getDoc(doc(authedDb(env, SUPER), 'audit_logs', 'view_asset1')))
+  })
+
+  it('asset_admin CAN read an arbitrary (asset) audit_logs entry', async () => {
+    await assertSucceeds(getDoc(doc(authedDb(env, ASSET), 'audit_logs', 'view_asset1')))
+  })
+
+  it('tech_admin CAN read an arbitrary (asset) audit_logs entry', async () => {
+    await assertSucceeds(getDoc(doc(authedDb(env, TECH), 'audit_logs', 'view_asset1')))
+  })
+
+  it('employee CANNOT read a non-assignment audit row (entityType: asset)', async () => {
+    // Employee read is scoped to entityType == 'assignment' && after.assignedToEmployeeId == uid.
+    // An asset-type row must always be denied for an employee, even if its payload
+    // happens to contain the employee uid in some field.
+    await assertFails(getDoc(doc(authedDb(env, EMP), 'audit_logs', 'view_asset1')))
+  })
+
+  it('employee CANNOT read a non-assignment audit row (entityType: employee)', async () => {
+    // Reinforce: any entityType other than 'assignment' is viewer-denied for employees.
+    await seedDoc(env, 'audit_logs/view_emp1', {
+      entityType: 'employee',
+      entityId: EMP,
+      action: 'created',
+      actorUid: ASSET,
+      actorRole: 'asset_admin',
+      before: null,
+      after: { uid: EMP, role: 'employee' },
+    })
+    await assertFails(getDoc(doc(authedDb(env, EMP), 'audit_logs', 'view_emp1')))
+  })
+
+  // NOTE: the case "employee CANNOT read an assignment row addressed to a DIFFERENT uid" is
+  // intentionally omitted here — it is already covered by two existing describe blocks:
+  // 'audit_logs employee-scoped read' (line ~158) and
+  // 'audit_logs employee read scoped by assignedToEmployeeId' (line ~507).
+  // Adding it again would be an exact duplicate.
+})
