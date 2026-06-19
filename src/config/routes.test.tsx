@@ -85,6 +85,16 @@ vi.mock('@/infra/repositories', async () => {
       async updateDepartment() { return { value: { id: 'dp_1', name: '', createdAt: '', updatedAt: '' }, auditId: 'a_1' } }
       async deleteDepartment() { return { value: { id: 'dp_1' }, auditId: 'a_1' } }
     },
+    FirestoreCategoryRepository: class {
+      async listCategories()   { return [] }
+      async getCategory()      { return null }
+      async isNameTaken()      { return false }
+      async isPrefixTaken()    { return false }
+      async countReferences()  { return 0 }
+      async createCategory()   { return { value: { id: 'cat_1', name: '', group: 'devices', prefix: '', hasSpecs: false, lucideIcon: 'package', createdAt: '', updatedAt: '' }, auditId: 'a_1' } }
+      async updateCategory()   { return { value: { id: 'cat_1', name: '', group: 'devices', prefix: '', hasSpecs: false, lucideIcon: 'package', createdAt: '', updatedAt: '' }, auditId: 'a_1' } }
+      async deleteCategory()   { return { value: { id: 'cat_1' }, auditId: 'a_1' } }
+    },
   }
 })
 

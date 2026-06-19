@@ -1,0 +1,36 @@
+{
+  "title": "Categories",
+  "create": "Add category",
+  "empty": { "title": "No categories yet", "desc": "Add the first category" },
+  "filter": { "all": "All", "group": "Group", "search": "Search" },
+  "group": { "devices": "Devices", "network": "Network", "furniture": "Furniture" },
+  "col": { "name": "Name", "group": "Group", "prefix": "Prefix", "specs": "Specs" },
+  "specs": { "yes": "Yes", "no": "No" },
+  "form": {
+    "createTitle": "New category",
+    "editTitle": "Edit category",
+    "name": "Name",
+    "group": "Group",
+    "prefix": "Inventory-code prefix",
+    "prefixLocked": "Prefix cannot be changed — assets exist in this category.",
+    "hasSpecs": "Track specs (CPU/RAM/SSD/GPU)",
+    "icon": "Icon",
+    "save": "Save",
+    "cancel": "Cancel",
+    "pickGroup": "Select group"
+  },
+  "delete": {
+    "title": "Delete category?",
+    "confirm": "Delete",
+    "cancel": "Cancel",
+    "body": "This cannot be undone.",
+    "inUse": "Cannot delete: {{count}} asset(s) reference this category."
+  },
+  "validation": {
+    "required": "Required",
+    "nameTaken": "This name is already in use",
+    "prefixTaken": "This prefix is already in use",
+    "saveFailed": "Could not save. Try again."
+  },
+  "pagination": { "range": "{{from}}–{{to}} / {{total}}" }
+}
