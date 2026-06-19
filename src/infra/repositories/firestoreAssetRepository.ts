@@ -1,11 +1,19 @@
 import {
-  collection, getDocs, query as fsQuery, where, orderBy,
-  type Firestore, type QueryConstraint,
+  collection, getDocs, getDoc, doc, query as fsQuery, where, orderBy, limit, serverTimestamp,
+  type Firestore, type QueryConstraint, type Transaction,
 } from 'firebase/firestore'
 import type {
   Asset, AssetListQuery, AssetSort, CategoryRow, StatusRow, RefRow, EmployeeRow,
+  AssetStatusId, AssetSpecs,
 } from '@/domain/asset'
-import type { AssetRepository, AssetReferenceData } from '@/domain/asset'
+import type {
+  AssetRepository, AssetReferenceData, AssetWriteRepository,
+  CreateAssetInput, UpdateAssetInput, ChangeStatusOpts, Actor,
+} from '@/domain/asset'
+import type { UpgradeComponent, UpgradeEvent } from '@/domain/asset'
+import { deriveCreateStatus, isSpecTracked, SPEC_KEY } from '@/domain/asset'
+import { firestoreAuditContext, withAudit } from '@/lib/audit'
+import type { AuditedResult, AuditLog } from '@/domain/audit'
 
 const SERVER_SORT: Record<AssetSort, [string, 'asc' | 'desc']> = {
   updated_desc: ['updatedAt', 'desc'],
@@ -46,8 +54,12 @@ function toAsset(id: string, d: Record<string, unknown>): Asset {
  * category lookup) and free-text search run client-side over the returned set,
  * matching the org-scale dataset (hundreds of assets).
  */
-export class FirestoreAssetRepository implements AssetRepository {
+export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepository {
   constructor(private readonly db: Firestore) {}
+
+  // Lazy audit context — avoids constructing the context (and any circular import
+  // evaluation) until the first write call.
+  private get audit() { return firestoreAuditContext(this.db) }
 
   // FIX 4: instance-level cache so loadReferenceData() is fetched at most once
   // per repository instance, regardless of how many callers (listAssets group filter
@@ -108,4 +120,135 @@ export class FirestoreAssetRepository implements AssetRepository {
     const snap = await getDocs(collection(this.db, name))
     return snap.docs.map(d => ({ ...map(d.data() as Record<string, unknown>), id: d.id } as T))
   }
+
+  async getAsset(id: string): Promise<Asset | null> {
+    const snap = await getDoc(doc(this.db, 'assets', id))
+    return snap.exists() ? toAsset(snap.id, snap.data() as Record<string, unknown>) : null
+  }
+
+  async isInvCodeTaken(invCode: string, exceptId?: string): Promise<boolean> {
+    const snap = await getDocs(fsQuery(collection(this.db, 'assets'), where('invCode', '==', invCode), limit(2)))
+    return snap.docs.some(d => d.id !== exceptId)
+  }
+
+  async isSerialTaken(serial: string, exceptId?: string): Promise<boolean> {
+    const snap = await getDocs(fsQuery(collection(this.db, 'assets'), where('serial', '==', serial), limit(2)))
+    return snap.docs.some(d => d.id !== exceptId)
+  }
+
+  async createAsset(input: CreateAssetInput, actor: Actor): Promise<AuditedResult<Asset>> {
+    if (await this.isInvCodeTaken(input.invCode)) throw new Error(`Inventory code already in use: ${input.invCode}`)
+    if (input.serial && await this.isSerialTaken(input.serial)) throw new Error(`Serial already in use: ${input.serial}`)
+    const statusId = deriveCreateStatus(input.assignment)
+    const ref = doc(collection(this.db, 'assets'))
+    const data: Record<string, unknown> = {
+      categoryId: input.categoryId, brand: input.brand, model: input.model,
+      ...(input.type !== undefined ? { type: input.type } : {}),
+      invCode: input.invCode, serial: input.serial, statusId,
+      assignment: input.assignment, branchId: input.branchId, deptId: input.deptId,
+      currentSpecs: input.currentSpecs ?? null,
+      createdBy: actor.uid, updatedBy: actor.uid,
+      createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
+    }
+    const r = await withAudit(this.audit,
+      { entityType: 'asset', entityId: ref.id, action: 'created', actorUid: actor.uid, actorRole: actor.role,
+        after: { invCode: input.invCode, statusId } },
+      async (txn) => {
+        ;(txn as unknown as Transaction).set(ref, data)
+        // STUB: license write seam — when category hasOemLicense and input.oemLicense is present,
+        // the OEM license doc + its secret will be written here in the SAME transaction once the
+        // license plan lands. Intentionally a no-op now (no license collection exists yet).
+        return { value: undefined as unknown as void }
+      })
+    const created = await this.getAsset(ref.id)
+    if (!created) throw new Error('Asset create succeeded but readback failed')
+    return { value: created, auditId: r.auditId }
+  }
+
+  async updateAsset(id: string, patch: UpdateAssetInput, actor: Actor): Promise<AuditedResult<Asset>> {
+    const before = await this.getAsset(id)
+    if (!before) throw new Error(`Asset not found: ${id}`)
+    if (patch.serial && await this.isSerialTaken(patch.serial, id)) throw new Error(`Serial already in use: ${patch.serial}`)
+    const ref = doc(this.db, 'assets', id)
+    const fields = stripUndefinedFs({ ...patch, updatedBy: actor.uid, updatedAt: serverTimestamp() })
+    const r = await withAudit(this.audit,
+      { entityType: 'asset', entityId: id, action: 'updated', actorUid: actor.uid, actorRole: actor.role,
+        before: { brand: before.brand, model: before.model, serial: before.serial },
+        after: patch as Record<string, unknown> },
+      async (txn) => { ;(txn as unknown as Transaction).set(ref, fields, { merge: true }); return { value: undefined as unknown as void } })
+    const next = await this.getAsset(id)
+    if (!next) throw new Error('Asset update succeeded but readback failed')
+    return { value: next, auditId: r.auditId }
+  }
+
+  async changeStatus(id: string, toStatusId: AssetStatusId, actor: Actor, opts?: ChangeStatusOpts): Promise<AuditedResult<Asset>> {
+    const before = await this.getAsset(id)
+    if (!before) throw new Error(`Asset not found: ${id}`)
+    const ref = doc(this.db, 'assets', id)
+    const patch: Record<string, unknown> = { statusId: toStatusId, updatedBy: actor.uid, updatedAt: serverTimestamp() }
+    if (opts && 'assignment' in opts) patch.assignment = opts.assignment ?? null
+    const r = await withAudit(this.audit,
+      { entityType: 'asset', entityId: id, action: 'status_changed', actorUid: actor.uid, actorRole: actor.role,
+        before: { statusId: before.statusId }, after: { statusId: toStatusId }, comment: opts?.comment ?? null },
+      async (txn) => { ;(txn as unknown as Transaction).set(ref, patch, { merge: true }); return { value: undefined as unknown as void } })
+    const next = await this.getAsset(id)
+    if (!next) throw new Error('Asset status change succeeded but readback failed')
+    return { value: next, auditId: r.auditId }
+  }
+
+  async addUpgrade(id: string, ev: { component: UpgradeComponent; after: string }, actor: Actor): Promise<AuditedResult<UpgradeEvent>> {
+    const asset = await this.getAsset(id)
+    if (!asset) throw new Error(`Asset not found: ${id}`)
+    const before = isSpecTracked(ev.component) ? (asset.currentSpecs?.[SPEC_KEY[ev.component]] ?? null) : null
+    const upRef = doc(collection(this.db, 'assets', id, 'upgrades'))
+    const assetRef = doc(this.db, 'assets', id)
+    const r = await withAudit(this.audit,
+      { entityType: 'upgrade', entityId: id, action: 'upgrade_added', actorUid: actor.uid, actorRole: actor.role,
+        before: before === null ? null : { value: before }, after: { component: ev.component, value: ev.after } },
+      async (txn) => {
+        const t = txn as unknown as Transaction
+        t.set(upRef, { component: ev.component, before, after: ev.after, changedBy: actor.uid, changedAt: serverTimestamp() })
+        if (isSpecTracked(ev.component)) {
+          const specs: AssetSpecs = { ...(asset.currentSpecs ?? {}) }
+          specs[SPEC_KEY[ev.component]] = ev.after
+          t.set(assetRef, { currentSpecs: specs, updatedAt: serverTimestamp(), updatedBy: actor.uid }, { merge: true })
+        }
+        return { value: undefined as unknown as void }
+      })
+    const upgrade: UpgradeEvent = { id: upRef.id, component: ev.component, before, after: ev.after, changedAt: new Date().toISOString(), changedBy: actor.uid }
+    return { value: upgrade, auditId: r.auditId }
+  }
+
+  async listUpgrades(id: string): Promise<UpgradeEvent[]> {
+    const snap = await getDocs(fsQuery(collection(this.db, 'assets', id, 'upgrades'), orderBy('changedAt', 'desc')))
+    return snap.docs.map(d => {
+      const x = d.data() as Record<string, unknown>
+      return { id: d.id, component: x.component as UpgradeComponent, before: (x.before as string | null) ?? null,
+        after: String(x.after ?? ''), changedAt: toIso(x.changedAt), changedBy: String(x.changedBy ?? '') }
+    })
+  }
+
+  async listAudit(entityId: string): Promise<AuditLog[]> {
+    const snap = await getDocs(fsQuery(collection(this.db, 'audit_logs'),
+      where('entityId', '==', entityId), orderBy('at', 'desc')))
+    return snap.docs.map(d => {
+      const x = d.data() as Record<string, unknown>
+      return {
+        id: d.id,
+        entityType: x.entityType as AuditLog['entityType'],
+        entityId: String(x.entityId ?? ''),
+        action: x.action as AuditLog['action'],
+        actorUid: String(x.actorUid ?? ''),
+        actorRole: x.actorRole as AuditLog['actorRole'],
+        before: (x.before as AuditLog['before']) ?? null,
+        after: (x.after as AuditLog['after']) ?? null,
+        comment: (x.comment as string | null) ?? null,
+        at: toIso(x.at),
+      }
+    })
+  }
+}
+
+function stripUndefinedFs(o: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined))
 }
