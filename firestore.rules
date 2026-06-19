@@ -44,14 +44,27 @@ service cloud.firestore {
     // (prevents self role-escalation).
     match /users/{uid} {
       allow read: if isSignedIn() && (request.auth.uid == uid || isSuperAdmin());
-      allow create: if isSuperAdmin();
+
+      // Create: super_admin (any shape) OR a self-claim of a no-role record that
+      // introduces NO role field. Self-escalation is impossible.
+      allow create: if isSuperAdmin()
+        || (
+          isSignedIn()
+          && request.auth.uid == uid
+          && !('role' in request.resource.data)
+          && request.resource.data.status == 'no-role'
+        );
+
+      // Update: super_admin (any shape) OR a self-update that changes NO role
+      // field and keeps status unchanged (self can never grant/raise a role).
       allow update: if isSuperAdmin()
         || (
           isSignedIn()
           && request.auth.uid == uid
-          && request.resource.data.role == resource.data.role
+          && !('role' in request.resource.data.diff(resource.data).affectedKeys())
           && request.resource.data.status == resource.data.status
         );
+
       allow delete: if isSuperAdmin();
     }
 

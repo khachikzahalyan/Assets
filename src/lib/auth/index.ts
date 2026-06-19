@@ -57,3 +57,5 @@ export async function signOutUser(): Promise<void> {
 export function subscribeToAuthState(callback: (user: User | null) => void): () => void {
   return onAuthStateChanged(auth(), callback)
 }
+
+export { claimPendingUser, type ClaimInput } from './claimPendingUser'

@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useMemo, useCallback, useEffect, type ReactNode } from 'react'
 import type { Role } from '@/config/roles'
-import { fetchUserRole, signOutUser, subscribeToAuthState } from '@/lib/auth'
+import { fetchUserRole, signOutUser, subscribeToAuthState, claimPendingUser } from '@/lib/auth'
 
 export interface AuthUser {
   id: string
@@ -151,6 +151,7 @@ function RealAuthProvider({ children }: { children: ReactNode }) {
             // show who is signed in, but role stays a placeholder (never shown).
             setUser({ ...toAuthUser(shape, 'employee'), role: 'employee' })
             setStatus('no-role')
+            void claimPendingUser({ uid: shape.uid, email: shape.email, displayName: shape.displayName })
             return
           }
           setUser(toAuthUser(shape, role))

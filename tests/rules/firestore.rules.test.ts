@@ -280,6 +280,56 @@ describe('users', () => {
   it('a user CAN read their own doc', async () => {
     await assertSucceeds(getDoc(doc(authedDb(env, EMP), 'users', EMP)))
   })
+
+  it('a signed-in user CAN self-claim a no-role record for their OWN uid', async () => {
+    await env.clearFirestore()
+    await assertSucceeds(
+      setDoc(doc(authedDb(env, 'fresh1'), 'users', 'fresh1'), {
+        email: 'fresh1@ams.test', displayName: 'Fresh', status: 'no-role',
+      }),
+    )
+  })
+
+  it('self-claim that includes a role key is DENIED (no self-escalation on create)', async () => {
+    await env.clearFirestore()
+    await assertFails(
+      setDoc(doc(authedDb(env, 'fresh2'), 'users', 'fresh2'), {
+        email: 'fresh2@ams.test', displayName: 'F2', status: 'no-role', role: 'super_admin',
+      }),
+    )
+  })
+
+  it('a user CANNOT self-claim a record for a DIFFERENT uid', async () => {
+    await env.clearFirestore()
+    await assertFails(
+      setDoc(doc(authedDb(env, 'fresh3'), 'users', 'otherUid'), {
+        email: 'x@ams.test', displayName: 'X', status: 'no-role',
+      }),
+    )
+  })
+
+  it('a no-role self-update that introduces a role is DENIED', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'users', 'pend1'), {
+        email: 'p@ams.test', displayName: 'P', status: 'no-role',
+      })
+    })
+    await assertFails(
+      updateDoc(doc(authedDb(env, 'pend1'), 'users', 'pend1'), { role: 'asset_admin', status: 'active' }),
+    )
+  })
+
+  it('super_admin CAN promote a no-role user (set role + status active)', async () => {
+    await seedUser(env, SUPER, 'super_admin')
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'users', 'pend2'), {
+        email: 'p2@ams.test', displayName: 'P2', status: 'no-role',
+      })
+    })
+    await assertSucceeds(
+      updateDoc(doc(authedDb(env, SUPER), 'users', 'pend2'), { role: 'asset_admin', status: 'active' }),
+    )
+  })
 })
 
 describe('settings', () => {

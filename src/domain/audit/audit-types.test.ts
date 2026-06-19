@@ -21,4 +21,9 @@ describe('audit extension for employees', () => {
     const t: AuditEntityType = 'employee'
     expect(t).toBe('employee')
   })
+  it('includes the user/role_assigned members used by promotion', () => {
+    expect(AUDIT_ACTIONS).toContain('role_assigned')
+    const t: AuditEntityType = 'user'
+    expect(t).toBe('user')
+  })
 })
