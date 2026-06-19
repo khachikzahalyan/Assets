@@ -203,6 +203,7 @@ describe('AssetsPage', () => {
       listAssets: () => Promise.reject(new Error('Network error')),
       loadReferenceData: () => Promise.resolve(REF),
       listAssetsForEmployee: () => Promise.resolve([]),
+      loadSelfServiceRefData: () => Promise.resolve({ statuses: [], categories: [] }),
     }
     renderPage('asset_admin', errorRepo)
     // ErrorState renders the common error title
@@ -216,6 +217,7 @@ describe('AssetsPage', () => {
       listAssets: () => Promise.reject(new Error('Network error')),
       loadReferenceData: () => Promise.resolve(REF),
       listAssetsForEmployee: () => Promise.resolve([]),
+      loadSelfServiceRefData: () => Promise.resolve({ statuses: [], categories: [] }),
     }
     renderPage('asset_admin', errorRepo)
     await waitFor(() => {

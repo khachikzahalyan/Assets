@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { assertFails, assertSucceeds, type RulesTestEnvironment } from '@firebase/rules-unit-testing'
-import { doc, getDoc, setDoc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore'
+import { doc, getDoc, setDoc, updateDoc, deleteDoc, serverTimestamp, getDocs, collection } from 'firebase/firestore'
 import { authedDb, unauthedDb, makeTestEnv, seedDoc, seedUser } from './helpers'
 
 /**
@@ -602,5 +602,35 @@ describe('/assignments read scope (employee self-service)', () => {
       assetId: 'a3', mode: 'branch', assignedToBranchId: 'br_1', assignedToEmployeeId: null, endedAt: null,
     })
     await assertFails(getDoc(doc(authedDb(env, EMP), 'assignments', 'asc_branch')))
+  })
+})
+
+describe('/employees list scope (security-review coverage gap)', () => {
+  beforeEach(async () => {
+    await seedDoc(env, 'employees/' + EMP, { firstName: 'Self', lastName: 'Emp', email: 's@x.com', status: 'active' })
+    await seedDoc(env, 'employees/other', { firstName: 'O', lastName: 'E', email: 'o@x.com', status: 'active' })
+  })
+
+  it('employee CANNOT LIST the full /employees collection (only own doc is readable)', async () => {
+    await assertFails(getDocs(collection(authedDb(env, EMP), 'employees')))
+  })
+
+  it('super_admin CAN LIST the full /employees collection', async () => {
+    await assertSucceeds(getDocs(collection(authedDb(env, SUPER), 'employees')))
+  })
+})
+
+describe('self-service loader collections (asset_statuses + categories)', () => {
+  beforeEach(async () => {
+    await seedDoc(env, 'asset_statuses/st1', { name: 'В наличии', color: 'green' })
+    await seedDoc(env, 'categories/cat1', { name: 'Ноутбук', group: 'devices', lucideIcon: 'laptop' })
+  })
+
+  it('employee CAN LIST asset_statuses (self-service loader collection)', async () => {
+    await assertSucceeds(getDocs(collection(authedDb(env, EMP), 'asset_statuses')))
+  })
+
+  it('employee CAN LIST categories (self-service loader collection)', async () => {
+    await assertSucceeds(getDocs(collection(authedDb(env, EMP), 'categories')))
   })
 })

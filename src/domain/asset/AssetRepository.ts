@@ -15,6 +15,13 @@ export interface AssetReferenceData {
   employees: EmployeeRow[]
 }
 
+/** Catalog rows a self-service (employee) page can read under the tightened rules.
+ *  Excludes /employees (employee cannot list the directory) and any admin-only collection. */
+export interface SelfServiceRefData {
+  statuses: StatusRow[]
+  categories: CategoryRow[]
+}
+
 /**
  * Read-side port for the Assets list. Mutations (create/edit/withAudit) arrive
  * in a later plan. Implementations: firestoreAssetRepository (production),
@@ -28,6 +35,9 @@ export interface AssetRepository {
   loadReferenceData(): Promise<AssetReferenceData>
   /** Assets currently assigned to a given employee (self-service). */
   listAssetsForEmployee(employeeId: string): Promise<Asset[]>
+  /** Catalogs an employee may read (statuses + categories only) — for self-service pages.
+   *  Does NOT read /employees, so it works under the employee-scoped read rules. */
+  loadSelfServiceRefData(): Promise<SelfServiceRefData>
 }
 
 export interface Actor { uid: string; role: Role }

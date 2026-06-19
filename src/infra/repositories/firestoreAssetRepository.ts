@@ -9,6 +9,7 @@ import type {
 import type {
   AssetRepository, AssetReferenceData, AssetWriteRepository,
   CreateAssetInput, UpdateAssetInput, ChangeStatusOpts, Actor,
+  SelfServiceRefData,
 } from '@/domain/asset'
 import type { UpgradeComponent, UpgradeEvent } from '@/domain/asset'
 import { deriveCreateStatus, isSpecTracked, SPEC_KEY } from '@/domain/asset'
@@ -99,6 +100,18 @@ export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepo
       collection(this.db, 'assets'), where('assignment.employeeId', '==', employeeId),
     ))
     return snap.docs.map(d => toAsset(d.id, d.data() as Record<string, unknown>))
+  }
+
+  async loadSelfServiceRefData(): Promise<SelfServiceRefData> {
+    const [statuses, categories] = await Promise.all([
+      this.readCol<StatusRow>('asset_statuses', d => ({ name: String(d.name ?? ''), color: String(d.color ?? 'gray') })),
+      this.readCol<CategoryRow>('categories', d => ({
+        name: String(d.name ?? ''),
+        group: (d.group as CategoryRow['group']) ?? 'devices',
+        lucideIcon: String(d.lucideIcon ?? 'package'),
+      })),
+    ])
+    return { statuses, categories }
   }
 
   private async fetchReferenceData(): Promise<AssetReferenceData> {

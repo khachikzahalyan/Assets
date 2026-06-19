@@ -1,7 +1,7 @@
 import type {
   Asset, AssetListQuery, AssetSort, AssetGroupFilter,
 } from '@/domain/asset'
-import type { AssetRepository, AssetReferenceData } from '@/domain/asset'
+import type { AssetRepository, AssetReferenceData, SelfServiceRefData } from '@/domain/asset'
 import {
   deriveCreateStatus, isSpecTracked, SPEC_KEY,
   type AssetWriteRepository, type CreateAssetInput, type UpdateAssetInput,
@@ -82,6 +82,10 @@ export class InMemoryAssetRepository implements AssetRepository, AssetWriteRepos
 
   async listAssetsForEmployee(employeeId: string): Promise<Asset[]> {
     return this.assets.filter(a => a.assignment?.mode === 'employee' && a.assignment.employeeId === employeeId)
+  }
+
+  async loadSelfServiceRefData(): Promise<SelfServiceRefData> {
+    return { statuses: this.ref.statuses, categories: this.ref.categories }
   }
 
   // ---- Write methods ------------------------------------------------------

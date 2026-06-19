@@ -7,6 +7,11 @@ import { MyAssetsPage } from './MyAssetsPage'
 import { InMemoryAssetRepository } from '@/infra/repositories'
 import type { Asset, AssetReferenceData } from '@/domain/asset'
 
+// REF has employees: [] — MyAssetsPage calls loadSelfServiceRefData() which only
+// returns statuses + categories, so the page never reads the employees array.
+// The "no employees" case is implicitly covered: if the page ever tried to
+// dereference ref.employees it would TypeScript-error at compile time because
+// SelfServiceRefData has no employees field.
 const REF: AssetReferenceData = {
   statuses: [{ id: 'st_assigned', name: 'Выдано', color: 'green' }],
   branches: [], departments: [],

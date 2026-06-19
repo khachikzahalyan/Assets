@@ -56,8 +56,9 @@ vi.mock('@/infra/repositories', async () => {
       async setStatus()             { return }
     },
     FirestoreAssetRepository: class {
-      async loadReferenceData()     { return { statuses: [], branches: [], departments: [], categories: [], employees: [] } }
-      async listAssetsForEmployee() { return [] }
+      async loadReferenceData()      { return { statuses: [], branches: [], departments: [], categories: [], employees: [] } }
+      async listAssetsForEmployee()  { return [] }
+      async loadSelfServiceRefData() { return { statuses: [], categories: [] } }
     },
     FirestoreAssignmentRepository: class {
       async listAssignmentsForEmployee() { return [] }

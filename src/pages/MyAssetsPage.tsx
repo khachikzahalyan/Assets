@@ -4,7 +4,7 @@ import {
   PageHeader, SectionCard, Chip, LoadingState, ErrorState, EmptyState,
 } from '@/components/ui'
 import { useAuth } from '@/contexts/AuthContext'
-import type { Asset, AssetRepository, AssetReferenceData } from '@/domain/asset'
+import type { Asset, AssetRepository, SelfServiceRefData } from '@/domain/asset'
 import type { ChipColor } from '@/components/ui/chip'
 import { FirestoreAssetRepository } from '@/infra/repositories'
 import { db } from '@/lib/firebase'
@@ -34,7 +34,7 @@ export function MyAssetsPage({ repository }: MyAssetsPageProps) {
   const [loading, setLoading]     = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [assets, setAssets]       = useState<Asset[]>([])
-  const [ref, setRef]             = useState<AssetReferenceData | null>(null)
+  const [ref, setRef]             = useState<SelfServiceRefData | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -42,7 +42,7 @@ export function MyAssetsPage({ repository }: MyAssetsPageProps) {
     try {
       const [mine, refData] = await Promise.all([
         repo.listAssetsForEmployee(user.id),
-        repo.loadReferenceData(),
+        repo.loadSelfServiceRefData(),
       ])
       setAssets(mine)
       setRef(refData)
