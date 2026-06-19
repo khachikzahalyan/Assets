@@ -1,3 +1,5 @@
 export * from './assetFormat'
 export * from './AssetsFilterBar'
 export * from './AssetsTable'
+export * from './detail/AssignmentForm'
+export * from './detail/AssignmentHistory'

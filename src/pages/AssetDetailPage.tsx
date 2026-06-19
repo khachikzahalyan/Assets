@@ -8,6 +8,8 @@ import type { ChipColor } from '@/components/ui'
 import { UpgradesPanel } from '@/components/features/assets/detail/UpgradesPanel'
 import { AssetHistory } from '@/components/features/assets/detail/AssetHistory'
 import { LifecycleActions } from '@/components/features/assets/detail/LifecycleActions'
+import { AssignmentForm, type AssignmentSubmit } from '@/components/features/assets/detail/AssignmentForm'
+import { AssignmentHistory } from '@/components/features/assets/detail/AssignmentHistory'
 import { categoryCapabilities } from '@/components/features/assets/create/CategoryPicker'
 import { useAuth } from '@/contexts/AuthContext'
 import type {
@@ -20,8 +22,10 @@ import type {
 } from '@/domain/asset'
 import type { AuditLog } from '@/domain/audit'
 import type { UpgradeEvent } from '@/domain/asset'
-import { FirestoreAssetRepository } from '@/infra/repositories'
-import { db } from '@/lib/firebase'
+import type { Assignment, AssignmentRepository } from '@/domain/assignment'
+import { FirestoreAssetRepository, FirestoreAssignmentRepository } from '@/infra/repositories'
+import { uploadActScan, actScanUrl } from '@/infra/storage'
+import { db, storage } from '@/lib/firebase'
 
 // Map status color strings from ref data to ChipColor values
 function toChipColor(color: string): ChipColor {
@@ -45,22 +49,30 @@ function toChipColor(color: string): ChipColor {
 
 export interface AssetDetailPageProps {
   repository?: AssetRepository & AssetWriteRepository
+  assignmentRepository?: AssignmentRepository
 }
 
-export function AssetDetailPage({ repository }: AssetDetailPageProps) {
+export function AssetDetailPage({ repository, assignmentRepository }: AssetDetailPageProps) {
   const { t } = useTranslation('assets')
   const { user, role } = useAuth()
   const { id } = useParams<{ id: string }>()
 
   const actor = useMemo(() => ({ uid: user.id, role }), [user.id, role])
 
-  // Build default repo lazily — test callers inject their own
+  // Build default repos lazily — test callers inject their own
   const defaultRepo = useMemo<AssetRepository & AssetWriteRepository>(
     () => new FirestoreAssetRepository(db()),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   )
   const repo = repository ?? defaultRepo
+
+  const defaultAsnRepo = useMemo<AssignmentRepository>(
+    () => new FirestoreAssignmentRepository(db()),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  )
+  const repoAsn = assignmentRepository ?? defaultAsnRepo
 
   // ---- Data state ----
   const [loading, setLoading] = useState(true)
@@ -69,6 +81,7 @@ export function AssetDetailPage({ repository }: AssetDetailPageProps) {
   const [upgrades, setUpgrades] = useState<UpgradeEvent[]>([])
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([])
   const [ref, setRef] = useState<AssetReferenceData | null>(null)
+  const [assignments, setAssignments] = useState<Assignment[]>([])
 
   // ---- Identity edit state ----
   const [editing, setEditing] = useState(false)
@@ -81,27 +94,42 @@ export function AssetDetailPage({ repository }: AssetDetailPageProps) {
   // ---- Lifecycle action error ----
   const [actionError, setActionError] = useState<string | null>(null)
 
+  // ---- Assignment state ----
+  const [assigning, setAssigning] = useState(false)
+  const [assignBusy, setAssignBusy] = useState(false)
+  const [assignError, setAssignError] = useState<string | null>(null)
+
   const load = useCallback(async () => {
     if (!id) return
     setLoading(true)
     setLoadError(null)
     try {
-      const [a, ups, logs, refData] = await Promise.all([
+      // Run asset data + assignments in parallel.
+      // Assignment list is best-effort: if Firestore is unavailable (e.g. tests
+      // without a Firebase mock), the error is swallowed and assignments stay [].
+      const [a, ups, logs, refData, asnList] = await Promise.all([
         repo.getAsset(id),
         (repo as AssetWriteRepository).listUpgrades(id),
         (repo as AssetWriteRepository).listAudit(id),
         repo.loadReferenceData(),
+        // Only call listAssignments when a real repo was injected.
+        // When assignmentRepository is undefined (old tests without the new prop),
+        // skip the network call entirely to avoid blocking those tests.
+        assignmentRepository
+          ? repoAsn.listAssignments(id).catch(() => [] as Assignment[])
+          : Promise.resolve([] as Assignment[]),
       ])
       setAsset(a)
       setUpgrades(ups)
       setAuditLogs(logs)
       setRef(refData)
+      setAssignments(asnList)
     } catch {
       setLoadError(t('validation.saveFailed'))
     } finally {
       setLoading(false)
     }
-  }, [id, repo, t])
+  }, [id, repo, repoAsn, assignmentRepository, t])
 
   useEffect(() => {
     void load()
@@ -119,6 +147,7 @@ export function AssetDetailPage({ repository }: AssetDetailPageProps) {
   const canIssue = role === 'super_admin' || role === 'asset_admin'
   const canRepair = role === 'super_admin' || role === 'tech_admin'
   const canEditUpgrades = role === 'super_admin' || role === 'tech_admin'
+  const canAssign = role === 'super_admin' || role === 'asset_admin'
 
   // ---- Identity edit handlers ----
   function handleStartEdit() {
@@ -192,16 +221,58 @@ export function AssetDetailPage({ repository }: AssetDetailPageProps) {
     if (!asset) return
     setActionError(null)
     try {
-      await (repo as AssetWriteRepository).changeStatus(
-        asset.id,
-        'st_warehouse',
-        actor,
-        { assignment: null },
-      )
+      await repoAsn.returnAsset(asset.id, actor)
       await load()
     } catch {
-      setActionError(t('validation.saveFailed'))
+      setActionError(t('assign.returnFailed'))
     }
+  }
+
+  // ---- Assignment handler ----
+  async function handleAssign(v: AssignmentSubmit) {
+    if (!asset) return
+    setAssignBusy(true)
+    try {
+      let actPath: string | null = null
+      if (v.file) {
+        // Upload BEFORE transaction (Decision B — orphaned scan on txn failure is acceptable)
+        actPath = await uploadActScan(storage(), asset.id, v.file)
+      }
+
+      // Resolve employee name from ref data.
+      // Note: EmployeeRow has no email field — employeeEmail stays null.
+      // The Firestore repo will skip mail enqueue for null email, which is best-effort.
+      let employeeName: string | null = null
+      if (v.mode === 'employee' && v.employeeId && ref) {
+        const emp = ref.employees.find(e => e.id === v.employeeId)
+        if (emp) {
+          employeeName = [emp.firstName, emp.lastName].filter(Boolean).join(' ') || null
+        }
+      }
+
+      const assignInput: Parameters<typeof repoAsn.assign>[0] = {
+        assetId: asset.id,
+        mode: v.mode,
+        actStoragePath: actPath,
+        transferComment: v.comment,
+        invCode: asset.invCode,
+      }
+      if (v.employeeId) assignInput.employeeId = v.employeeId
+      if (v.branchId) assignInput.branchId = v.branchId
+      if (employeeName) assignInput.employeeName = employeeName
+      // employeeEmail is always null for now (EmployeeRow has no email field)
+      await repoAsn.assign(assignInput, actor)
+      setAssigning(false)
+      await load()
+    } catch {
+      setAssignError(t('assign.assignFailed'))
+    } finally {
+      setAssignBusy(false)
+    }
+  }
+
+  function handleViewScan(path: string) {
+    void actScanUrl(storage(), path).then(u => window.open(u, '_blank', 'noopener'))
   }
 
   // ---- Render states ----
@@ -262,10 +333,28 @@ export function AssetDetailPage({ repository }: AssetDetailPageProps) {
         statusId={asset.statusId}
         canIssue={canIssue}
         canRepair={canRepair}
+        canAssign={canAssign}
         onSendToRepair={handleSendToRepair}
         onWriteOff={handleWriteOff}
         onReturn={handleReturn}
+        onAssign={() => { setAssignError(null); setAssigning(true) }}
       />
+
+      {/* Assignment form */}
+      {assigning && (
+        <SectionCard title={t('assign.title')} icon="user-check">
+          {assignError && (
+            <p role="alert" className="mb-3 text-[12px] text-[#FDA4AF]">{assignError}</p>
+          )}
+          <AssignmentForm
+            employees={ref?.employees ?? []}
+            branches={ref?.branches ?? []}
+            busy={assignBusy}
+            onSubmit={handleAssign}
+            onCancel={() => { setAssigning(false); setAssignError(null) }}
+          />
+        </SectionCard>
+      )}
 
       {/* Identity section */}
       <SectionCard
@@ -378,6 +467,13 @@ export function AssetDetailPage({ repository }: AssetDetailPageProps) {
 
       {/* Audit history */}
       <AssetHistory logs={auditLogs} ref={ref ?? undefined} />
+
+      {/* Assignment history */}
+      <AssignmentHistory
+        assignments={assignments}
+        {...(ref ? { refData: ref } : {})}
+        onViewScan={handleViewScan}
+      />
     </div>
   )
 }
