@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { I18nextProvider } from 'react-i18next'
 import i18n from '@/lib/i18n'
 import { AuditFilterBar } from './AuditFilterBar'
+import { AUDIT_ACTIONS } from '@/domain/audit'
 import type { AuditLogQuery } from '@/domain/audit'
 import type { AuditLogReferenceData } from '@/domain/audit/AuditLogRepository'
 
@@ -131,10 +132,12 @@ describe('AuditFilterBar', () => {
     const onChange = vi.fn()
     renderBar(DEFAULT_QUERY, onChange)
 
-    // action select has 15 options (1 'all' + 14 AUDIT_ACTIONS)
+    // action select has 1 'all' option + one per AUDIT_ACTIONS (derived so it
+    // never drifts when actions are added — e.g. the license module additions).
+    const actionOptionCount = AUDIT_ACTIONS.length + 1
     const allSelects = screen.getAllByRole('combobox')
     const actionSelect = allSelects.find(
-      (el) => (el as HTMLSelectElement).options.length === 15,
+      (el) => (el as HTMLSelectElement).options.length === actionOptionCount,
     ) as HTMLSelectElement
 
     // Act
