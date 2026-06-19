@@ -4,7 +4,7 @@
     "dashboard": "Дашборд", "assets": "Активы", "assignments": "Выдачи", "repairs": "Ремонты",
     "licenses": "Лицензии", "parts": "Запчасти", "employees": "Сотрудники", "branches": "Филиалы",
     "departments": "Отделы", "categories": "Категории", "statuses": "Статусы", "roles": "Роли и доступ",
-    "audit": "Журнал аудита", "settings": "Настройки",
+    "audit": "Журнал аудита", "settings": "Настройки", "pending-users": "Ожидают доступа",
     "my-assets": "Мои активы", "my-acts": "Мои акты", "profile": "Профиль"
   },
   "roles": { "super_admin": "Супер Админ", "asset_admin": "Админ активов", "tech_admin": "Тех. Админ", "employee": "Сотрудник" }

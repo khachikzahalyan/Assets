@@ -1,0 +1,9 @@
+{
+  "title": "Pending access",
+  "subtitle": "Users who signed in but have no role yet",
+  "empty": { "title": "No pending users", "desc": "When someone signs in for the first time, they appear here" },
+  "col": { "user": "User", "email": "Email", "signedIn": "Recorded" },
+  "assign": "Assign role",
+  "dialog": { "title": "Assign role", "role": "Role", "employeeMode": "Employee record", "link": "Link existing", "create": "Create new", "firstName": "First name", "lastName": "Last name", "submit": "Assign", "cancel": "Cancel" },
+  "toast": { "assigned": "Role assigned", "failed": "Could not assign role" }
+}

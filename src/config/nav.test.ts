@@ -34,3 +34,14 @@ describe('employees + self-service routes are real', () => {
     }
   })
 })
+
+describe('pending-users nav gating', () => {
+  it('pending-users is visible to super_admin only', () => {
+    const su = navForRole('super_admin').flatMap(g => g.items).map(i => i.id)
+    expect(su).toContain('pending-users')
+    for (const r of ['asset_admin', 'tech_admin', 'employee'] as const) {
+      const ids = navForRole(r).flatMap(g => g.items).map(i => i.id)
+      expect(ids).not.toContain('pending-users')
+    }
+  })
+})

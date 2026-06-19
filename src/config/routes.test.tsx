@@ -63,6 +63,10 @@ vi.mock('@/infra/repositories', async () => {
     FirestoreAssignmentRepository: class {
       async listAssignmentsForEmployee() { return [] }
     },
+    FirestoreUserRepository: class {
+      async listPendingUsers() { return [] }
+      async assignRole() { return { value: { id: 'u_1', email: 'x@x.com', displayName: 'X', role: 'super_admin', status: 'active', createdAt: null }, auditId: 'a_1' } }
+    },
   }
 })
 

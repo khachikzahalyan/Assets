@@ -3,6 +3,7 @@ import { AppShell } from '@/components/common'
 import {
   DashboardPage, StubPage, LoginPage, AssetsPage, AssetCreatePage, AssetDetailPage,
   EmployeesPage, EmployeeCreatePage, EmployeeDetailPage, MyAssetsPage, MyActsPage, ProfilePage,
+  PendingUsersPage,
 } from '@/pages'
 import { RequireAuth, RoleGate } from '@/components/routing'
 import { PHASE_STUB_ROUTES } from './nav'
@@ -99,6 +100,9 @@ export function AppRoutes() {
           } />
           <Route path="/profile" element={
             <RoleGate roles={routeRoles('profile')}><ProfilePage /></RoleGate>
+          } />
+          <Route path="/pending-users" element={
+            <RoleGate roles={routeRoles('pending-users')}><PendingUsersPage /></RoleGate>
           } />
 
           {PHASE_STUB_ROUTES.map((id) => (
