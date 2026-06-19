@@ -38,7 +38,7 @@ function refData(): AssetReferenceData {
     branches: [{ id: 'br_main', name: 'Главный' }, { id: 'br_2', name: 'Филиал 2' }],
     departments: [],
     categories: [{ id: 'cat_laptop', name: 'Ноутбук', group: 'devices', lucideIcon: 'laptop' }],
-    employees: [{ id: 'e_1', firstName: 'Иван', lastName: 'Петров' }],
+    employees: [{ id: 'e_1', firstName: 'Иван', lastName: 'Петров', email: null }],
   }
 }
 

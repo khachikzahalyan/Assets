@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest'
 import { InMemoryAssetRepository } from './inMemoryAssetRepository'
 import { createInMemoryAuditStore, inMemoryAuditContext } from '@/lib/audit'
-import type { AssetReferenceData } from '@/domain/asset'
+import type { AssetReferenceData, Asset } from '@/domain/asset'
 
 const REF: AssetReferenceData = {
   statuses: [], branches: [{ id: 'b_main', name: 'HQ' }], departments: [],
   categories: [{ id: 'cat_laptop', name: 'Laptop', group: 'devices', lucideIcon: 'laptop' }],
-  employees: [{ id: 'e1', firstName: 'A', lastName: 'B' }],
+  employees: [{ id: 'e1', firstName: 'A', lastName: 'B', email: null }],
 }
 const ACTOR = { uid: 'u1', role: 'asset_admin' as const }
 
@@ -85,5 +85,23 @@ describe('InMemory write methods', () => {
     const logs = await repo.listAudit(a.value.id)
     expect(logs.length).toBe(1)
     expect(logs[0]!.entityId).toBe(a.value.id)
+  })
+})
+
+describe('listAssetsForEmployee', () => {
+  it('returns only assets whose assignment.employeeId matches', async () => {
+    const ref: AssetReferenceData = { statuses: [], branches: [], departments: [], categories: [], employees: [] }
+    const assets: Asset[] = [
+      { id: 'a_1', categoryId: 'c', brand: null, model: null, invCode: '1', serial: null,
+        statusId: 'st_assigned', assignment: { mode: 'employee', employeeId: 'uid_1' }, branchId: 'b', deptId: null,
+        updatedAt: '2026-01-01T00:00:00.000Z', currentSpecs: null },
+      { id: 'a_2', categoryId: 'c', brand: null, model: null, invCode: '2', serial: null,
+        statusId: 'st_warehouse', assignment: null, branchId: 'b', deptId: null,
+        updatedAt: '2026-01-01T00:00:00.000Z', currentSpecs: null },
+    ]
+    const repo = new InMemoryAssetRepository(assets, ref)
+    const mine = await repo.listAssetsForEmployee('uid_1')
+    expect(mine).toHaveLength(1)
+    expect(mine[0]!.id).toBe('a_1')
   })
 })

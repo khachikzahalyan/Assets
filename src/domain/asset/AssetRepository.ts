@@ -26,6 +26,8 @@ export interface AssetRepository {
   listAssets(query: AssetListQuery): Promise<Asset[]>
   /** Loads the reference rows needed to resolve names/colors/icons for the table. */
   loadReferenceData(): Promise<AssetReferenceData>
+  /** Assets currently assigned to a given employee (self-service). */
+  listAssetsForEmployee(employeeId: string): Promise<Asset[]>
 }
 
 export interface Actor { uid: string; role: Role }

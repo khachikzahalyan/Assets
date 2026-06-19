@@ -59,7 +59,15 @@
     { "collectionGroup": "assignments", "queryScope": "COLLECTION", "fields": [
       { "fieldPath": "assetId", "order": "ASCENDING" },
       { "fieldPath": "startedAt", "order": "DESCENDING" }
-    ]}
+    ]},
+    {
+      "collectionGroup": "assignments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "assignedToEmployeeId", "order": "ASCENDING" },
+        { "fieldPath": "startedAt", "order": "DESCENDING" }
+      ]
+    }
   ],
   "fieldOverrides": []
 }

@@ -70,4 +70,12 @@ describe('InMemoryAssignmentRepository', () => {
     expect(list).toHaveLength(2)
     expect(list[0]!.assignedToBranchId).toBe('br_3')
   })
+
+  it('listAssignmentsForEmployee returns only that employee, newest first', async () => {
+    await repo.assign({ assetId: 'a_1', mode: 'employee', employeeId: 'uid_1' }, ACTOR)
+    const list = await repo.listAssignmentsForEmployee('uid_1')
+    expect(list).toHaveLength(1)
+    expect(list[0]!.assignedToEmployeeId).toBe('uid_1')
+    expect(await repo.listAssignmentsForEmployee('uid_2')).toHaveLength(0)
+  })
 })

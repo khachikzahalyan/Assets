@@ -80,6 +80,10 @@ export class InMemoryAssetRepository implements AssetRepository, AssetWriteRepos
     return this.ref
   }
 
+  async listAssetsForEmployee(employeeId: string): Promise<Asset[]> {
+    return this.assets.filter(a => a.assignment?.mode === 'employee' && a.assignment.employeeId === employeeId)
+  }
+
   // ---- Write methods ------------------------------------------------------
 
   async getAsset(id: string): Promise<Asset | null> {

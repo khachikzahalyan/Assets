@@ -52,6 +52,14 @@ export class FirestoreAssignmentRepository implements AssignmentRepository {
     return snap.docs.map(d => toAssignment(d.id, d.data() as Record<string, unknown>))
   }
 
+  async listAssignmentsForEmployee(employeeId: string): Promise<Assignment[]> {
+    const snap = await getDocs(fsQuery(
+      collection(this.db, 'assignments'),
+      where('assignedToEmployeeId', '==', employeeId), orderBy('startedAt', 'desc'),
+    ))
+    return snap.docs.map(d => toAssignment(d.id, d.data() as Record<string, unknown>))
+  }
+
   async assign(input: AssignInput, actor: Actor): Promise<AuditedResult<Assignment>> {
     if (input.mode === 'employee' && !input.employeeId) throw new Error('employeeId required')
     if (input.mode === 'branch' && !input.branchId) throw new Error('branchId required')

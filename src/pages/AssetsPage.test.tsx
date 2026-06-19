@@ -52,8 +52,8 @@ const REF: AssetReferenceData = {
     { id: 'cat_switch',  name: 'Коммутатор', group: 'network', lucideIcon: 'network' },
   ],
   employees: [
-    { id: 'emp_1', firstName: 'Анна',   lastName: 'Иванова' },
-    { id: 'emp_2', firstName: 'Дмитрий', lastName: 'Козлов' },
+    { id: 'emp_1', firstName: 'Анна',   lastName: 'Иванова',  email: null },
+    { id: 'emp_2', firstName: 'Дмитрий', lastName: 'Козлов', email: null },
   ],
 }
 
@@ -202,6 +202,7 @@ describe('AssetsPage', () => {
     const errorRepo: AssetRepository = {
       listAssets: () => Promise.reject(new Error('Network error')),
       loadReferenceData: () => Promise.resolve(REF),
+      listAssetsForEmployee: () => Promise.resolve([]),
     }
     renderPage('asset_admin', errorRepo)
     // ErrorState renders the common error title
@@ -214,6 +215,7 @@ describe('AssetsPage', () => {
     const errorRepo: AssetRepository = {
       listAssets: () => Promise.reject(new Error('Network error')),
       loadReferenceData: () => Promise.resolve(REF),
+      listAssetsForEmployee: () => Promise.resolve([]),
     }
     renderPage('asset_admin', errorRepo)
     await waitFor(() => {

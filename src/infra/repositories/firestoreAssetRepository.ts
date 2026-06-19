@@ -94,6 +94,13 @@ export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepo
     return this.refCache
   }
 
+  async listAssetsForEmployee(employeeId: string): Promise<Asset[]> {
+    const snap = await getDocs(fsQuery(
+      collection(this.db, 'assets'), where('assignment.employeeId', '==', employeeId),
+    ))
+    return snap.docs.map(d => toAsset(d.id, d.data() as Record<string, unknown>))
+  }
+
   private async fetchReferenceData(): Promise<AssetReferenceData> {
     const [statuses, branches, departments, categories, employees] = await Promise.all([
       this.readCol<StatusRow>('asset_statuses', d => ({ name: String(d.name ?? ''), color: String(d.color ?? 'gray') })),
@@ -107,6 +114,7 @@ export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepo
       this.readCol<EmployeeRow>('employees', d => ({
         firstName: (d.firstName as string | null) ?? null,
         lastName: (d.lastName as string | null) ?? null,
+        email: (d.email as string | null) ?? null,
       })),
     ])
     return { statuses, branches, departments, categories, employees }

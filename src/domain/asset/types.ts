@@ -48,6 +48,7 @@ export interface EmployeeRow {
   id: string
   firstName: string | null
   lastName: string | null
+  email: string | null
 }
 
 export type AssetGroupFilter = 'all' | 'devices' | 'network' | 'furniture'

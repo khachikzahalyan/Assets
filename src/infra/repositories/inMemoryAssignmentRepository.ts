@@ -31,6 +31,12 @@ export class InMemoryAssignmentRepository implements AssignmentRepository {
       })
   }
 
+  async listAssignmentsForEmployee(employeeId: string): Promise<Assignment[]> {
+    return this.history
+      .filter(a => a.assignedToEmployeeId === employeeId)
+      .sort((a, b) => b.startedAt.localeCompare(a.startedAt))
+  }
+
   async assign(input: AssignInput, actor: Actor): Promise<AuditedResult<Assignment>> {
     const idx = this.assets.findIndex(a => a.id === input.assetId)
     if (idx < 0) throw new Error(`Asset not found: ${input.assetId}`)

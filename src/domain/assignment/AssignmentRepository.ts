@@ -28,4 +28,6 @@ export interface AssignmentRepository {
   listAssignments(assetId: string): Promise<Assignment[]>
   /** The single active (endedAt == null) assignment for an asset, or null. */
   getActiveAssignment(assetId: string): Promise<Assignment | null>
+  /** Assignment history for a given employee (self-service My Acts), newest first. */
+  listAssignmentsForEmployee(employeeId: string): Promise<Assignment[]>
 }

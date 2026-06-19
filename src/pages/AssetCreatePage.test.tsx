@@ -32,7 +32,7 @@ const REF: AssetReferenceData = {
   categories: [
     { id: 'cat_laptop', name: 'Ноутбук', group: 'devices', lucideIcon: 'laptop' },
   ],
-  employees: [{ id: 'e1', firstName: 'Иван', lastName: 'Петров' }],
+  employees: [{ id: 'e1', firstName: 'Иван', lastName: 'Петров', email: null }],
 }
 
 function setup() {
