@@ -202,9 +202,12 @@ describe('role matrix', () => {
     await assertFails(setDoc(doc(authedDb(env, ASSET), 'asset_statuses', 's2'), { name: 'S' }))
   })
 
-  it('any signed-in user CAN read assets; unauthenticated CANNOT', async () => {
+  it('an admin CAN read any asset (including unassigned); unauthenticated CANNOT', async () => {
+    // NOTE: this test was updated in Task 11 — the asset read rule was narrowed so an
+    // employee can only read assets assigned to them. Using ASSET (asset_admin) as the
+    // signed-in reader here, because EMP cannot read an asset with no assignment.
     await seedDoc(env, 'assets/r1', { name: 'A' })
-    await assertSucceeds(getDoc(doc(authedDb(env, EMP), 'assets', 'r1')))
+    await assertSucceeds(getDoc(doc(authedDb(env, ASSET), 'assets', 'r1')))
     await assertFails(getDoc(doc(unauthedDb(env), 'assets', 'r1')))
   })
 
@@ -449,5 +452,155 @@ describe('audit_logs employee read scoped by assignedToEmployeeId', () => {
       after: { assignedToEmployeeId: 'other' }, at: new Date(),
     })
     await assertFails(getDoc(doc(authedDb(env, EMP), 'audit_logs', 'ae2')))
+  })
+})
+
+// ---- Task 11 (extended): self-service read scope + /employees write rules ----
+
+describe('/employees read + write scope', () => {
+  it('super_admin can read any employee doc', async () => {
+    await seedDoc(env, 'employees/uid_x', { firstName: 'A', lastName: 'B', email: 'x@x.com', status: 'active' })
+    await assertSucceeds(getDoc(doc(authedDb(env, SUPER), 'employees', 'uid_x')))
+  })
+
+  it('asset_admin can read any employee doc', async () => {
+    await seedDoc(env, 'employees/uid_x2', { firstName: 'A', lastName: 'B', email: 'x2@x.com', status: 'active' })
+    await assertSucceeds(getDoc(doc(authedDb(env, ASSET), 'employees', 'uid_x2')))
+  })
+
+  it('tech_admin can read any employee doc', async () => {
+    await seedDoc(env, 'employees/uid_x3', { firstName: 'A', lastName: 'B', email: 'x3@x.com', status: 'active' })
+    await assertSucceeds(getDoc(doc(authedDb(env, TECH), 'employees', 'uid_x3')))
+  })
+
+  it('employee CAN read their OWN doc (employees/{EMP})', async () => {
+    await seedDoc(env, 'employees/' + EMP, { firstName: 'Self', lastName: 'Emp', email: 's@x.com', status: 'active' })
+    await assertSucceeds(getDoc(doc(authedDb(env, EMP), 'employees', EMP)))
+  })
+
+  it('employee CANNOT read another employee\'s doc', async () => {
+    await seedDoc(env, 'employees/other_emp', { firstName: 'O', lastName: 'E', email: 'o@x.com', status: 'active' })
+    await assertFails(getDoc(doc(authedDb(env, EMP), 'employees', 'other_emp')))
+  })
+
+  it('super_admin CAN create an employee with a non-empty email', async () => {
+    await assertSucceeds(setDoc(doc(authedDb(env, SUPER), 'employees', 'uid_emp2'), {
+      firstName: 'A', lastName: 'B', email: 'b@x.com', status: 'active',
+      branchId: null, departmentId: null, position: null, terminatedAt: null,
+    }))
+  })
+
+  it('asset_admin CAN create an employee with a non-empty email', async () => {
+    await assertSucceeds(setDoc(doc(authedDb(env, ASSET), 'employees', 'uid_emp'), {
+      firstName: 'Иван', lastName: 'Петров', email: 'i@x.com', status: 'active',
+      branchId: null, departmentId: null, position: null, terminatedAt: null,
+    }))
+  })
+
+  it('create with missing email field FAILS', async () => {
+    await assertFails(setDoc(doc(authedDb(env, ASSET), 'employees', 'uid_noemail'), {
+      firstName: 'A', lastName: 'B', status: 'active',
+    }))
+  })
+
+  it('create with empty email string FAILS', async () => {
+    await assertFails(setDoc(doc(authedDb(env, ASSET), 'employees', 'uid_emptyemail'), {
+      firstName: 'A', lastName: 'B', email: '', status: 'active',
+    }))
+  })
+
+  it('asset_admin CAN update an employee with a non-empty email', async () => {
+    await seedDoc(env, 'employees/uid_upd', { firstName: 'A', lastName: 'B', email: 'old@x.com', status: 'active' })
+    await assertSucceeds(setDoc(doc(authedDb(env, ASSET), 'employees', 'uid_upd'), {
+      firstName: 'A', lastName: 'B', email: 'new@x.com', status: 'active',
+    }))
+  })
+
+  it('tech_admin CANNOT create an employee', async () => {
+    await assertFails(setDoc(doc(authedDb(env, TECH), 'employees', 'uid_emp3'), {
+      firstName: 'A', lastName: 'B', email: 'c@x.com', status: 'active',
+    }))
+  })
+
+  it('employee CANNOT write an employee doc (not even own)', async () => {
+    await assertFails(setDoc(doc(authedDb(env, EMP), 'employees', EMP), {
+      firstName: 'X', lastName: 'Y', email: 'z@x.com', status: 'active',
+    }))
+  })
+
+  it('delete FAILS for super_admin (soft-delete only via status field)', async () => {
+    await seedDoc(env, 'employees/del_emp', { firstName: 'D', lastName: 'E', email: 'd@x.com', status: 'active' })
+    await assertFails(deleteDoc(doc(authedDb(env, SUPER), 'employees', 'del_emp')))
+  })
+
+  it('delete FAILS for asset_admin', async () => {
+    await seedDoc(env, 'employees/del_emp2', { firstName: 'D', lastName: 'E', email: 'd2@x.com', status: 'active' })
+    await assertFails(deleteDoc(doc(authedDb(env, ASSET), 'employees', 'del_emp2')))
+  })
+})
+
+describe('/assets read scope (employee self-service)', () => {
+  it('admin (asset_admin) CAN read any asset regardless of assignment', async () => {
+    await seedDoc(env, 'assets/asset_admin_read', { name: 'X', assignment: null })
+    await assertSucceeds(getDoc(doc(authedDb(env, ASSET), 'assets', 'asset_admin_read')))
+  })
+
+  it('employee CAN read an asset with assignment.employeeId == their uid', async () => {
+    await seedDoc(env, 'assets/asset_mine', {
+      name: 'Laptop', assignment: { mode: 'employee', employeeId: EMP },
+    })
+    await assertSucceeds(getDoc(doc(authedDb(env, EMP), 'assets', 'asset_mine')))
+  })
+
+  it('employee CANNOT read an asset assigned to a different employee', async () => {
+    await seedDoc(env, 'assets/asset_theirs', {
+      name: 'Monitor', assignment: { mode: 'employee', employeeId: 'other_emp' },
+    })
+    await assertFails(getDoc(doc(authedDb(env, EMP), 'assets', 'asset_theirs')))
+  })
+
+  it('employee CANNOT read an asset with assignment == null (fail-closed; rule must not error)', async () => {
+    await seedDoc(env, 'assets/asset_warehouse', { name: 'Keyboard', assignment: null })
+    await assertFails(getDoc(doc(authedDb(env, EMP), 'assets', 'asset_warehouse')))
+  })
+
+  it('employee CANNOT read an asset assigned to a branch (assignedToEmployeeId absent)', async () => {
+    await seedDoc(env, 'assets/asset_branch', {
+      name: 'Printer', assignment: { mode: 'branch', branchId: 'br_1' },
+    })
+    // assignment != null but assignment.employeeId is absent (undefined) — rule evaluates
+    // assignment.employeeId != null as false, short-circuits, denies. Must not throw.
+    await assertFails(getDoc(doc(authedDb(env, EMP), 'assets', 'asset_branch')))
+  })
+})
+
+describe('/assignments read scope (employee self-service)', () => {
+  it('admin (super_admin) CAN read any assignment', async () => {
+    await seedDoc(env, 'assignments/asc_super', {
+      assetId: 'a1', mode: 'employee', assignedToEmployeeId: 'someone', endedAt: null,
+    })
+    await assertSucceeds(getDoc(doc(authedDb(env, SUPER), 'assignments', 'asc_super')))
+  })
+
+  it('employee CAN read an assignment where assignedToEmployeeId == their uid', async () => {
+    await seedDoc(env, 'assignments/asc_mine', {
+      assetId: 'a1', mode: 'employee', assignedToEmployeeId: EMP, endedAt: null,
+    })
+    await assertSucceeds(getDoc(doc(authedDb(env, EMP), 'assignments', 'asc_mine')))
+  })
+
+  it('employee CANNOT read an assignment addressed to a different employee', async () => {
+    await seedDoc(env, 'assignments/asc_theirs', {
+      assetId: 'a2', mode: 'employee', assignedToEmployeeId: 'other_emp', endedAt: null,
+    })
+    await assertFails(getDoc(doc(authedDb(env, EMP), 'assignments', 'asc_theirs')))
+  })
+
+  it('employee CANNOT read a branch-mode assignment (assignedToEmployeeId == null)', async () => {
+    // null == uid is false — fail-closed, must not error.
+    await seedDoc(env, 'assignments/asc_branch', {
+      assetId: 'a3', mode: 'branch', assignedToBranchId: 'br_1', assignedToEmployeeId: null, endedAt: null,
+    })
+    await assertFails(getDoc(doc(authedDb(env, EMP), 'assignments', 'asc_branch')))
   })
 })

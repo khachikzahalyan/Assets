@@ -55,9 +55,19 @@ service cloud.firestore {
       allow delete: if isSuperAdmin();
     }
 
-    // ---- Operational entities: read any signed-in, write super | asset_admin ----
+    // ---- /assets ----
+    // Read: any admin, OR the employee who has the asset currently assigned to them.
+    //   assignment.employeeId is null-guarded: if assignment is null (warehouse) or
+    //   employeeId is absent, the condition short-circuits to false (fail-closed).
+    // Write: super | asset_admin only.
     match /assets/{id} {
-      allow read: if isSignedIn();
+      allow read: if isAnyAdmin()
+        || (
+          isSignedIn()
+          && resource.data.assignment != null
+          && resource.data.assignment.employeeId != null
+          && resource.data.assignment.employeeId == request.auth.uid
+        );
       allow write: if isSuperAdmin() || isAssetAdmin();
 
       // Upgrade events: append-only business trail. tech_admin and super_admin only
@@ -72,9 +82,18 @@ service cloud.firestore {
       allow read: if isSignedIn();
       allow write: if isSuperAdmin() || isAssetAdmin();
     }
+    // ---- /employees ----
+    // Read: any admin, OR the employee reading their OWN doc (self-service profile).
+    //   An employee must NOT read other employees' PII.
+    // Create/Update: super | asset_admin (role matrix). Doc id is the person's uid.
+    //   email must be a non-empty string (basic shape guard; uniqueness is repo-enforced).
+    // Delete: forbidden — employees are soft-deleted via status:'terminated'.
     match /employees/{id} {
-      allow read: if isSignedIn();
-      allow write: if isSuperAdmin() || isAssetAdmin();
+      allow read: if isAnyAdmin() || (isSignedIn() && request.auth.uid == id);
+      allow create, update: if (isSuperAdmin() || isAssetAdmin())
+        && request.resource.data.email is string
+        && request.resource.data.email.size() > 0;
+      allow delete: if false;
     }
 
     // ---- Reference catalogs: read any signed-in, write super only ----
@@ -93,10 +112,17 @@ service cloud.firestore {
     }
 
     // ---- /assignments ----
-    // Read: any signed-in. Create: super | asset_admin. Update: super | asset_admin
-    // but ONLY the endedAt / transferComment fields may change. Never deletable.
+    // Read: any admin, OR the employee whose assignedToEmployeeId matches their uid.
+    //   Branch-mode assignments have assignedToEmployeeId == null; null != uid is false
+    //   (fail-closed) and does not throw — safe without an extra null guard.
+    // Create: super | asset_admin. Update: super | asset_admin but ONLY
+    //   endedAt / transferComment may change. Never deletable.
     match /assignments/{id} {
-      allow read: if isSignedIn();
+      allow read: if isAnyAdmin()
+        || (
+          isSignedIn()
+          && resource.data.assignedToEmployeeId == request.auth.uid
+        );
       allow create: if isSuperAdmin() || isAssetAdmin();
       allow update: if (isSuperAdmin() || isAssetAdmin())
         && request.resource.data.diff(resource.data)
