@@ -11,9 +11,10 @@ import { db } from '@/lib/firebase'
 
 export interface ProfilePageProps {
   repository?: EmployeeRepository
+  loadRefData?: () => Promise<{ branches: RefRow[]; departments: RefRow[] }>
 }
 
-export function ProfilePage({ repository }: ProfilePageProps) {
+export function ProfilePage({ repository, loadRefData }: ProfilePageProps) {
   const { t } = useTranslation('employees')
   const { user } = useAuth()
 
@@ -24,15 +25,20 @@ export function ProfilePage({ repository }: ProfilePageProps) {
   )
   const repo = repository ?? defaultRepo
 
-  const defaultAssetRepo = useMemo(
-    () => new FirestoreAssetRepository(db()),
+  const defaultLoadRefData = useMemo(
+    () => async () => {
+      const assetRepo = new FirestoreAssetRepository(db())
+      const r = await assetRepo.loadReferenceData()
+      return { branches: r.branches, departments: r.departments }
+    },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   )
+  const refLoader = loadRefData ?? defaultLoadRefData
 
   const [loading, setLoading]     = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
-  const [employee, setEmployee]   = useState<Employee | null | undefined>(undefined)
+  const [employee, setEmployee]   = useState<Employee | null>(null)
   const [branches, setBranches]   = useState<RefRow[]>([])
   const [departments, setDepts]   = useState<RefRow[]>([])
 
@@ -42,8 +48,7 @@ export function ProfilePage({ repository }: ProfilePageProps) {
     try {
       const [emp, ref] = await Promise.all([
         repo.getEmployee(user.id),
-        defaultAssetRepo.loadReferenceData()
-          .then(r => ({ branches: r.branches, departments: r.departments }))
+        refLoader()
           .catch((): { branches: RefRow[]; departments: RefRow[] } => ({ branches: [], departments: [] })),
       ])
       setEmployee(emp)
@@ -54,7 +59,7 @@ export function ProfilePage({ repository }: ProfilePageProps) {
     } finally {
       setLoading(false)
     }
-  }, [repo, user.id, defaultAssetRepo, t])
+  }, [repo, user.id, refLoader, t])
 
   useEffect(() => {
     void load()
@@ -86,15 +91,6 @@ export function ProfilePage({ repository }: ProfilePageProps) {
       <div className="anim-content-enter space-y-5">
         <PageHeader icon="user" title={t('self.profile')} />
         <EmptyState icon="user" title={t('self.noProfile')} />
-      </div>
-    )
-  }
-
-  if (employee === undefined) {
-    return (
-      <div className="anim-content-enter space-y-5">
-        <PageHeader icon="user" title={t('self.profile')} />
-        <LoadingState rows={5} />
       </div>
     )
   }

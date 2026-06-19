@@ -11,9 +11,11 @@ function ctx() {
   return { user: { id: 'uid_1', name: 'Иван', email: 'i@x.com', role: 'employee' as const, initials: 'И', avatarColor: '' },
     role: 'employee' as const, status: 'ready' as const, setRole: () => {}, signOut: () => {} }
 }
+const noRefData = async () => ({ branches: [] as import('@/domain/asset').RefRow[], departments: [] as import('@/domain/asset').RefRow[] })
+
 function render_(emps: Employee[]) {
   render(<I18nextProvider i18n={i18n}><AuthContext.Provider value={ctx()}>
-    <ProfilePage repository={new InMemoryEmployeeRepository(emps)} />
+    <ProfilePage repository={new InMemoryEmployeeRepository(emps)} loadRefData={noRefData} />
   </AuthContext.Provider></I18nextProvider>)
 }
 describe('ProfilePage', () => {
