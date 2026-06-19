@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import { AppShell } from '@/components/common'
-import { DashboardPage, StubPage, LoginPage, AssetsPage } from '@/pages'
+import { DashboardPage, StubPage, LoginPage, AssetsPage, AssetCreatePage, AssetDetailPage } from '@/pages'
 import { RequireAuth, RoleGate } from '@/components/routing'
 import { PHASE_STUB_ROUTES } from './nav'
 import { routeRoles } from './access'
@@ -57,6 +57,24 @@ export function AppRoutes() {
             element={
               <RoleGate roles={routeRoles('assets')}>
                 <AssetsPage />
+              </RoleGate>
+            }
+          />
+
+          <Route
+            path="/assets/new"
+            element={
+              <RoleGate roles={['super_admin', 'asset_admin']}>
+                <AssetCreatePage />
+              </RoleGate>
+            }
+          />
+
+          <Route
+            path="/assets/:id"
+            element={
+              <RoleGate roles={routeRoles('assets')}>
+                <AssetDetailPage />
               </RoleGate>
             }
           />

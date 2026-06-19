@@ -1,4 +1,5 @@
 import { useMemo, useState, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
 import { PageHeader, SectionCard, Btn, Icon, EmptyState, LoadingState, ErrorState } from '@/components/ui'
@@ -25,6 +26,7 @@ export interface AssetsPageProps {
 
 export function AssetsPage({ repository }: AssetsPageProps) {
   const { t } = useTranslation(['assets', 'nav'])
+  const navigate = useNavigate()
   const { role } = useAuth()
 
   // Composition root: build default Firestore repo lazily; test callers pass their own.
@@ -75,6 +77,7 @@ export function AssetsPage({ repository }: AssetsPageProps) {
           rows={pageRows}
           ref={ref!}
           canMutate={canMutate}
+          onRowClick={(a) => navigate(`/assets/${a.id}`)}
         />
 
         {/* Pagination */}
@@ -115,7 +118,7 @@ export function AssetsPage({ repository }: AssetsPageProps) {
         {...(!loading ? { count: totalCount } : {})}
         {...(canMutate ? {
           actions: (
-            <Btn variant="primary" size="md" onClick={() => console.info('[AssetsPage] create stub')}>
+            <Btn variant="primary" size="md" onClick={() => navigate('/assets/new')}>
               <Icon name="package" size={14} />
               {t('create', { ns: 'assets' })}
             </Btn>
