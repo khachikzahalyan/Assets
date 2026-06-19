@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { assertFails, assertSucceeds, type RulesTestEnvironment } from '@firebase/rules-unit-testing'
-import { doc, getDoc, setDoc, updateDoc, deleteDoc } from 'firebase/firestore'
+import { doc, getDoc, setDoc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore'
 import { authedDb, unauthedDb, makeTestEnv, seedDoc, seedUser } from './helpers'
 
 /**
@@ -78,7 +78,7 @@ describe('audit_logs immutability (marquee invariant)', () => {
         action: 'updated',
         actorUid: ASSET,
         actorRole: 'asset_admin',
-        at: new Date(),
+        at: serverTimestamp(),
       }),
     )
   })
@@ -88,7 +88,7 @@ describe('audit_logs immutability (marquee invariant)', () => {
     await assertFails(
       setDoc(doc(db, 'audit_logs', 'spoof1'), {
         entityType: 'asset', entityId: 'a3', action: 'created',
-        actorUid: 'someone-else', actorRole: 'asset_admin', at: new Date(),
+        actorUid: 'someone-else', actorRole: 'asset_admin', at: serverTimestamp(),
       }),
     )
   })
@@ -98,7 +98,7 @@ describe('audit_logs immutability (marquee invariant)', () => {
     await assertFails(
       setDoc(doc(db, 'audit_logs', 'spoof2'), {
         entityType: 'asset', entityId: 'a4', action: 'created',
-        actorUid: EMP, actorRole: 'super_admin', at: new Date(),
+        actorUid: EMP, actorRole: 'super_admin', at: serverTimestamp(),
       }),
     )
   })
@@ -117,6 +117,26 @@ describe('audit_logs immutability (marquee invariant)', () => {
     const db = unauthedDb(env)
     await assertFails(
       setDoc(doc(db, 'audit_logs', 'new2'), { entityType: 'asset', action: 'updated' }),
+    )
+  })
+
+  it('denies create with an extra non-schema field (hasOnly)', async () => {
+    const db = authedDb(env, ASSET)
+    await assertFails(
+      setDoc(doc(db, 'audit_logs', 'extra1'), {
+        entityType: 'asset', entityId: 'a6', action: 'created',
+        actorUid: ASSET, actorRole: 'asset_admin', at: serverTimestamp(),
+        maliciousExtra: 'pwned',
+      }),
+    )
+  })
+  it('denies create with a client-backdated at (must equal request.time)', async () => {
+    const db = authedDb(env, ASSET)
+    await assertFails(
+      setDoc(doc(db, 'audit_logs', 'backdate1'), {
+        entityType: 'asset', entityId: 'a7', action: 'created',
+        actorUid: ASSET, actorRole: 'asset_admin', at: new Date(2020, 0, 1),
+      }),
     )
   })
 })

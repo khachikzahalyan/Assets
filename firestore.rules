@@ -120,8 +120,12 @@ service cloud.firestore {
       allow create: if isSignedIn()
         && request.resource.data.actorUid == request.auth.uid
         && request.resource.data.actorRole == role()
+        && request.resource.data.at == request.time
         && request.resource.data.keys().hasAll(
-             ['entityType', 'entityId', 'action', 'actorUid', 'actorRole', 'at']);
+             ['entityType', 'entityId', 'action', 'actorUid', 'actorRole', 'at'])
+        && request.resource.data.keys().hasOnly(
+             ['entityType', 'entityId', 'action', 'actorUid', 'actorRole',
+              'before', 'after', 'comment', 'at']);
       allow update, delete: if false;
     }
 
