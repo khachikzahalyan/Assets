@@ -3,7 +3,7 @@ import { AppShell } from '@/components/common'
 import {
   DashboardPage, StubPage, LoginPage, AssetsPage, AssetCreatePage, AssetDetailPage,
   EmployeesPage, EmployeeCreatePage, EmployeeDetailPage, MyAssetsPage, MyActsPage, ProfilePage,
-  PendingUsersPage, BranchesPage,
+  PendingUsersPage, BranchesPage, DepartmentsPage,
 } from '@/pages'
 import { RequireAuth, RoleGate } from '@/components/routing'
 import { PHASE_STUB_ROUTES } from './nav'
@@ -94,6 +94,9 @@ export function AppRoutes() {
           } />
           <Route path="/branches" element={
             <RoleGate roles={routeRoles('branches')}><BranchesPage /></RoleGate>
+          } />
+          <Route path="/departments" element={
+            <RoleGate roles={routeRoles('departments')}><DepartmentsPage /></RoleGate>
           } />
           <Route path="/my-assets" element={
             <RoleGate roles={routeRoles('my-assets')}><MyAssetsPage /></RoleGate>

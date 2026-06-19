@@ -76,6 +76,15 @@ vi.mock('@/infra/repositories', async () => {
       async updateBranch() { return { value: { id: 'b_1', name: '', type: 'branch', city: null, address: null, createdAt: '', updatedAt: '' }, auditId: 'a_1' } }
       async deleteBranch() { return { value: { id: 'b_1' }, auditId: 'a_1' } }
     },
+    FirestoreDepartmentRepository: class {
+      async listDepartments() { return [] }
+      async getDepartment()   { return null }
+      async isNameTaken()     { return false }
+      async countReferences() { return 0 }
+      async createDepartment() { return { value: { id: 'dp_1', name: '', createdAt: '', updatedAt: '' }, auditId: 'a_1' } }
+      async updateDepartment() { return { value: { id: 'dp_1', name: '', createdAt: '', updatedAt: '' }, auditId: 'a_1' } }
+      async deleteDepartment() { return { value: { id: 'dp_1' }, auditId: 'a_1' } }
+    },
   }
 })
 

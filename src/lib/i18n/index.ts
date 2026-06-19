@@ -10,6 +10,7 @@ import ruAssets from '@/locales/ru/assets.json'
 import ruEmployees from '@/locales/ru/employees.json'
 import ruPendingUsers from '@/locales/ru/pending-users.json'
 import ruBranches from '@/locales/ru/branches.json'
+import ruDepartments from '@/locales/ru/departments.json'
 import enCommon from '@/locales/en/common.json'
 import enNav from '@/locales/en/nav.json'
 import enLogin from '@/locales/en/login.json'
@@ -18,6 +19,7 @@ import enAssets from '@/locales/en/assets.json'
 import enEmployees from '@/locales/en/employees.json'
 import enPendingUsers from '@/locales/en/pending-users.json'
 import enBranches from '@/locales/en/branches.json'
+import enDepartments from '@/locales/en/departments.json'
 import hyCommon from '@/locales/hy/common.json'
 import hyNav from '@/locales/hy/nav.json'
 import hyLogin from '@/locales/hy/login.json'
@@ -26,14 +28,15 @@ import hyAssets from '@/locales/hy/assets.json'
 import hyEmployees from '@/locales/hy/employees.json'
 import hyPendingUsers from '@/locales/hy/pending-users.json'
 import hyBranches from '@/locales/hy/branches.json'
+import hyDepartments from '@/locales/hy/departments.json'
 
 export const SUPPORTED_LANGS = ['ru', 'en', 'hy'] as const
 export type AppLang = (typeof SUPPORTED_LANGS)[number]
 
 export const resources = {
-  ru: { common: ruCommon, nav: ruNav, login: ruLogin, 'access-pending': ruAccessPending, assets: ruAssets, employees: ruEmployees, 'pending-users': ruPendingUsers, branches: ruBranches },
-  en: { common: enCommon, nav: enNav, login: enLogin, 'access-pending': enAccessPending, assets: enAssets, employees: enEmployees, 'pending-users': enPendingUsers, branches: enBranches },
-  hy: { common: hyCommon, nav: hyNav, login: hyLogin, 'access-pending': hyAccessPending, assets: hyAssets, employees: hyEmployees, 'pending-users': hyPendingUsers, branches: hyBranches },
+  ru: { common: ruCommon, nav: ruNav, login: ruLogin, 'access-pending': ruAccessPending, assets: ruAssets, employees: ruEmployees, 'pending-users': ruPendingUsers, branches: ruBranches, departments: ruDepartments },
+  en: { common: enCommon, nav: enNav, login: enLogin, 'access-pending': enAccessPending, assets: enAssets, employees: enEmployees, 'pending-users': enPendingUsers, branches: enBranches, departments: enDepartments },
+  hy: { common: hyCommon, nav: hyNav, login: hyLogin, 'access-pending': hyAccessPending, assets: hyAssets, employees: hyEmployees, 'pending-users': hyPendingUsers, branches: hyBranches, departments: hyDepartments },
 } as const
 
 void i18n
@@ -44,7 +47,7 @@ void i18n
     fallbackLng: 'ru',
     supportedLngs: SUPPORTED_LANGS as unknown as string[],
     defaultNS: 'common',
-    ns: ['common', 'nav', 'login', 'access-pending', 'assets', 'employees', 'pending-users', 'branches'],
+    ns: ['common', 'nav', 'login', 'access-pending', 'assets', 'employees', 'pending-users', 'branches', 'departments'],
     interpolation: { escapeValue: false },
     detection: {
       order: ['localStorage', 'navigator'],

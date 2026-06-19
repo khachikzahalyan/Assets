@@ -1,0 +1,11 @@
+{
+  "title": "Departments",
+  "create": "Add department",
+  "empty": { "title": "No departments yet", "desc": "Add the first department" },
+  "filter": { "search": "Search" },
+  "col": { "name": "Name" },
+  "form": { "createTitle": "New department", "editTitle": "Edit department", "name": "Name", "save": "Save", "cancel": "Cancel" },
+  "delete": { "title": "Delete department?", "confirm": "Delete", "cancel": "Cancel", "body": "This cannot be undone.", "inUse": "Cannot delete: {{count}} record(s) reference this department." },
+  "validation": { "required": "Required", "nameTaken": "This name is already in use", "saveFailed": "Could not save. Try again." },
+  "pagination": { "range": "{{from}}–{{to}} / {{total}}" }
+}
