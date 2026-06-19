@@ -50,6 +50,9 @@
     "active": "Active",
     "terminated": "Terminated"
   },
+  "pagination": {
+    "range": "{{from}}–{{to}} / {{total}}"
+  },
   "title": "Employees",
   "validation": {
     "emailFormat": "Enter a valid email",

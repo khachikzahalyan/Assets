@@ -84,6 +84,7 @@ export function EmployeeDetailPage({
 
   // Action error (terminate/reactivate)
   const [actionError, setActionError] = useState<string | null>(null)
+  const [actionBusy, setActionBusy]   = useState(false)
 
   const load = useCallback(async () => {
     if (!id) return
@@ -150,7 +151,8 @@ export function EmployeeDetailPage({
   }
 
   async function handleToggleStatus() {
-    if (!employee) return
+    if (!employee || actionBusy) return
+    setActionBusy(true)
     setActionError(null)
     try {
       await repo.setStatus(
@@ -161,6 +163,8 @@ export function EmployeeDetailPage({
       await load()
     } catch {
       setActionError(t('validation.saveFailed'))
+    } finally {
+      setActionBusy(false)
     }
   }
 
@@ -219,6 +223,7 @@ export function EmployeeDetailPage({
               <Btn
                 variant="ghost"
                 size="sm"
+                disabled={actionBusy}
                 onClick={() => { setEditError(null); setEditing(true) }}
               >
                 <Icon name="settings" size={13} />
@@ -229,6 +234,7 @@ export function EmployeeDetailPage({
               <Btn
                 variant="ghost"
                 size="sm"
+                disabled={actionBusy}
                 onClick={handleToggleStatus}
               >
                 <Icon name="user" size={13} />

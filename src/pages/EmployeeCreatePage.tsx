@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { PageHeader, LoadingState, ErrorState } from '@/components/ui'
@@ -45,7 +45,7 @@ export function EmployeeCreatePage({ repository, loadRefData }: EmployeeCreatePa
   const [submitting, setSubmitting] = useState(false)
   const [saveError, setSaveError]   = useState<string | null>(null)
 
-  function loadRef() {
+  const loadRef = useCallback(() => {
     setLoading(true)
     setLoadError(null)
     refLoader()
@@ -58,12 +58,11 @@ export function EmployeeCreatePage({ repository, loadRefData }: EmployeeCreatePa
         setLoadError(t('validation.saveFailed'))
         setLoading(false)
       })
-  }
+  }, [refLoader, t])
 
   useEffect(() => {
     loadRef()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [loadRef])
 
   async function handleSubmit(v: EmployeeFormSubmit) {
     if (!v.id) return // uid required in create mode — EmployeeForm guarantees it

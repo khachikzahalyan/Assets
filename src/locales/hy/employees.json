@@ -50,6 +50,9 @@
     "active": "Ակտիվ",
     "terminated": "Աշխատանքից ազատված"
   },
+  "pagination": {
+    "range": "{{from}}–{{to}} / {{total}}"
+  },
   "title": "Աշխատակիցներ",
   "validation": {
     "emailFormat": "Մուտքագրեք վավեր էլ. փոստ",

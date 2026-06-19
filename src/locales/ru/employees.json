@@ -50,6 +50,9 @@
     "active": "Активен",
     "terminated": "Уволен"
   },
+  "pagination": {
+    "range": "{{from}}–{{to}} / {{total}}"
+  },
   "title": "Сотрудники",
   "validation": {
     "emailFormat": "Введите корректный email",

@@ -4,6 +4,7 @@ export interface SelectOption {
 }
 
 export interface SelectProps {
+  id?: string
   value?: string
   onChange?: (v: string) => void
   options: SelectOption[]
@@ -13,6 +14,7 @@ export interface SelectProps {
 }
 
 export function Select({
+  id,
   value,
   onChange,
   options,
@@ -22,6 +24,7 @@ export function Select({
 }: SelectProps) {
   return (
     <select
+      id={id}
       value={value ?? ''}
       onChange={e => onChange && onChange(e.target.value)}
       disabled={disabled}

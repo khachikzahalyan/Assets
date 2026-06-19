@@ -1,10 +1,9 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { SectionCard, Input, Btn, Icon } from '@/components/ui'
-import { Select } from '@/components/ui/select'
+import { Select, type SelectOption } from '@/components/ui'
 import type { Employee } from '@/domain/employee'
 import type { RefRow } from '@/domain/asset'
-import type { SelectOption } from '@/components/ui/select'
 
 /** Pure email format check. Exported for unit tests. */
 export function isValidEmail(v: string): boolean {
@@ -217,6 +216,7 @@ export function EmployeeForm({
               {t('form.branch')}
             </label>
             <Select
+              id="emp-branch"
               value={branchId}
               onChange={setBranchId}
               options={branchOptions}
@@ -227,6 +227,7 @@ export function EmployeeForm({
               {t('form.department')}
             </label>
             <Select
+              id="emp-dept"
               value={departmentId}
               onChange={setDepartmentId}
               options={deptOptions}

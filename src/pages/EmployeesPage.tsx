@@ -8,8 +8,7 @@ import {
 import { EmployeesFilterBar, EmployeesTable } from '@/components/features/employees'
 import type { Employee, EmployeeListQuery, EmployeeRepository } from '@/domain/employee'
 import type { RefRow } from '@/domain/asset'
-import { FirestoreEmployeeRepository } from '@/infra/repositories'
-import { FirestoreAssetRepository } from '@/infra/repositories'
+import { FirestoreEmployeeRepository, FirestoreAssetRepository } from '@/infra/repositories'
 import { db } from '@/lib/firebase'
 
 const PAGE_SIZE = 15
@@ -81,8 +80,7 @@ export function EmployeesPage({ repository, loadRefData }: EmployeesPageProps) {
     } finally {
       setLoading(false)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [repo, refLoader, JSON.stringify(query)])
+  }, [repo, refLoader, query, t])
 
   useEffect(() => {
     void load()
@@ -121,7 +119,7 @@ export function EmployeesPage({ repository, loadRefData }: EmployeesPageProps) {
         {totalCount > PAGE_SIZE && (
           <div className="flex items-center justify-between pt-4 border-t border-[#2A2F36] mt-2">
             <span className="text-[12px] text-[#64748B]">
-              {from}–{to} / {totalCount}
+              {t('pagination.range', { from, to, total: totalCount })}
             </span>
             <div className="flex items-center gap-2">
               <Btn
