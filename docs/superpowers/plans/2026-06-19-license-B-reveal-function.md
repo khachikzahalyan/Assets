@@ -6,6 +6,27 @@
 
 **Architecture:** Mirrors `functions/src/auth/beforeCreate.ts` (Admin SDK, pure testable core). The function lives in `functions/` and uses `firebase-admin/firestore`.
 
+## ARCHITECTURAL DECISION (from Sub-plan A security review, Finding 2)
+
+The secrets sub-collection is `allow read, write: if false` for ALL client SDK callers.
+Therefore the client repos CANNOT write `secrets/current` — a client-side secret write
+would be rejected and abort the transaction. **All secret WRITES must go through a
+callable Cloud Function (Admin SDK bypasses rules), exactly like reveals.**
+
+**Decision (security-first, spec-aligned):** secret writes move server-side. We add a
+second callable `setLicenseKey({ collection, licenseId, rawKey })` (Task B3). The client
+Firestore repos write the license DOC (no key) + masked audit entry as today; when a
+`rawKey` is supplied, the calling layer (page/service) makes a follow-up `setLicenseKey`
+call to persist the secret + its own masked `key_rotated`/`created`-key audit entry.
+
+**Tradeoff (flagged to owner):** the doc-write and secret-write are no longer one
+Firestore transaction. Each step is individually audited and individually atomic; a
+crash between them leaves a license doc with no secret (recoverable — the user re-enters
+the key). The hard invariant "no client can ever write a secret" wins over single-txn
+atomicity. The Firestore repos' direct `secrets/current` writes from Sub-plan A are
+therefore DEAD in production — Task B4 removes them from the client repos (the InMemory
+repos keep their in-process secret map for tests).
+
 ---
 
 ### Task B1: Pure mask helper for functions
@@ -55,3 +76,32 @@ it('non-super denied, no audit, no key', async () => {
 
 - [ ] **Step 3: Wrap** in `onCall` (`firebase-functions/v2/https`), reading `request.auth.uid` (throw `unauthenticated` if absent) and `request.data`. Export `revealLicenseKey` from `functions/src/index.ts`.
 - [ ] **Step 4: `cd functions && npm run build && npx vitest run`. PASS. Commit** `feat(functions): revealLicenseKey callable (super-admin, masked audit)`
+
+---
+
+### Task B3: setLicenseKey callable (secret WRITE path)
+
+**Files:** Create `functions/src/licenses/setLicenseKey.ts`; Test `functions/src/licenses/setLicenseKey.test.ts`; Modify `functions/src/index.ts`.
+
+- [ ] **Step 1: Pure core** `setKeyCore({ uid, collection, licenseId, rawKey }, db)`:
+  1. validate `collection in ['licenses','server_licenses']` else `invalid-argument`; `rawKey` non-empty string else `invalid-argument`.
+  2. Role gate: for `server_licenses` require super_admin; for `licenses` require super_admin OR tech_admin (reuse a server-trusted role read of `users/{uid}.role`, fail-closed on missing). Throw `permission-denied` otherwise.
+  3. Assert the parent license doc exists (`{collection}/{licenseId}`) else `not-found`.
+  4. Write `{collection}/{licenseId}/secrets/current` = `{ key: rawKey, updatedAt: serverTimestamp(), updatedBy: uid }` (Admin SDK).
+  5. Write one `audit_logs` entry: `{ entityType, entityId: licenseId, action: 'key_rotated', actorUid: uid, actorRole, after: { id: licenseId, key: maskKey(rawKey) }, at: serverTimestamp() }`. The raw key NEVER appears in the audit doc.
+  6. Return `{ ok: true }` (never the key).
+- [ ] **Step 2: Tests** (mock Admin db): non-privileged role → permission-denied, NO secret write, NO audit; bad collection / empty rawKey → invalid-argument; missing license → not-found; success → secret doc written with raw key, audit doc serialized contains MASKED key and NOT the raw key, return has no key.
+- [ ] **Step 3: Wrap** in `onCall`, read `request.auth.uid` (throw `unauthenticated` if absent). Export `setLicenseKey` from `functions/src/index.ts`.
+- [ ] **Step 4: `cd functions && npm run build && npx vitest run` PASS. Commit** `feat(functions): setLicenseKey callable (server-side secret write, masked audit)`
+
+---
+
+### Task B4: Remove dead client-side secret writes from the Firestore repos
+
+**Files:** Modify `src/infra/repositories/firestoreWorkstationLicenseRepository.ts`, `src/infra/repositories/firestoreServerLicenseRepository.ts`.
+
+- [ ] **Step 1:** In both Firestore repos, REMOVE the `txn.set(doc(...,'secrets','current'), {...})` writes from `createLicense` and `rotateKey` (they would be rejected by the deny-all rules). The repos now write only the license DOC + masked audit entry. The `rawKey`/secret is persisted separately by the `setLicenseKey` callable (the page/service orchestrates: create doc, then call setLicenseKey when a rawKey was supplied). Keep the masked-key audit `after` field on createLicense (so the create event still records that a key was set, masked).
+- [ ] **Step 2:** `rotateKey` on the client repo becomes a thin no-op-doc-touch OR is removed from the client repo and callers use `setLicenseKey` directly. **Decision:** keep `rotateKey` on the InMemory repos (tests rely on it) but in the Firestore repos make `rotateKey` delegate conceptually to the callable — i.e. the Firestore `rotateKey` only bumps `updatedAt`/`updatedBy` + writes the masked audit; the secret itself is set via `setLicenseKey`. Document this in a comment. (The UI reveal/rotate flow in Sub-plan D calls `setLicenseKey` for the secret.)
+- [ ] **Step 3:** typecheck clean; `npx vitest run` green (InMemory tests unaffected — they keep the in-process secret map). Commit `refactor(license): client repos stop writing secrets (CF owns secret writes)`
+
+> NOTE: This keeps the InMemory contract intact for unit tests while making the production path honor the deny-all secrets rule. The InMemory repos simulate the secret store in-process; production uses the callable.
