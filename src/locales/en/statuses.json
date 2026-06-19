@@ -1,0 +1,34 @@
+{
+  "title": "Asset statuses",
+  "create": "Add status",
+  "empty": { "title": "No statuses yet", "desc": "Add the first status" },
+  "filter": { "search": "Search" },
+  "col": { "name": "Name", "color": "Color", "final": "Final", "system": "System", "order": "Order" },
+  "final": { "yes": "Yes", "no": "No" },
+  "systemBadge": "System",
+  "form": {
+    "createTitle": "New status",
+    "editTitle": "Edit status",
+    "name": "Name",
+    "color": "Color",
+    "isFinal": "Final (irreversible)",
+    "sortOrder": "Order",
+    "systemLocked": "System status: only name, color and order can be changed.",
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+  "delete": {
+    "title": "Delete status?",
+    "confirm": "Delete",
+    "cancel": "Cancel",
+    "body": "This cannot be undone.",
+    "inUse": "Cannot delete: {{count}} asset(s) reference this status.",
+    "systemProtected": "A system status cannot be deleted."
+  },
+  "validation": {
+    "required": "Required",
+    "nameTaken": "This name is already in use",
+    "saveFailed": "Could not save. Try again."
+  },
+  "pagination": { "range": "{{from}}–{{to}} / {{total}}" }
+}

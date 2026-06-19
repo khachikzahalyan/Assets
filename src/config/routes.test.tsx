@@ -95,6 +95,15 @@ vi.mock('@/infra/repositories', async () => {
       async updateCategory()   { return { value: { id: 'cat_1', name: '', group: 'devices', prefix: '', hasSpecs: false, lucideIcon: 'package', createdAt: '', updatedAt: '' }, auditId: 'a_1' } }
       async deleteCategory()   { return { value: { id: 'cat_1' }, auditId: 'a_1' } }
     },
+    FirestoreAssetStatusRepository: class {
+      async listAssetStatuses()   { return [] }
+      async getAssetStatus()      { return null }
+      async isNameTaken()         { return false }
+      async countReferences()     { return 0 }
+      async createAssetStatus()   { return { value: { id: 'st_1', name: '', color: 'gray', isFinal: false, isSystem: false, sortOrder: 0, createdAt: '', updatedAt: '' }, auditId: 'a_1' } }
+      async updateAssetStatus()   { return { value: { id: 'st_1', name: '', color: 'gray', isFinal: false, isSystem: false, sortOrder: 0, createdAt: '', updatedAt: '' }, auditId: 'a_1' } }
+      async deleteAssetStatus()   { return { value: { id: 'st_1' }, auditId: 'a_1' } }
+    },
   }
 })
 
