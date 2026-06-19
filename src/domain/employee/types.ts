@@ -12,6 +12,7 @@ export function isEmployeeStatus(v: string): v is EmployeeStatus {
  * Timestamps are ISO strings in the domain.
  */
 export interface Employee {
+  /** === the person's Firebase Auth uid === users/{uid} id (see interface invariant). */
   id: string
   firstName: string
   lastName: string
