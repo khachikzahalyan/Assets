@@ -154,7 +154,7 @@ describe('AuditTable', () => {
       // Find the data row (not the header) — the row that contains the actor name
       const rows = screen.getAllByRole('row')
       // rows[0] is the thead <tr>; rows[1] is the first data row
-      const dataRow = rows[1]
+      const dataRow = rows[1]!
 
       // Act
       fireEvent.click(dataRow)
@@ -174,7 +174,7 @@ describe('AuditTable', () => {
       renderTable([log])
 
       const rows = screen.getAllByRole('row')
-      const dataRow = rows[1]
+      const dataRow = rows[1]!
 
       // Act: expand
       fireEvent.click(dataRow)
@@ -198,8 +198,8 @@ describe('AuditTable', () => {
 
       const rows = screen.getAllByRole('row')
       // rows[0] = thead, rows[1] = log-A data row, rows[2] = log-B data row
-      const rowA = rows[1]
-      const rowB = rows[2]
+      const rowA = rows[1]!
+      const rowB = rows[2]!
 
       // Act: expand row A
       fireEvent.click(rowA)

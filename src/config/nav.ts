@@ -79,6 +79,6 @@ export function defaultRouteForRole(role: Role): RouteId {
  *  pages whose own plans haven't landed yet. Single source of truth for the router. */
 export const PHASE_STUB_ROUTES: RouteId[] = [
   'assignments', 'repairs', 'parts',
-  'roles', 'audit', 'settings',
+  'roles', 'settings',
   'licenses',
 ]
