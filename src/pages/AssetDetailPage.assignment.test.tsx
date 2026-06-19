@@ -129,16 +129,15 @@ describe('AssetDetailPage assignment flow', () => {
     const branchSelect = await screen.findByDisplayValue('Выберите филиал')
     await userEvent.selectOptions(branchSelect, 'br_2')
 
-    // After filling the form, two "Назначить" buttons exist simultaneously:
-    // [0] LifecycleActions "Назначить" (canAssign=true, isWarehouse=true still)
-    // [1] AssignmentForm submit "Назначить"
-    // We want the LAST one (the form submit button), which has no disabled prop when the form is valid.
+    // After opening the form the LifecycleActions "Назначить" button is hidden
+    // (canAssign && !assigning → false), so only the AssignmentForm submit is present.
+    // getAllByRole still works — we take the last element defensively.
     await waitFor(() => {
       const btns = screen.getAllByRole('button', { name: /Назначить/ })
       expect(btns.length).toBeGreaterThanOrEqual(1)
     })
     const assignBtns = screen.getAllByRole('button', { name: /Назначить/ })
-    // The form submit button is the last one in DOM order
+    // The form submit button is the last (and only) one in DOM order once the form is open
     const formSubmit = assignBtns[assignBtns.length - 1]!
     await userEvent.click(formSubmit)
 
@@ -174,7 +173,7 @@ describe('AssetDetailPage assignment flow', () => {
     const employeeSelect = await screen.findByDisplayValue('Выберите сотрудника')
     await userEvent.selectOptions(employeeSelect, 'e_1')
 
-    // Two "Назначить" buttons exist: LifecycleActions [0] + form submit [last]
+    // LifecycleActions "Назначить" is hidden while form is open; only form submit is visible.
     const assignBtns = screen.getAllByRole('button', { name: /Назначить/ })
     const formSubmit = assignBtns[assignBtns.length - 1]!
     await userEvent.click(formSubmit)
@@ -214,7 +213,7 @@ describe('AssetDetailPage assignment flow', () => {
     // Pick the branch
     const branchSelect = await screen.findByDisplayValue('Выберите филиал')
     await userEvent.selectOptions(branchSelect, 'br_main')
-    // Submit: pick the last "Назначить" button (form submit)
+    // LifecycleActions "Назначить" is hidden while form is open; pick last (form submit).
     const assignBtns = screen.getAllByRole('button', { name: /Назначить/ })
     await userEvent.click(assignBtns[assignBtns.length - 1]!)
 
@@ -290,7 +289,7 @@ describe('AssignmentForm file validation', () => {
       expect(screen.getByRole('alert')).toHaveTextContent('Допустимы только JPEG, PNG, PDF')
     })
 
-    // The form submit button (last "Назначить" button in DOM) must be disabled
+    // The form submit button (only "Назначить" in DOM once form is open) must be disabled
     const allAssignBtns = screen.getAllByRole('button', { name: /Назначить/ })
     const formSubmitBtn = allAssignBtns[allAssignBtns.length - 1]!
     expect(formSubmitBtn).toBeDisabled()

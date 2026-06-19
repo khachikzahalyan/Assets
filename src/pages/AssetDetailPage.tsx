@@ -272,7 +272,7 @@ export function AssetDetailPage({ repository, assignmentRepository }: AssetDetai
   }
 
   function handleViewScan(path: string) {
-    void actScanUrl(storage(), path).then(u => window.open(u, '_blank', 'noopener'))
+    void actScanUrl(storage(), path).then(u => window.open(u, '_blank', 'noopener')).catch(() => setActionError(t('assign.scanFailed')))
   }
 
   // ---- Render states ----
@@ -333,7 +333,7 @@ export function AssetDetailPage({ repository, assignmentRepository }: AssetDetai
         statusId={asset.statusId}
         canIssue={canIssue}
         canRepair={canRepair}
-        canAssign={canAssign}
+        canAssign={canAssign && !assigning}
         onSendToRepair={handleSendToRepair}
         onWriteOff={handleWriteOff}
         onReturn={handleReturn}

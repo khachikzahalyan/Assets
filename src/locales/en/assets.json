@@ -22,6 +22,7 @@
     "pickBranch": "Select a branch",
     "pickEmployee": "Select an employee",
     "returnFailed": "Could not return. Please try again.",
+    "scanFailed": "Could not open the scan. Please try again.",
     "started": "Started",
     "submit": "Assign",
     "title": "Assign asset",
