@@ -129,6 +129,12 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // ---- /mail — Trigger Email queue. Write-only for admins; never client-readable. ----
+    match /mail/{id} {
+      allow create: if isSuperAdmin() || isAssetAdmin();
+      allow read, update, delete: if false;
+    }
+
     // ---- /settings — super only ----
     match /settings/{doc} {
       allow read: if isSuperAdmin();

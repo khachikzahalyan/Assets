@@ -372,3 +372,82 @@ describe('assets/{id}/upgrades sub-collection (append-only, tech/super only)', (
     await assertFails(deleteDoc(doc(authedDb(env, SUPER), 'assets', 'asset_up', 'upgrades', 'locked')))
   })
 })
+
+describe('/mail queue', () => {
+  it('asset_admin can create a mail doc', async () => {
+    const db = authedDb(env, ASSET)
+    await assertSucceeds(setDoc(doc(db, 'mail', 'm1'), {
+      to: ['e@x.com'], message: { subject: 's', text: 't', html: '<p>h</p>' },
+    }))
+  })
+  it('super_admin can create a mail doc', async () => {
+    const db = authedDb(env, SUPER)
+    await assertSucceeds(setDoc(doc(db, 'mail', 'm2'), {
+      to: ['e@x.com'], message: { subject: 's', text: 't', html: '<p>h</p>' },
+    }))
+  })
+  it('tech_admin CANNOT create mail', async () => {
+    const db = authedDb(env, TECH)
+    await assertFails(setDoc(doc(db, 'mail', 'm3'), {
+      to: ['e@x.com'], message: { subject: 's', text: 't', html: '<p>h</p>' },
+    }))
+  })
+  it('employee CANNOT create mail', async () => {
+    const db = authedDb(env, EMP)
+    await assertFails(setDoc(doc(db, 'mail', 'm4'), {
+      to: ['e@x.com'], message: { subject: 's', text: 't', html: '<p>h</p>' },
+    }))
+  })
+  it('nobody can read mail', async () => {
+    await seedDoc(env, 'mail/m5', { to: ['e@x.com'], message: { subject: 's', text: 't', html: '<p>h</p>' } })
+    await assertFails(getDoc(doc(authedDb(env, SUPER), 'mail', 'm5')))
+    await assertFails(getDoc(doc(authedDb(env, ASSET), 'mail', 'm5')))
+  })
+})
+
+describe('/assignments writes (assign/return shape)', () => {
+  it('asset_admin can create an assignment', async () => {
+    const db = authedDb(env, ASSET)
+    await assertSucceeds(setDoc(doc(db, 'assignments', 'as1'), {
+      assetId: 'a1', mode: 'employee', assignedToEmployeeId: 'e1', assignedToBranchId: null,
+      endedAt: null, actStoragePath: null, transferComment: null, createdBy: ASSET,
+    }))
+  })
+  it('employee CANNOT create an assignment', async () => {
+    const db = authedDb(env, EMP)
+    await assertFails(setDoc(doc(db, 'assignments', 'as2'), {
+      assetId: 'a1', mode: 'branch', assignedToBranchId: 'b1', endedAt: null,
+    }))
+  })
+  it('update may change endedAt only; other fields rejected', async () => {
+    await seedDoc(env, 'assignments/as3', {
+      assetId: 'a1', mode: 'branch', assignedToBranchId: 'b1', endedAt: null, transferComment: null,
+    })
+    const db = authedDb(env, ASSET)
+    await assertSucceeds(updateDoc(doc(db, 'assignments', 'as3'), { endedAt: serverTimestamp() }))
+    await assertFails(updateDoc(doc(db, 'assignments', 'as3'), { assetId: 'a2' }))
+  })
+  it('assignment is never deletable', async () => {
+    await seedDoc(env, 'assignments/as4', { assetId: 'a1', mode: 'branch', endedAt: null })
+    await assertFails(deleteDoc(doc(authedDb(env, SUPER), 'assignments', 'as4')))
+  })
+})
+
+describe('audit_logs employee read scoped by assignedToEmployeeId', () => {
+  it('employee can read an assignment audit addressed to them', async () => {
+    await seedDoc(env, 'audit_logs/ae1', {
+      entityType: 'assignment', entityId: 'as1', action: 'assigned',
+      actorUid: ASSET, actorRole: 'asset_admin', before: null,
+      after: { assignedToEmployeeId: EMP }, at: new Date(),
+    })
+    await assertSucceeds(getDoc(doc(authedDb(env, EMP), 'audit_logs', 'ae1')))
+  })
+  it('employee CANNOT read an assignment audit addressed to someone else', async () => {
+    await seedDoc(env, 'audit_logs/ae2', {
+      entityType: 'assignment', entityId: 'as1', action: 'assigned',
+      actorUid: ASSET, actorRole: 'asset_admin', before: null,
+      after: { assignedToEmployeeId: 'other' }, at: new Date(),
+    })
+    await assertFails(getDoc(doc(authedDb(env, EMP), 'audit_logs', 'ae2')))
+  })
+})
