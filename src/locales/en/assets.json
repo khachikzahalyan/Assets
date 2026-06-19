@@ -76,6 +76,15 @@
   "pagination": {
     "range": "{{from}}–{{to}} of {{total}}"
   },
+  "placeholders": {
+    "brand": "e.g. Apple, Dell",
+    "category": "Select a category",
+    "invCode": "450/100",
+    "model": "e.g. XPS 15, MacBook Pro",
+    "serial": "SN-XXXX",
+    "spec": "Not specified",
+    "type": "e.g. Desk, Chair"
+  },
   "qa": {
     "branch": "Branch",
     "department": "Department",

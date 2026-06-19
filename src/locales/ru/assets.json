@@ -76,6 +76,15 @@
   "pagination": {
     "range": "{{from}}–{{to}} из {{total}}"
   },
+  "placeholders": {
+    "brand": "Например: Apple, Dell",
+    "category": "Выберите категорию",
+    "invCode": "450/100",
+    "model": "Например: XPS 15, MacBook Pro",
+    "serial": "SN-XXXX",
+    "spec": "Не указано",
+    "type": "Например: Стол, Кресло"
+  },
   "qa": {
     "branch": "Филиал",
     "department": "Отдел",

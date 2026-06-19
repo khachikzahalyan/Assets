@@ -77,6 +77,15 @@
   "pagination": {
     "range": "{{from}}–{{to}} / {{total}}"
   },
+  "placeholders": {
+    "brand": "Օրինակ՝ Apple, Dell",
+    "category": "Ընտրեք կատեգորիա",
+    "invCode": "450/100",
+    "model": "Օրինակ՝ XPS 15, MacBook Pro",
+    "serial": "SN-XXXX",
+    "spec": "Նշված չէ",
+    "type": "Օրինակ՝ Սեղան, Բազկաթոռ"
+  },
   "qa": {
     "branch": "Մասնաճյուղ",
     "department": "Բաժին",
