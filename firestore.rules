@@ -127,14 +127,18 @@ service cloud.firestore {
       // create: super only; new docs must be non-system (clients cannot mint system statuses)
       allow create: if isSuperAdmin()
         && (!('isSystem' in request.resource.data) || request.resource.data.isSystem == false);
-      // update: super only; a system doc must stay isSystem:true AND keep its isFinal unchanged
+      // update: super only; isSystem is immutable for all docs (blocks both promotion and
+      // demotion); a system doc also freezes isFinal.
+      // The clamp `(req.isSystem==true)==(res.isSystem==true)` handles absent isSystem
+      // correctly: absent resolves to null, null==true is false, so a doc without isSystem
+      // can only be updated if the write keeps it not-true (absent/false stays absent/false).
       allow update: if isSuperAdmin()
         && (
+          (request.resource.data.isSystem == true) == (resource.data.isSystem == true)
+        )
+        && (
           resource.data.isSystem != true
-          || (
-            request.resource.data.isSystem == true
-            && request.resource.data.isFinal == resource.data.isFinal
-          )
+          || request.resource.data.isFinal == resource.data.isFinal
         );
       // delete: super only AND never a system doc
       allow delete: if isSuperAdmin() && resource.data.isSystem != true;

@@ -182,9 +182,20 @@ describe('asset_statuses update (system-doc field freeze)', () => {
     )
   })
 
-  it('super_admin CANNOT flip a system doc isSystem->false', async () => {
+  it('super_admin CANNOT flip a system doc isSystem->false (demotion blocked)', async () => {
     await assertFails(
       updateDoc(doc(authedDb(env, SUPER), 'asset_statuses', 'st_warehouse'), { isSystem: false }),
+    )
+  })
+
+  it('super_admin CANNOT promote a non-system status to isSystem:true (promotion blocked)', async () => {
+    // Seed a non-system doc to target. The update attempts to set isSystem:true,
+    // which the rule blocks via the immutability clamp regardless of the actor's role.
+    await seedDoc(env, 'asset_statuses/st_promotable', {
+      name: 'Repair', color: 'orange', isFinal: false, isSystem: false, sortOrder: 5,
+    })
+    await assertFails(
+      updateDoc(doc(authedDb(env, SUPER), 'asset_statuses', 'st_promotable'), { isSystem: true }),
     )
   })
 
