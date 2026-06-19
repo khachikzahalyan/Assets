@@ -27,3 +27,11 @@ describe('audit extension for employees', () => {
     expect(t).toBe('user')
   })
 })
+
+describe('audit extension for catalogs', () => {
+  it('accepts the deleted action and catalog entity types', () => {
+    expect(isAuditAction('deleted')).toBe(true)
+    const types: AuditEntityType[] = ['branch', 'department', 'category', 'asset_status']
+    expect(types.length).toBe(4)
+  })
+})
