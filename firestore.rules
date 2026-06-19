@@ -103,6 +103,30 @@ service cloud.firestore {
         allow update, delete: if false;
       }
     }
+    // ---- /licenses — workstation/employee licenses ----
+    // Read: any admin (device-detail license listing). Write: super | tech_admin
+    //   (tech_admin manages licenses per the role matrix). NO employee read.
+    // Secrets sub-collection: DENIED to ALL client callers (incl. super_admin).
+    //   Raw keys are only ever read by the revealLicenseKey Cloud Function via the
+    //   Admin SDK, which bypasses these rules.
+    match /licenses/{id} {
+      allow read: if isAnyAdmin();
+      allow write: if isSuperAdmin() || isTechAdmin();
+      match /secrets/{s} {
+        allow read, write: if false;
+      }
+    }
+
+    // ---- /server_licenses — global/server/company-wide licenses ----
+    // Super-admin WRITE only. Read: any admin. Secrets denied to all clients.
+    match /server_licenses/{id} {
+      allow read: if isAnyAdmin();
+      allow write: if isSuperAdmin();
+      match /secrets/{s} {
+        allow read, write: if false;
+      }
+    }
+
     match /branches/{id} {
       allow read: if isSignedIn();
       allow write: if isSuperAdmin() || isAssetAdmin();

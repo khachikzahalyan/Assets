@@ -100,6 +100,14 @@
       { "fieldPath": "action", "order": "ASCENDING" },
       { "fieldPath": "actorUid", "order": "ASCENDING" },
       { "fieldPath": "at", "order": "DESCENDING" }
+    ]},
+    { "collectionGroup": "licenses", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "assignmentType", "order": "ASCENDING" },
+      { "fieldPath": "assignedToAssetId", "order": "ASCENDING" }
+    ]},
+    { "collectionGroup": "licenses", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "lifecycleStatus", "order": "ASCENDING" },
+      { "fieldPath": "assignmentType", "order": "ASCENDING" }
     ]}
   ],
   "fieldOverrides": []
