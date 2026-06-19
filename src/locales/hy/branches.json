@@ -1,0 +1,24 @@
+﻿{
+  "_todo": "hy translations — schedule native Armenian review",
+  "title": "Մասնաճյուղներ",
+  "create": "Ավելացրել Մասնաճյուղ",
+  "empty": { "title": "Մասնաճյուղներ դեռ չկան", "desc": "Ավելացրեք առաջին Մասնաճյուղը" },
+  "filter": { "all": "Բոլորը", "type": "Type", "search": "Որոնում" },
+  "type": { "branch": "Մասնաճյուղ", "warehouse": "Warehouse" },
+  "col": { "name": "Name", "type": "Type", "city": "City" },
+  "form": {
+    "createTitle": "Նոր Մասնաճյուղ", "editTitle": "Մասնաճյուղի խմբագրում",
+    "name": "Name", "type": "Type", "city": "City", "address": "Address",
+    "save": "Պահպանել", "cancel": "Չեղարկել", "pickType": "Select type"
+  },
+  "delete": {
+    "title": "Մասնաճյուղի՞", "confirm": "Delete", "cancel": "Չեղարկել",
+    "body": "This cannot be undone.",
+    "inUse": "Cannot delete: {{count}} record(s) reference this branch."
+  },
+  "validation": {
+    "required": "Պարտադիր դաշտ", "nameTaken": "This name is already in use",
+    "saveFailed": "Չհաջողվեց պահպանել։ Փորձեք կրկին։"
+  },
+  "pagination": { "range": "{{from}}–{{to}} / {{total}}" }
+}

@@ -32,6 +32,10 @@ import {
   Loader2,
   Clock,
   MailCheck,
+  Pencil,
+  Trash2,
+  Plus,
+  Lock,
   type LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -69,6 +73,10 @@ const REGISTRY: Record<string, LucideIcon> = {
   'loader-circle': Loader2,
   clock: Clock,
   'mail-check': MailCheck,
+  pencil: Pencil,
+  'trash-2': Trash2,
+  plus: Plus,
+  lock: Lock,
 }
 
 export interface IconProps {

@@ -1,7 +1,7 @@
 {
   "_todo": "hy translations are English placeholders — schedule native Armenian review",
   "app": { "name": "AMS", "brandSub": "v0.1 · Prototype", "title": "Asset Management System" },
-  "actions": { "retry": "Retry", "signOut": "Sign out", "profile": "Profile", "settings": "Settings", "openMenu": "Open menu", "close": "Close" },
+  "actions": { "retry": "Retry", "signOut": "Sign out", "profile": "Profile", "settings": "Settings", "openMenu": "Open menu", "close": "Close", "edit": "Խմբագրել", "delete": "Ջնջել" },
   "search": { "placeholder": "Search assets, employees, branches…", "empty": "Nothing found", "hint": "Type to search", "navigate": "navigate", "select": "select", "kindAsset": "Asset", "kindEmployee": "Employee", "kindBranch": "Branch" },
   "lang": { "title": "Interface language", "ru": "Русский", "en": "English", "hy": "Հայերեն" },
   "states": { "emptyTitle": "Nothing here yet", "errorTitle": "Something went wrong", "errorDesc": "Try refreshing the page or repeat the action in a few seconds." },

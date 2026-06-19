@@ -1,0 +1,23 @@
+{
+  "title": "Branches",
+  "create": "Add branch",
+  "empty": { "title": "No branches yet", "desc": "Add the first branch" },
+  "filter": { "all": "All", "type": "Type", "search": "Search" },
+  "type": { "branch": "Branch", "warehouse": "Warehouse" },
+  "col": { "name": "Name", "type": "Type", "city": "City" },
+  "form": {
+    "createTitle": "New branch", "editTitle": "Edit branch",
+    "name": "Name", "type": "Type", "city": "City", "address": "Address",
+    "save": "Save", "cancel": "Cancel", "pickType": "Select type"
+  },
+  "delete": {
+    "title": "Delete branch?", "confirm": "Delete", "cancel": "Cancel",
+    "body": "This cannot be undone.",
+    "inUse": "Cannot delete: {{count}} record(s) reference this branch."
+  },
+  "validation": {
+    "required": "Required", "nameTaken": "This name is already in use",
+    "saveFailed": "Could not save. Try again."
+  },
+  "pagination": { "range": "{{from}}–{{to}} / {{total}}" }
+}
