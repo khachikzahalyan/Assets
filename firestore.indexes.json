@@ -55,6 +55,10 @@
     { "collectionGroup": "audit_logs", "queryScope": "COLLECTION", "fields": [
       { "fieldPath": "entityId", "order": "ASCENDING" },
       { "fieldPath": "at", "order": "DESCENDING" }
+    ]},
+    { "collectionGroup": "assignments", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "assetId", "order": "ASCENDING" },
+      { "fieldPath": "startedAt", "order": "DESCENDING" }
     ]}
   ],
   "fieldOverrides": []
