@@ -1,12 +1,47 @@
 rules_version = '2';
 
 // AMS — Cloud Storage security rules.
-// Deny-by-default baseline. Granular acts/{assetId}/* write rules (10 MB cap,
-// JPEG/PNG/PDF whitelist, role-matched ownership) ship with the assignment
-// feature in a later plan. Until then NOTHING is readable or writable.
+// acts/{assetId}/{fileName} holds act-of-acceptance scans.
+//  write: super_admin | asset_admin, <=10 MB, JPEG/PNG/PDF only (role via cross-service get).
+//  read : any admin (super/asset/tech) OR the employee the asset is currently assigned to
+//         (cross-service get of the asset's denormalized assignment cache).
+// Everything else: deny.
 
 service firebase.storage {
   match /b/{bucket}/o {
+
+    function fsRole() {
+      return firestore.get(
+        /databases/(default)/documents/users/$(request.auth.uid)
+      ).data.role;
+    }
+
+    function isAdmin() {
+      return request.auth != null
+        && (fsRole() == 'super_admin'
+            || fsRole() == 'asset_admin'
+            || fsRole() == 'tech_admin');
+    }
+
+    function isWriter() {
+      return request.auth != null
+        && (fsRole() == 'super_admin' || fsRole() == 'asset_admin');
+    }
+
+    function assignedToCaller(assetId) {
+      return request.auth != null
+        && firestore.get(
+             /databases/(default)/documents/assets/$(assetId)
+           ).data.assignment.employeeId == request.auth.uid;
+    }
+
+    match /acts/{assetId}/{fileName} {
+      allow write: if isWriter()
+        && request.resource.size <= 10 * 1024 * 1024
+        && request.resource.contentType in ['image/jpeg', 'image/png', 'application/pdf'];
+      allow read: if isAdmin() || assignedToCaller(assetId);
+    }
+
     match /{allPaths=**} {
       allow read, write: if false;
     }

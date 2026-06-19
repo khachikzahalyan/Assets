@@ -1,47 +1,60 @@
-import { afterAll, beforeAll, describe, it } from 'vitest'
-import { assertFails, type RulesTestEnvironment } from '@firebase/rules-unit-testing'
-import { ref, uploadString, getDownloadURL } from 'firebase/storage'
-import { authedStorage, unauthedStorage, makeTestEnv } from './helpers'
+import { afterAll, beforeAll, beforeEach, describe, it } from 'vitest'
+import { assertFails, assertSucceeds, type RulesTestEnvironment } from '@firebase/rules-unit-testing'
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
+import { authedStorage, unauthedStorage, makeTestEnv, seedUser, seedDoc } from './helpers'
 
-/**
- * Emulator-backed Storage rules tests. The baseline is deny-by-default: every
- * read and write fails for everyone, authenticated or not. Granular acts/* rules
- * ship with the assignment feature in a later plan.
- */
-
+const SUPER = 'super1', ASSET = 'asset1', TECH = 'tech1', EMP = 'emp1', OTHER = 'other1'
 let env: RulesTestEnvironment
 
-beforeAll(async () => {
-  env = await makeTestEnv()
+beforeAll(async () => { env = await makeTestEnv() })
+afterAll(async () => { await env.cleanup() })
+beforeEach(async () => {
+  await env.clearFirestore()
+  await seedUser(env, SUPER, 'super_admin')
+  await seedUser(env, ASSET, 'asset_admin')
+  await seedUser(env, TECH, 'tech_admin')
+  await seedUser(env, EMP, 'employee')
+  await seedUser(env, OTHER, 'employee')
 })
 
-afterAll(async () => {
-  await env.cleanup()
+const PDF = new Uint8Array([1, 2, 3])
+function up(s: ReturnType<typeof authedStorage>, path: string, type = 'application/pdf') {
+  return uploadBytes(ref(s, path), PDF, { contentType: type })
+}
+
+describe('acts/* write', () => {
+  it('asset_admin can upload a pdf', async () => {
+    await assertSucceeds(up(authedStorage(env, ASSET), 'acts/a1/scan.pdf'))
+  })
+  it('super_admin can upload a png', async () => {
+    await assertSucceeds(up(authedStorage(env, SUPER), 'acts/a1/scan.png', 'image/png'))
+  })
+  it('tech_admin CANNOT upload', async () => {
+    await assertFails(up(authedStorage(env, TECH), 'acts/a1/scan.pdf'))
+  })
+  it('employee CANNOT upload', async () => {
+    await assertFails(up(authedStorage(env, EMP), 'acts/a1/scan.pdf'))
+  })
+  it('rejects a disallowed content type', async () => {
+    await assertFails(up(authedStorage(env, ASSET), 'acts/a1/scan.txt', 'text/plain'))
+  })
 })
 
-describe('storage deny-by-default baseline', () => {
-  it('authenticated user CANNOT write any path', async () => {
-    const s = authedStorage(env, 'user1')
-    await assertFails(uploadString(ref(s, 'acts/a1/file.pdf'), 'data', 'raw'))
+describe('acts/* read', () => {
+  beforeEach(async () => {
+    await seedDoc(env, 'assets/a1', { invCode: '450/1', statusId: 'st_assigned', assignment: { mode: 'employee', employeeId: EMP } })
+    await up(authedStorage(env, ASSET), 'acts/a1/scan.pdf')
   })
-
-  it('authenticated user CANNOT read any path', async () => {
-    const s = authedStorage(env, 'user1')
-    await assertFails(getDownloadURL(ref(s, 'acts/a1/file.pdf')))
+  it('admin can read', async () => {
+    await assertSucceeds(getDownloadURL(ref(authedStorage(env, SUPER), 'acts/a1/scan.pdf')))
   })
-
-  it('unauthenticated user CANNOT write any path', async () => {
-    const s = unauthedStorage(env)
-    await assertFails(uploadString(ref(s, 'acts/a1/file.pdf'), 'data', 'raw'))
+  it('the assigned employee can read', async () => {
+    await assertSucceeds(getDownloadURL(ref(authedStorage(env, EMP), 'acts/a1/scan.pdf')))
   })
-
-  it('unauthenticated user CANNOT read any path', async () => {
-    const s = unauthedStorage(env)
-    await assertFails(getDownloadURL(ref(s, 'acts/a1/file.pdf')))
+  it('a different employee CANNOT read', async () => {
+    await assertFails(getDownloadURL(ref(authedStorage(env, OTHER), 'acts/a1/scan.pdf')))
   })
-
-  it('authenticated user CANNOT write an arbitrary root path', async () => {
-    const s = authedStorage(env, 'user1')
-    await assertFails(uploadString(ref(s, 'anything/else.txt'), 'data', 'raw'))
+  it('unauthenticated CANNOT read', async () => {
+    await assertFails(getDownloadURL(ref(unauthedStorage(env), 'acts/a1/scan.pdf')))
   })
 })
