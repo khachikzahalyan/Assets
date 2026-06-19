@@ -77,6 +77,24 @@ describe('/licenses write', () => {
       }),
     )
   })
+
+  it('super_admin CANNOT write a license doc carrying a raw `key` field', async () => {
+    await assertFails(
+      setDoc(doc(authedDb(env, SUPER), 'licenses', 'lic_key'), {
+        name: 'Windows 11 Pro', assignmentType: 'device', lifecycleStatus: 'active',
+        key: 'XCVF-7TR5-9HJK-5592',
+      }),
+    )
+  })
+
+  it('tech_admin CANNOT write a license doc carrying a raw `key` field', async () => {
+    await assertFails(
+      setDoc(doc(authedDb(env, TECH), 'licenses', 'lic_key2'), {
+        name: 'Office 365', assignmentType: 'unassigned', lifecycleStatus: 'active',
+        key: 'AAAA-BBBB-CCCC-1234',
+      }),
+    )
+  })
 })
 
 // ---------------------------------------------------------------------------
@@ -199,6 +217,15 @@ describe('/server_licenses write', () => {
     await assertFails(
       setDoc(doc(authedDb(env, ASSET), 'server_licenses', 'srv3'), {
         name: 'SQL Server 2022', lifecycleStatus: 'active',
+      }),
+    )
+  })
+
+  it('super_admin CANNOT write a server license doc carrying a raw `key` field', async () => {
+    await assertFails(
+      setDoc(doc(authedDb(env, SUPER), 'server_licenses', 'srv_key'), {
+        name: 'Windows Server 2022', lifecycleStatus: 'active',
+        key: 'XCVF-7TR5-9HJK-5592',
       }),
     )
   })

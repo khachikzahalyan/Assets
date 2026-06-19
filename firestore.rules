@@ -111,7 +111,11 @@ service cloud.firestore {
     //   Admin SDK, which bypasses these rules.
     match /licenses/{id} {
       allow read: if isAnyAdmin();
-      allow write: if isSuperAdmin() || isTechAdmin();
+      // A raw `key` field must NEVER live on the license doc — keys belong in the
+      // deny-all secrets sub-collection only. Reject any doc write carrying `key`,
+      // so even a privileged admin client cannot bypass the masking architecture.
+      allow write: if (isSuperAdmin() || isTechAdmin())
+        && !('key' in request.resource.data);
       match /secrets/{s} {
         allow read, write: if false;
       }
@@ -121,7 +125,9 @@ service cloud.firestore {
     // Super-admin WRITE only. Read: any admin. Secrets denied to all clients.
     match /server_licenses/{id} {
       allow read: if isAnyAdmin();
-      allow write: if isSuperAdmin();
+      // Same key-field guard as /licenses: raw keys live only in secrets/*.
+      allow write: if isSuperAdmin()
+        && !('key' in request.resource.data);
       match /secrets/{s} {
         allow read, write: if false;
       }
