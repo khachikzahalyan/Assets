@@ -106,14 +106,6 @@ export class FirestoreServerLicenseRepository implements ServerLicenseRepository
 
     const r = await withAudit(this.audit, safeSpec, async (txn) => {
       ;(txn as unknown as Transaction).set(ref, docData)
-      if (input.rawKey) {
-        const secretRef = doc(this.db, COL, id, 'secrets', 'current')
-        ;(txn as unknown as Transaction).set(secretRef, {
-          key: input.rawKey,
-          updatedAt: serverTimestamp(),
-          updatedBy: actor.uid,
-        })
-      }
       return { value: undefined as unknown as void }
     })
 
@@ -169,6 +161,8 @@ export class FirestoreServerLicenseRepository implements ServerLicenseRepository
     return { value: next, auditId: r.auditId }
   }
 
+  // Secret persistence is owned by the setLicenseKey Cloud Function; this method only records
+  // the rotation + masked audit. Callers persist the raw key via the callable.
   async rotateKey(
     id: string,
     rawKey: string,
@@ -178,7 +172,6 @@ export class FirestoreServerLicenseRepository implements ServerLicenseRepository
     if (!existing) throw new Error(`ServerLicense not found: ${id}`)
 
     const ref = doc(this.db, COL, id)
-    const secretRef = doc(this.db, COL, id, 'secrets', 'current')
     const patch: Record<string, unknown> = {
       updatedAt: serverTimestamp(),
       updatedBy: actor.uid,
@@ -196,11 +189,6 @@ export class FirestoreServerLicenseRepository implements ServerLicenseRepository
 
     const r = await withAudit(this.audit, safeSpec, async (txn) => {
       ;(txn as unknown as Transaction).set(ref, patch, { merge: true })
-      ;(txn as unknown as Transaction).set(secretRef, {
-        key: rawKey,
-        updatedAt: serverTimestamp(),
-        updatedBy: actor.uid,
-      })
       return { value: undefined as unknown as void }
     })
 
