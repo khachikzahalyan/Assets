@@ -1,10 +1,11 @@
 import type { Role } from '@/config/roles'
 
-export type AuditEntityType = 'asset' | 'assignment' | 'upgrade' | 'license'
+export type AuditEntityType = 'asset' | 'assignment' | 'upgrade' | 'license' | 'employee'
 
 export const AUDIT_ACTIONS = [
   'created', 'updated', 'status_changed', 'assigned', 'returned',
   'transferred', 'upgrade_added', 'disposed', 'sent_to_repair', 'repair_completed',
+  'terminated', 'reactivated',
 ] as const
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[number]
