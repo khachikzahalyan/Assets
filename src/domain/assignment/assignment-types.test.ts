@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { isAssignmentMode, type Assignment, type AssignmentMode } from './index'
+import { isAssignmentMode, type Assignment, type AssignmentDocMode } from './index'
 
 describe('assignment domain types', () => {
   it('isAssignmentMode accepts employee and branch, rejects others', () => {
@@ -17,7 +17,7 @@ describe('assignment domain types', () => {
       actStoragePath: null, transferComment: null,
       createdBy: 'u_1', createdAt: '2026-01-01T00:00:00.000Z',
     }
-    const m: AssignmentMode = a.mode
+    const m: AssignmentDocMode = a.mode
     expect(m).toBe('employee')
   })
 })

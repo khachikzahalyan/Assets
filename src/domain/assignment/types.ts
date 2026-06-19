@@ -1,7 +1,7 @@
 export const ASSIGNMENT_MODES = ['employee', 'branch'] as const
-export type AssignmentMode = (typeof ASSIGNMENT_MODES)[number]
+export type AssignmentDocMode = (typeof ASSIGNMENT_MODES)[number]
 
-export function isAssignmentMode(v: string): v is AssignmentMode {
+export function isAssignmentMode(v: string): v is AssignmentDocMode {
   return (ASSIGNMENT_MODES as readonly string[]).includes(v)
 }
 
@@ -9,7 +9,7 @@ export function isAssignmentMode(v: string): v is AssignmentMode {
 export interface Assignment {
   id: string
   assetId: string
-  mode: AssignmentMode
+  mode: AssignmentDocMode
   assignedToEmployeeId: string | null
   assignedToBranchId: string | null
   startedAt: string
