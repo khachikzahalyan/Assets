@@ -7,8 +7,7 @@ import {
 import type { PendingUser, UserRepository, AssignRoleInput } from '@/domain/user'
 import type { Role } from '@/config/roles'
 import { ROLE_IDS } from '@/config/roles'
-import { FirestoreUserRepository } from '@/infra/repositories'
-import { db } from '@/lib/firebase'
+import { createDefaultUserRepository } from '@/infra/repositories'
 import { Input } from '@/components/ui'
 
 export interface PendingUsersPageProps {
@@ -40,6 +39,12 @@ function AssignDialog({ pendingUser, onClose, onAssigned, repo, actor }: AssignD
     value: id,
     label: tNav(`roles.${id}`),
   }))
+
+  // Guard: employee+create requires a non-empty email on the pending user
+  const emailMissing =
+    selectedRole === 'employee' &&
+    empMode === 'create' &&
+    !pendingUser.email?.trim()
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -171,7 +176,7 @@ function AssignDialog({ pendingUser, onClose, onAssigned, repo, actor }: AssignD
                       placeholder={t('dialog.lastName')}
                     />
                   </Field>
-                  <Field label="Email">
+                  <Field label={t('col.email')}>
                     <input
                       type="email"
                       value={pendingUser.email}
@@ -179,6 +184,11 @@ function AssignDialog({ pendingUser, onClose, onAssigned, repo, actor }: AssignD
                       className="w-full h-9 px-3 text-sm bg-[#0D1117] border border-[#2A2F36] rounded-lg text-[#64748B] cursor-default"
                     />
                   </Field>
+                  {emailMissing && (
+                    <p role="alert" className="text-[12px] text-amber-400">
+                      {t('dialog.emailRequired')}
+                    </p>
+                  )}
                 </div>
               )}
             </div>
@@ -195,7 +205,7 @@ function AssignDialog({ pendingUser, onClose, onAssigned, repo, actor }: AssignD
             <Btn
               type="submit"
               variant="primary"
-              disabled={!selectedRole || submitting}
+              disabled={!selectedRole || submitting || emailMissing}
             >
               {t('dialog.submit')}
             </Btn>
@@ -214,7 +224,7 @@ export function PendingUsersPage({ repository }: PendingUsersPageProps) {
 
   // Lazy default repo — test callers inject their own
   const defaultRepo = useMemo<UserRepository>(
-    () => new FirestoreUserRepository(db()),
+    () => createDefaultUserRepository(),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   )
