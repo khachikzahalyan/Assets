@@ -67,6 +67,15 @@ vi.mock('@/infra/repositories', async () => {
       async listPendingUsers() { return [] }
       async assignRole() { return { value: { id: 'u_1', email: 'x@x.com', displayName: 'X', role: 'super_admin', status: 'active', createdAt: null }, auditId: 'a_1' } }
     },
+    FirestoreBranchRepository: class {
+      async listBranches() { return [] }
+      async getBranch()    { return null }
+      async isNameTaken()  { return false }
+      async countReferences() { return 0 }
+      async createBranch() { return { value: { id: 'b_1', name: '', type: 'branch', city: null, address: null, createdAt: '', updatedAt: '' }, auditId: 'a_1' } }
+      async updateBranch() { return { value: { id: 'b_1', name: '', type: 'branch', city: null, address: null, createdAt: '', updatedAt: '' }, auditId: 'a_1' } }
+      async deleteBranch() { return { value: { id: 'b_1' }, auditId: 'a_1' } }
+    },
   }
 })
 
