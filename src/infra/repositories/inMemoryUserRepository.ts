@@ -22,26 +22,21 @@ export class InMemoryUserRepository implements UserRepository {
     const before = this.users[idx]!
     const next: User = { ...before, role: input.role, status: 'active' }
 
-    const result = await withAudit(this.audit,
-      {
-        entityType: 'user', entityId: input.uid, action: 'role_assigned',
-        actorUid: actor.uid, actorRole: actor.role,
-        before: { role: before.role, status: before.status },
-        after: { role: input.role, status: 'active' },
-      },
-      async () => { this.users[idx] = next; return { value: next } },
-    )
-
+    // STEP 1 — create the employee doc FIRST. If this throws (e.g. empty email),
+    // we bail BEFORE granting the role, so the user stays pending/retryable and no
+    // partial promotion is left behind.
     if (input.role === 'employee' && input.employee?.mode === 'create') {
       const create = input.employee.create
       if (!create) throw new Error('employee.create payload required when mode === "create"')
+      const email = typeof create.email === 'string' ? create.email.trim() : ''
+      if (!email) throw new Error('employee email required')
       if (!this.employees.some(e => e.id === input.uid)) {
         const now = new Date().toISOString()
         const employee: Employee = {
           id: input.uid,
           firstName: create.firstName,
           lastName: create.lastName,
-          email: create.email,
+          email,
           position: null,
           branchId: null,
           departmentId: null,
@@ -54,12 +49,23 @@ export class InMemoryUserRepository implements UserRepository {
           {
             entityType: 'employee', entityId: input.uid, action: 'created',
             actorUid: actor.uid, actorRole: actor.role,
-            after: { id: input.uid, email: create.email },
+            after: { id: input.uid, email },
           },
           async () => { this.employees.push(employee); return { value: employee } },
         )
       }
     }
+
+    // STEP 2 — grant the role.
+    const result = await withAudit(this.audit,
+      {
+        entityType: 'user', entityId: input.uid, action: 'role_assigned',
+        actorUid: actor.uid, actorRole: actor.role,
+        before: { role: before.role, status: before.status },
+        after: { role: input.role, status: 'active' },
+      },
+      async () => { this.users[idx] = next; return { value: next } },
+    )
 
     return { value: result.value, auditId: result.auditId }
   }

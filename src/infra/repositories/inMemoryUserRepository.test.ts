@@ -43,6 +43,25 @@ describe('InMemoryUserRepository', () => {
     expect(store.logs.map(l => l.action)).toEqual(expect.arrayContaining(['role_assigned', 'created']))
   })
 
+  it('assignRole employee+create with empty email throws and does NOT grant the role', async () => {
+    const store = createInMemoryAuditStore()
+    const users: User[] = [pending('a')]
+    const employees: Employee[] = []
+    const repo = new InMemoryUserRepository(users, employees, inMemoryAuditContext(store))
+    await expect(
+      repo.assignRole(
+        { uid: 'a', role: 'employee', employee: { mode: 'create', create: { firstName: 'I', lastName: 'P', email: '   ' } } },
+        actor,
+      ),
+    ).rejects.toThrow(/employee email required/)
+    // The role was NEVER granted: the user stays pending and retryable.
+    expect(users[0]!.role).toBe(null)
+    expect(users[0]!.status).toBe('no-role')
+    // No employee doc and no audit row were written.
+    expect(employees).toHaveLength(0)
+    expect(store.logs).toHaveLength(0)
+  })
+
   it('assignRole employee+link does NOT create an employee doc', async () => {
     const users: User[] = [pending('a')]
     const employees: Employee[] = []

@@ -38,6 +38,14 @@ service cloud.firestore {
       return isSuperAdmin() || isAssetAdmin() || isTechAdmin();
     }
 
+    // Whenever a `role` field is present in the written data it must be one of the
+    // four valid roles. Applies to ALL writers (incl. super) so a garbage/legacy
+    // role string (e.g. 'admin') can never be persisted.
+    function validRoleIfPresent() {
+      return !('role' in request.resource.data)
+        || request.resource.data.role in ['super_admin', 'asset_admin', 'tech_admin', 'employee'];
+    }
+
     // ---- /users ----
     // Read: self or super_admin. Create/delete + role/status changes: super_admin only.
     // A signed-in user may update their OWN doc only if role + status are unchanged
@@ -47,22 +55,26 @@ service cloud.firestore {
 
       // Create: super_admin (any shape) OR a self-claim of a no-role record that
       // introduces NO role field. Self-escalation is impossible.
-      allow create: if isSuperAdmin()
-        || (
-          isSignedIn()
-          && request.auth.uid == uid
-          && !('role' in request.resource.data)
-          && request.resource.data.status == 'no-role'
+      allow create: if validRoleIfPresent() && (
+          isSuperAdmin()
+          || (
+            isSignedIn()
+            && request.auth.uid == uid
+            && !('role' in request.resource.data)
+            && request.resource.data.status == 'no-role'
+          )
         );
 
       // Update: super_admin (any shape) OR a self-update that changes NO role
       // field and keeps status unchanged (self can never grant/raise a role).
-      allow update: if isSuperAdmin()
-        || (
-          isSignedIn()
-          && request.auth.uid == uid
-          && !('role' in request.resource.data.diff(resource.data).affectedKeys())
-          && request.resource.data.status == resource.data.status
+      allow update: if validRoleIfPresent() && (
+          isSuperAdmin()
+          || (
+            isSignedIn()
+            && request.auth.uid == uid
+            && !('role' in request.resource.data.diff(resource.data).affectedKeys())
+            && request.resource.data.status == resource.data.status
+          )
         );
 
       allow delete: if isSuperAdmin();

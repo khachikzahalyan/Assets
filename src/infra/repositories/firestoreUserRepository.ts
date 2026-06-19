@@ -1,6 +1,6 @@
 import {
   collection, doc, getDoc, getDocs, query as fsQuery, where, serverTimestamp,
-  type Firestore, type Transaction,
+  type Firestore,
 } from 'firebase/firestore'
 import type { Actor } from '@/domain/asset'
 import type { AuditedResult } from '@/domain/audit'
@@ -51,6 +51,25 @@ export class FirestoreUserRepository implements UserRepository {
     if (!snap.exists()) throw new Error(`User not found: ${input.uid}`)
     const before = toUser(snap.id, snap.data() as Record<string, unknown>)
 
+    // STEP 1 — create the employee doc FIRST (its own withAudit unit → one
+    // 'employee'/'created' row). If this fails (e.g. empty email), we bail out
+    // BEFORE granting the role, so the user stays pending and retryable. The
+    // harmful "promoted but no employee doc" partial state cannot occur.
+    if (input.role === 'employee' && input.employee?.mode === 'create') {
+      const create = input.employee.create
+      if (!create) throw new Error('employee.create payload required when mode === "create"')
+      const email = typeof create.email === 'string' ? create.email.trim() : ''
+      if (!email) throw new Error('employee email required')
+      const empRepo = new FirestoreEmployeeRepository(this.db)
+      if (!(await empRepo.getEmployee(input.uid))) {
+        await empRepo.createEmployee(
+          { id: input.uid, firstName: create.firstName, lastName: create.lastName, email },
+          actor,
+        )
+      }
+    }
+
+    // STEP 2 — grant the role (its own withAudit unit → one 'user'/'role_assigned' row).
     const r = await withAudit(this.audit,
       {
         entityType: 'user', entityId: input.uid, action: 'role_assigned',
@@ -59,24 +78,12 @@ export class FirestoreUserRepository implements UserRepository {
         after: { role: input.role, status: 'active' },
       },
       async (txn) => {
-        (txn as unknown as Transaction).set(
+        txn.set(
           ref, { role: input.role, status: 'active', updatedAt: serverTimestamp() }, { merge: true },
         )
         return { value: undefined as unknown as void }
       },
     )
-
-    if (input.role === 'employee' && input.employee?.mode === 'create') {
-      const create = input.employee.create
-      if (!create) throw new Error('employee.create payload required when mode === "create"')
-      const empRepo = new FirestoreEmployeeRepository(this.db)
-      if (!(await empRepo.getEmployee(input.uid))) {
-        await empRepo.createEmployee(
-          { id: input.uid, firstName: create.firstName, lastName: create.lastName, email: create.email },
-          actor,
-        )
-      }
-    }
 
     const after = await getDoc(ref)
     if (!after.exists()) throw new Error('User role assign succeeded but readback failed')

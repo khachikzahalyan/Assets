@@ -330,6 +330,15 @@ describe('users', () => {
       updateDoc(doc(authedDb(env, SUPER), 'users', 'pend2'), { role: 'asset_admin', status: 'active' }),
     )
   })
+
+  it('super_admin CANNOT set an invalid/legacy role value (enum guard)', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'users', 'pend3'), { email: 'p3@ams.test', displayName: 'P3', status: 'no-role' })
+    })
+    await assertFails(
+      updateDoc(doc(authedDb(env, SUPER), 'users', 'pend3'), { role: 'admin', status: 'active' }),
+    )
+  })
 })
 
 describe('settings', () => {
