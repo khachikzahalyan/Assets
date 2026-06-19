@@ -85,7 +85,12 @@ export class InMemoryAssetRepository implements AssetRepository, AssetWriteRepos
   }
 
   async loadSelfServiceRefData(): Promise<SelfServiceRefData> {
-    return { statuses: this.ref.statuses, categories: this.ref.categories }
+    return {
+      statuses: this.ref.statuses,
+      categories: this.ref.categories,
+      branches: this.ref.branches,
+      departments: this.ref.departments,
+    }
   }
 
   // ---- Write methods ------------------------------------------------------

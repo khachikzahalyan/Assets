@@ -28,7 +28,7 @@ export function ProfilePage({ repository, loadRefData }: ProfilePageProps) {
   const defaultLoadRefData = useMemo(
     () => async () => {
       const assetRepo = new FirestoreAssetRepository(db())
-      const r = await assetRepo.loadReferenceData()
+      const r = await assetRepo.loadSelfServiceRefData()
       return { branches: r.branches, departments: r.departments }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps

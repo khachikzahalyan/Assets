@@ -103,15 +103,17 @@ export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepo
   }
 
   async loadSelfServiceRefData(): Promise<SelfServiceRefData> {
-    const [statuses, categories] = await Promise.all([
+    const [statuses, categories, branches, departments] = await Promise.all([
       this.readCol<StatusRow>('asset_statuses', d => ({ name: String(d.name ?? ''), color: String(d.color ?? 'gray') })),
       this.readCol<CategoryRow>('categories', d => ({
         name: String(d.name ?? ''),
         group: (d.group as CategoryRow['group']) ?? 'devices',
         lucideIcon: String(d.lucideIcon ?? 'package'),
       })),
+      this.readCol<RefRow>('branches', d => ({ name: String(d.name ?? '') })),
+      this.readCol<RefRow>('departments', d => ({ name: String(d.name ?? '') })),
     ])
-    return { statuses, categories }
+    return { statuses, categories, branches, departments }
   }
 
   private async fetchReferenceData(): Promise<AssetReferenceData> {

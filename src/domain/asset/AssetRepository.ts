@@ -16,10 +16,13 @@ export interface AssetReferenceData {
 }
 
 /** Catalog rows a self-service (employee) page can read under the tightened rules.
- *  Excludes /employees (employee cannot list the directory) and any admin-only collection. */
+ *  Excludes /employees (employee cannot list the directory) and any admin-only collection.
+ *  Branches + departments are both allow read: isSignedIn() so employees may read them. */
 export interface SelfServiceRefData {
   statuses: StatusRow[]
   categories: CategoryRow[]
+  branches: RefRow[]
+  departments: RefRow[]
 }
 
 /**
@@ -35,7 +38,7 @@ export interface AssetRepository {
   loadReferenceData(): Promise<AssetReferenceData>
   /** Assets currently assigned to a given employee (self-service). */
   listAssetsForEmployee(employeeId: string): Promise<Asset[]>
-  /** Catalogs an employee may read (statuses + categories only) — for self-service pages.
+  /** Catalogs an employee may read (statuses, categories, branches, departments) — for self-service pages.
    *  Does NOT read /employees, so it works under the employee-scoped read rules. */
   loadSelfServiceRefData(): Promise<SelfServiceRefData>
 }
