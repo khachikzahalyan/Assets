@@ -1,0 +1,30 @@
+{
+  "title": "Roles & Access",
+  "subtitle": "Manage roles for all system users",
+  "search": "Search by name or email",
+  "filter": { "role": "Role", "status": "Status", "all": "All" },
+  "you": "This is you",
+  "col": { "user": "User", "email": "Email", "role": "Role", "status": "Status", "actions": "" },
+  "role": { "none": "No role" },
+  "status": { "active": "Active", "no-role": "No role", "terminated": "Terminated" },
+  "change": "Change role",
+  "empty": { "title": "No users found", "desc": "Adjust filters or search" },
+  "dialog": {
+    "title": "Change role",
+    "role": "New role",
+    "confirm": "Changing a role grants or revokes access to sections. Please confirm.",
+    "submit": "Change",
+    "cancel": "Cancel",
+    "employeeMode": "Employee record",
+    "link": "Link existing",
+    "create": "Create new",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "emailRequired": "This user has no email — choose \"Link existing\""
+  },
+  "guard": {
+    "self-demotion": "You cannot remove your own Super Admin role",
+    "last-super-admin": "The system cannot be left without a Super Admin"
+  },
+  "toast": { "changed": "Role changed", "failed": "Failed to change role" }
+}

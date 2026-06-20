@@ -26,3 +26,10 @@ describe('licenses namespace', () => {
     expect(value).not.toBe('licenses.title')
   })
 })
+
+describe('roles namespace', () => {
+  it('resolves roles namespace title in ru', async () => {
+    await i18n.changeLanguage('ru')
+    expect(i18n.t('title', { ns: 'roles' })).toBe('Роли и доступ')
+  })
+})

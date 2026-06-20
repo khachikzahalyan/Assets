@@ -9,6 +9,7 @@ import ruAccessPending from '@/locales/ru/access-pending.json'
 import ruAssets from '@/locales/ru/assets.json'
 import ruEmployees from '@/locales/ru/employees.json'
 import ruPendingUsers from '@/locales/ru/pending-users.json'
+import ruRoles from '@/locales/ru/roles.json'
 import ruBranches from '@/locales/ru/branches.json'
 import ruDepartments from '@/locales/ru/departments.json'
 import ruCategories from '@/locales/ru/categories.json'
@@ -24,6 +25,7 @@ import enAccessPending from '@/locales/en/access-pending.json'
 import enAssets from '@/locales/en/assets.json'
 import enEmployees from '@/locales/en/employees.json'
 import enPendingUsers from '@/locales/en/pending-users.json'
+import enRoles from '@/locales/en/roles.json'
 import enBranches from '@/locales/en/branches.json'
 import enDepartments from '@/locales/en/departments.json'
 import enCategories from '@/locales/en/categories.json'
@@ -39,6 +41,7 @@ import hyAccessPending from '@/locales/hy/access-pending.json'
 import hyAssets from '@/locales/hy/assets.json'
 import hyEmployees from '@/locales/hy/employees.json'
 import hyPendingUsers from '@/locales/hy/pending-users.json'
+import hyRoles from '@/locales/hy/roles.json'
 import hyBranches from '@/locales/hy/branches.json'
 import hyDepartments from '@/locales/hy/departments.json'
 import hyCategories from '@/locales/hy/categories.json'
@@ -52,9 +55,9 @@ export const SUPPORTED_LANGS = ['ru', 'en', 'hy'] as const
 export type AppLang = (typeof SUPPORTED_LANGS)[number]
 
 export const resources = {
-  ru: { common: ruCommon, nav: ruNav, login: ruLogin, 'access-pending': ruAccessPending, assets: ruAssets, employees: ruEmployees, 'pending-users': ruPendingUsers, branches: ruBranches, departments: ruDepartments, categories: ruCategories, statuses: ruStatuses, audit: ruAudit, licenses: ruLicenses, dashboard: ruDashboard, settings: ruSettings },
-  en: { common: enCommon, nav: enNav, login: enLogin, 'access-pending': enAccessPending, assets: enAssets, employees: enEmployees, 'pending-users': enPendingUsers, branches: enBranches, departments: enDepartments, categories: enCategories, statuses: enStatuses, audit: enAudit, licenses: enLicenses, dashboard: enDashboard, settings: enSettings },
-  hy: { common: hyCommon, nav: hyNav, login: hyLogin, 'access-pending': hyAccessPending, assets: hyAssets, employees: hyEmployees, 'pending-users': hyPendingUsers, branches: hyBranches, departments: hyDepartments, categories: hyCategories, statuses: hyStatuses, audit: hyAudit, licenses: hyLicenses, dashboard: hyDashboard, settings: hySettings },
+  ru: { common: ruCommon, nav: ruNav, login: ruLogin, 'access-pending': ruAccessPending, assets: ruAssets, employees: ruEmployees, 'pending-users': ruPendingUsers, roles: ruRoles, branches: ruBranches, departments: ruDepartments, categories: ruCategories, statuses: ruStatuses, audit: ruAudit, licenses: ruLicenses, dashboard: ruDashboard, settings: ruSettings },
+  en: { common: enCommon, nav: enNav, login: enLogin, 'access-pending': enAccessPending, assets: enAssets, employees: enEmployees, 'pending-users': enPendingUsers, roles: enRoles, branches: enBranches, departments: enDepartments, categories: enCategories, statuses: enStatuses, audit: enAudit, licenses: enLicenses, dashboard: enDashboard, settings: enSettings },
+  hy: { common: hyCommon, nav: hyNav, login: hyLogin, 'access-pending': hyAccessPending, assets: hyAssets, employees: hyEmployees, 'pending-users': hyPendingUsers, roles: hyRoles, branches: hyBranches, departments: hyDepartments, categories: hyCategories, statuses: hyStatuses, audit: hyAudit, licenses: hyLicenses, dashboard: hyDashboard, settings: hySettings },
 } as const
 
 void i18n
@@ -65,7 +68,7 @@ void i18n
     fallbackLng: 'ru',
     supportedLngs: SUPPORTED_LANGS as unknown as string[],
     defaultNS: 'common',
-    ns: ['common', 'nav', 'login', 'access-pending', 'assets', 'employees', 'pending-users', 'branches', 'departments', 'categories', 'statuses', 'audit', 'licenses', 'dashboard', 'settings'],
+    ns: ['common', 'nav', 'login', 'access-pending', 'assets', 'employees', 'pending-users', 'roles', 'branches', 'departments', 'categories', 'statuses', 'audit', 'licenses', 'dashboard', 'settings'],
     interpolation: { escapeValue: false },
     detection: {
       order: ['localStorage', 'navigator'],
