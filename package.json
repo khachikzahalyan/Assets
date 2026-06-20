@@ -18,7 +18,13 @@
     "deploy:rules": "npx firebase deploy --only firestore:rules,storage:rules,firestore:indexes",
     "deploy:functions": "npx firebase deploy --only functions",
     "deploy:backend": "npm run deploy:rules && npm run deploy:functions",
-    "emulators": "npx firebase emulators:start"
+    "deploy:indexes": "npx firebase deploy --only firestore:indexes",
+    "deploy:all": "npx firebase deploy --only firestore:rules,storage:rules,firestore:indexes,functions",
+    "emulators": "npx firebase emulators:start",
+    "seed": "tsx scripts/seed.ts",
+    "seed:emulator": "cross-env FIRESTORE_EMULATOR_HOST=localhost:8080 GOOGLE_CLOUD_PROJECT=demo-ams tsx scripts/seed.ts",
+    "grant:super-admin": "tsx scripts/grant-super-admin.ts",
+    "typecheck:scripts": "tsc --noEmit -p tsconfig.scripts.json"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.14",
@@ -54,10 +60,13 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^4.7.0",
     "autoprefixer": "^10.5.0",
+    "cross-env": "^7.0.3",
+    "firebase-admin": "^12.7.0",
     "firebase-tools": "^13.35.1",
     "jsdom": "^25.0.1",
     "postcss": "^8.5.15",
     "tailwindcss": "^3.4.19",
+    "tsx": "^4.22.4",
     "typescript": "^5.9.3",
     "vite": "^6.4.3",
     "vitest": "^2.1.9"
