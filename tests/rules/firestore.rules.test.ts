@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { assertFails, assertSucceeds, type RulesTestEnvironment } from '@firebase/rules-unit-testing'
-import { doc, getDoc, setDoc, updateDoc, deleteDoc, serverTimestamp, getDocs, collection } from 'firebase/firestore'
+import { doc, getDoc, setDoc, updateDoc, deleteDoc, serverTimestamp, getDocs, collection, query, where } from 'firebase/firestore'
 import { authedDb, unauthedDb, makeTestEnv, seedDoc, seedUser } from './helpers'
 
 /**
@@ -338,6 +338,18 @@ describe('users', () => {
     await assertFails(
       updateDoc(doc(authedDb(env, SUPER), 'users', 'pend3'), { role: 'admin', status: 'active' }),
     )
+  })
+
+  it('super_admin CAN list the whole users collection', async () => {
+    await assertSucceeds(getDocs(query(collection(authedDb(env, SUPER), 'users'))))
+  })
+  it('a non-super user CANNOT list the whole users collection', async () => {
+    await assertFails(getDocs(query(collection(authedDb(env, EMP), 'users'))))
+  })
+  it('super_admin CAN list users filtered by role', async () => {
+    await assertSucceeds(getDocs(query(
+      collection(authedDb(env, SUPER), 'users'), where('role', '==', 'super_admin'),
+    )))
   })
 })
 
