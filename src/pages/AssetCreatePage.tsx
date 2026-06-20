@@ -43,6 +43,16 @@ export function AssetCreatePage({ repository, licenseRepository, onCreated, onPe
   )
   const repo = repository ?? (defaultRepo as AssetRepository & AssetWriteRepository)
 
+  // Stable license repo for the OEM picker — mirrors defaultRepo pattern.
+  // When licenseRepository is injected (test path) use it directly; otherwise build
+  // Firestore one only when no non-Firestore asset repo is injected (production path).
+  const defaultLicenseRepo = useMemo<WorkstationLicenseRepository | null>(
+    () => (licenseRepository || repository ? null : new FirestoreWorkstationLicenseRepository(db())),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  )
+  const resolvedLicenseRepo = licenseRepository ?? (defaultLicenseRepo ?? undefined)
+
   const [refData, setRefData] = useState<AssetReferenceData | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -171,6 +181,7 @@ export function AssetCreatePage({ repository, licenseRepository, onCreated, onPe
         submitting={submitting}
         error={saveError}
         onCancel={() => navigate('/assets')}
+        {...(resolvedLicenseRepo ? { licenseRepository: resolvedLicenseRepo } : {})}
       />
     </div>
   )

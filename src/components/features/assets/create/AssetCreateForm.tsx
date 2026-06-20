@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Field, Input, SectionCard, Btn } from '@/components/ui'
+import { Field, Input, SectionCard, Btn, Select } from '@/components/ui'
 import type { AssetReferenceData, CreateAssetInput } from '@/domain/asset'
+import type { WorkstationLicenseRepository } from '@/domain/license'
 import { CategoryPicker, categoryCapabilities } from './CategoryPicker'
 import { QuickAssignment } from './QuickAssignment'
 import type { QAValue } from './QuickAssignment'
@@ -13,9 +14,11 @@ export interface AssetCreateFormProps {
   submitting: boolean
   error: string | null
   onCancel?: () => void
+  /** Optional license repository — when provided, enables the free-OEM-pool picker. */
+  licenseRepository?: WorkstationLicenseRepository
 }
 
-export function AssetCreateForm({ ref: refData, onSubmit, submitting, error, onCancel }: AssetCreateFormProps) {
+export function AssetCreateForm({ ref: refData, onSubmit, submitting, error, onCancel, licenseRepository }: AssetCreateFormProps) {
   const { t } = useTranslation('assets')
 
   // Identity fields
@@ -32,8 +35,12 @@ export function AssetCreateForm({ ref: refData, onSubmit, submitting, error, onC
   const [ssd, setSsd] = useState('')
   const [gpu, setGpu] = useState('')
 
-  // OEM License key (only shown when selectedCategory.hasOemLicense === true)
+  // OEM License: raw-key branch
   const [oemRawKey, setOemRawKey] = useState('')
+  // OEM License: picker branch (existingLicenseId)
+  const [oemPickId, setOemPickId] = useState('')
+  // Pool of free OEM licenses for the picker
+  const [oemPool, setOemPool] = useState<{ id: string; name: string; vendor: string | null }[]>([])
 
   // Quick Assignment
   const [qa, setQa] = useState<QAValue>({ picked: null, assignment: null })
@@ -42,6 +49,26 @@ export function AssetCreateForm({ ref: refData, onSubmit, submitting, error, onC
   const selectedCategory = refData.categories.find(c => c.id === categoryId) ?? null
   const caps = selectedCategory ? categoryCapabilities(selectedCategory) : null
   const showOemKey = selectedCategory?.hasOemLicense === true
+
+  // Lazily load the free OEM pool when the OEM section becomes visible and a repo is wired.
+  // On failure (network, permissions) we degrade silently — raw-key input still works.
+  useEffect(() => {
+    if (!showOemKey || !licenseRepository) return
+    let cancelled = false
+    licenseRepository
+      .listAssignablePool()
+      .then(all => {
+        if (cancelled) return
+        const freeOem = all.filter(
+          l => l.type === 'OEM' && l.assignmentType === 'unassigned' && l.lifecycleStatus === 'active',
+        )
+        setOemPool(freeOem.map(l => ({ id: l.id, name: l.name, vendor: l.vendor })))
+      })
+      .catch(() => {
+        if (!cancelled) setOemPool([])
+      })
+    return () => { cancelled = true }
+  }, [showOemKey, licenseRepository])
 
   // Save gating
   const identityMissing: string[] = []
@@ -84,11 +111,13 @@ export function AssetCreateForm({ ref: refData, onSubmit, submitting, error, onC
         ? qa.assignment.departmentId
         : null
 
-    // OEM license: only included when the category has hasOemLicense and a key was typed
-    // TODO(D): free-key picker for existing pool licenses (existingLicenseId path)
-    const oemLicense: CreateAssetInput['oemLicense'] = showOemKey && oemRawKey.trim()
-      ? { rawKey: oemRawKey.trim() }
-      : null
+    // OEM license: picker branch takes priority; falls back to raw-key; null if neither.
+    const oemLicense: CreateAssetInput['oemLicense'] =
+      showOemKey && oemPickId
+        ? { existingLicenseId: oemPickId }
+        : showOemKey && oemRawKey.trim()
+          ? { rawKey: oemRawKey.trim() }
+          : null
 
     const input: CreateAssetInput = {
       categoryId,
@@ -126,6 +155,8 @@ export function AssetCreateForm({ ref: refData, onSubmit, submitting, error, onC
               setSerial('')
               setCpu(''); setRam(''); setSsd(''); setGpu('')
               setOemRawKey('')
+              setOemPickId('')
+              setOemPool([])
             }}
           />
         </Field>
@@ -232,17 +263,42 @@ export function AssetCreateForm({ ref: refData, onSubmit, submitting, error, onC
           {/* OEM License Key — shown only for hasOemLicense categories */}
           {showOemKey && (
             <SectionCard title={t('oem.sectionTitle')} icon="key-round">
-              <div className="space-y-2">
+              <div className="space-y-3">
+                {/* Picker — only rendered when a licenseRepository is wired */}
+                {licenseRepository && (
+                  <Field label={t('oem.pickLabel')}>
+                    <Select
+                      id="asset-oem-pick"
+                      value={oemPickId}
+                      onChange={v => {
+                        setOemPickId(v)
+                        // Picking from pool clears raw-key (mutual exclusivity)
+                        if (v) setOemRawKey('')
+                      }}
+                      options={oemPool.map(l => ({
+                        value: l.id,
+                        label: l.vendor ? `${l.name} (${l.vendor})` : l.name,
+                      }))}
+                      placeholder={t('oem.pickNone')}
+                    />
+                  </Field>
+                )}
+                {/* Raw-key input — always present; disabled if a pool license is picked */}
                 <Field label={t('oem.keyLabel')}>
                   <Input
                     id="asset-oem-key"
                     value={oemRawKey}
-                    onChange={setOemRawKey}
+                    onChange={v => {
+                      setOemRawKey(v)
+                      // Typing in raw key clears picker selection (mutual exclusivity)
+                      if (v) setOemPickId('')
+                    }}
                     placeholder={t('oem.keyPlaceholder')}
                     mono
+                    disabled={Boolean(oemPickId)}
                   />
                 </Field>
-                {oemRawKey && (
+                {oemRawKey && !oemPickId && (
                   <p className="text-[11px] font-mono text-[#64748B]">
                     {maskLicenseKey(oemRawKey)}
                   </p>
