@@ -115,4 +115,84 @@ describe('RolesPage', () => {
       expect.objectContaining({ uid: 'su1', role: 'super_admin' }),
     ))
   })
+
+  it('role filter asset_admin shows only asset_admin users', async () => {
+    // Arrange
+    renderPage()
+    await screen.findByText('Super One')
+
+    // Act
+    fireEvent.change(document.getElementById('roles-role-filter')!, { target: { value: 'asset_admin' } })
+
+    // Assert
+    expect(screen.getByText('Asset Admin')).toBeInTheDocument()
+    expect(screen.queryByText('Super One')).not.toBeInTheDocument()
+    expect(screen.queryByText('No Role')).not.toBeInTheDocument()
+  })
+
+  it('status filter no-role shows only no-role users', async () => {
+    // Arrange
+    renderPage()
+    await screen.findByText('Super One')
+
+    // Act
+    fireEvent.change(document.getElementById('roles-status-filter')!, { target: { value: 'no-role' } })
+
+    // Assert
+    expect(screen.getByText('No Role')).toBeInTheDocument()
+    expect(screen.queryByText('Super One')).not.toBeInTheDocument()
+    expect(screen.queryByText('Asset Admin')).not.toBeInTheDocument()
+  })
+
+  it('shows loading state while listUsers has not resolved', () => {
+    // Arrange: a repo whose listUsers never settles
+    const pendingRepo = {
+      listPendingUsers: () => new Promise<never>(() => {}),
+      listUsers: () => new Promise<never>(() => {}),
+      assignRole: vi.fn(),
+    }
+
+    // Act
+    renderPage(pendingRepo as any)
+
+    // Assert: no user rows rendered yet
+    expect(screen.queryByText('Super One')).not.toBeInTheDocument()
+    expect(screen.queryByText('Asset Admin')).not.toBeInTheDocument()
+    expect(screen.queryByText('No Role')).not.toBeInTheDocument()
+  })
+
+  it('shows error state on listUsers rejection and retry re-invokes listUsers', async () => {
+    // Arrange
+    const listUsers = vi.fn().mockRejectedValue(new Error('network'))
+    const errorRepo = {
+      listPendingUsers: () => Promise.resolve([]),
+      listUsers,
+      assignRole: vi.fn(),
+    }
+    renderPage(errorRepo as any)
+
+    // Assert: error state visible with retry button
+    expect(await screen.findByRole('button', { name: /Повторить/ })).toBeInTheDocument()
+
+    // Act: click retry
+    fireEvent.click(screen.getByRole('button', { name: /Повторить/ }))
+
+    // Assert: listUsers called a second time
+    await waitFor(() => expect(listUsers).toHaveBeenCalledTimes(2))
+  })
+
+  it('dialog submit button is disabled when selected role equals current role', async () => {
+    // Arrange: open dialog on Asset Admin (current role: asset_admin)
+    renderPage()
+    await screen.findByText('Asset Admin')
+    const row = screen.getByText('Asset Admin').closest('tr')!
+    fireEvent.click(within(row).getByRole('button', { name: /Изменить роль/ }))
+
+    // Act: leave the role select at its current value (asset_admin)
+    // The dialog initialises selectedRole = target.role, so no change needed
+
+    // Assert: submit button is disabled because role is unchanged
+    const submitBtn = await screen.findByRole('button', { name: 'Изменить' })
+    expect(submitBtn).toBeDisabled()
+  })
 })
