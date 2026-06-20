@@ -80,5 +80,4 @@ export function defaultRouteForRole(role: Role): RouteId {
 export const PHASE_STUB_ROUTES: RouteId[] = [
   'assignments', 'repairs', 'parts',
   'roles', 'settings',
-  'licenses',
 ]

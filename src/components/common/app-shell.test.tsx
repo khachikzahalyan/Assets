@@ -71,10 +71,10 @@ describe('AppShell', () => {
 
   it('clicking a sidebar nav item navigates to the stub page', () => {
     render(<TestHarness initialEntries={['/dashboard']} />)
-    // Find the "Лицензии" button in the sidebar
-    const licenseBtn = screen.getByRole('button', { name: /Лицензии/i })
-    fireEvent.click(licenseBtn)
-    // StubPage for licenses renders the "Раздел в разработке" empty state title
+    // Find the "Ремонты" button in the sidebar — 'repairs' is still a PHASE_STUB_ROUTE
+    const repairsBtn = screen.getByRole('button', { name: /Ремонты/i })
+    fireEvent.click(repairsBtn)
+    // StubPage for repairs renders the "Раздел в разработке" empty state title
     expect(screen.getByText('Раздел в разработке')).toBeInTheDocument()
   })
 
