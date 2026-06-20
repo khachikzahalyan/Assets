@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router-dom'
 import '@/lib/i18n'
 import { AuthSettingsPanel } from './AuthSettingsPanel'
 import { InMemoryAuthSettingsRepository } from '@/infra/repositories'
+import ruSettings from '@/locales/ru/settings.json'
 
 vi.mock('@/contexts/AuthContext', () => ({
   useAuth: () => ({ user: { id: 'u_super' }, role: 'super_admin' }),
@@ -192,8 +193,9 @@ describe('AuthSettingsPanel', () => {
     fireEvent.change(tokenInput, { target: { value: 'WRONG' } })
     expect(confirmBtn).toBeDisabled()
 
-    // The i18n key for the token is 'dangerConfirm.token' (namespace not loaded → key returned as-is)
-    const tokenValue = 'dangerConfirm.token'
+    // Type the resolved token value from the ru locale (e.g. "DISABLE").
+    // Importing from the JSON keeps this test in sync if the token ever changes.
+    const tokenValue = ruSettings.dangerConfirm.token
     fireEvent.change(tokenInput, { target: { value: tokenValue } })
 
     await waitFor(() => expect(confirmBtn).not.toBeDisabled())

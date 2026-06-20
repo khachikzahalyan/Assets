@@ -20,9 +20,8 @@ describe('SettingsPage', () => {
       </MemoryRouter>,
     )
 
-    // The page header icon/title renders — i18n key 'title' resolves to the key
-    // or the Russian translation once i18n-engineer wires the namespace.
-    // We assert a heading element exists (PageHeader renders an <h1>).
+    // The page header renders — PageHeader renders an <h1> with the translated title.
+    // We assert by element role rather than translated string to stay locale-agnostic.
     expect(document.querySelector('h1')).toBeInTheDocument()
 
     // The auth panel section card renders — SectionCard renders a <section>.
