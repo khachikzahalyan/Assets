@@ -40,6 +40,11 @@
     "Volume": "Կորպորատիվ",
     "Subscription": "Բաժանորդագրություն"
   },
+  "serverType": {
+    "Server": "Սերվերային",
+    "Global": "Գլոբալ",
+    "Infrastructure": "Ենթակառուցվածքային"
+  },
   "form": {
     "createWorkstationTitle": "Նոր լիցենզիա (աշխատակայան)",
     "createServerTitle": "Նոր սերվերի լիցենզիա",

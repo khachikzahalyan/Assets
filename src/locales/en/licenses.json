@@ -39,6 +39,11 @@
     "Volume": "Volume",
     "Subscription": "Subscription"
   },
+  "serverType": {
+    "Server": "Server",
+    "Global": "Global",
+    "Infrastructure": "Infrastructure"
+  },
   "form": {
     "createWorkstationTitle": "New license (workstation)",
     "createServerTitle": "New server license",

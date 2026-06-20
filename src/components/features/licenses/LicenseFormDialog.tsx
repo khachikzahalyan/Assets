@@ -87,7 +87,7 @@ export function LicenseFormDialog({ open, kind, submitting, submitError, onSubmi
 
   const serverTypeOptions = SERVER_LICENSE_TYPES.map(st => ({
     value: st,
-    label: st,
+    label: t(`serverType.${st}`),
   }))
 
   function handleSubmit() {

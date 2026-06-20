@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { I18nextProvider } from 'react-i18next'
 import i18n from '@/lib/i18n'
@@ -202,5 +202,44 @@ describe('LicensesPage', () => {
 
     // Assert
     expect(await screen.findByText('Лицензий пока нет')).toBeInTheDocument()
+  })
+
+  // ── 4. Decouple error surfacing ───────────────────────────────────────────
+
+  describe('decouple error surfacing', () => {
+    it('shows role=alert when decoupleLicense rejects', async () => {
+      // Arrange — seed a device-assigned license so the Decouple button is enabled,
+      // then override the repo method to reject to simulate a backend failure.
+      const wRepo = makeWRepo()
+      const { value: lic } = await wRepo.createLicense(
+        { name: 'AutoCAD 2024', type: 'Subscription' },
+        ACTOR_SUPER,
+      )
+      await wRepo.assignLicense(
+        lic.id,
+        { to: 'device', assetId: 'asset-123' },
+        ACTOR_SUPER,
+      )
+      // Override decoupleLicense to always reject
+      vi.spyOn(wRepo, 'decoupleLicense').mockRejectedValue(new Error('network error'))
+
+      // Mock window.confirm to auto-confirm the decouple prompt
+      vi.spyOn(window, 'confirm').mockReturnValue(true)
+
+      // Act — render page, wait for the license row, then click Decouple
+      renderPage('super_admin', wRepo)
+      // Wait for the license row to appear
+      await screen.findByText('AutoCAD 2024')
+
+      // The decouple button is rendered via renderActions; find by test-id
+      const decoupleBtn = screen.getByTestId(`decouple-btn-${lic.id}`)
+      fireEvent.click(decoupleBtn)
+
+      // Assert — role="alert" paragraph appears in the workstation tab body
+      const alert = await screen.findByRole('alert')
+      expect(alert).toBeInTheDocument()
+      // The error message is the ru locale translation of 'error'
+      expect(alert.textContent).toBe('Не удалось загрузить лицензии. Попробуйте ещё раз.')
+    })
   })
 })

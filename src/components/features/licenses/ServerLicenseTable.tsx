@@ -1,6 +1,7 @@
 import { type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { ServerLicense } from '@/domain/license'
+import { formatLicenseDate } from './formatLicenseDate'
 
 export interface ServerLicenseTableProps {
   rows: ServerLicense[]
@@ -9,7 +10,7 @@ export interface ServerLicenseTableProps {
 }
 
 export function ServerLicenseTable({ rows, renderActions }: ServerLicenseTableProps) {
-  const { t } = useTranslation('licenses')
+  const { t, i18n } = useTranslation('licenses')
 
   return (
     <div className="overflow-x-auto">
@@ -46,7 +47,7 @@ export function ServerLicenseTable({ rows, renderActions }: ServerLicenseTablePr
               <td className="py-2.5 pr-4">
                 {row.expiresAt ? (
                   <span className="text-[#94A3B8]">
-                    {formatDate(row.expiresAt)}
+                    {formatLicenseDate(row.expiresAt, i18n.language)}
                   </span>
                 ) : (
                   <span className="text-[#64748B]">—</span>
@@ -67,8 +68,3 @@ export function ServerLicenseTable({ rows, renderActions }: ServerLicenseTablePr
   )
 }
 
-function formatDate(iso: string): string {
-  const d = new Date(iso)
-  if (isNaN(d.getTime())) return iso
-  return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })
-}

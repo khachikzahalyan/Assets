@@ -91,34 +91,47 @@ export function LicensesPage({ workstationRepo, serverRepo, auditRepo }: License
   const [assignSubmitting, setAssignSubmitting] = useState(false)
   const [assignError, setAssignError] = useState<string | null>(null)
 
+  // Decouple error state
+  const [decoupleError, setDecoupleError] = useState<string | null>(null)
+
   // Load workstation licenses
-  const loadWorkstation = useCallback(async () => {
+  // `t` is intentionally excluded from deps — it is always current when called inside the body;
+  // including it would cause a full Firestore refetch on every locale change.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const loadWorkstation = useCallback(async (active?: { value: boolean }) => {
     setWLoading(true)
     setWError(null)
     try {
       const rows = await wRepo.listLicenses()
+      if (active && !active.value) return
       setWRows(rows)
     } catch {
+      if (active && !active.value) return
       setWError(t('error'))
     } finally {
-      setWLoading(false)
+      if (!active || active.value) setWLoading(false)
     }
-  }, [wRepo, t])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wRepo])
 
   // Load server licenses
-  const loadServer = useCallback(async () => {
+  // `t` is intentionally excluded from deps — same rationale as loadWorkstation.
+  const loadServer = useCallback(async (active?: { value: boolean }) => {
     if (!canManageServer) return
     setSLoading(true)
     setSError(null)
     try {
       const rows = await sRepo.listLicenses()
+      if (active && !active.value) return
       setSRows(rows)
     } catch {
+      if (active && !active.value) return
       setSError(t('error'))
     } finally {
-      setSLoading(false)
+      if (!active || active.value) setSLoading(false)
     }
-  }, [sRepo, canManageServer, t])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sRepo, canManageServer])
 
   // Load audit entries for the active tab
   const loadAudit = useCallback(async (entityType: 'license' | 'server_license') => {
@@ -146,13 +159,19 @@ export function LicensesPage({ workstationRepo, serverRepo, auditRepo }: License
     }
   }, [aRepo])
 
-  // Initial load
+  // Initial load — active guard prevents stale setState if the component unmounts
+  // before the async fetch resolves (mirrors AssetCreateForm's `cancelled` pattern).
   useEffect(() => {
-    void loadWorkstation()
+    const active = { value: true }
+    void loadWorkstation(active)
+    return () => { active.value = false }
   }, [loadWorkstation])
 
   useEffect(() => {
-    if (canManageServer) void loadServer()
+    if (!canManageServer) return
+    const active = { value: true }
+    void loadServer(active)
+    return () => { active.value = false }
   }, [loadServer, canManageServer])
 
   // Load audit when tab changes
@@ -202,11 +221,12 @@ export function LicensesPage({ workstationRepo, serverRepo, auditRepo }: License
   // Handle decouple
   async function handleDecouple(license: WorkstationLicense) {
     if (!window.confirm(t('decoupleConfirm'))) return
+    setDecoupleError(null)
     try {
       await wRepo.decoupleLicense(license.id, actor)
       await loadWorkstation()
     } catch {
-      // Silent failure on decouple — the list will stay stale; page-level error handling omitted for MVP
+      setDecoupleError(t('error'))
     }
   }
 
@@ -258,6 +278,9 @@ export function LicensesPage({ workstationRepo, serverRepo, auditRepo }: License
           {/* Workstation tab body */}
           {currentTab === 'workstation' && (
             <>
+              {decoupleError && (
+                <p role="alert" className="text-[12px] text-[#FDA4AF] px-1">{decoupleError}</p>
+              )}
               {wLoading && <LoadingState rows={5} />}
               {wError && <ErrorState onRetry={loadWorkstation} />}
               {!wLoading && !wError && wRows.length === 0 && (

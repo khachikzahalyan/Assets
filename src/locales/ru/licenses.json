@@ -39,6 +39,11 @@
     "Volume": "Корпоративная",
     "Subscription": "Подписка"
   },
+  "serverType": {
+    "Server": "Серверная",
+    "Global": "Глобальная",
+    "Infrastructure": "Инфраструктурная"
+  },
   "form": {
     "createWorkstationTitle": "Новая лицензия (рабочая станция)",
     "createServerTitle": "Новая серверная лицензия",

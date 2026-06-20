@@ -8,8 +8,8 @@ import type { Asset, AssetReferenceData, CreateAssetInput } from '@/domain/asset
 import type { AssetRepository, AssetWriteRepository } from '@/domain/asset'
 import type { WorkstationLicenseRepository } from '@/domain/license'
 import { FirestoreAssetRepository, FirestoreWorkstationLicenseRepository } from '@/infra/repositories'
-import { db, functions } from '@/lib/firebase'
-import { httpsCallable } from 'firebase/functions'
+import { db } from '@/lib/firebase'
+import { setLicenseKey } from '@/lib/licenses/revealKey'
 
 export interface AssetCreatePageProps {
   repository?: AssetRepository & AssetWriteRepository
@@ -117,11 +117,7 @@ export function AssetCreatePage({ repository, licenseRepository, onCreated, onPe
             const bound = await licRepo.listForAsset(value.id)
             const licenseId = bound[0]?.id
             if (licenseId) {
-              const setLicenseKey = httpsCallable<
-                { collection: string; licenseId: string; rawKey: string },
-                void
-              >(functions(), 'setLicenseKey')
-              await setLicenseKey({ collection: 'licenses', licenseId, rawKey })
+              await setLicenseKey('licenses', licenseId, rawKey)
             } else {
               // License doc created but ID could not be resolved — non-fatal warning.
               setOemKeyWarning(t('validation.oemKeyNotStored'))

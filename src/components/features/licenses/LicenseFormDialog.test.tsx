@@ -108,6 +108,38 @@ describe('LicenseFormDialog', () => {
     )
   })
 
+  // ── Server type i18n ──────────────────────────────────────────────────────
+
+  it('server type Select renders i18n-resolved labels, not raw enum strings', () => {
+    // Arrange — expected label is whatever the active locale resolves for 'serverType.Server'
+    const expectedLabel = i18n.t('serverType.Server', { ns: 'licenses' })
+
+    render(
+      <I18nextProvider i18n={i18n}>
+        <LicenseFormDialog
+          open
+          kind="server"
+          submitting={false}
+          submitError={null}
+          onSubmit={vi.fn()}
+          onCancel={vi.fn()}
+        />
+      </I18nextProvider>,
+    )
+
+    // Act — the server type <select> contains <option> elements rendered from serverTypeOptions
+    const typeSelect = document.getElementById('lic-server-type') as HTMLSelectElement
+    expect(typeSelect).not.toBeNull()
+
+    // Assert — the first option text equals the locale-resolved value (ru: "Серверная")
+    const optionTexts = Array.from(typeSelect.options).map(o => o.text)
+    expect(optionTexts).toContain(expectedLabel)
+
+    // Assert — the raw enum string 'Server' is NOT used as an option label
+    // (in the ru locale the label is 'Серверная', not 'Server')
+    expect(expectedLabel).not.toBe('Server')
+  })
+
   // ── Masked key preview ────────────────────────────────────────────────────
 
   it('shows a masked preview when a rawKey is typed that does NOT equal the raw input', () => {
