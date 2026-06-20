@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { WriteOffAssetService } from './WriteOffAssetService'
 import { InMemoryAssetRepository } from '@/infra/repositories/inMemoryAssetRepository'
 import { InMemoryWorkstationLicenseRepository } from '@/infra/repositories/inMemoryWorkstationLicenseRepository'
