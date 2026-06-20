@@ -2,7 +2,7 @@ import type { Role } from '@/config/roles'
 
 export type AuditEntityType =
   | 'asset' | 'assignment' | 'upgrade' | 'license' | 'server_license' | 'employee' | 'user'
-  | 'branch' | 'department' | 'category' | 'asset_status'
+  | 'branch' | 'department' | 'category' | 'asset_status' | 'settings'
 
 export const AUDIT_ACTIONS = [
   'created', 'updated', 'status_changed', 'assigned', 'returned',
