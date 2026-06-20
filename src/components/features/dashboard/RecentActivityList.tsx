@@ -98,7 +98,7 @@ export function RecentActivityList({
                 to={moreTo}
                 className="text-[11.5px] text-[#F97316] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#F97316]"
               >
-                {t('activity.viewAll', { defaultValue: 'Смотреть все' })}
+                {t('viewAll')}
               </Link>
             </div>
           )}

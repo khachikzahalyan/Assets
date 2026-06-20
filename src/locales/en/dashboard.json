@@ -1,0 +1,68 @@
+{
+  "activity": {
+    "assigned": "Asset assigned",
+    "returned": "Asset returned"
+  },
+  "auditAction": {
+    "created": "Created",
+    "deleted": "Deleted",
+    "disposed": "Disposed",
+    "key_revealed": "Key revealed",
+    "key_rotated": "Key rotated",
+    "license_decoupled": "License decoupled",
+    "license_retired_with_asset": "License retired with asset",
+    "reactivated": "Reactivated",
+    "repair_completed": "Repair completed",
+    "returned": "Returned",
+    "role_assigned": "Role assigned",
+    "sent_to_repair": "Sent to repair",
+    "status_changed": "Status changed",
+    "terminated": "Terminated",
+    "transferred": "Transferred",
+    "update": "Updated",
+    "updated": "Updated",
+    "upgrade_added": "Upgrade added"
+  },
+  "branches": {
+    "empty": "No branch data available",
+    "title": "By branch"
+  },
+  "groups": {
+    "devices": "Devices",
+    "furniture": "Furniture",
+    "network": "Network devices",
+    "title": "By group"
+  },
+  "kpi": {
+    "currentlyOut": "Currently assigned",
+    "employees": "Employees",
+    "licenses": "Licenses",
+    "serverLicenses": "Server licenses",
+    "totalAssets": "Total assets"
+  },
+  "license": {
+    "free": "Free",
+    "inUse": "In use",
+    "retired": "Retired",
+    "title": "Workstation licenses",
+    "total": "Total"
+  },
+  "noActivity": "No activity",
+  "noAudit": "No events",
+  "people": {
+    "employees": "Employees",
+    "pending": "pending approval",
+    "title": "Employees"
+  },
+  "recentActivity": "Recent activity",
+  "recentAudit": "Recent audit events",
+  "status": {
+    "st_assigned": "Assigned",
+    "st_disposed": "Disposed",
+    "st_repair": "In repair",
+    "st_warehouse": "In warehouse",
+    "title": "Statuses"
+  },
+  "title": "Dashboard",
+  "viewAll": "View all"
+}

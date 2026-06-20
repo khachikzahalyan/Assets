@@ -22,12 +22,12 @@ export function LicenseStatTile({ stats }: LicenseStatTileProps) {
   ]
 
   return (
-    <SectionCard title="Лицензии" icon="key-round">
+    <SectionCard title={t('license.title')} icon="key-round">
       <div className="flex flex-col gap-4">
         {/* Big total — aggregate count only, never a license key */}
         <div>
           <div className="text-[12px] text-[#64748B]">
-            {t('license.total', { defaultValue: 'Всего лицензий' })}
+            {t('license.total')}
           </div>
           <div className="text-[28px] font-bold text-[#F8FAFC] tabular-nums leading-tight">
             {stats.total}
@@ -42,7 +42,7 @@ export function LicenseStatTile({ stats }: LicenseStatTileProps) {
                 {value}
               </span>
               <span className="text-[11px] text-[#64748B]">
-                {t(labelKey, { defaultValue: labelKey })}
+                {t(labelKey)}
               </span>
             </div>
           ))}

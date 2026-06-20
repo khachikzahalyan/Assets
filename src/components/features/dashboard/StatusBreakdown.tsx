@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { ASSET_STATUS_IDS } from '@/domain/asset'
 import type { AssetStatusId, StatusRow } from '@/domain/asset'
 import { SectionCard } from '@/components/ui/section-card'
@@ -24,10 +25,11 @@ export interface StatusBreakdownProps {
 }
 
 export function StatusBreakdown({ byStatus, statuses, total }: StatusBreakdownProps) {
+  const { t } = useTranslation('dashboard')
   const statusMap = new Map(statuses.map(s => [s.id, s]))
 
   return (
-    <SectionCard title="Статусы" icon="circle-dot">
+    <SectionCard title={t('status.title')} icon="circle-dot">
       <div className="flex flex-col gap-3">
         {ASSET_STATUS_IDS.map(id => {
           const status = statusMap.get(id)

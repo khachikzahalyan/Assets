@@ -1,0 +1,68 @@
+{
+  "activity": {
+    "assigned": "Ակտիվը հանձնվել է",
+    "returned": "Ակտիվը վերադարձվել է"
+  },
+  "auditAction": {
+    "created": "Ստեղծվել է",
+    "deleted": "Ջնջվել է",
+    "disposed": "Դուրս է գրվել",
+    "key_revealed": "Բանալին բացվել է",
+    "key_rotated": "Բանալին փոխարինվել է",
+    "license_decoupled": "Լիցենզիան անջատվել է",
+    "license_retired_with_asset": "Լիցենզիան դուրս է գրվել ակտիվի հետ",
+    "reactivated": "Վերականգնվել է",
+    "repair_completed": "Վերանորոգումն ավարտվել է",
+    "returned": "Վերադարձվել է",
+    "role_assigned": "Դերը նշանակվել է",
+    "sent_to_repair": "Ուղարկվել է վերանորոգման",
+    "status_changed": "Կարգավիճակը փոխվել է",
+    "terminated": "Աշխատանքից ազատվել է",
+    "transferred": "Տեղափոխվել է",
+    "update": "Թարմացվել է",
+    "updated": "Թարմացվել է",
+    "upgrade_added": "Կատարելագործում ավելացվել է"
+  },
+  "branches": {
+    "empty": "Մասնաճյուղերի տվյալներ չկան",
+    "title": "Ըստ մասնաճյուղի"
+  },
+  "groups": {
+    "devices": "Սարքեր",
+    "furniture": "Կահույք",
+    "network": "Ցանցային սարքեր",
+    "title": "Ըստ խմբի"
+  },
+  "kpi": {
+    "currentlyOut": "Ներկայումս հանձնված",
+    "employees": "Աշխատակիցներ",
+    "licenses": "Լիցենզիաներ",
+    "serverLicenses": "Սերվերային լիցենզիաներ",
+    "totalAssets": "Ընդամենը ակտիվներ"
+  },
+  "license": {
+    "free": "Ազատ",
+    "inUse": "Օգտագործվում է",
+    "retired": "Դուրս գրված",
+    "title": "Աշխատակայանի լիցենզիաներ",
+    "total": "Ընդամենը"
+  },
+  "noActivity": "Ակտիվություն չկա",
+  "noAudit": "Իրադարձություններ չկան",
+  "people": {
+    "employees": "Աշխատակիցներ",
+    "pending": "սպասում է հաստատման",
+    "title": "Աշխատակիցներ"
+  },
+  "recentActivity": "Վերջին ակտիվություն",
+  "recentAudit": "Վերջին աուդիտի իրադարձություններ",
+  "status": {
+    "st_assigned": "Հանձնված",
+    "st_disposed": "Դուրս գրված",
+    "st_repair": "Վերանորոգման մեջ",
+    "st_warehouse": "Պահեստում",
+    "title": "Կարգավիճակներ"
+  },
+  "title": "Կառավարման վահանակ",
+  "viewAll": "Տեսնել բոլորը"
+}

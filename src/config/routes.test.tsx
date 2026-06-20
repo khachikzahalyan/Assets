@@ -198,9 +198,9 @@ describe('AppRoutes — cross-role redirects via RoleGate', () => {
 
     // Assert — RoleGate for /my-assets only allows 'employee', so asset_admin is
     // redirected to /dashboard (defaultRouteForRole('asset_admin') = 'dashboard').
-    // DashboardPage renders a <h1> heading "Дашборд" — use getByRole to scope
+    // DashboardPage renders a <h1> heading from the dashboard.title key — scope
     // the assertion to the heading element, not sidebar/breadcrumb occurrences.
-    expect(await screen.findByRole('heading', { name: 'Дашборд' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Панель управления' })).toBeInTheDocument()
     expect(screen.queryByText(/не закреплены активы/i)).toBeNull()
   })
 })

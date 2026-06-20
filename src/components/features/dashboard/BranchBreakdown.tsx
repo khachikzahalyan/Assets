@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import type { BranchCount } from '@/domain/dashboard'
 import { SectionCard } from '@/components/ui/section-card'
 import { EmptyState } from '@/components/ui/empty-state'
@@ -7,12 +8,13 @@ export interface BranchBreakdownProps {
 }
 
 export function BranchBreakdown({ branches }: BranchBreakdownProps) {
+  const { t } = useTranslation('dashboard')
   const maxCount = Math.max(...branches.map(b => b.count), 1)
 
   return (
-    <SectionCard title="По филиалам" icon="building">
+    <SectionCard title={t('branches.title')} icon="building">
       {branches.length === 0 ? (
-        <EmptyState icon="building" title="Нет данных по филиалам" />
+        <EmptyState icon="building" title={t('branches.empty')} />
       ) : (
         <div className="flex flex-col gap-3">
           {branches.map(b => {

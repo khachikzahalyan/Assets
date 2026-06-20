@@ -20,7 +20,7 @@ export function GroupBreakdown({ byGroup }: GroupBreakdownProps) {
   const maxCount = Math.max(...byGroup.map(g => g.count), 1)
 
   return (
-    <SectionCard title="По группам" icon="tags">
+    <SectionCard title={t('groups.title')} icon="tags">
       <div className="flex flex-col gap-3">
         {ASSET_GROUPS.map(group => {
           const count = groupMap.get(group) ?? 0
@@ -30,7 +30,7 @@ export function GroupBreakdown({ byGroup }: GroupBreakdownProps) {
             <div key={group} className="flex flex-col gap-1">
               <div className="flex items-center justify-between">
                 <span className="text-[12.5px] text-[#94A3B8]">
-                  {t(`groups.${group}`, { defaultValue: group })}
+                  {t(`groups.${group}`)}
                 </span>
                 <span className="text-[12.5px] font-semibold text-[#F8FAFC] tabular-nums">
                   {count}

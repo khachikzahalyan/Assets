@@ -117,7 +117,6 @@ describe('StatusBreakdown', () => {
 
   it('renders statuses in ASSET_STATUS_IDS order', () => {
     wrap(<StatusBreakdown byStatus={byStatus} statuses={statuses} total={40} />)
-    const allNames = statuses.map(s => s.name)
     // Each name should appear in document in ASSET_STATUS_IDS order
     const rendered = ASSET_STATUS_IDS.map(id => statuses.find(s => s.id === id)!.name)
     rendered.forEach(name => {

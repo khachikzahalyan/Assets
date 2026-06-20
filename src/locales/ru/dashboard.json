@@ -1,0 +1,68 @@
+{
+  "activity": {
+    "assigned": "Актив выдан",
+    "returned": "Актив возвращён"
+  },
+  "auditAction": {
+    "created": "Создано",
+    "deleted": "Удалено",
+    "disposed": "Списано",
+    "key_revealed": "Ключ раскрыт",
+    "key_rotated": "Ключ заменён",
+    "license_decoupled": "Лицензия отвязана",
+    "license_retired_with_asset": "Лицензия выведена с активом",
+    "reactivated": "Восстановлен",
+    "repair_completed": "Ремонт завершён",
+    "returned": "Возвращено",
+    "role_assigned": "Назначена роль",
+    "sent_to_repair": "Отправлено в ремонт",
+    "status_changed": "Изменён статус",
+    "terminated": "Уволен",
+    "transferred": "Перемещено",
+    "update": "Изменено",
+    "updated": "Изменено",
+    "upgrade_added": "Добавлен апгрейд"
+  },
+  "branches": {
+    "empty": "Нет данных по филиалам",
+    "title": "По филиалам"
+  },
+  "groups": {
+    "devices": "Устройства",
+    "furniture": "Мебель",
+    "network": "Сетевые устройства",
+    "title": "По группам"
+  },
+  "kpi": {
+    "currentlyOut": "Выдано сейчас",
+    "employees": "Сотрудники",
+    "licenses": "Лицензии",
+    "serverLicenses": "Серверные лицензии",
+    "totalAssets": "Всего активов"
+  },
+  "license": {
+    "free": "Свободно",
+    "inUse": "Используется",
+    "retired": "Выведено",
+    "title": "Лицензии рабочих станций",
+    "total": "Всего"
+  },
+  "noActivity": "Нет активности",
+  "noAudit": "Нет событий",
+  "people": {
+    "employees": "Сотрудники",
+    "pending": "Ожидают подтверждения",
+    "title": "Сотрудники"
+  },
+  "recentActivity": "Недавняя активность",
+  "recentAudit": "Недавние события аудита",
+  "status": {
+    "st_assigned": "Выдано",
+    "st_disposed": "Списано",
+    "st_repair": "В ремонте",
+    "st_warehouse": "На складе",
+    "title": "Статусы"
+  },
+  "title": "Панель управления",
+  "viewAll": "Показать все"
+}

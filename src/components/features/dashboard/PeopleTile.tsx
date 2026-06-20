@@ -23,7 +23,7 @@ export function PeopleTile({ employeeCount, pendingUsersCount }: PeopleTileProps
         </span>
         <div>
           <div className="text-[12px] text-[#64748B]">
-            {t('people.employees', { defaultValue: 'Сотрудники' })}
+            {t('people.employees')}
           </div>
           <div className="text-[22px] font-bold text-[#F8FAFC] tabular-nums">
             {employeeCount}
@@ -35,7 +35,7 @@ export function PeopleTile({ employeeCount, pendingUsersCount }: PeopleTileProps
             >
               <Icon name="triangle-alert" size={11} className="text-[#F97316]" />
               <span>{pendingUsersCount}</span>
-              <span>{t('people.pending', { defaultValue: 'ожидают подтверждения' })}</span>
+              <span>{t('people.pending')}</span>
             </Link>
           )}
         </div>
