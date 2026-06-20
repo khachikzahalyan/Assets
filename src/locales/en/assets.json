@@ -152,6 +152,7 @@
     "brandModelRequired": "Enter brand and model",
     "invRequired": "Enter the inventory code",
     "invTaken": "Inventory code already in use",
+    "oemKeyNotStored": "Asset created, but the key was not stored — re-enter it via the license card.",
     "saveFailed": "Save failed. Please try again.",
     "serialRequired": "Enter the serial number",
     "serialTaken": "Serial number already in use",

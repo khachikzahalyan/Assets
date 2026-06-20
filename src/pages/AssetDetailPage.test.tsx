@@ -143,6 +143,79 @@ describe('AssetDetailPage', () => {
     expect(boundAfter).toHaveLength(0)
   })
 
+  it('write-off retires a non-reusable (OEM) device-bound license and leaves listForAsset empty', async () => {
+    const store = createInMemoryAuditStore()
+    const auditCtx = inMemoryAuditContext(store)
+    const licenseRepo = new InMemoryWorkstationLicenseRepository(auditCtx)
+    const repo = new InMemoryAssetRepository([], REF, auditCtx, licenseRepo)
+
+    // Seed a Computer asset (non-reusable OEM license scenario)
+    const { value: asset } = await repo.createAsset(
+      {
+        categoryId: 'cat_laptop',
+        brand: 'HP',
+        model: 'EliteBook',
+        invCode: '777/OEM',
+        serial: 'SN_OEM_77',
+        assignment: null,
+        branchId: 'b_main',
+        deptId: null,
+        currentSpecs: null,
+      },
+      { uid: 'u1', role: 'asset_admin' },
+    )
+
+    // Seed a NON-reusable (OEM, isReusable:false) device-bound license
+    const { value: oemLic } = await licenseRepo.createLicense(
+      {
+        name: 'OEM Windows 11',
+        type: 'OEM',
+        isReusable: false,
+        assign: { to: 'device', assetId: asset.id },
+      },
+      { uid: 'u1', role: 'asset_admin' },
+    )
+
+    // Confirm bound before write-off
+    const boundBefore = await licenseRepo.listForAsset(asset.id)
+    expect(boundBefore).toHaveLength(1)
+
+    render(
+      <I18nextProvider i18n={i18n}>
+        <AuthProvider initialRole="asset_admin">
+          <MemoryRouter initialEntries={[`/assets/${asset.id}`]}>
+            <Routes>
+              <Route
+                path="/assets/:id"
+                element={<AssetDetailPage repository={repo} licenseRepository={licenseRepo} />}
+              />
+            </Routes>
+          </MemoryRouter>
+        </AuthProvider>
+      </I18nextProvider>,
+    )
+
+    // Wait for the page to load, then click write-off
+    await waitFor(() => screen.getByText(/777\/OEM/))
+    const writeOffBtn = screen.getByRole('button', { name: /Списать/i })
+    fireEvent.click(writeOffBtn)
+
+    // Assert: asset becomes st_disposed
+    await waitFor(async () => {
+      const updated = await repo.getAsset(asset.id)
+      expect(updated?.statusId).toBe('st_disposed')
+    })
+
+    // Assert: license is now retired with retiredWithAssetId === assetId
+    const licAfter = await licenseRepo.getLicense(oemLic.id)
+    expect(licAfter?.lifecycleStatus).toBe('retired')
+    expect(licAfter?.retiredWithAssetId).toBe(asset.id)
+
+    // Assert: listForAsset returns empty (no orphan binding)
+    const boundAfter = await licenseRepo.listForAsset(asset.id)
+    expect(boundAfter).toHaveLength(0)
+  })
+
   it('tech_admin can add an upgrade and the audit/upgrade list updates', async () => {
     const { repo, asset } = await seed('tech_admin')
 

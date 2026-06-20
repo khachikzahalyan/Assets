@@ -6,12 +6,15 @@ import { AssetCreateForm } from '@/components/features/assets/create/AssetCreate
 import { useAuth } from '@/contexts/AuthContext'
 import type { Asset, AssetReferenceData, CreateAssetInput } from '@/domain/asset'
 import type { AssetRepository, AssetWriteRepository } from '@/domain/asset'
+import type { WorkstationLicenseRepository } from '@/domain/license'
 import { FirestoreAssetRepository, FirestoreWorkstationLicenseRepository } from '@/infra/repositories'
 import { db, functions } from '@/lib/firebase'
 import { httpsCallable } from 'firebase/functions'
 
 export interface AssetCreatePageProps {
   repository?: AssetRepository & AssetWriteRepository
+  /** Injected license repository used to resolve the licenseId after create (test path). */
+  licenseRepository?: WorkstationLicenseRepository
   onCreated?: (a: Asset) => void
   /**
    * Optional hook to persist the raw OEM key to the secrets store after asset creation.
@@ -25,7 +28,7 @@ export interface AssetCreatePageProps {
   onPersistOemSecret?: (licenseId: string, rawKey: string) => Promise<void>
 }
 
-export function AssetCreatePage({ repository, onCreated, onPersistOemSecret }: AssetCreatePageProps) {
+export function AssetCreatePage({ repository, licenseRepository, onCreated, onPersistOemSecret }: AssetCreatePageProps) {
   const { t } = useTranslation('assets')
   const { user, role } = useAuth()
   const navigate = useNavigate()
@@ -46,6 +49,7 @@ export function AssetCreatePage({ repository, onCreated, onPersistOemSecret }: A
 
   const [submitting, setSubmitting] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
+  const [oemKeyWarning, setOemKeyWarning] = useState<string | null>(null)
 
   function loadRef() {
     setLoading(true)
@@ -71,6 +75,7 @@ export function AssetCreatePage({ repository, onCreated, onPersistOemSecret }: A
   async function handleSubmit(input: CreateAssetInput) {
     setSubmitting(true)
     setSaveError(null)
+    setOemKeyWarning(null)
     try {
       const actor = { uid: user.id, role }
       const { value } = await (repo as AssetWriteRepository).createAsset(input, actor)
@@ -79,15 +84,21 @@ export function AssetCreatePage({ repository, onCreated, onPersistOemSecret }: A
       // The repo already created the license DOC (without the secret). Now we must
       // persist the raw secret via the setLicenseKey callable (admin SDK writes to
       // secrets/current; client SDK rules block direct writes).
-      //
-      // GUARD: skip when a test repository was injected — the InMemory repo stores
-      // secrets in-process already, and calling a callable from tests would fail.
       if (input.oemLicense && 'rawKey' in input.oemLicense && input.oemLicense.rawKey) {
         const rawKey = input.oemLicense.rawKey
         try {
           if (onPersistOemSecret) {
-            // Test path (or custom injection): the caller provided a stub.
-            await onPersistOemSecret('', rawKey) // licenseId resolved below when repo is Firestore
+            // Resolve the real licenseId before calling the injected stub — never
+            // pass an empty string. Use the injected licenseRepository if available
+            // (test path), otherwise fall back to Firestore.
+            const licRepo = licenseRepository ?? (!repository ? new FirestoreWorkstationLicenseRepository(db()) : null)
+            const resolvedLicenseId = licRepo ? (await licRepo.listForAsset(value.id))[0]?.id : undefined
+            if (!resolvedLicenseId) {
+              // Cannot resolve licenseId — non-fatal warning; asset + license doc exist.
+              setOemKeyWarning(t('validation.oemKeyNotStored'))
+            } else {
+              await onPersistOemSecret(resolvedLicenseId, rawKey)
+            }
           } else if (!repository) {
             // Production Firestore path: look up the newly created license by asset id.
             // This is a best-effort call — the asset + license DOC already exist; only
@@ -101,14 +112,17 @@ export function AssetCreatePage({ repository, onCreated, onPersistOemSecret }: A
                 void
               >(functions(), 'setLicenseKey')
               await setLicenseKey({ collection: 'licenses', licenseId, rawKey })
+            } else {
+              // License doc created but ID could not be resolved — non-fatal warning.
+              setOemKeyWarning(t('validation.oemKeyNotStored'))
             }
           }
           // If repository prop IS injected (non-Firestore) but no onPersistOemSecret
           // was provided — the InMemory repo handles secret storage internally, nothing to do.
         } catch {
-          // Non-fatal: the asset + license DOC exist. Warn in console — an admin
-          // can rotate the key later via the license management UI.
-          console.warn('[AMS] OEM secret persist failed — rotate the key manually via the license page.')
+          // Non-fatal: the asset + license DOC exist. Surface a warning to the user
+          // so they know to rotate the key via the license management UI.
+          setOemKeyWarning(t('validation.oemKeyNotStored'))
         }
       }
 
@@ -148,6 +162,9 @@ export function AssetCreatePage({ repository, onCreated, onPersistOemSecret }: A
   return (
     <div className="anim-content-enter space-y-5">
       <PageHeader icon="package-plus" title={t('form.createTitle')} />
+      {oemKeyWarning && (
+        <p role="alert" className="text-[12px] text-[#FCD34D] px-1">{oemKeyWarning}</p>
+      )}
       <AssetCreateForm
         ref={refData}
         onSubmit={handleSubmit}

@@ -1,9 +1,10 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { WriteOffAssetService } from './WriteOffAssetService'
 import { InMemoryAssetRepository } from '@/infra/repositories/inMemoryAssetRepository'
 import { InMemoryWorkstationLicenseRepository } from '@/infra/repositories/inMemoryWorkstationLicenseRepository'
 import { createInMemoryAuditStore, inMemoryAuditContext } from '@/lib/audit'
 import type { AssetReferenceData } from '@/domain/asset'
+import type { WorkstationLicenseRepository } from '@/domain/license'
 
 const ACTOR = { uid: 'u1', role: 'asset_admin' as const }
 
@@ -93,6 +94,73 @@ describe('WriteOffAssetService', () => {
     const actions = store.logs.map(l => l.action)
     expect(actions).toContain('license_decoupled')
     expect(actions).toContain('license_retired_with_asset')
+  })
+
+  it('mid-loop failure: asset is disposed first; idempotent re-run reaps straggler licenses', async () => {
+    const { assetRepo, licenseRepo, service } = makeHarness()
+
+    const { value: asset } = await assetRepo.createAsset(
+      { ...baseAsset, invCode: '450/midloop', serial: 'SN_midloop' },
+      ACTOR,
+    )
+
+    // Create TWO device-bound licenses: one reusable, one OEM (non-reusable)
+    const { value: reusable } = await licenseRepo.createLicense(
+      { name: 'Volume Office', type: 'Volume', isReusable: true, assign: { to: 'device', assetId: asset.id } },
+      ACTOR,
+    )
+    const { value: oem } = await licenseRepo.createLicense(
+      { name: 'OEM Windows', type: 'OEM', isReusable: false, assign: { to: 'device', assetId: asset.id } },
+      ACTOR,
+    )
+
+    // Build a proxy repo that delegates all reads to the real licenseRepo but
+    // throws on the 2nd reconcile (decoupleLicense/retireLicense) call.
+    let reconcileCalls = 0
+    const faultingLicenseRepo: WorkstationLicenseRepository = {
+      getLicense: (id) => licenseRepo.getLicense(id),
+      listLicenses: (q) => licenseRepo.listLicenses(q),
+      listForAsset: (assetId) => licenseRepo.listForAsset(assetId),
+      listAssignablePool: () => licenseRepo.listAssignablePool(),
+      createLicense: (input, actor) => licenseRepo.createLicense(input, actor),
+      assignLicense: (id, input, actor) => licenseRepo.assignLicense(id, input, actor),
+      rotateKey: (id, rawKey, actor) => licenseRepo.rotateKey(id, rawKey, actor),
+      decoupleLicense: async (id, actor) => {
+        reconcileCalls++
+        if (reconcileCalls >= 2) throw new Error('simulated mid-loop failure')
+        return licenseRepo.decoupleLicense(id, actor)
+      },
+      retireLicense: async (id, assetId, actor) => {
+        reconcileCalls++
+        if (reconcileCalls >= 2) throw new Error('simulated mid-loop failure')
+        return licenseRepo.retireLicense(id, assetId, actor)
+      },
+    }
+
+    const faultingSvc = new WriteOffAssetService(assetRepo, faultingLicenseRepo)
+
+    // First run: should reject (second reconcile throws)
+    await expect(faultingSvc.writeOff(asset.id, ACTOR, 'end of life')).rejects.toThrow('simulated mid-loop failure')
+
+    // ASSERT: asset IS already disposed (dispose happened first)
+    const afterFault = await assetRepo.getAsset(asset.id)
+    expect(afterFault?.statusId).toBe('st_disposed')
+
+    // Idempotent re-run using the REAL service (all calls succeed)
+    await service.writeOff(asset.id, ACTOR)
+
+    // All stragglers reaped — no license still active for this asset
+    const remainingBound = await licenseRepo.listForAsset(asset.id)
+    expect(remainingBound).toHaveLength(0)
+
+    // Verify individual license states are consistent (no double-retire)
+    const reusableAfter = await licenseRepo.getLicense(reusable.id)
+    const oemAfter = await licenseRepo.getLicense(oem.id)
+    // Both should be properly reconciled: reusable decoupled, oem retired
+    expect(reusableAfter?.assignmentType).toBe('unassigned')
+    expect(reusableAfter?.lifecycleStatus).toBe('active')
+    expect(oemAfter?.lifecycleStatus).toBe('retired')
+    expect(oemAfter?.retiredWithAssetId).toBe(asset.id)
   })
 
   it('asset with zero bound licenses: just flips status to st_disposed, no license audits', async () => {

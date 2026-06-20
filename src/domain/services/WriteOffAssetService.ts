@@ -15,12 +15,11 @@ import type { AuditedResult } from '@/domain/audit'
  * {@link WorkstationLicenseRepository.listForAsset} returns. If there are no
  * bound licenses the loop is a no-op and only the status change happens.
  *
- * Atomicity note: in production each Firestore repository call runs inside its
- * OWN `withAudit` transaction (one per repo call), so this orchestration is NOT
- * a single cross-repo transaction. The InMemory test verifies the orchestration
- * order plus the no-orphan invariant. A future hardening could wrap the whole
- * sequence in one `runTransaction` if cross-repo atomicity becomes a hard
- * requirement — flagged to the owner.
+ * Dispose-first + reconcile: the asset is disposed before licenses are
+ * reconciled, so a mid-loop failure leaves a disposed asset whose still-bound
+ * licenses are reaped on a safe, idempotent re-run (decouple/retire write
+ * absolute values). A future hardening could wrap all writes in one
+ * runTransaction for strict cross-repo atomicity — flagged to owner.
  */
 export class WriteOffAssetService {
   constructor(
@@ -28,14 +27,23 @@ export class WriteOffAssetService {
     private readonly licenses: WorkstationLicenseRepository,
   ) {}
 
-  /** Write off an asset: atomically decouple/retire every bound workstation license,
-   *  then flip the asset to st_disposed. No license may remain pointing at the asset. */
+  /**
+   * Write off an asset: first flip the asset to st_disposed, then
+   * decouple/retire every bound workstation license.
+   *
+   * Ordering rationale: dispose FIRST so that a mid-loop failure leaves a
+   * disposed asset with straggler licenses rather than an un-disposed asset
+   * with orphaned licenses. A caller may safely re-run writeOff on an already-
+   * disposed asset — the license reconciliation loop is idempotent (decouple
+   * and retire write absolute values, listForAsset only returns active bindings).
+   */
   async writeOff(assetId: string, actor: Actor, comment?: string): Promise<AuditedResult<Asset>> {
+    const result = await this.assets.changeStatus(assetId, 'st_disposed', actor, comment ? { comment } : undefined)
     const bound = await this.licenses.listForAsset(assetId)
     for (const lic of bound) {
       if (lic.isReusable) await this.licenses.decoupleLicense(lic.id, actor)
       else await this.licenses.retireLicense(lic.id, assetId, actor)
     }
-    return this.assets.changeStatus(assetId, 'st_disposed', actor, comment ? { comment } : undefined)
+    return result
   }
 }

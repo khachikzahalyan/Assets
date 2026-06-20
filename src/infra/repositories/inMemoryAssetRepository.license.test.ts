@@ -106,10 +106,17 @@ describe('createAsset with oemLicense: { rawKey } (new OEM license)', () => {
       ACTOR,
     )
 
-    // The domain Asset type has no key field; verify the object has no suspicious key property.
+    // The domain Asset type has no key field; verify the createAsset return value has no suspicious key property.
     expect((asset as unknown as Record<string, unknown>).key).toBeUndefined()
     expect((asset as unknown as Record<string, unknown>).rawKey).toBeUndefined()
     expect((asset as unknown as Record<string, unknown>).oemLicense).toBeUndefined()
+
+    // Also verify against a fresh getAsset read — the stored doc must not carry the key.
+    const stored = await assetRepo.getAsset(asset.id)
+    expect(stored).not.toBeNull()
+    expect((stored as unknown as Record<string, unknown>).key).toBeUndefined()
+    expect((stored as unknown as Record<string, unknown>).rawKey).toBeUndefined()
+    expect((stored as unknown as Record<string, unknown>).oemLicense).toBeUndefined()
   })
 
   it('license name is derived from brand + model', async () => {
