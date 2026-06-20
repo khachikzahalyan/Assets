@@ -13,6 +13,15 @@ import {
 } from '@/lib/audit'
 import { sanitizeLicenseAuditPayload } from '@/lib/audit'
 
+/** Assignment fields as REQUIRED (non-optional) `string | null` — avoids the
+ *  exactOptionalPropertyTypes mismatch that `Pick<WorkstationLicense, ...>` (which
+ *  makes them optional) causes when spread into a non-optional doc literal. */
+interface ResolvedAssignment {
+  assignmentType: AssignmentType
+  assignedToAssetId: string | null
+  assignedToEmployeeId: string | null
+}
+
 export class InMemoryWorkstationLicenseRepository implements WorkstationLicenseRepository {
   private docs = new Map<string, WorkstationLicense>()
   private secrets = new Map<string, string>() // licenseId -> RAW key, never in docs
@@ -30,7 +39,7 @@ export class InMemoryWorkstationLicenseRepository implements WorkstationLicenseR
 
   private resolveAssignment(
     assign: CreateWorkstationLicenseInput['assign'],
-  ): Pick<WorkstationLicense, 'assignmentType' | 'assignedToAssetId' | 'assignedToEmployeeId'> {
+  ): ResolvedAssignment {
     if (!assign || assign.to === 'unassigned') {
       return { assignmentType: 'unassigned', assignedToAssetId: null, assignedToEmployeeId: null }
     }
@@ -51,7 +60,7 @@ export class InMemoryWorkstationLicenseRepository implements WorkstationLicenseR
 
   private applyAssignInput(
     input: AssignWorkstationLicenseInput,
-  ): Pick<WorkstationLicense, 'assignmentType' | 'assignedToAssetId' | 'assignedToEmployeeId'> {
+  ): ResolvedAssignment {
     if (input.to === 'unassigned') {
       return { assignmentType: 'unassigned', assignedToAssetId: null, assignedToEmployeeId: null }
     }

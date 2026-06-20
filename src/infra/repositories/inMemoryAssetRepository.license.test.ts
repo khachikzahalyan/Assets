@@ -107,9 +107,9 @@ describe('createAsset with oemLicense: { rawKey } (new OEM license)', () => {
     )
 
     // The domain Asset type has no key field; verify the object has no suspicious key property.
-    expect((asset as Record<string, unknown>).key).toBeUndefined()
-    expect((asset as Record<string, unknown>).rawKey).toBeUndefined()
-    expect((asset as Record<string, unknown>).oemLicense).toBeUndefined()
+    expect((asset as unknown as Record<string, unknown>).key).toBeUndefined()
+    expect((asset as unknown as Record<string, unknown>).rawKey).toBeUndefined()
+    expect((asset as unknown as Record<string, unknown>).oemLicense).toBeUndefined()
   })
 
   it('license name is derived from brand + model', async () => {
