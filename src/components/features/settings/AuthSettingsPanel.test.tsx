@@ -282,7 +282,31 @@ describe('AuthSettingsPanel', () => {
     expect(banners.length).toBe(0)
   })
 
-  // 12. after a successful non-empty save, Save is DISABLED and the persisted list is shown
+  // 12. empty submit → shows validation.empty error; list unchanged
+  it('shows validation.empty error when Add is clicked with an empty input', async () => {
+    render(<MemoryRouter><AuthSettingsPanel repository={makeRepo()} /></MemoryRouter>)
+    await screen.findByText('acme.com')
+
+    // input is already empty; click Add without typing anything
+    fireEvent.click(getAddBtn())
+
+    // The alert must appear and its text must match the resolved validation.empty key
+    // (ruSettings.validation.empty is the Russian value; the test env may render in 'en',
+    //  so we accept either locale's resolved string — both are distinct from validation.invalid)
+    const emptyRu = ruSettings.validation.empty          // "Введите домен."
+    const emptyEn = 'Enter a domain.'                    // en locale value
+    await waitFor(() => {
+      const alerts = document.querySelectorAll('[role="alert"]')
+      expect(alerts.length).toBeGreaterThan(0)
+      const alertTexts = Array.from(alerts).map(el => el.textContent ?? '')
+      expect(alertTexts.some(text => text === emptyRu || text === emptyEn)).toBe(true)
+    })
+    // List should still only contain the original domain
+    const listItems = document.querySelectorAll('ul li')
+    expect(listItems.length).toBe(1)
+  })
+
+  // 13. after a successful non-empty save, Save is DISABLED and the persisted list is shown
   it('after successful non-empty save Save is disabled and persisted list is shown', async () => {
     const repo = makeRepo(['acme.com'])
     const updateSpy = vi.spyOn(repo, 'updateAllowedDomains')

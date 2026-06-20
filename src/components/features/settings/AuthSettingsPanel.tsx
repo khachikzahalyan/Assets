@@ -183,6 +183,10 @@ export function AuthSettingsPanel({ repository }: AuthSettingsPanelProps) {
   function handleAdd() {
     setAddError(null)
     const d = normalizeDomain(draft)
+    if (draft.trim() === '' || d === '') {
+      setAddError(t('validation.empty'))
+      return
+    }
     if (!isValidDomain(d)) {
       setAddError(t('validation.invalid'))
       return
