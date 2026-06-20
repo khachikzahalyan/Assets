@@ -214,4 +214,103 @@ describe('AuthSettingsPanel', () => {
     await screen.findByText('acme.com')
     expect(getSaveBtn()).toBeDisabled()
   })
+
+  // 9. cancelling the standard confirm dialog does NOT call updateAllowedDomains
+  //    and leaves working list unchanged
+  it('cancelling standard confirm does not call repo and leaves list unchanged', async () => {
+    const repo = makeRepo()
+    const updateSpy = vi.spyOn(repo, 'updateAllowedDomains')
+    render(<MemoryRouter><AuthSettingsPanel repository={repo} /></MemoryRouter>)
+    await screen.findByText('acme.com')
+
+    // arrange: make it dirty by adding a domain
+    fireEvent.change(getAddInput(), { target: { value: 'beta.io' } })
+    fireEvent.click(getAddBtn())
+    await screen.findByText('beta.io')
+
+    // act: open dialog then click Cancel
+    fireEvent.click(getSaveBtn())
+    await waitFor(() => expect(document.querySelector('[role="dialog"]')).toBeInTheDocument())
+
+    const dialogEl = document.querySelector('[role="dialog"]')!
+    const dialogBtns = Array.from(dialogEl.querySelectorAll('button')) as HTMLButtonElement[]
+    // The first button in dialog is Cancel (secondary)
+    const cancelBtn = dialogBtns[0]!
+    fireEvent.click(cancelBtn)
+
+    // assert: dialog closed, repo NOT called, working list still shows both domains
+    await waitFor(() => expect(document.querySelector('[role="dialog"]')).not.toBeInTheDocument())
+    expect(updateSpy).not.toHaveBeenCalled()
+    expect(screen.getByText('acme.com')).toBeInTheDocument()
+    expect(screen.getByText('beta.io')).toBeInTheDocument()
+    // Save is still enabled (still dirty)
+    expect(getSaveBtn()).not.toBeDisabled()
+  })
+
+  // 10. normalization on add: raw URL-like input is stripped to the bare host
+  it('normalizes a URL-style input to the bare hostname before adding', async () => {
+    render(<MemoryRouter><AuthSettingsPanel repository={makeRepo()} /></MemoryRouter>)
+    await screen.findByText('acme.com')
+
+    // arrange: type a URL with scheme + www prefix + path
+    fireEvent.change(getAddInput(), { target: { value: 'HTTPS://WWW.Beta.IO/login' } })
+    fireEvent.click(getAddBtn())
+
+    // assert: normalized form 'beta.io' appears; raw form does not
+    await waitFor(() => expect(screen.getByText('beta.io')).toBeInTheDocument())
+    expect(screen.queryByText('HTTPS://WWW.Beta.IO/login')).not.toBeInTheDocument()
+    expect(screen.queryByText('www.beta.io')).not.toBeInTheDocument()
+  })
+
+  // 11. removing one of two domains keeps the other; no fail-closed banner
+  it('removing one of two domains keeps the remaining domain and shows no fail-closed banner', async () => {
+    const repo = makeRepo(['acme.com', 'beta.io'])
+    render(<MemoryRouter><AuthSettingsPanel repository={repo} /></MemoryRouter>)
+    await screen.findByText('acme.com')
+    await screen.findByText('beta.io')
+
+    // act: remove acme.com
+    fireEvent.click(getRemoveBtn('acme.com'))
+
+    // assert: acme.com gone, beta.io remains, no fail-closed banner
+    await waitFor(() => expect(screen.queryByText('acme.com')).not.toBeInTheDocument())
+    expect(screen.getByText('beta.io')).toBeInTheDocument()
+    // fail-closed banner only appears when list is completely empty
+    const banners = document.querySelectorAll('[role="alert"]')
+    expect(banners.length).toBe(0)
+  })
+
+  // 12. after a successful non-empty save, Save is DISABLED and the persisted list is shown
+  it('after successful non-empty save Save is disabled and persisted list is shown', async () => {
+    const repo = makeRepo(['acme.com'])
+    const updateSpy = vi.spyOn(repo, 'updateAllowedDomains')
+    render(<MemoryRouter><AuthSettingsPanel repository={repo} /></MemoryRouter>)
+    await screen.findByText('acme.com')
+
+    // arrange: make it dirty
+    fireEvent.change(getAddInput(), { target: { value: 'beta.io' } })
+    fireEvent.click(getAddBtn())
+    await screen.findByText('beta.io')
+    expect(getSaveBtn()).not.toBeDisabled()
+
+    // act: open dialog and confirm
+    fireEvent.click(getSaveBtn())
+    await waitFor(() => expect(document.querySelector('[role="dialog"]')).toBeInTheDocument())
+    const dialogEl = document.querySelector('[role="dialog"]')!
+    const dialogBtns = Array.from(dialogEl.querySelectorAll('button')) as HTMLButtonElement[]
+    const confirmBtn = dialogBtns[dialogBtns.length - 1]!
+    fireEvent.click(confirmBtn)
+
+    // assert: repo was called, Save goes back to disabled (clean state)
+    await waitFor(() =>
+      expect(updateSpy).toHaveBeenCalledWith(
+        expect.arrayContaining(['acme.com', 'beta.io']),
+        expect.objectContaining({ uid: 'u_super', role: 'super_admin' }),
+      ),
+    )
+    await waitFor(() => expect(getSaveBtn()).toBeDisabled())
+    // Both domains are visible (persisted value reflected in working list)
+    expect(screen.getByText('acme.com')).toBeInTheDocument()
+    expect(screen.getByText('beta.io')).toBeInTheDocument()
+  })
 })
