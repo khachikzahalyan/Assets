@@ -23,9 +23,6 @@ export function RevealKeyButton({ collection, licenseId, revealFn }: RevealKeyBu
   const autoHideRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const copiedRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Defense-in-depth: render nothing unless super_admin (server enforces too)
-  if (role !== 'super_admin') return null
-
   function clearAutoHide() {
     if (autoHideRef.current !== null) {
       clearTimeout(autoHideRef.current)
@@ -77,6 +74,11 @@ export function RevealKeyButton({ collection, licenseId, revealFn }: RevealKeyBu
     setRevealedKey(null)
     setError(null)
   }
+
+  // Defense-in-depth: render nothing unless super_admin (server enforces too).
+  // This gate lives AFTER all hooks so the hook order is stable across an
+  // in-session role transition (Rules of Hooks).
+  if (role !== 'super_admin') return null
 
   if (error) {
     return (
