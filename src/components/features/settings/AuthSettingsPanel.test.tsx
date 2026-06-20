@@ -193,9 +193,10 @@ describe('AuthSettingsPanel', () => {
     fireEvent.change(tokenInput, { target: { value: 'WRONG' } })
     expect(confirmBtn).toBeDisabled()
 
-    // Type the resolved token value from the ru locale (e.g. "DISABLE").
-    // Importing from the JSON keeps this test in sync if the token ever changes.
-    const tokenValue = ruSettings.dangerConfirm.token
+    // Read the required token directly from the input's placeholder, which the component
+    // sets to t('dangerConfirm.token'). This stays in sync across locales without importing
+    // any locale JSON, and is cleaner than coupling the test to a specific JSON file.
+    const tokenValue = tokenInput.placeholder
     fireEvent.change(tokenInput, { target: { value: tokenValue } })
 
     await waitFor(() => expect(confirmBtn).not.toBeDisabled())

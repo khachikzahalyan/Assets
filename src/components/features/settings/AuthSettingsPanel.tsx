@@ -15,9 +15,10 @@ import {
 interface DialogShellProps {
   onBackdropClick: () => void
   children: React.ReactNode
+  labelledBy?: string
 }
 
-function DialogShell({ onBackdropClick, children }: DialogShellProps) {
+function DialogShell({ onBackdropClick, children, labelledBy }: DialogShellProps) {
   // Close on Escape
   useEffect(() => {
     function onKey(e: KeyboardEvent) { if (e.key === 'Escape') onBackdropClick() }
@@ -31,6 +32,7 @@ function DialogShell({ onBackdropClick, children }: DialogShellProps) {
       onClick={onBackdropClick}
       role="dialog"
       aria-modal="true"
+      aria-labelledby={labelledBy}
     >
       <div
         className="w-[440px] max-w-[90vw] rounded-lg border border-[#2A2F36] bg-[#1B1F24] p-5"
@@ -54,8 +56,8 @@ interface StandardConfirmProps {
 
 function StandardConfirmDialog({ working, saving, onConfirm, onCancel, t }: StandardConfirmProps) {
   return (
-    <DialogShell onBackdropClick={onCancel}>
-      <h3 className="text-[15px] font-semibold text-[#F8FAFC] mb-2">
+    <DialogShell onBackdropClick={onCancel} labelledBy="settings-confirm-title">
+      <h3 id="settings-confirm-title" className="text-[15px] font-semibold text-[#F8FAFC] mb-2">
         {t('confirm.title')}
       </h3>
       <p className="text-[13px] text-[#94A3B8] mb-4">
@@ -95,10 +97,10 @@ function DangerConfirmDialog({ saving, onConfirm, onCancel, t }: DangerConfirmPr
   }, [])
 
   return (
-    <DialogShell onBackdropClick={onCancel}>
+    <DialogShell onBackdropClick={onCancel} labelledBy="settings-danger-title">
       <div className="flex items-center gap-2 mb-3">
         <Icon name="triangle-alert" size={16} className="text-[#FDBA74] flex-shrink-0" />
-        <h3 className="text-[15px] font-semibold text-[#FDBA74]">
+        <h3 id="settings-danger-title" className="text-[15px] font-semibold text-[#FDBA74]">
           {t('dangerConfirm.title')}
         </h3>
       </div>
@@ -178,7 +180,8 @@ export function AuthSettingsPanel({ repository }: AuthSettingsPanelProps) {
 
   useEffect(() => { void load() }, [load])
 
-  const dirty = JSON.stringify(working) !== JSON.stringify(saved)
+  const savedSet = new Set(saved)
+  const dirty = working.length !== saved.length || working.some(d => !savedSet.has(d))
 
   function handleAdd() {
     setAddError(null)
@@ -220,10 +223,9 @@ export function AuthSettingsPanel({ repository }: AuthSettingsPanelProps) {
   async function performSave() {
     setSaving(true)
     try {
-      await repository.updateAllowedDomains(working, { uid: user.id, role })
-      const readback = await repository.getAuthSettings()
-      setSaved(readback.allowedEmailDomains)
-      setWorking(readback.allowedEmailDomains)
+      const { value } = await repository.updateAllowedDomains(working, { uid: user.id, role })
+      setSaved(value.allowedEmailDomains)
+      setWorking(value.allowedEmailDomains)
       setDialogOpen(null)
       setSaveSuccess(true)
     } catch {
