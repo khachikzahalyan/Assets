@@ -1,0 +1,90 @@
+{
+  "_note": "hy locale — Armenian where confident; English fallback elsewhere. Needs native Armenian review.",
+  "title": "Լիցենզիաներ",
+  "tabs": {
+    "workstation": "Աշխատակայան",
+    "server": "Սերվեր"
+  },
+  "col": {
+    "name": "Անվանում",
+    "vendor": "Վենդոր",
+    "type": "Տեսակ",
+    "assignment": "Հանձնում",
+    "status": "Կարգավիճակ",
+    "expiry": "Ժամկետ",
+    "environment": "Միջավայր",
+    "host": "Հոսթ",
+    "actions": "Գործողություններ"
+  },
+  "status": {
+    "active": "Ակտիվ",
+    "retired": "Հանված"
+  },
+  "assignment": {
+    "employee": "Աշխատակից",
+    "device": "Սարք",
+    "unassigned": "Չհանձնված"
+  },
+  "actions": {
+    "create": "Ավելացնել լիցենզիա",
+    "edit": "Խմբագրել",
+    "assign": "Հանձնել",
+    "decouple": "Անջատել",
+    "reveal": "Ցույց տալ բանալին",
+    "rotate": "Թարմացնել բանալին"
+  },
+  "type": {
+    "Default": "Բազային",
+    "OEM": "OEM",
+    "Retail": "Կրպակային",
+    "Volume": "Կորպորատիվ",
+    "Subscription": "Բաժանորդագրություն"
+  },
+  "form": {
+    "createWorkstationTitle": "Նոր լիցենզիա (աշխատակայան)",
+    "createServerTitle": "Նոր սերվերի լիցենզիա",
+    "editTitle": "Խմբագրել լիցենզիան",
+    "name": "Անվանում",
+    "vendor": "Վենդոր",
+    "type": "Տեսակ",
+    "isReusable": "Բազմակի օգտագործման (վերադառնում է ֆոնդ դուրսգրման ժամանակ)",
+    "expiresAt": "Ժամկետ",
+    "environment": "Միջավայր",
+    "host": "Հոսթ",
+    "rawKey": "Լիցենզիայի բանալի",
+    "rawKeyHint": "Բանալին պահվում է գաղտնագրված և հասանելի է միայն Super Admin-ին:",
+    "keyMaskedPreview": "Նախադիտում՝ {{masked}}",
+    "save": "Պահպանել",
+    "cancel": "Չեղարկել"
+  },
+  "assignDialog": {
+    "title": "Հանձնել լիցենզիան",
+    "scope": "Ում հանձնել",
+    "employee": "Աշխատակցին",
+    "device": "Սարքին (ՊC/Նոթբուք)",
+    "employeeId": "Աշխատակցի ID",
+    "assetId": "Ակտիվի ID",
+    "deviceRequiresAsset": "Սարքին հանձնելու համար նշեք ակտիվը",
+    "employeeRequires": "Նշեք աշխատակցին"
+  },
+  "validation": { "required": "Պարտադիր դաշտ" },
+  "maskedKeyLabel": "Բանալին թաքցված է",
+  "revealedKeyLabel": "Բանալի (ցուցադրվում է ժամանակավորապես)",
+  "copyKey": "Պատճենել",
+  "copied": "Պատճենված է",
+  "hideKey": "Թաքցնել",
+  "revealDenied": "Բանալին ցույց տալու իրավունք չկա",
+  "revealError": "Չհաջողվեց ցույց տալ բանալին: Փորձեք կրկին:",
+  "historyHeading": "Պատմություն",
+  "historyEmpty": "Պատմության գրառումներ չկան",
+  "decoupleConfirm": "Անջատե՞լ լիցենզիան ընթացիկ հանձնումից:",
+  "revealConfirm": "Ցույց տա՞լ լիցենզիայի բանալին: Այս գործողությունը կգրանցվի աուդիտի մատյանում:",
+  "serverTabSuperOnly": "Սերվերի լիցենզիաները հասանելի են միայն Super Admin-ին",
+  "loading": "Լիցենզիաների բեռնում…",
+  "empty": {
+    "title": "Լիցենզիաներ դեռ չկան",
+    "desc": "Ավելացրեք առաջին լիցենզիան"
+  },
+  "error": "Չհաջողվեց բեռնել լիցենզիաները: Փորձեք կրկին:",
+  "pagination": { "range": "{{from}}–{{to}} / {{total}}" }
+}

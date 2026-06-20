@@ -14,6 +14,7 @@ import ruDepartments from '@/locales/ru/departments.json'
 import ruCategories from '@/locales/ru/categories.json'
 import ruStatuses from '@/locales/ru/statuses.json'
 import ruAudit from '@/locales/ru/audit.json'
+import ruLicenses from '@/locales/ru/licenses.json'
 import enCommon from '@/locales/en/common.json'
 import enNav from '@/locales/en/nav.json'
 import enLogin from '@/locales/en/login.json'
@@ -26,6 +27,7 @@ import enDepartments from '@/locales/en/departments.json'
 import enCategories from '@/locales/en/categories.json'
 import enStatuses from '@/locales/en/statuses.json'
 import enAudit from '@/locales/en/audit.json'
+import enLicenses from '@/locales/en/licenses.json'
 import hyCommon from '@/locales/hy/common.json'
 import hyNav from '@/locales/hy/nav.json'
 import hyLogin from '@/locales/hy/login.json'
@@ -38,14 +40,15 @@ import hyDepartments from '@/locales/hy/departments.json'
 import hyCategories from '@/locales/hy/categories.json'
 import hyStatuses from '@/locales/hy/statuses.json'
 import hyAudit from '@/locales/hy/audit.json'
+import hyLicenses from '@/locales/hy/licenses.json'
 
 export const SUPPORTED_LANGS = ['ru', 'en', 'hy'] as const
 export type AppLang = (typeof SUPPORTED_LANGS)[number]
 
 export const resources = {
-  ru: { common: ruCommon, nav: ruNav, login: ruLogin, 'access-pending': ruAccessPending, assets: ruAssets, employees: ruEmployees, 'pending-users': ruPendingUsers, branches: ruBranches, departments: ruDepartments, categories: ruCategories, statuses: ruStatuses, audit: ruAudit },
-  en: { common: enCommon, nav: enNav, login: enLogin, 'access-pending': enAccessPending, assets: enAssets, employees: enEmployees, 'pending-users': enPendingUsers, branches: enBranches, departments: enDepartments, categories: enCategories, statuses: enStatuses, audit: enAudit },
-  hy: { common: hyCommon, nav: hyNav, login: hyLogin, 'access-pending': hyAccessPending, assets: hyAssets, employees: hyEmployees, 'pending-users': hyPendingUsers, branches: hyBranches, departments: hyDepartments, categories: hyCategories, statuses: hyStatuses, audit: hyAudit },
+  ru: { common: ruCommon, nav: ruNav, login: ruLogin, 'access-pending': ruAccessPending, assets: ruAssets, employees: ruEmployees, 'pending-users': ruPendingUsers, branches: ruBranches, departments: ruDepartments, categories: ruCategories, statuses: ruStatuses, audit: ruAudit, licenses: ruLicenses },
+  en: { common: enCommon, nav: enNav, login: enLogin, 'access-pending': enAccessPending, assets: enAssets, employees: enEmployees, 'pending-users': enPendingUsers, branches: enBranches, departments: enDepartments, categories: enCategories, statuses: enStatuses, audit: enAudit, licenses: enLicenses },
+  hy: { common: hyCommon, nav: hyNav, login: hyLogin, 'access-pending': hyAccessPending, assets: hyAssets, employees: hyEmployees, 'pending-users': hyPendingUsers, branches: hyBranches, departments: hyDepartments, categories: hyCategories, statuses: hyStatuses, audit: hyAudit, licenses: hyLicenses },
 } as const
 
 void i18n
@@ -56,7 +59,7 @@ void i18n
     fallbackLng: 'ru',
     supportedLngs: SUPPORTED_LANGS as unknown as string[],
     defaultNS: 'common',
-    ns: ['common', 'nav', 'login', 'access-pending', 'assets', 'employees', 'pending-users', 'branches', 'departments', 'categories', 'statuses', 'audit'],
+    ns: ['common', 'nav', 'login', 'access-pending', 'assets', 'employees', 'pending-users', 'branches', 'departments', 'categories', 'statuses', 'audit', 'licenses'],
     interpolation: { escapeValue: false },
     detection: {
       order: ['localStorage', 'navigator'],

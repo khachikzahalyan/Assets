@@ -1,0 +1,89 @@
+{
+  "title": "Licenses",
+  "tabs": {
+    "workstation": "Workstation",
+    "server": "Server"
+  },
+  "col": {
+    "name": "Name",
+    "vendor": "Vendor",
+    "type": "Type",
+    "assignment": "Assignment",
+    "status": "Status",
+    "expiry": "Expires",
+    "environment": "Environment",
+    "host": "Host",
+    "actions": "Actions"
+  },
+  "status": {
+    "active": "Active",
+    "retired": "Retired"
+  },
+  "assignment": {
+    "employee": "Employee",
+    "device": "Device",
+    "unassigned": "Unassigned"
+  },
+  "actions": {
+    "create": "Add license",
+    "edit": "Edit",
+    "assign": "Assign",
+    "decouple": "Decouple",
+    "reveal": "Reveal key",
+    "rotate": "Rotate key"
+  },
+  "type": {
+    "Default": "Default",
+    "OEM": "OEM",
+    "Retail": "Retail",
+    "Volume": "Volume",
+    "Subscription": "Subscription"
+  },
+  "form": {
+    "createWorkstationTitle": "New license (workstation)",
+    "createServerTitle": "New server license",
+    "editTitle": "Edit license",
+    "name": "Name",
+    "vendor": "Vendor",
+    "type": "Type",
+    "isReusable": "Reusable (returns to pool on write-off)",
+    "expiresAt": "Expires",
+    "environment": "Environment",
+    "host": "Host",
+    "rawKey": "License key",
+    "rawKeyHint": "The key is stored encrypted and readable by Super Admin only.",
+    "keyMaskedPreview": "Preview: {{masked}}",
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+  "assignDialog": {
+    "title": "Assign license",
+    "scope": "Assign to",
+    "employee": "Employee",
+    "device": "Device (PC/Laptop)",
+    "employeeId": "Employee ID",
+    "assetId": "Asset ID",
+    "deviceRequiresAsset": "Select an asset to assign to a device",
+    "employeeRequires": "Select an employee"
+  },
+  "validation": { "required": "Required field" },
+  "maskedKeyLabel": "Key hidden",
+  "revealedKeyLabel": "Key (shown temporarily)",
+  "copyKey": "Copy",
+  "copied": "Copied",
+  "hideKey": "Hide",
+  "revealDenied": "Insufficient permissions to reveal the key",
+  "revealError": "Failed to reveal the key. Try again.",
+  "historyHeading": "History",
+  "historyEmpty": "No history entries",
+  "decoupleConfirm": "Decouple the license from its current assignment?",
+  "revealConfirm": "Reveal the license key? This action will be recorded in the audit log.",
+  "serverTabSuperOnly": "Server licenses are visible to Super Admin only",
+  "loading": "Loading licenses…",
+  "empty": {
+    "title": "No licenses yet",
+    "desc": "Add the first license"
+  },
+  "error": "Failed to load licenses. Try again.",
+  "pagination": { "range": "{{from}}–{{to}} / {{total}}" }
+}

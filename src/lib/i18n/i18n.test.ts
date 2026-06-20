@@ -16,3 +16,13 @@ describe('employees namespace', () => {
     expect(i18n.t('title', { ns: 'employees' })).not.toBe('title')
   })
 })
+
+describe('licenses namespace', () => {
+  it.each(['ru', 'en', 'hy'] as const)('resolves licenses.title in %s to a non-key string', async (lng) => {
+    await i18n.changeLanguage(lng)
+    const value = i18n.t('title', { ns: 'licenses' })
+    expect(value).toBeTruthy()
+    expect(value).not.toBe('title')
+    expect(value).not.toBe('licenses.title')
+  })
+})
