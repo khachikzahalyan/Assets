@@ -1,0 +1,38 @@
+{
+  "auth": {
+    "addBtn": "Add",
+    "addLabel": "Add domain",
+    "addPlaceholder": "company.com",
+    "domainsListLabel": "Allowed domains",
+    "empty": "The domain list is empty.",
+    "removeAria": "Remove domain {{domain}}",
+    "saveBtn": "Save",
+    "subtitle": "The list of email domains allowed to sign up. This is the only list the server checks when an account is created.",
+    "title": "Authentication"
+  },
+  "confirm": {
+    "body": "Sign-ups will be allowed only from: {{list}}",
+    "cancel": "Cancel",
+    "ok": "Save",
+    "saving": "Saving…",
+    "title": "Save domain list?"
+  },
+  "dangerConfirm": {
+    "body": "The domain list is empty. After saving, NO new user can sign up until you add a domain again. To confirm, type the word DISABLE.",
+    "confirmBtn": "Block sign-ups",
+    "title": "Block all sign-ups?",
+    "token": "DISABLE",
+    "tokenLabel": "Type DISABLE to confirm"
+  },
+  "failClosed": {
+    "banner": "The domain list is empty — all new sign-ups are blocked."
+  },
+  "saveFailed": "Failed to save. Please try again.",
+  "saved": "Settings saved.",
+  "saving": "Saving…",
+  "title": "Settings",
+  "validation": {
+    "duplicate": "This domain is already in the list.",
+    "invalid": "Enter a valid domain (e.g. company.com)."
+  }
+}
