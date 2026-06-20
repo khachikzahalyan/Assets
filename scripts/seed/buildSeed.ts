@@ -62,6 +62,8 @@ export function buildSeedDocs(opts: BuildSeedOptions): SeedDoc[] {
 function buildDemoDocs(now: string): SeedDoc[] {
   const stamp = { createdBy: SYSTEM, updatedBy: SYSTEM, createdAt: now, updatedAt: now }
   return [
+    // demo_emp_1 id is intentionally synthetic (NOT a real Firebase Auth uid); demo data is
+    // barred from real projects (see FIX 2 guard in seed.ts — requires --demo-confirm off-emulator).
     { collection: 'employees', id: 'demo_emp_1', data: {
       firstName: 'Демо', lastName: 'Сотрудник', email: 'demo.employee@example.com',
       departmentId: 'dep_it', branchId: 'br_main', status: 'active', ...stamp } },

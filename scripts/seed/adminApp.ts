@@ -24,7 +24,13 @@ export function resolveProjectId(flagProject?: string): string {
     const rc = JSON.parse(readFileSync(new URL('../../.firebaserc', import.meta.url), 'utf8'))
     const def = rc?.projects?.default
     if (def && def !== 'ams-REPLACE-ME') return def
-  } catch { /* ignore */ }
+  } catch (e) {
+    // FIX 6: missing file is expected (fall through to env/throw); a parse error means a
+    // present-but-corrupt .firebaserc and deserves a loud warning so it isn't silently ignored.
+    if ((e as NodeJS.ErrnoException)?.code !== 'ENOENT') {
+      console.warn('.firebaserc found but could not be parsed:', (e as Error)?.message)
+    }
+  }
   throw new Error(
     'No project id. Pass --project <id>, set GOOGLE_CLOUD_PROJECT, or set .firebaserc default.')
 }

@@ -103,6 +103,11 @@ describe('buildSeedDocs', () => {
     const def = docs.find(d => d.collection === 'settings' && d.id === 'defaults')!
     expect((def.data as { mainBranchId: string }).mainBranchId).toBe('br_main')
   })
+  it('settings/defaults honors an explicit mainBranchId (--main-branch flag)', () => {
+    const docs = buildSeedDocs({ nowIso: 'x', mainBranchId: 'br_yerevan_2' })
+    const def = docs.find(d => d.collection === 'settings' && d.id === 'defaults')!
+    expect((def.data as { mainBranchId: string }).mainBranchId).toBe('br_yerevan_2')
+  })
   it('allCategories option emits the full set', () => {
     const docs = buildSeedDocs({ nowIso: 'x', allCategories: true })
     const n = docs.filter(d => d.collection === 'categories').length

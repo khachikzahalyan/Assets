@@ -9,22 +9,30 @@
 // The seeder NEVER deletes a document, and never overwrites assets/employees/users.
 //
 // Flags: --force --dry-run --demo --all-categories --project <id> --domains a,b
+//        --main-branch <id> --demo-confirm --all-categories-confirm
 import { initAdmin, Timestamp } from './seed/adminApp'
 import { buildSeedDocs, type SeedDoc } from './seed/buildSeed'
 
 interface Flags {
   force: boolean; dryRun: boolean; demo: boolean; allCategories: boolean
-  project?: string; domains?: string[]
+  demoConfirm: boolean; allCategoriesConfirm: boolean
+  project?: string; domains?: string[]; mainBranch?: string
 }
 function parseFlags(argv: string[]): Flags {
-  const f: Flags = { force: false, dryRun: false, demo: false, allCategories: false }
+  const f: Flags = {
+    force: false, dryRun: false, demo: false, allCategories: false,
+    demoConfirm: false, allCategoriesConfirm: false,
+  }
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i]
     if (a === '--force') f.force = true
     else if (a === '--dry-run') f.dryRun = true
     else if (a === '--demo') f.demo = true
     else if (a === '--all-categories') f.allCategories = true
+    else if (a === '--demo-confirm') f.demoConfirm = true
+    else if (a === '--all-categories-confirm') f.allCategoriesConfirm = true
     else if (a === '--project') f.project = argv[++i]
+    else if (a === '--main-branch') f.mainBranch = argv[++i]
     else if (a === '--domains') f.domains = (argv[++i] ?? '').split(',').map(s => s.trim()).filter(Boolean)
   }
   return f
@@ -44,6 +52,27 @@ async function main() {
   const { db, projectId } = initAdmin(flags.project)
   const usingEmulator = !!process.env.FIRESTORE_EMULATOR_HOST
 
+  // FIX 2: protect a REAL project from demo PII and the --all-categories name-collision hazard.
+  if (flags.demo && !usingEmulator && !flags.demoConfirm) {
+    console.error(
+      '--demo writes sample assets/employees (synthetic PII) into Firestore; ' +
+      'on a real project re-run with --demo-confirm, or target the emulator ' +
+      '(set FIRESTORE_EMULATOR_HOST).')
+    process.exit(1)
+  }
+  if (flags.allCategories && !usingEmulator && !flags.allCategoriesConfirm) {
+    console.error(
+      'WARNING: the full 131-category set (--all-categories) contains DUPLICATE category ' +
+      'names (e.g. "Компьютер", "Точка доступа") that will collide with the app\'s ' +
+      'unique-name rule (isNameTaken) when those categories are later edited in the UI. ' +
+      'On a real project re-run with --all-categories-confirm to proceed.')
+    process.exit(1)
+  }
+
+  // FIX 3: was the domain list EXPLICITLY provided? (CLI flag or non-empty env var).
+  const domainsExplicit = flags.domains !== undefined
+    || (process.env.SEED_ALLOWED_DOMAINS?.trim().length ?? 0) > 0
+
   const domains = flags.domains
     ?? (process.env.SEED_ALLOWED_DOMAINS
       ? process.env.SEED_ALLOWED_DOMAINS.split(',').map(s => s.trim()).filter(Boolean)
@@ -54,6 +83,7 @@ async function main() {
     allowedEmailDomains: domains,
     allCategories: flags.allCategories,
     demo: flags.demo,
+    mainBranchId: flags.mainBranch,
   })
 
   console.log(`AMS seeder -> project="${projectId}"${usingEmulator ? ' (EMULATOR)' : ''}`)
@@ -75,10 +105,16 @@ async function main() {
   for (const d of docs) {
     const ref = db.collection(d.collection).doc(d.id)
     const data = withTimestamps(d.data)
+    // FIX 3: never clobber an existing settings/auth when domains were NOT explicitly
+    // provided. Under --force the doc would otherwise be merged with allowedEmailDomains:[]
+    // over an operator-configured list. Force it to create-if-absent in that case so the
+    // doc still exists on a fresh project but live config is preserved on a refresh run.
+    const isAuthDoc = d.collection === 'settings' && d.id === 'auth'
+    const effectiveForce = isAuthDoc && !domainsExplicit ? false : flags.force
     if (flags.dryRun) { console.log(`  would write ${d.collection}/${d.id}`); continue }
     const snap = await ref.get()
-    if (snap.exists && !flags.force) { skipped++; continue }
-    await ref.set(data, { merge: flags.force }) // merge on force (preserve extra fields), full set on create
+    if (snap.exists && !effectiveForce) { skipped++; continue }
+    await ref.set(data, { merge: effectiveForce }) // merge on force (preserve extra fields), full set on create
     if (snap.exists) overwritten++; else created++
   }
 
