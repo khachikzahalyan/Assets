@@ -4,6 +4,7 @@
     "returned": "Asset returned"
   },
   "auditAction": {
+    "assigned": "Assigned",
     "created": "Created",
     "deleted": "Deleted",
     "disposed": "Disposed",
@@ -19,7 +20,6 @@
     "status_changed": "Status changed",
     "terminated": "Terminated",
     "transferred": "Transferred",
-    "update": "Updated",
     "updated": "Updated",
     "upgrade_added": "Upgrade added"
   },

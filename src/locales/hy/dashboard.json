@@ -4,6 +4,7 @@
     "returned": "Ակտիվը վերադարձվել է"
   },
   "auditAction": {
+    "assigned": "Հատկացված",
     "created": "Ստեղծվել է",
     "deleted": "Ջնջվել է",
     "disposed": "Դուրս է գրվել",
@@ -19,7 +20,6 @@
     "status_changed": "Կարգավիճակը փոխվել է",
     "terminated": "Աշխատանքից ազատվել է",
     "transferred": "Տեղափոխվել է",
-    "update": "Թարմացվել է",
     "updated": "Թարմացվել է",
     "upgrade_added": "Կատարելագործում ավելացվել է"
   },

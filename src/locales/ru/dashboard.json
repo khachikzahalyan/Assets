@@ -4,6 +4,7 @@
     "returned": "Актив возвращён"
   },
   "auditAction": {
+    "assigned": "Выдано",
     "created": "Создано",
     "deleted": "Удалено",
     "disposed": "Списано",
@@ -19,7 +20,6 @@
     "status_changed": "Изменён статус",
     "terminated": "Уволен",
     "transferred": "Перемещено",
-    "update": "Изменено",
     "updated": "Изменено",
     "upgrade_added": "Добавлен апгрейд"
   },
