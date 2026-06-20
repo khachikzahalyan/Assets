@@ -6,7 +6,9 @@ import type { Actor } from '@/domain/asset'
 import type { AuditedResult } from '@/domain/audit'
 import {
   isUserStatus, type User, type PendingUser, type UserRepository, type AssignRoleInput,
+  type UserListQuery,
 } from '@/domain/user'
+import { RoleLockoutError } from '@/domain/user'
 import { firestoreAuditContext, withAudit } from '@/lib/audit'
 import { FirestoreEmployeeRepository } from './firestoreEmployeeRepository'
 
@@ -45,11 +47,38 @@ export class FirestoreUserRepository implements UserRepository {
       .sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''))
   }
 
+  async listUsers(query?: UserListQuery): Promise<User[]> {
+    const constraints = []
+    if (query?.role === 'no-role') constraints.push(where('role', '==', null))
+    else if (query?.role) constraints.push(where('role', '==', query.role))
+    if (query?.status) constraints.push(where('status', '==', query.status))
+    const snap = await getDocs(fsQuery(collection(this.db, 'users'), ...constraints))
+    return snap.docs
+      .map(d => toUser(d.id, d.data() as Record<string, unknown>))
+      .sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''))
+  }
+
+  /** Count active super_admins (server read), excluding one uid. */
+  private async countSuperAdmins(exceptUid: string): Promise<number> {
+    const snap = await getDocs(fsQuery(
+      collection(this.db, 'users'),
+      where('role', '==', 'super_admin'),
+      where('status', '==', 'active'),
+    ))
+    return snap.docs.filter(d => d.id !== exceptUid).length
+  }
+
   async assignRole(input: AssignRoleInput, actor: Actor): Promise<AuditedResult<User>> {
     const ref = doc(this.db, 'users', input.uid)
     const snap = await getDoc(ref)
     if (!snap.exists()) throw new Error(`User not found: ${input.uid}`)
     const before = toUser(snap.id, snap.data() as Record<string, unknown>)
+
+    const isDemotingASuper = before.role === 'super_admin' && input.role !== 'super_admin'
+    if (isDemotingASuper) {
+      if (input.uid === actor.uid) throw new RoleLockoutError('self-demotion')
+      if ((await this.countSuperAdmins(input.uid)) === 0) throw new RoleLockoutError('last-super-admin')
+    }
 
     // STEP 1 — create the employee doc FIRST (its own withAudit unit → one
     // 'employee'/'created' row). If this fails (e.g. empty email), we bail out
