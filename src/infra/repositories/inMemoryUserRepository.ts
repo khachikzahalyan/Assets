@@ -1,4 +1,5 @@
-import type { User, PendingUser, UserRepository, AssignRoleInput } from '@/domain/user'
+import type { User, PendingUser, UserRepository, AssignRoleInput, UserListQuery } from '@/domain/user'
+import { RoleLockoutError } from '@/domain/user'
 import type { Employee } from '@/domain/employee'
 import type { Actor } from '@/domain/asset'
 import type { AuditedResult } from '@/domain/audit'
@@ -16,10 +17,34 @@ export class InMemoryUserRepository implements UserRepository {
     return this.users.filter((u): u is PendingUser => u.status === 'no-role')
   }
 
+  async listUsers(query?: UserListQuery): Promise<User[]> {
+    let rows = [...this.users]
+    if (query?.role === 'no-role') rows = rows.filter(u => u.role === null)
+    else if (query?.role) rows = rows.filter(u => u.role === query.role)
+    if (query?.status) rows = rows.filter(u => u.status === query.status)
+    return rows.sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''))
+  }
+
+  /** Count active super_admins, optionally excluding one uid (the one being changed). */
+  private countSuperAdmins(exceptUid?: string): number {
+    return this.users.filter(u =>
+      u.role === 'super_admin' && u.status === 'active' && u.id !== exceptUid,
+    ).length
+  }
+
   async assignRole(input: AssignRoleInput, actor: Actor): Promise<AuditedResult<User>> {
     const idx = this.users.findIndex(u => u.id === input.uid)
     if (idx < 0) throw new Error(`User not found: ${input.uid}`)
     const before = this.users[idx]!
+
+    // ── Lockout guard ──────────────────────────────────────────────────────
+    const isDemotingASuper = before.role === 'super_admin' && input.role !== 'super_admin'
+    if (isDemotingASuper) {
+      if (input.uid === actor.uid) throw new RoleLockoutError('self-demotion')
+      // would this drop active super_admins to zero?
+      if (this.countSuperAdmins(input.uid) === 0) throw new RoleLockoutError('last-super-admin')
+    }
+
     const next: User = { ...before, role: input.role, status: 'active' }
 
     // STEP 1 — create the employee doc FIRST. If this throws (e.g. empty email),
