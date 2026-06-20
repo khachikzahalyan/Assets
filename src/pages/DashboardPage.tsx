@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
-import { PageHeader, LoadingState } from '@/components/ui'
+import { PageHeader, LoadingState, ErrorState } from '@/components/ui'
 import {
   KpiTile,
   StatusBreakdown,
@@ -32,7 +32,7 @@ export function DashboardPage({ repo }: DashboardPageProps) {
     [],
   )
   const activeRepo = repo ?? defaultRepo
-  const { data, loading } = useDashboard(activeRepo, role)
+  const { data, loading, error, reload } = useDashboard(activeRepo, role)
 
   if (loading) {
     return (
@@ -63,6 +63,12 @@ export function DashboardPage({ repo }: DashboardPageProps) {
   return (
     <div className="anim-content-enter space-y-5">
       <PageHeader icon="layout-dashboard" title={t('title')} />
+
+      {error && (
+        <div data-testid="dashboard-error">
+          <ErrorState onRetry={reload} />
+        </div>
+      )}
 
       {/* KPI row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

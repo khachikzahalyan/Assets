@@ -3,12 +3,6 @@ import type { GroupCount } from '@/domain/dashboard'
 import { ASSET_GROUPS } from '@/domain/dashboard'
 import { SectionCard } from '@/components/ui/section-card'
 
-const GROUP_ICON: Record<string, string> = {
-  devices:   'laptop',
-  network:   'network',
-  furniture: 'building',
-}
-
 export interface GroupBreakdownProps {
   byGroup: GroupCount[]
 }
@@ -52,6 +46,3 @@ export function GroupBreakdown({ byGroup }: GroupBreakdownProps) {
     </SectionCard>
   )
 }
-
-// satisfy unused-import check for GROUP_ICON (used in future icon badge)
-void GROUP_ICON

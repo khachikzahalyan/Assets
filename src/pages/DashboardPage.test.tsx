@@ -248,6 +248,22 @@ describe('DashboardPage asset_admin', () => {
   })
 })
 
+describe('DashboardPage error handling', () => {
+  it('shows error banner AND still renders loaded sections when a section rejects (tech_admin)', async () => {
+    // Build a repo where loadWorkstationLicenseStats rejects; assets still loads fine.
+    const partialRepo = makeRepo()
+    partialRepo.loadWorkstationLicenseStats = () => Promise.reject(new Error('network error'))
+
+    renderPage('tech_admin', partialRepo)
+
+    // Wait for loading to finish — total-assets KPI (value "4") must still be visible
+    await waitFor(() => expect(screen.getByText('4')).toBeInTheDocument())
+
+    // Error banner must be present and wired to reload
+    expect(screen.getByTestId('dashboard-error')).toBeInTheDocument()
+  })
+})
+
 describe('DashboardPage tech_admin', () => {
   it('shows total-assets KPI value', async () => {
     renderPage('tech_admin')
