@@ -247,10 +247,24 @@ service cloud.firestore {
       allow read, update, delete: if false;
     }
 
-    // ---- /settings — super only ----
+    // ---- /settings/auth — OAuth allowed-domain doc (super only) ----
+    // Read+write super_admin only. allowedEmailDomains, when present, must be a list
+    // (rules can't deep-validate each element; the repo + beforeCreate enforce that).
+    // beforeCreate reads this via Admin SDK and bypasses rules.
+    match /settings/auth {
+      allow read: if isSuperAdmin();
+      allow write: if isSuperAdmin()
+        && (!('allowedEmailDomains' in request.resource.data)
+            || request.resource.data.allowedEmailDomains is list);
+    }
+
+    // ---- /settings/{doc} — any other settings doc, super only ----
+    // The `doc != 'auth'` guard on write ensures the more-specific /settings/auth block
+    // is the SOLE write path for that document; the list-guard above cannot be bypassed
+    // by the wildcard match's looser allow write condition.
     match /settings/{doc} {
       allow read: if isSuperAdmin();
-      allow write: if isSuperAdmin();
+      allow write: if isSuperAdmin() && doc != 'auth';
     }
 
     // ---- Catch-all: deny everything not matched above ----
