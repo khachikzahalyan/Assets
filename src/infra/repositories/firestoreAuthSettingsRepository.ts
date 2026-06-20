@@ -34,7 +34,7 @@ export class FirestoreAuthSettingsRepository implements AuthSettingsRepository {
     const before = await this.getAuthSettings()
     const next = dedupeDomains(domains.map(normalizeDomain).filter(Boolean))
     const ref = doc(this.db, 'settings', 'auth')
-    const r = await withAudit(
+    return withAudit(
       this.audit,
       {
         entityType: 'settings',
@@ -51,10 +51,13 @@ export class FirestoreAuthSettingsRepository implements AuthSettingsRepository {
           { allowedEmailDomains: next, updatedBy: actor.uid, updatedAt: serverTimestamp() },
           { merge: true },
         )
-        return { value: undefined as unknown as void }
+        const value: AuthSettings = {
+          ...before,
+          allowedEmailDomains: next,
+          updatedBy: actor.uid,
+        }
+        return { value }
       },
     )
-    const readback = await this.getAuthSettings()
-    return { value: readback, auditId: r.auditId }
   }
 }
