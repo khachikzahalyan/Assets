@@ -33,6 +33,7 @@
   "title": "Settings",
   "validation": {
     "duplicate": "This domain is already in the list.",
+    "empty": "Enter a domain.",
     "invalid": "Enter a valid domain (e.g. company.com)."
   }
 }
