@@ -54,3 +54,10 @@
 - `cd functions && npm run build && npx vitest run` — green
 - `npm run build` — green
 - Gates per sub-plan: spec-reviewer → code-quality-reviewer → security-reviewer (CRITICAL: secrets, reveal, masking, rules deny, write-off decouple).
+
+---
+
+### Task D7: Asset-create OEM free-key picker (deferred from Sub-plan C)
+
+**Files:** Modify `src/components/features/assets/create/AssetCreateForm.tsx` (replace the `// TODO(D): free-key picker` note).
+- [ ] When the selected category has `hasOemLicense`, in addition to the raw-key input, render a combobox of FREE assignable OEM licenses sourced from `WorkstationLicenseRepository.listAssignablePool()` (filter to OEM-eligible / unassigned). Selecting one maps the submitted `CreateAssetInput.oemLicense` to `{ existingLicenseId }`; typing a raw key maps to `{ rawKey }`; the two are mutually exclusive (picking an existing license clears the raw-key field and vice-versa). Component test for BOTH branches (picker → `{existingLicenseId}`, raw → `{rawKey}`). Inject the license repo (prop with a Firestore default, mirroring the page pattern) so the test uses InMemory. **Commit** `feat(license): asset-create free-key picker (existingLicenseId branch)`
