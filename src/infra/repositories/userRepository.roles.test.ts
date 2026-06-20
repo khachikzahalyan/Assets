@@ -64,4 +64,46 @@ describe('InMemoryUserRepository.assignRole lockout guard', () => {
     expect(r.value.role).toBe('tech_admin')
     expect(r.auditId).toBeTruthy()
   })
+
+  it('allows demoting a super_admin when other active supers remain (not self)', async () => {
+    // su1 (actor) demotes su2 (different user); su1 still active → guard should pass
+    const repo = new InMemoryUserRepository(seed())
+    const r = await repo.assignRole({ uid: 'su2', role: 'asset_admin' }, SUPER)
+    expect(r.value.role).toBe('asset_admin')
+    expect(r.auditId).toBeTruthy()
+  })
+
+  it('does not count a terminated super_admin toward the active-super total', async () => {
+    // 'term' is super_admin but terminated; 'su1' is the only ACTIVE super.
+    // Demoting 'su1' by itself is self-demotion, so use a separate actor uid.
+    const users: User[] = [
+      { id: 'term', email: 't@x.io', displayName: 'Terminated Super', role: 'super_admin', status: 'terminated', createdAt: null },
+      { id: 'su1',  email: 'su1@x.io', displayName: 'Active Super', role: 'super_admin', status: 'active',     createdAt: null },
+      { id: 'su2',  email: 'su2@x.io', displayName: 'Other Super',  role: 'super_admin', status: 'active',     createdAt: null },
+    ]
+    const repo = new InMemoryUserRepository(users)
+    // Demote su1 (not the actor su2); su2 is active, term is terminated → countSuperAdmins(su1) = 1
+    const actor = { uid: 'su2', role: 'super_admin' } as const
+    const r = await repo.assignRole({ uid: 'su1', role: 'tech_admin' }, actor)
+    expect(r.value.role).toBe('tech_admin')
+    // Now only su2 is active super; demoting su2 (self) should be self-demotion not last-super
+    // — but the terminated super must NOT rescue the count
+    const users2: User[] = [
+      { id: 'term', email: 't@x.io', displayName: 'Terminated Super', role: 'super_admin', status: 'terminated', createdAt: null },
+      { id: 'su2',  email: 'su2@x.io', displayName: 'Only Active Super', role: 'super_admin', status: 'active', createdAt: null },
+    ]
+    const repo2 = new InMemoryUserRepository(users2)
+    // A third party tries to demote su2 → should fail as last-super (term doesn't count)
+    const actor3 = { uid: 'other', role: 'super_admin' } as const
+    await expect(repo2.assignRole({ uid: 'su2', role: 'tech_admin' }, actor3))
+      .rejects.toBeInstanceOf(RoleLockoutError)
+  })
+
+  it('promoting a no-role user to super_admin succeeds and audits', async () => {
+    const repo = new InMemoryUserRepository(seed())
+    const r = await repo.assignRole({ uid: 'np1', role: 'super_admin' }, SUPER)
+    expect(r.value.role).toBe('super_admin')
+    expect(r.value.status).toBe('active')
+    expect(r.auditId).toBeTruthy()
+  })
 })
