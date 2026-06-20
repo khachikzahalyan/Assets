@@ -75,8 +75,9 @@ Ports-and-adapters, exactly like `CategoryRepository`:
       `{ allowedEmailDomains: [] }` when the doc is missing — fail-closed read)
     - `updateAllowedDomains(domains: string[], actor: Actor): Promise<AuditedResult<AuthSettings>>`
   - `validation.ts` — pure helpers (no Firebase): `normalizeDomain`,
-    `isValidDomain`, `dedupeDomains`, `parseDomainsInput`. Unit-tested
-    independently of any adapter.
+    `isValidDomain`, `dedupeDomains`. Unit-tested independently of any adapter.
+    (An earlier draft listed a `parseDomainsInput` bulk-paste helper; dropped as
+    YAGNI — the panel adds domains one at a time, so it would be dead code.)
   - `index.ts` — barrel.
 - **Infra**
   - `inMemoryAuthSettingsRepository.ts` — used by component/unit tests.
@@ -105,8 +106,14 @@ Ports-and-adapters, exactly like `CategoryRepository`:
   `'settings'` from `PHASE_STUB_ROUTES` and add a real route in `routes.tsx`
   wrapped in `<RoleGate roles={routeRoles('settings')}>` (already super-admin).
   The nav item already exists (`items.settings`, super_admin only) — no nav change.
-- `SettingsPage` renders a `PageHeader` + one `SectionCard` per panel. For now,
-  one panel: **`AuthSettingsPanel`** (`src/components/features/settings/`).
+- `SettingsPage` renders a `PageHeader`, then one panel per setting area. For now,
+  one panel: **`AuthSettingsPanel`** (`src/components/features/settings/`). NOTE:
+  the panel OWNS its own `<SectionCard>` (so its loading/error/ready states render
+  inside a single consistent card, and because the shared `SectionCard` primitive
+  has no `subtitle` prop — the description is a `<p>` inside the panel). The page
+  composes panels directly; future sibling panels follow the same self-carded
+  shape. (An earlier draft put the `SectionCard` in the page wrapping the panel;
+  panel-owns-card is the implemented, cleaner approach.)
 - The page accepts an optional `repository?: AuthSettingsRepository` prop for
   test injection, exactly like `CategoriesPage`. Default wires
   `new FirestoreAuthSettingsRepository(db())` via `useMemo`.
