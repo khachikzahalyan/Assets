@@ -70,7 +70,7 @@ function ChangeRoleDialog({ target, isSelf, onClose, onChanged, repo, actor }: C
       >
         <header className="flex items-center justify-between gap-3">
           <h2 id="change-role-title" className="text-[15px] font-bold text-[#F8FAFC]">{t('dialog.title')}</h2>
-          <button type="button" aria-label={t('dialog.cancel')} onClick={onClose}
+          <button type="button" aria-label={t('actions.close', { ns: 'common' })} onClick={onClose}
             className="text-[#64748B] hover:text-[#F8FAFC] transition-colors">
             <Icon name="x" size={16} />
           </button>
@@ -262,13 +262,16 @@ export function RolesPage({ repository }: RolesPageProps) {
         <div className="space-y-4">
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex-1 min-w-[180px]">
+              <label htmlFor="roles-search" className="sr-only">{t('search')}</label>
               <Input id="roles-search" value={search} onChange={setSearch} placeholder={t('search')} />
             </div>
             <div className="w-[160px]">
+              <label htmlFor="roles-role-filter" className="sr-only">{t('filter.role')}</label>
               <Select id="roles-role-filter" value={roleFilter}
                 onChange={(v) => setRoleFilter(v as Role | 'no-role' | 'all')} options={roleFilterOptions} />
             </div>
             <div className="w-[160px]">
+              <label htmlFor="roles-status-filter" className="sr-only">{t('filter.status')}</label>
               <Select id="roles-status-filter" value={statusFilter}
                 onChange={(v) => setStatusFilter(v as 'all' | 'active' | 'no-role' | 'terminated')} options={statusFilterOptions} />
             </div>

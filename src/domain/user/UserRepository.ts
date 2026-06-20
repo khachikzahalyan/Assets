@@ -1,7 +1,7 @@
 import type { Role } from '@/config/roles'
 import type { Actor } from '@/domain/asset'
 import type { AuditedResult } from '@/domain/audit'
-import type { PendingUser, User } from './types'
+import type { PendingUser, User, UserStatus } from './types'
 
 /** Optional employee link/create directive when promoting to the `employee` role. */
 export interface PromoteEmployeeOpts {
@@ -18,11 +18,16 @@ export interface AssignRoleInput {
   employee?: PromoteEmployeeOpts
 }
 
-/** Filter for the full-roster read. All fields optional → returns everyone. */
+/**
+ * Filter for the full-roster read. All fields optional → returns everyone.
+ * Filter fields are honored by both adapters and reserved for future server-side
+ * filtering/pagination; the current RolesPage fetches all + filters client-side
+ * (matching the PendingUsersPage convention).
+ */
 export interface UserListQuery {
   /** Restrict to a single role. Omit for all. `'no-role'` matches role === null. */
   role?: Role | 'no-role'
-  status?: import('./types').UserStatus
+  status?: UserStatus
 }
 
 /**
