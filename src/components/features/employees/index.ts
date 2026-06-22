@@ -1,3 +1,7 @@
+export * from './EmployeeKindTabs'
 export * from './EmployeesTable'
 export * from './EmployeesFilterBar'
 export * from './EmployeeForm'
+export * from './EmployeeAvatar'
+export * from './EmployeeRow'
+export * from './employeeFormat'
