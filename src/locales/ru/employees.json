@@ -45,11 +45,15 @@
   "form": {
     "branch": "Филиал",
     "cancel": "Отмена",
+    "create": "Создать",
+    "createSubtitle": "Заполните карточку нового сотрудника",
     "createTitle": "Новый сотрудник",
     "department": "Отдел",
+    "editSubtitle": "Имя и Gmail закреплены — это идентификатор сотрудника",
     "editTitle": "Редактирование сотрудника",
     "email": "Корпоративная почта",
     "firstName": "Имя",
+    "gmail": "Gmail",
     "lastName": "Фамилия",
     "notFound": "Сотрудник не найден",
     "phone": "Телефон",
@@ -80,6 +84,12 @@
   "validation": {
     "emailFormat": "Введите корректный email",
     "emailTaken": "Этот email уже используется",
+    "firstNameRequired": "Введите имя",
+    "lastNameRequired": "Введите фамилию",
+    "positionRequired": "Введите должность",
+    "deptRequired": "Выберите отдел",
+    "phoneRequired": "Введите телефон",
+    "phoneDigits": "Телефон должен содержать 9 цифр",
     "required": "Обязательное поле",
     "saveFailed": "Не удалось сохранить. Попробуйте ещё раз.",
     "uidRequired": "Укажите uid"

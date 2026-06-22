@@ -36,11 +36,15 @@
   "form": {
     "branch": "Branch",
     "cancel": "Cancel",
+    "create": "Create",
+    "createSubtitle": "Fill in the new employee card",
     "createTitle": "New employee",
     "department": "Department",
+    "editSubtitle": "Name and Gmail are locked — they identify the employee",
     "editTitle": "Edit employee",
     "email": "Corporate email",
     "firstName": "First name",
+    "gmail": "Gmail",
     "lastName": "Last name",
     "notFound": "Employee not found",
     "pickBranch": "Select a branch",
@@ -69,6 +73,12 @@
   "validation": {
     "emailFormat": "Enter a valid email",
     "emailTaken": "This email is already in use",
+    "firstNameRequired": "Enter first name",
+    "lastNameRequired": "Enter last name",
+    "positionRequired": "Enter position",
+    "deptRequired": "Select department",
+    "phoneRequired": "Enter phone",
+    "phoneDigits": "Phone must be 9 digits",
     "required": "Required field",
     "saveFailed": "Could not save. Please try again.",
     "uidRequired": "Provide a uid"

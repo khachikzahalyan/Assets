@@ -36,11 +36,15 @@
   "form": {
     "branch": "Մասնաճյուղ",
     "cancel": "Չեղարկել",
+    "create": "Ստեղծել",
+    "createSubtitle": "Լրացրեք նոր աշխատակցի քարտը",
     "createTitle": "Նոր աշխատակից",
     "department": "Բաժին",
+    "editSubtitle": "Անունը և Gmail-ը կողպված են — դրանք նույնականացնում են աշխատակցին",
     "editTitle": "Աշխատակցի խմբագրում",
     "email": "Կորպորատիվ էլ. փոստ",
     "firstName": "Անուն",
+    "gmail": "Gmail",
     "lastName": "Ազգանուն",
     "notFound": "Աշխատակիցը չի գտնվել",
     "pickBranch": "Ընտրեք մասնաճյուղը",
@@ -69,6 +73,12 @@
   "validation": {
     "emailFormat": "Մուտքագրեք վավեր էլ. փոստ",
     "emailTaken": "Այս էլ. փոստն արդեն օգտագործվում է",
+    "firstNameRequired": "Մուտքագրեք անունը",
+    "lastNameRequired": "Մուտքագրեք ազգանունը",
+    "positionRequired": "Մուտքագրեք պաշտոնը",
+    "deptRequired": "Ընտրեք բաժինը",
+    "phoneRequired": "Մուտքագրեք հեռախոսը",
+    "phoneDigits": "Հեռախոսը պետք է լինի 9 նիշ",
     "required": "Պարտադիր դաշտ",
     "saveFailed": "Չհաջողվեց պահպանել։ Փորձեք կրկին։",
     "uidRequired": "Նշեք uid"

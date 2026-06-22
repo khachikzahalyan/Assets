@@ -1,30 +1,35 @@
 import { useEffect, useRef } from 'react'
 import ReactDOM from 'react-dom'
-import { useModalA11y } from './useModalA11y'
+import { useModalA11y } from '@/components/ui/useModalA11y'
 
-export interface DrawerProps {
+export interface EmployeeModalShellProps {
   open: boolean
   onClose: () => void
   children: React.ReactNode
-  ariaLabel?: string
+  width?: string
 }
 
 /**
- * Right-side desktop Drawer primitive.
+ * Lightweight modal shell matching Warehouse/prototypes/employees.html <Modal>
+ * (prototype lines 1414-1437). Portals to document.body, locks body scroll,
+ * closes on ESC or backdrop click, uses shared useModalA11y for focus trap +
+ * restore + #root inert.
  *
- * Portals to document.body. Locks body scroll while open. Closes on ESC or
- * backdrop click. Full a11y: focus trap, #root inert, focus restore on close.
- *
- * Animation classes `anim-drawer-slide-in` and `anim-backdrop-fade` are
- * defined in src/index.css — do not redefine here.
+ * Animation classes `anim-backdrop-fade` and `anim-modal-pop` are defined in
+ * src/index.css — do not redefine here.
  */
-export function Drawer({ open, onClose, children, ariaLabel }: DrawerProps) {
+export function EmployeeModalShell({
+  open,
+  onClose,
+  children,
+  width = 'max-w-lg',
+}: EmployeeModalShellProps) {
   const panelRef = useRef<HTMLDivElement | null>(null)
   const prevOverflow = useRef<string>('')
 
   useModalA11y(open, panelRef)
 
-  // Body-scroll-lock — mirrors MobileSheet pattern.
+  // Body-scroll-lock
   useEffect(() => {
     if (open) {
       prevOverflow.current = document.body.style.overflow
@@ -37,7 +42,7 @@ export function Drawer({ open, onClose, children, ariaLabel }: DrawerProps) {
     }
   }, [open])
 
-  // ESC close — mirrors MobileSheet pattern.
+  // ESC close
   useEffect(() => {
     if (!open) return
     function onKey(e: KeyboardEvent) {
@@ -50,7 +55,7 @@ export function Drawer({ open, onClose, children, ariaLabel }: DrawerProps) {
   if (!open) return null
 
   return ReactDOM.createPortal(
-    <div className="fixed inset-0 z-50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/60 backdrop-blur-[2px] anim-backdrop-fade"
@@ -59,13 +64,10 @@ export function Drawer({ open, onClose, children, ariaLabel }: DrawerProps) {
       {/* Panel */}
       <div
         ref={panelRef}
-        data-drawer
         tabIndex={-1}
         role="dialog"
         aria-modal="true"
-        aria-label={ariaLabel}
-        className="absolute top-0 right-0 h-full bg-[#1B1F24] border-l border-[#2A2F36] shadow-2xl shadow-slate-900/20 anim-drawer-slide-in flex flex-col"
-        style={{ width: '100%', maxWidth: 'clamp(320px, 42vw, 680px)' }}
+        className={`relative w-full ${width} bg-[#1B1F24] rounded-2xl shadow-2xl shadow-slate-900/20 border border-[#2A2F36]/60 anim-modal-pop overflow-hidden`}
       >
         {children}
       </div>
