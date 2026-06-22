@@ -99,6 +99,9 @@ import {
   Plug,
   BatteryMedium,
   Mail,
+  CalendarPlus,
+  Link2,
+  Phone,
   type LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -202,6 +205,9 @@ const REGISTRY: Record<string, LucideIcon> = {
   plug:             Plug,
   'battery-medium': BatteryMedium,
   mail: Mail,
+  'calendar-plus': CalendarPlus,
+  'link-2': Link2,
+  phone: Phone,
 }
 
 export interface IconProps {

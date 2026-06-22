@@ -8,7 +8,16 @@
     "profile": "Profile",
     "reactivate": "Reactivate",
     "terminate": "Terminate",
-    "viewScan": "Open scan"
+    "viewScan": "Open scan",
+    "linkAsset": "Link asset",
+    "handover": "Hand over equipment",
+    "restore": "Restore"
+  },
+  "restore": {
+    "title": "Restore employee?",
+    "bodyPre": "",
+    "bodyPost": "will be returned from the archive to active employees. You can then assign assets.",
+    "confirm": "Restore"
   },
   "empty": {
     "desc": "Add the first employee",

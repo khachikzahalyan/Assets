@@ -1,3 +1,7 @@
+export * from './RestoreConfirmModal'
+export type { RestoreConfirmModalProps } from './RestoreConfirmModal'
+export * from './EmployeeDetailDrawer'
+export type { DrawerLinkedAsset, EmployeeDetailDrawerProps } from './EmployeeDetailDrawer'
 export * from './EmployeeKindTabs'
 export * from './EmployeesTable'
 export * from './EmployeesFilterBar'
