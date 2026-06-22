@@ -17,6 +17,7 @@ export interface Employee {
   firstName: string
   lastName: string
   email: string
+  phone: string | null
   position: string | null
   branchId: string | null
   departmentId: string | null
@@ -26,9 +27,18 @@ export interface Employee {
   updatedAt: string
 }
 
+export type SortValue =
+  | 'updated_desc'
+  | 'updated_asc'
+  | 'name_asc'
+  | 'name_desc'
+  | 'dept_asc'
+  | 'assets_desc'
+
 export interface EmployeeListQuery {
   status?: EmployeeStatus | 'all'
   branchId?: string | 'all'
   departmentId?: string | 'all'
   search?: string
+  sort?: SortValue
 }

@@ -1,118 +1,134 @@
 import { useTranslation } from 'react-i18next'
-import { Select, Icon, Btn } from '@/components/ui'
-import type { EmployeeListQuery } from '@/domain/employee'
+import { Icon, SelectMini } from '@/components/ui'
+import type { EmployeeListQuery, SortValue } from '@/domain/employee'
 import type { RefRow } from '@/domain/asset'
-import type { SelectOption } from '@/components/ui/select'
+import type { SelectMiniOption } from '@/components/ui/SelectMini'
 
 export interface EmployeesFilterBarProps {
   query: EmployeeListQuery
   onChange: (patch: Partial<EmployeeListQuery>) => void
   branches: RefRow[]
   departments: RefRow[]
+  /** Which branch id is the head office. Defaults to branches[0]?.id if omitted. */
+  headOfficeBranchId?: string | null
 }
 
-const DEFAULT_QUERY: Required<EmployeeListQuery> = {
-  status: 'all',
+const DEFAULT_QUERY: Required<Omit<EmployeeListQuery, 'sort'>> & { sort: SortValue } = {
+  status: 'active',
   branchId: 'all',
   departmentId: 'all',
   search: '',
+  sort: 'updated_desc',
 }
 
 function isDirty(query: EmployeeListQuery): boolean {
   return (
-    (query.status ?? 'all') !== DEFAULT_QUERY.status ||
+    (query.status ?? 'active') !== DEFAULT_QUERY.status ||
     (query.branchId ?? 'all') !== DEFAULT_QUERY.branchId ||
     (query.departmentId ?? 'all') !== DEFAULT_QUERY.departmentId ||
-    (query.search ?? '') !== DEFAULT_QUERY.search
+    (query.search ?? '') !== DEFAULT_QUERY.search ||
+    (query.sort ?? 'updated_desc') !== DEFAULT_QUERY.sort
   )
 }
 
-export function EmployeesFilterBar({ query, onChange, branches, departments }: EmployeesFilterBarProps) {
+export function EmployeesFilterBar({
+  query,
+  onChange,
+  branches,
+  departments,
+  headOfficeBranchId,
+}: EmployeesFilterBarProps) {
   const { t } = useTranslation('employees')
 
-  const statusOptions: SelectOption[] = [
+  // Head office id: use prop if provided, else fall back to first branch
+  const headId = headOfficeBranchId ?? branches[0]?.id ?? null
+
+  const deptOptions: SelectMiniOption[] = [
     { value: 'all', label: t('filter.all') },
+    ...departments.map(d => ({ value: d.id, label: d.name })),
+  ]
+
+  const branchOptions: SelectMiniOption[] = [
+    { value: 'all', label: t('filter.all') },
+    ...branches.map(b => ({
+      value: b.id,
+      label: b.name,
+      icon: b.id === headId ? 'landmark' : 'building',
+      iconColor: b.id === headId ? '#10B981' : '#38BDF8',
+    })),
+  ]
+
+  const statusOptions: SelectMiniOption[] = [
+    { value: 'all',        label: t('filter.all') },
     { value: 'active',     label: t('status.active') },
     { value: 'terminated', label: t('status.terminated') },
   ]
 
-  const branchOptions: SelectOption[] = [
-    { value: 'all', label: t('filter.all') },
-    ...branches.map(b => ({ value: b.id, label: b.name })),
-  ]
-
-  const deptOptions: SelectOption[] = [
-    { value: 'all', label: t('filter.all') },
-    ...departments.map(d => ({ value: d.id, label: d.name })),
+  const sortOptions: SelectMiniOption[] = [
+    { value: 'updated_desc', label: t('filter.sortUpdatedDesc') },
+    { value: 'updated_asc',  label: t('filter.sortUpdatedAsc') },
+    { value: 'name_asc',     label: t('filter.sortNameAsc') },
+    { value: 'name_desc',    label: t('filter.sortNameDesc') },
+    { value: 'dept_asc',     label: t('filter.sortDeptAsc') },
+    { value: 'assets_desc',  label: t('filter.sortAssetsDesc') },
   ]
 
   const dirty = isDirty(query)
 
   return (
-    <div className="flex items-center gap-2 flex-wrap">
-      {/* Search */}
-      <div className="relative flex-1 min-w-[200px]">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B] pointer-events-none">
-          <Icon name="search" size={13} />
-        </span>
-        <input
-          id="employees-search"
-          type="search"
-          value={query.search ?? ''}
-          onChange={e => onChange({ search: e.target.value })}
-          placeholder={t('filter.search')}
-          className="w-full h-9 pl-8 pr-3 text-sm bg-[#111315] border border-[#2A2F36] rounded-lg text-[#F8FAFC] placeholder:text-[#64748B] focus:outline-none focus:border-[#F97316] focus:ring-2 focus:ring-[rgba(249,115,22,0.40)] transition-all duration-150"
-          aria-label={t('filter.search')}
-        />
-      </div>
+    <div className="flex items-center gap-2 px-4 py-2 flex-wrap">
+      <SelectMini
+        id="emp-filter-dept"
+        label={t('filter.department')}
+        leadingIcon="users"
+        value={query.departmentId ?? 'all'}
+        onChange={v => onChange({ departmentId: v })}
+        options={deptOptions}
+      />
+      <SelectMini
+        id="emp-filter-branch"
+        label={t('filter.branch')}
+        leadingIcon="building"
+        value={query.branchId ?? 'all'}
+        onChange={v => onChange({ branchId: v })}
+        options={branchOptions}
+      />
+      <SelectMini
+        id="emp-filter-status"
+        label={t('filter.status')}
+        leadingIcon="circle-dot"
+        value={query.status ?? 'active'}
+        onChange={v => {
+          const s = v === 'all' || v === 'active' || v === 'terminated' ? v : 'all'
+          onChange({ status: s })
+        }}
+        options={statusOptions}
+      />
+      <SelectMini
+        id="emp-filter-sort"
+        label={t('filter.sort')}
+        leadingIcon="list-filter"
+        value={query.sort ?? 'updated_desc'}
+        onChange={v => onChange({ sort: v as SortValue })}
+        options={sortOptions}
+      />
 
-      {/* Status */}
-      <div className="w-40">
-        <Select
-          value={query.status ?? 'all'}
-          onChange={v => {
-            const s = v === 'all' || v === 'active' || v === 'terminated' ? v : 'all'
-            onChange({ status: s })
-          }}
-          options={statusOptions}
-        />
-      </div>
-
-      {/* Branch */}
-      <div className="w-40">
-        <Select
-          value={query.branchId ?? 'all'}
-          onChange={v => onChange({ branchId: v })}
-          options={branchOptions}
-        />
-      </div>
-
-      {/* Department */}
-      <div className="w-44">
-        <Select
-          value={query.departmentId ?? 'all'}
-          onChange={v => onChange({ departmentId: v })}
-          options={deptOptions}
-        />
-      </div>
-
-      {/* Reset */}
       {dirty && (
-        <Btn
-          variant="ghost"
-          size="sm"
-          onClick={() =>
-            onChange({
-              status: 'all',
-              branchId: 'all',
-              departmentId: 'all',
-              search: '',
-            })
-          }
+        <button
+          type="button"
+          onClick={() => onChange({
+            status: 'active',
+            branchId: 'all',
+            departmentId: 'all',
+            search: '',
+            sort: 'updated_desc',
+          })}
+          aria-label={t('filter.reset')}
+          className="ml-auto inline-flex items-center gap-1 h-8 px-2.5 rounded-lg text-[14px] font-semibold text-[#F8FAFC] hover:bg-[#22272E]"
         >
-          <Icon name="x" size={13} />
-          {t('filter.all')}
-        </Btn>
+          <Icon name="x" size={12} />
+          {t('filter.reset')}
+        </button>
       )}
     </div>
   )

@@ -18,8 +18,16 @@
     "all": "All",
     "branch": "Branch",
     "department": "Department",
-    "search": "Search",
-    "status": "Status"
+    "search": "Search by name, position…",
+    "status": "Status",
+    "sort": "Sort",
+    "sortUpdatedDesc": "Newest first",
+    "sortUpdatedAsc": "Oldest first",
+    "sortNameAsc": "Name A → Z",
+    "sortNameDesc": "Name Z → A",
+    "sortDeptAsc": "By department",
+    "sortAssetsDesc": "Most assets",
+    "reset": "Reset"
   },
   "form": {
     "branch": "Branch",

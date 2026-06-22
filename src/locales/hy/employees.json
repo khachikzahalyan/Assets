@@ -18,8 +18,16 @@
     "all": "Բոլորը",
     "branch": "Մասնաճյուղ",
     "department": "Բաժին",
-    "search": "Որոնում",
-    "status": "Կարգավիճակ"
+    "search": "Որոնել անունով, պաշտոնով…",
+    "status": "Կարգավիճակ",
+    "sort": "Տեսակ.",
+    "sortUpdatedDesc": "Նոր-հին",
+    "sortUpdatedAsc": "Հին-նոր",
+    "sortNameAsc": "Անուն Ա → Ω",
+    "sortNameDesc": "Անուն Ω → Ա",
+    "sortDeptAsc": "Ըստ բաժնի",
+    "sortAssetsDesc": "Ավելի շատ ակտիվներ",
+    "reset": "Զրոյացնել"
   },
   "form": {
     "branch": "Մասնաճյուղ",
