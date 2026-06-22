@@ -24,10 +24,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <Ctx.Provider value={{ showToast }}>
       {children}
-      {toast && (
-        <div className="fixed top-4 right-4 z-[60] pointer-events-none">
+      <div className="fixed top-4 right-4 z-[60] pointer-events-none">
+        {toast && [toast].map((tt) => (
           <div
-            key={toast.id}
+            key={tt.id}
             className="anim-toast pointer-events-auto bg-[#1B1F24] border border-emerald-500/30 rounded-lg shadow-xl shadow-emerald-900/10 px-4 py-3 flex items-center gap-2.5 min-w-[260px] max-w-md"
             role="status"
             aria-live="polite"
@@ -35,10 +35,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             <div className="w-7 h-7 rounded-md bg-emerald-500/15 text-emerald-300 flex items-center justify-center shrink-0">
               <Icon name="check" size={14} />
             </div>
-            <div className="text-[15px] text-[#F8FAFC] font-semibold tracking-tight">{toast.text}</div>
+            <div className="text-[15px] text-[#F8FAFC] font-semibold tracking-tight">{tt.text}</div>
           </div>
-        </div>
-      )}
+        ))}
+      </div>
     </Ctx.Provider>
   )
 }
