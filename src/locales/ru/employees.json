@@ -1,4 +1,5 @@
 {
+  "addButton": "Добавить",
   "create": "Добавить сотрудника",
   "detail": {
     "acts": "Подписанные акты",
@@ -87,7 +88,9 @@
   },
   "pagination": {
     "range": "{{from}}–{{to}} / {{total}}",
-    "showing": "Показано {{from}}–{{to}} из {{total}}"
+    "showing": "Показано {{from}}–{{to}} из {{total}}",
+    "prev": "Предыдущая страница",
+    "next": "Следующая страница"
   },
   "handover": {
     "title": "Приёмка техники",

@@ -1,4 +1,5 @@
 {
+  "addButton": "Ավելացնել",
   "create": "Ավելացնել աշխատակից",
   "dest": {
     "branch": "Մասնաճյուղ…",
@@ -83,7 +84,9 @@
   },
   "pagination": {
     "range": "{{from}}–{{to}} / {{total}}",
-    "showing": "Ցուցադրված է {{from}}–{{to}} {{total}}-ից"
+    "showing": "Ցուցադրված է {{from}}–{{to}} {{total}}-ից",
+    "prev": "Նախորդ էջ",
+    "next": "Հաջորդ էջ"
   },
   "picker": {
     "back": "Հետ",

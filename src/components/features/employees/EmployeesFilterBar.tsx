@@ -103,6 +103,7 @@ export function EmployeesFilterBar({
           onChange({ status: s })
         }}
         options={statusOptions}
+        defaultValue="active"
       />
       <SelectMini
         id="emp-filter-sort"
@@ -111,6 +112,7 @@ export function EmployeesFilterBar({
         value={query.sort ?? 'updated_desc'}
         onChange={v => onChange({ sort: v as SortValue })}
         options={sortOptions}
+        defaultValue="updated_desc"
       />
 
       {dirty && (

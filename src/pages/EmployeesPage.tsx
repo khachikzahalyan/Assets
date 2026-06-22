@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
 import {
-  PageHeader, SectionCard, Btn, Icon, EmptyState, LoadingState, ErrorState,
+  PageHeader, Btn, Icon, EmptyState, LoadingState, ErrorState,
 } from '@/components/ui'
 import {
   EmployeesFilterBar,
@@ -561,9 +561,8 @@ export function EmployeesPage({
   // ── Render helpers ────────────────────────────────────────────────────────
 
   function renderPagination() {
-    if (totalCount <= PAGE_SIZE) return null
     return (
-      <div className="flex items-center justify-between px-1 py-2 border-t border-[#2A2F36] mt-1">
+      <div className="flex items-center justify-between px-5 py-2 border-t border-[#2A2F36]">
         <span className="text-[14px] text-[#94A3B8] tabular-nums">
           {t('pagination.showing', { from, to, total: totalCount })}
         </span>
@@ -573,7 +572,7 @@ export function EmployeesPage({
             onClick={() => goTo(page - 1)}
             disabled={page === 1}
             className="inline-flex items-center justify-center w-8 h-8 rounded-md text-[#F8FAFC] hover:bg-[#22272E] disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-100"
-            aria-label="Previous page"
+            aria-label={t('pagination.prev')}
           >
             <Icon name="chevron-right" size={14} className="rotate-180" />
           </button>
@@ -609,7 +608,7 @@ export function EmployeesPage({
             onClick={() => goTo(page + 1)}
             disabled={page === totalPages}
             className="inline-flex items-center justify-center w-8 h-8 rounded-md text-[#F8FAFC] hover:bg-[#22272E] disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-100"
-            aria-label="Next page"
+            aria-label={t('pagination.next')}
           >
             <Icon name="chevron-right" size={14} />
           </button>
@@ -618,20 +617,22 @@ export function EmployeesPage({
     )
   }
 
-  function renderBody() {
+  function renderTableRegion() {
     if (loading) return <LoadingState rows={8} />
     if (error)   return <ErrorState onRetry={reload} />
     if (sorted.length === 0) {
       return (
-        <EmptyState
-          icon="users"
-          title={t('empty.title')}
-          description={t('empty.desc')}
-        />
+        <div className="flex-1 flex items-center justify-center">
+          <EmptyState
+            icon="users"
+            title={t('empty.title')}
+            description={t('empty.desc')}
+          />
+        </div>
       )
     }
     return (
-      <>
+      <div className="h-full">
         <EmployeesTable
           rows={pageRows}
           branches={branches}
@@ -639,14 +640,14 @@ export function EmployeesPage({
           assetCounts={assetCounts}
           headOfficeBranchId={headOfficeBranchId}
           onRowClick={e => { void handleOpenDetail(e.id) }}
+          onRestore={id => handleRestore(id)}
         />
-        {renderPagination()}
-      </>
+      </div>
     )
   }
 
   return (
-    <div className="space-y-5">
+    <div className="w-full h-full flex flex-col min-h-0 gap-2">
       <PageHeader
         icon="users"
         title={t('title')}
@@ -677,8 +678,8 @@ export function EmployeesPage({
             </div>
             {canMutate && (
               <Btn variant="primary" size="md" onClick={handleCreate}>
-                <Icon name="users" size={14} />
-                {t('create')}
+                <Icon name="user-plus" size={14} />
+                {t('addButton')}
               </Btn>
             )}
           </div>
@@ -694,8 +695,10 @@ export function EmployeesPage({
         />
       </div>
 
-      <SectionCard noHeader>
-        <div className="space-y-3">
+      {/* Three-zone card: filter (shrink-0) / table (flex-1) / pagination (shrink-0) */}
+      <div className="bg-[#1B1F24] rounded-lg border border-[#2A2F36] shadow-sm shadow-black/30 flex flex-col flex-1 min-h-0">
+        {/* Zone 1: Filter bar */}
+        <div className="flex-shrink-0">
           <EmployeesFilterBar
             query={query}
             onChange={patch => {
@@ -708,7 +711,7 @@ export function EmployeesPage({
             headOfficeBranchId={headOfficeBranchId}
           />
           {!loading && hasActiveFilters && sorted.length === 0 && (
-            <div className="px-4">
+            <div className="px-4 pb-2">
               <button
                 type="button"
                 onClick={resetFilters}
@@ -718,9 +721,18 @@ export function EmployeesPage({
               </button>
             </div>
           )}
-          {renderBody()}
         </div>
-      </SectionCard>
+
+        {/* Zone 2: Table region (fills remaining height) */}
+        <div className="flex-1 min-h-0 overflow-hidden">
+          {renderTableRegion()}
+        </div>
+
+        {/* Zone 3: Pagination (always rendered) */}
+        <div className="flex-shrink-0">
+          {renderPagination()}
+        </div>
+      </div>
 
       {/* ── Modals / Drawers ── */}
 
