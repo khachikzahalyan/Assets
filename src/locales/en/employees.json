@@ -78,6 +78,50 @@
   "pagination": {
     "range": "{{from}}–{{to}} / {{total}}"
   },
+  "handover": {
+    "title": "Equipment handover",
+    "step1": "Step 1 of 2 · Receive",
+    "step2": "Step 2 of 2 · Route",
+    "markAll": "Select all",
+    "unmarkAll": "Deselect all",
+    "next": "Next",
+    "back": "Back",
+    "finish": "Complete handover",
+    "cancel": "Cancel",
+    "received": "Received",
+    "remaining": "remaining",
+    "destInfo": "All assets are routed to warehouse by default. Click a chip to redirect.",
+    "kbHint": "Esc — close · Enter — toggle row"
+  },
+  "dest": {
+    "warehouse": "Warehouse",
+    "employee": "Employee…",
+    "department": "Department…",
+    "branch": "Branch…",
+    "search": "Search…",
+    "notFound": "Not found"
+  },
+  "picker": {
+    "title": "Link assets →",
+    "intro": "Select the asset category you want to issue to the employee.",
+    "groupDevices": "Devices",
+    "groupNetwork": "Network devices",
+    "groupFurniture": "Furniture",
+    "inStock": "in stock",
+    "cart": "Cart",
+    "review": "Cart",
+    "confirm": "Confirm",
+    "done": "Done",
+    "back": "Back",
+    "toSelection": "Back to selection",
+    "empty": "Cart is empty",
+    "emptyHint": "Go back to selection and add assets.",
+    "notFound": "Nothing found",
+    "cancelTitle": "Cancel selection?",
+    "branchOnly": "Branch assets only",
+    "willLink": "Will link",
+    "cancelConfirm": "Yes, cancel"
+  },
   "title": "Employees",
   "validation": {
     "emailFormat": "Enter a valid email",

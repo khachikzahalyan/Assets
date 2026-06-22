@@ -102,6 +102,12 @@ import {
   CalendarPlus,
   Link2,
   Phone,
+  CheckCheck,
+  ShoppingCart,
+  ArrowLeft,
+  AlertTriangle,
+  Info,
+  Square,
   type LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -208,6 +214,13 @@ const REGISTRY: Record<string, LucideIcon> = {
   'calendar-plus': CalendarPlus,
   'link-2': Link2,
   phone: Phone,
+  'check-check': CheckCheck,
+  'check-circle': CircleCheck,
+  'shopping-cart': ShoppingCart,
+  'arrow-left': ArrowLeft,
+  'alert-triangle': AlertTriangle,
+  info: Info,
+  square: Square,
 }
 
 export interface IconProps {
