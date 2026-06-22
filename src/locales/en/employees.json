@@ -123,6 +123,14 @@
     "cancelConfirm": "Yes, cancel"
   },
   "title": "Employees",
+  "toast": {
+    "created": "Employee added",
+    "updated": "Employee updated",
+    "archived": "Employee archived",
+    "restored": "Employee restored",
+    "linked": "Linked {{count}}",
+    "handover": "Equipment received, employee archived"
+  },
   "validation": {
     "emailFormat": "Enter a valid email",
     "emailTaken": "This email is already in use",
