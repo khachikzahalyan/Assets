@@ -1,95 +1,64 @@
 {
   "create": "Ավելացնել աշխատակից",
   "detail": {
-    "acts": "Ստorageformed ակtales",
-    "assets": "Կcved ակtives",
-    "noActs": "Ster ակtagsver chen",
-    "noAssets": "Կcved ակtagsver chen",
-    "profile": "Profil",
-    "reactivate": "Verkanganvel",
-    "terminate": "Azatvel ashkhatanqits",
-    "viewScan": "Bactel skann",
-    "linkAsset": "Կapel aktiv",
-    "handover": "Հandznel texnikán",
-    "restore": "Verkanganvel"
-  },
-  "restore": {
-    "title": "Verkanganve՞l ashkhataktsín",
-    "bodyPre": "",
-    "bodyPost": "kveradardna arxivits aktiv ashkhatakotsnerí mej: Heto karogh ek aktiver nshanel:",
-    "confirm": "Verkanganvel"
+    "acts": "Ստորագրված ակտեր",
+    "assets": "Կցված ակտիվներ",
+    "noActs": "Ստորագրված ակտեր չկան",
+    "noAssets": "Կցված ակտիվներ չկան",
+    "profile": "Պրոֆիլ",
+    "reactivate": "Վերականգնել",
+    "terminate": "Ազատել աշխատանքից",
+    "viewScan": "Բացել սկանը"
   },
   "empty": {
-    "desc": "Avelatstrek arajin ashkhatakotsín",
-    "title": "Ashkhatakotsner der che"
-  },
-  "kind": {
-    "all": "Bolory",
-    "staff": "Ashkhatakotsner"
+    "desc": "Ավելացրեք առաջին աշխատակցին",
+    "title": "Աշխատակիցներ դեռ չկան"
   },
   "filter": {
-    "all": "Bolory",
-    "branch": "Masnachyugh",
-    "department": "Bazhin",
-    "search": "Vornel anunov, pashtonnov...",
-    "status": "Kargatvakats",
-    "sort": "Tesak.",
-    "sortUpdatedDesc": "Nor-hin",
-    "sortUpdatedAsc": "Hin-nor",
-    "sortNameAsc": "Anun A → Ω",
-    "sortNameDesc": "Anun Ω → A",
-    "sortDeptAsc": "Stots bazhni",
-    "sortAssetsDesc": "Aveli shat aktiver",
-    "reset": "Zerojacnel"
+    "all": "Բոլորը",
+    "branch": "Մասնաճյուղ",
+    "department": "Բաժին",
+    "search": "Որոնում",
+    "status": "Կարգավիճակ"
   },
   "form": {
-    "branch": "Masnachyugh",
-    "cancel": "Chegharkel",
-    "create": "Stexcel",
-    "createSubtitle": "Lracrek nor ashkhatakotsí kartikut",
-    "createTitle": "Nor ashkhatakotsí",
-    "department": "Bazhin",
-    "editSubtitle": "Anuny ev Gmail-e kopts en",
-    "editTitle": "Ashkhatakotsí khmbagrutyun",
-    "email": "Korportiv el. pust",
-    "firstName": "Anun",
-    "gmail": "Gmail",
-    "lastName": "Azganun",
-    "notFound": "Ashkhatakotsí che gtnvel",
-    "pickBranch": "Entrek masnachyughy",
-    "pickDepartment": "Entrek bazhiny",
-    "position": "Pashtun",
-    "save": "Pahpanel",
-    "uid": "Ogtatiroji ID (uid)",
-    "uidHint": "Ashkhatakotsí Firebase Auth uid-n"
+    "branch": "Մասնաճյուղ",
+    "cancel": "Չեղարկել",
+    "createTitle": "Նոր աշխատակից",
+    "department": "Բաժին",
+    "editTitle": "Աշխատակցի խմբագրում",
+    "email": "Կորպորատիվ էլ. փոստ",
+    "firstName": "Անուն",
+    "lastName": "Ազգանուն",
+    "notFound": "Աշխատակիցը չի գտնվել",
+    "pickBranch": "Ընտրեք մասնաճյուղը",
+    "pickDepartment": "Ընտրեք բաժինը",
+    "position": "Պաշտոն",
+    "save": "Պահպանել",
+    "uid": "Օգտատիրոջ ID (uid)",
+    "uidHint": "Աշխատակցի Firebase Auth uid-ը։ Համընկնում է users/{uid}-ի հետ։"
   },
   "self": {
-    "myActs": "Im akteri",
-    "myAssets": "Im aktivnery",
-    "noActs": "Du storagrvats akteri chunes",
-    "noAssets": "Dez aktiver ktsved chen",
-    "noProfile": "Dzer profiln der kazmakel che",
-    "profile": "Im profiln"
+    "myActs": "Իմ ակտերը",
+    "myAssets": "Իմ ակտիվները",
+    "noActs": "Դուք ստորագրված ակտեր չունեք",
+    "noAssets": "Ձեզ ակտիվներ կցված չեն",
+    "noProfile": "Ձեր պրոֆիլը դեռ կազմված չէ։ Դիմեք ադմինիստրատորին։",
+    "profile": "Իմ պրոֆիլը"
   },
   "status": {
-    "active": "Aktiv",
-    "terminated": "Ashkhatakotsits azatvatsvats"
+    "active": "Ակտիվ",
+    "terminated": "Աշխատանքից ազատված"
   },
   "pagination": {
     "range": "{{from}}–{{to}} / {{total}}"
   },
-  "title": "Ashkhatakotsner",
+  "title": "Աշխատակիցներ",
   "validation": {
-    "emailFormat": "Mutkagratsek vaver el. pust",
-    "emailTaken": "Ays el. pustn ardy ogtagortsvum e",
-    "firstNameRequired": "Mutkagratsek anun",
-    "lastNameRequired": "Mutkagratsek azganun",
-    "positionRequired": "Mutkagratsek pashtun",
-    "deptRequired": "Entrek bazhin",
-    "phoneRequired": "Mutkagratsek herakhos",
-    "phoneDigits": "Herakhosy petk e lini 9 nish",
-    "required": "Partadir dash",
-    "saveFailed": "Che hajoghtsvets pahpanel",
-    "uidRequired": "Nshek uid"
+    "emailFormat": "Մուտքագրեք վավեր էլ. փոստ",
+    "emailTaken": "Այս էլ. փոստն արդեն օգտագործվում է",
+    "required": "Պարտադիր դաշտ",
+    "saveFailed": "Չհաջողվեց պահպանել։ Փորձեք կրկին։",
+    "uidRequired": "Նշեք uid"
   }
 }
