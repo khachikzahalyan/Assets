@@ -34,6 +34,13 @@ const PAGE_SIZE = 10
  */
 function destToPatch(dest: Destination, employees: Employee[]): TransferPatch {
   if (dest.kind === 'warehouse') return buildTransferPatch({ mode: 'warehouse' })
+  if (dest.kind === 'temporary') {
+    return buildTransferPatch({
+      mode: 'temporary',
+      tempKind: dest.tempKind,
+      expiresAt: dest.expiresAt,
+    })
+  }
   const empDeptId =
     dest.kind === 'employee'
       ? (employees.find(e => e.id === dest.id)?.departmentId ?? null)

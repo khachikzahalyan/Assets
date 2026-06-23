@@ -420,6 +420,62 @@ describe('EmployeesPage', () => {
     expect(callCount).toBe(2)
   })
 
+  it('temporary transfer: asset ends up with mode=temporary + isTemporary=true + expiresAt', async () => {
+    const user = userEvent.setup()
+    const asset = makeAsset()
+    const assetRepo = makeAssetRepo([asset])
+    const employee = emp({ id: 'uid_1' })
+    renderPage([employee], 'asset_admin', { uid_1: 1 }, { assetRepository: assetRepo })
+
+    // Open detail drawer by clicking the employee row
+    const row = await screen.findByText('Иван Петров')
+    await user.click(row)
+
+    // Enter select mode
+    const selectBtn = await screen.findByRole('button', { name: /Выбрать/i })
+    await user.click(selectBtn)
+
+    // Select the asset
+    const assetTitle = await screen.findByText('Dell XPS')
+    await user.click(assetTitle)
+
+    // Open DestPicker — chip defaults to "Склад"
+    const destChip = await screen.findByRole('button', { name: /Склад/i })
+    await user.click(destChip)
+
+    // Click "Временно" option in the top-level popover
+    const tempOption = await screen.findByRole('button', { name: /^Временно$/i })
+    await user.click(tempOption)
+
+    // In the temporary sub-panel, press the "Аудит" kind button
+    const auditBtn = await screen.findByRole('button', { name: /Аудит/i })
+    await user.click(auditBtn)
+
+    // Confirm the temporary selection ("Подтвердить" button)
+    const confirmTempBtn = await screen.findByRole('button', { name: /Подтвердить/i })
+    await user.click(confirmTempBtn)
+
+    // Click "Передать" (transfer action)
+    const transferBtn = await screen.findByRole('button', { name: /^Передать$/i })
+    await user.click(transferBtn)
+
+    // Click confirm in the confirmation dialog
+    const confirmBtn = await screen.findByRole('button', { name: /^Передать$/i })
+    await user.click(confirmBtn)
+
+    // Wait for toast
+    await waitFor(() => {
+      expect(screen.getByText(/Передано/i)).toBeInTheDocument()
+    })
+
+    // Assert asset state in repo — must be temporary with isTemporary: true
+    const assets = await assetRepo.listAssets({ statusId: 'all' })
+    expect(assets[0]!.statusId).toBe('st_assigned')
+    expect(assets[0]!.assignment?.mode).toBe('temporary')
+    expect((assets[0]!.assignment as { isTemporary?: boolean })?.isTemporary).toBe(true)
+    expect((assets[0]!.assignment as { tempKind?: string })?.tempKind).toBe('audit')
+  })
+
   it('handover redirect: redirected asset ends up assigned to target employee via changeStatus', async () => {
     const user = userEvent.setup()
     const asset = makeAsset()
