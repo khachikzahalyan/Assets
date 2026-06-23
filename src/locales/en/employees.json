@@ -103,7 +103,15 @@
     "department": "Department…",
     "branch": "Branch…",
     "search": "Search…",
-    "notFound": "Not found"
+    "notFound": "Not found",
+    "temporary": "Temporary",
+    "kindAudit": "Audit",
+    "kindIntern": "Intern",
+    "returnDate": "Return by",
+    "returnDatePlaceholder": "— pick a date —",
+    "tempLabel": "{{kind}} · by {{date}}",
+    "tempConfirm": "Confirm",
+    "back": "Back"
   },
   "transfer": {
     "action": "Transfer",

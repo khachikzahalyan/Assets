@@ -2,11 +2,19 @@
   "addButton": "Ավելացնել",
   "create": "Ավելացնել աշխատակից",
   "dest": {
+    "back": "Հետ",
     "branch": "Մասնաճյուղ…",
     "department": "Բաժին…",
     "employee": "Աշխատակից…",
+    "kindAudit": "Աուդիտ",
+    "kindIntern": "Պրակտիկանտ",
     "notFound": "Չի գտնվել",
+    "returnDate": "Վերադարձնել մինչև",
+    "returnDatePlaceholder": "— ընտրեք ամսաթիվ —",
     "search": "Որոնում…",
+    "tempConfirm": "Հաստատել",
+    "tempLabel": "{{kind}} · մինչև {{date}}",
+    "temporary": "Ժամանակավոր",
     "warehouse": "Պահեստ"
   },
   "transfer": {
