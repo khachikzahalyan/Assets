@@ -9,6 +9,10 @@
 
 :root {
 
+  /* ── NATIVE CONTROLS — dark-mode parity on mobile ── */
+  color-scheme: dark;
+  accent-color: #F97316;
+
   /* ── SURFACES ── */
   --color-bg:             #111315;
   --color-surface:        #1B1F24;
@@ -285,6 +289,14 @@ select:-webkit-autofill {
   animation: skeletonShimmer 1.4s ease-in-out infinite;
 }
 
+@keyframes amsLoaderGlow {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50%       { opacity: 1;   transform: scale(1.12); }
+}
+.anim-loader-glow {
+  animation: amsLoaderGlow 2s ease-in-out infinite;
+}
+
 @keyframes contentEnter {
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0);   }
@@ -308,6 +320,18 @@ select:-webkit-autofill {
   100% { opacity: 0; transform: translateX(20px); }
 }
 .anim-toast { animation: toastInOut 3000ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* toastSlide — used by the Licenses page inline toast */
+@keyframes toastSlide {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* tabIndicatorIn — used by license tab strip underline indicator */
+@keyframes tabIndicatorIn {
+  from { opacity: 0; transform: translateY(2px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 
 /* drawerSlideInRight — matches prototype employees.html (slides in from right: +24px → 0) */
 @keyframes drawerSlideInRight {
@@ -500,11 +524,185 @@ select:-webkit-autofill {
 }
 
 /* =========================================================
-   Mobile overrides (≤ 767px) — assets list page layout
+   Mobile overrides (≤ 767px)
+   ALL rules in this block are gated to ≤767px — desktop is untouched.
    ========================================================= */
 @media (max-width: 767px) {
-  /* Remove content-area padding so mobile card list spans edge-to-edge */
+
+  /* ── Body / root: allow natural scroll on mobile.
+     Desktop locks overflow:hidden; restore it for mobile. ── */
+  html, body {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    height: auto !important;
+  }
+
+  #root {
+    height: auto !important;
+    min-height: 100vh;
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+  }
+
+  /* ── App-shell root: fixed viewport height on mobile ── */
+  .app-shell-root {
+    height: 100svh;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ── Sidebar: hide static sidebar from layout (drawer handles it) ── */
+  .app-shell-sidebar {
+    display: none !important;
+  }
+
+  /* ── Shell body: full-width column on mobile ── */
+  .app-shell-body {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  /* ── Main column: full width ── */
+  .app-shell-main {
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  /* ── Topbar: 52px height, 8px side padding, no backdrop-filter
+     (backdrop-filter creates a containing block that clips position:fixed
+     dropdowns — safe to remove because the bg is already opaque #1B1F24) ── */
+  .app-shell-topbar {
+    height: 52px !important;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    position: sticky;
+    top: 0;
+    z-index: var(--z-sticky, 10);
+    flex-shrink: 0;
+  }
+
+  /* ── Content area: scrollable with 12px padding + safe-area bottom.
+     Note: pages that go edge-to-edge (assets card list) override this
+     via the .app-shell-content-flush modifier applied by AssetsPage. ── */
   .app-shell-content {
-    padding: 0;
+    padding: 12px 12px calc(12px + env(safe-area-inset-bottom, 0px)) !important;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    flex: 1;
+    min-height: 0;
+    box-sizing: border-box !important;
+    width: 100% !important;
+  }
+
+  /* ── Edge-to-edge override for pages (e.g. assets card list) ── */
+  .app-shell-content-flush {
+    padding: 0 !important;
+  }
+
+  /* ── Sidebar drawer: max 85vw so it never covers full screen ── */
+  .sidebar-drawer {
+    width: min(280px, 85vw) !important;
+    z-index: 200;
+  }
+
+  .sidebar-overlay {
+    z-index: 199;
+  }
+
+  /* ── Sidebar nav items: 44px min touch target ── */
+  .sidebar-item {
+    height: 48px;
+    min-height: 44px;
+  }
+
+  /* ── LanguageToggle button: compact 28px chip ── */
+  .ams-lang-toggle-btn {
+    height: 28px !important;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    font-size: 12px !important;
+    border-radius: 6px !important;
+    gap: 3px !important;
+  }
+
+  /* ── ProfileMenu: hide name/role text ── */
+  .ams-profile-name-text {
+    display: none !important;
+  }
+
+  /* ── ProfileMenu dropdown: fixed top-right below topbar ── */
+  .ams-profile-dropdown {
+    position: fixed !important;
+    top: 60px !important;
+    left: auto !important;
+    right: 8px !important;
+    bottom: auto !important;
+    width: 220px !important;
+    max-width: 220px !important;
+    border-radius: 14px !important;
+  }
+
+  /* ── Hide large avatar inside profile dropdown header on mobile ── */
+  .ams-profile-dropdown .ams-profile-dropdown-avatar {
+    display: none !important;
+  }
+
+  /* ── Dropdown items: larger touch targets ── */
+  .ams-profile-dropdown button,
+  .ams-lang-dropdown button {
+    min-height: 48px;
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+  }
+
+  /* ── LanguageToggle dropdown: bottom-sheet style, full-width ── */
+  .ams-lang-dropdown {
+    position: fixed !important;
+    left: 8px !important;
+    right: 8px !important;
+    top: auto !important;
+    bottom: calc(8px + env(safe-area-inset-bottom, 0px)) !important;
+    width: auto !important;
+    max-width: none !important;
+    border-radius: 16px !important;
+  }
+
+  /* ── Hide scrollbars on mobile (§20) ── */
+  ::-webkit-scrollbar {
+    width: 0 !important;
+    height: 0 !important;
+  }
+
+  /* ── Fade-right mask on horizontal scroll strips ── */
+  .scroll-fade-x {
+    -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 28px), transparent 100%);
+    mask-image:         linear-gradient(to right, #000 0, #000 calc(100% - 28px), transparent 100%);
+    padding-right: 28px;
+  }
+
+  /* ── Mobile card status pill: 20px height, 10.5px font ── */
+  .mobile-card-status-pill .inline-flex {
+    height: 20px !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    font-size: 10.5px !important;
+    line-height: 20px !important;
+  }
+  .mobile-card-status-pill .w-1\.5 {
+    width: 6px !important;
+    height: 6px !important;
+  }
+}
+
+/* ── ≤479px: hide chevron in language toggle ── */
+@media (max-width: 479px) {
+  .ams-lang-chevron {
+    display: none !important;
+  }
+  .app-shell-topbar {
+    overflow: hidden;
   }
 }

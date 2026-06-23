@@ -8,9 +8,10 @@ import { authedDb, unauthedDb, makeTestEnv, seedDoc, seedUser } from './helpers'
  * Require the Firestore emulator (run via `npm run test:rules`).
  * Excluded from the default `vitest run`.
  *
- * Key invariant: /licenses/{id}/secrets and /server_licenses/{id}/secrets are
- * DENIED to ALL client SDK callers — including super_admin. Raw license keys
- * are only accessible via the revealLicenseKey Cloud Function (Admin SDK).
+ * Secrets posture (post Cloud-Functions removal):
+ *   /licenses/{id}/secrets       — super_admin OR tech_admin may read+write.
+ *   /server_licenses/{id}/secrets — super_admin ONLY may read+write.
+ *   asset_admin, employee, and unauthenticated callers are denied in both cases.
  */
 
 const SUPER = 'super1'
@@ -130,13 +131,11 @@ describe('/licenses read', () => {
 })
 
 // ---------------------------------------------------------------------------
-// /licenses/{id}/secrets — ALL client callers denied (read + write)
+// /licenses/{id}/secrets — super_admin + tech_admin allowed; others denied
 // ---------------------------------------------------------------------------
 
-describe('/licenses/{id}/secrets — deny-all', () => {
+describe('/licenses/{id}/secrets', () => {
   beforeEach(async () => {
-    // Seed the parent license and its secrets doc with admin privileges so
-    // we can test reads without hitting the parent rule.
     await seedDoc(env, 'licenses/lic_secret', {
       name: 'Windows 11 Pro', assignmentType: 'device', lifecycleStatus: 'active',
     })
@@ -145,14 +144,16 @@ describe('/licenses/{id}/secrets — deny-all', () => {
     })
   })
 
-  it('super_admin CANNOT read the secrets sub-document', async () => {
-    await assertFails(
+  // ---- reads ----
+
+  it('super_admin CAN read the secrets sub-document', async () => {
+    await assertSucceeds(
       getDoc(doc(authedDb(env, SUPER), 'licenses', 'lic_secret', 'secrets', 'current')),
     )
   })
 
-  it('tech_admin CANNOT read the secrets sub-document', async () => {
-    await assertFails(
+  it('tech_admin CAN read the secrets sub-document', async () => {
+    await assertSucceeds(
       getDoc(doc(authedDb(env, TECH), 'licenses', 'lic_secret', 'secrets', 'current')),
     )
   })
@@ -175,18 +176,44 @@ describe('/licenses/{id}/secrets — deny-all', () => {
     )
   })
 
-  it('super_admin CANNOT write to the secrets sub-document', async () => {
-    await assertFails(
+  // ---- writes ----
+
+  it('super_admin CAN write to the secrets sub-document', async () => {
+    await assertSucceeds(
       setDoc(doc(authedDb(env, SUPER), 'licenses', 'lic_secret', 'secrets', 'current'), {
-        key: 'NEW-KEY',
+        key: 'NEW-KEY-SUPER',
       }),
     )
   })
 
-  it('tech_admin CANNOT write to the secrets sub-document', async () => {
-    await assertFails(
+  it('tech_admin CAN write to the secrets sub-document', async () => {
+    await assertSucceeds(
       setDoc(doc(authedDb(env, TECH), 'licenses', 'lic_secret', 'secrets', 'current'), {
-        key: 'NEW-KEY',
+        key: 'NEW-KEY-TECH',
+      }),
+    )
+  })
+
+  it('asset_admin CANNOT write to the secrets sub-document', async () => {
+    await assertFails(
+      setDoc(doc(authedDb(env, ASSET), 'licenses', 'lic_secret', 'secrets', 'current'), {
+        key: 'SHOULD-FAIL',
+      }),
+    )
+  })
+
+  it('employee CANNOT write to the secrets sub-document', async () => {
+    await assertFails(
+      setDoc(doc(authedDb(env, EMP), 'licenses', 'lic_secret', 'secrets', 'current'), {
+        key: 'SHOULD-FAIL',
+      }),
+    )
+  })
+
+  it('unauthenticated CANNOT write to the secrets sub-document', async () => {
+    await assertFails(
+      setDoc(doc(unauthedDb(env), 'licenses', 'lic_secret', 'secrets', 'current'), {
+        key: 'SHOULD-FAIL',
       }),
     )
   })
@@ -260,10 +287,10 @@ describe('/server_licenses read', () => {
 })
 
 // ---------------------------------------------------------------------------
-// /server_licenses/{id}/secrets — ALL client callers denied (read + write)
+// /server_licenses/{id}/secrets — super_admin ONLY; all others denied
 // ---------------------------------------------------------------------------
 
-describe('/server_licenses/{id}/secrets — deny-all', () => {
+describe('/server_licenses/{id}/secrets', () => {
   beforeEach(async () => {
     await seedDoc(env, 'server_licenses/srv_secret', {
       name: 'Windows Server 2022', lifecycleStatus: 'active',
@@ -273,8 +300,10 @@ describe('/server_licenses/{id}/secrets — deny-all', () => {
     })
   })
 
-  it('super_admin CANNOT read the secrets sub-document', async () => {
-    await assertFails(
+  // ---- reads ----
+
+  it('super_admin CAN read the secrets sub-document', async () => {
+    await assertSucceeds(
       getDoc(doc(authedDb(env, SUPER), 'server_licenses', 'srv_secret', 'secrets', 'current')),
     )
   })
@@ -303,10 +332,12 @@ describe('/server_licenses/{id}/secrets — deny-all', () => {
     )
   })
 
-  it('super_admin CANNOT write to the secrets sub-document', async () => {
-    await assertFails(
+  // ---- writes ----
+
+  it('super_admin CAN write to the secrets sub-document', async () => {
+    await assertSucceeds(
       setDoc(doc(authedDb(env, SUPER), 'server_licenses', 'srv_secret', 'secrets', 'current'), {
-        key: 'NEW-KEY',
+        key: 'NEW-SRV-KEY',
       }),
     )
   })
@@ -314,7 +345,31 @@ describe('/server_licenses/{id}/secrets — deny-all', () => {
   it('tech_admin CANNOT write to the secrets sub-document', async () => {
     await assertFails(
       setDoc(doc(authedDb(env, TECH), 'server_licenses', 'srv_secret', 'secrets', 'current'), {
-        key: 'NEW-KEY',
+        key: 'SHOULD-FAIL',
+      }),
+    )
+  })
+
+  it('asset_admin CANNOT write to the secrets sub-document', async () => {
+    await assertFails(
+      setDoc(doc(authedDb(env, ASSET), 'server_licenses', 'srv_secret', 'secrets', 'current'), {
+        key: 'SHOULD-FAIL',
+      }),
+    )
+  })
+
+  it('employee CANNOT write to the secrets sub-document', async () => {
+    await assertFails(
+      setDoc(doc(authedDb(env, EMP), 'server_licenses', 'srv_secret', 'secrets', 'current'), {
+        key: 'SHOULD-FAIL',
+      }),
+    )
+  })
+
+  it('unauthenticated CANNOT write to the secrets sub-document', async () => {
+    await assertFails(
+      setDoc(doc(unauthedDb(env), 'server_licenses', 'srv_secret', 'secrets', 'current'), {
+        key: 'SHOULD-FAIL',
       }),
     )
   })

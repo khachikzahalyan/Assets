@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import ReactDOM from 'react-dom'
 import { useModalA11y } from './useModalA11y'
+import { MODAL_BACKDROP_ABS } from './styles'
 
 export interface DrawerProps {
   open: boolean
@@ -53,10 +54,10 @@ export function Drawer({ open, onClose, children, ariaLabel }: DrawerProps) {
     <div className="fixed inset-0 z-50">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-[2px] anim-backdrop-fade"
+        className={MODAL_BACKDROP_ABS}
         onClick={onClose}
       />
-      {/* Panel */}
+      {/* Panel — right-side drawer on desktop, full-screen on mobile */}
       <div
         ref={panelRef}
         data-drawer
@@ -64,7 +65,7 @@ export function Drawer({ open, onClose, children, ariaLabel }: DrawerProps) {
         role="dialog"
         aria-modal="true"
         aria-label={ariaLabel}
-        className="absolute top-0 right-0 h-full bg-[#1B1F24] border-l border-[#2A2F36] shadow-2xl shadow-slate-900/20 anim-drawer-slide-in flex flex-col"
+        className="absolute top-0 right-0 h-full bg-surface border-l border-border shadow-2xl shadow-slate-900/20 anim-drawer-slide-in flex flex-col max-md:w-full max-md:max-w-full"
         style={{ width: '100%', maxWidth: 'clamp(320px, 42vw, 680px)' }}
       >
         {children}

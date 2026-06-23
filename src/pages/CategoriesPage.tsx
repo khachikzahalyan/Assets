@@ -53,7 +53,7 @@ export function CategoriesPage({ repository }: CategoriesPageProps) {
     {
       key: 'name',
       header: t('col.name'),
-      render: c => <span className="text-[#F8FAFC]">{c.name}</span>,
+      render: c => <span className="text-text-primary">{c.name}</span>,
     },
     {
       key: 'group',
@@ -63,7 +63,7 @@ export function CategoriesPage({ repository }: CategoriesPageProps) {
     {
       key: 'prefix',
       header: t('col.prefix'),
-      render: c => <span className="font-mono text-[#94A3B8]">{c.prefix}</span>,
+      render: c => <span className="font-mono text-text-tertiary">{c.prefix}</span>,
     },
     {
       key: 'specs',
@@ -143,8 +143,8 @@ export function CategoriesPage({ repository }: CategoriesPageProps) {
           onDelete={askDelete}
         />
         {total > PAGE_SIZE && (
-          <div className="flex items-center justify-between pt-4 border-t border-[#2A2F36] mt-2">
-            <span className="text-[12px] text-[#64748B]">
+          <div className="flex items-center justify-between pt-4 border-t border-border mt-2">
+            <span className="text-[12px] text-text-subtle">
               {t('pagination.range', { from, to, total })}
             </span>
             <div className="flex gap-2">
@@ -162,7 +162,7 @@ export function CategoriesPage({ repository }: CategoriesPageProps) {
   }
 
   return (
-    <div className="anim-content-enter space-y-5">
+    <div className="space-y-5">
       <PageHeader
         icon="tags" title={t('title')} {...(!loading ? { count: total } : {})}
         {...(canMutate ? { actions: (

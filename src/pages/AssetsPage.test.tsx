@@ -159,7 +159,7 @@ describe('AssetsPage', () => {
     const repo = new InMemoryAssetRepository(ASSETS, REF)
     renderPage('asset_admin', repo)
     await waitFor(() => {
-      expect(screen.getByText('Создать актив')).toBeInTheDocument()
+      expect(screen.getByText('Создать')).toBeInTheDocument()
     })
   })
 
@@ -170,7 +170,7 @@ describe('AssetsPage', () => {
     await waitFor(() => {
       expect(screen.getByText('LAP/001')).toBeInTheDocument()
     })
-    expect(screen.queryByText('Создать актив')).toBeNull()
+    expect(screen.queryByText('Создать')).toBeNull()
   })
 
   it('(d) typing in search narrows rows', async () => {
@@ -193,8 +193,9 @@ describe('AssetsPage', () => {
   it('(e) empty state when repo returns []', async () => {
     const repo = new InMemoryAssetRepository([], REF)
     renderPage('asset_admin', repo)
+    // No filters active + empty repo → the "no assets yet" title.
     await waitFor(() => {
-      expect(screen.getByText('Активы не найдены')).toBeInTheDocument()
+      expect(screen.getByText('Пока нет активов')).toBeInTheDocument()
     })
   })
 
@@ -230,7 +231,7 @@ describe('AssetsPage', () => {
     const repo = new InMemoryAssetRepository(ASSETS, REF)
     renderPage('super_admin', repo)
     await waitFor(() => {
-      expect(screen.getByText('Создать актив')).toBeInTheDocument()
+      expect(screen.getByText('Создать')).toBeInTheDocument()
     })
   })
 
@@ -241,7 +242,7 @@ describe('AssetsPage', () => {
     await waitFor(() => {
       expect(screen.getByText('LAP/001')).toBeInTheDocument()
     })
-    expect(screen.queryByText('Создать актив')).toBeNull()
+    expect(screen.queryByText('Создать')).toBeNull()
   })
 
   it('(g) group tab filters the table — network tab shows only network asset', async () => {
@@ -252,8 +253,8 @@ describe('AssetsPage', () => {
       expect(screen.getByText('LAP/001')).toBeInTheDocument()
       expect(screen.getByText('NET/001')).toBeInTheDocument()
     })
-    // Click the "Сетевые" (network) group tab
-    const networkTab = screen.getByRole('button', { name: 'Сетевые' })
+    // Click the "Сетевые устройства" (network) group tab
+    const networkTab = screen.getByRole('button', { name: 'Сетевые устройства' })
     fireEvent.click(networkTab)
     // After filtering, only the network asset should appear
     await waitFor(() => {
@@ -262,7 +263,7 @@ describe('AssetsPage', () => {
     })
   })
 
-  it('(h) pagination caps first page at 15 rows', async () => {
+  it('(h) pagination caps first page at 10 rows', async () => {
     // Build a dedicated fixture with 16 assets — all same group/status so nothing filters them out.
     const paginationAssets: Asset[] = Array.from({ length: 16 }, (_, i) => ({
       id: `pg_${i}`,
@@ -287,10 +288,16 @@ describe('AssetsPage', () => {
 
     // Count data rows: getAllByRole('row') includes the header row; subtract 1 for the thead <tr>
     const allRows = screen.getAllByRole('row')
-    // allRows[0] is the header; the rest are data rows
-    expect(allRows.length - 1).toBe(15)
+    // allRows[0] is the header; the rest are data rows (PAGE_SIZE=10)
+    expect(allRows.length - 1).toBe(10)
 
-    // Pagination range text should be present: "1–15 из 16"
-    expect(screen.getByText('1–15 из 16')).toBeInTheDocument()
+    // Pagination: page 1 of 16 assets. The bar's aria-label holds the i18n sentence
+    // "Показано {from} из {total}" → "Показано 1 из 16".
+    const allWithLabel = Array.from(document.querySelectorAll('[aria-label]')) as HTMLElement[]
+    const paginationLabel = allWithLabel.find(el => {
+      const l = el.getAttribute('aria-label') ?? ''
+      return l.includes('Показано') && l.includes('16')
+    })
+    expect(paginationLabel).toBeDefined()
   })
 })

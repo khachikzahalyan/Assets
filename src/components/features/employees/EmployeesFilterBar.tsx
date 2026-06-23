@@ -76,7 +76,7 @@ export function EmployeesFilterBar({
   const dirty = isDirty(query)
 
   return (
-    <div className="flex items-center gap-2 px-4 py-2 flex-wrap">
+    <div className="flex items-center gap-2 px-4 py-2 flex-wrap max-md:flex-nowrap max-md:overflow-x-auto no-scrollbar scroll-fade-x">
       <SelectMini
         id="emp-filter-dept"
         label={t('filter.department')}
@@ -126,7 +126,7 @@ export function EmployeesFilterBar({
             sort: 'updated_desc',
           })}
           aria-label={t('filter.reset')}
-          className="ml-auto inline-flex items-center gap-1 h-8 px-2.5 rounded-lg text-[14px] font-semibold text-[#F8FAFC] hover:bg-[#22272E]"
+          className="ml-auto inline-flex items-center gap-1 h-8 px-2.5 rounded-lg text-[14px] font-semibold text-text-primary hover:bg-surface-2"
         >
           <Icon name="x" size={12} />
           {t('filter.reset')}

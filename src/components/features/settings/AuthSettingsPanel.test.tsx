@@ -35,8 +35,8 @@ function getSaveBtn() {
   // The Save button is the only primary button outside the dialog
   const btns = Array.from(document.querySelectorAll('button')) as HTMLButtonElement[]
   // Filter to button with the orange primary class
-  return btns.find(b => b.className.includes('bg-[#F97316]') && !document.querySelector('[role="dialog"]')?.contains(b))
-    ?? btns.find(b => b.className.includes('bg-[#F97316]'))!
+  return btns.find(b => b.className.includes('bg-accent') && !document.querySelector('[role="dialog"]')?.contains(b))
+    ?? btns.find(b => b.className.includes('bg-accent'))!
 }
 
 /** Finds the Add button (the secondary btn next to the input). */
@@ -47,7 +47,7 @@ function getAddBtn() {
   }
   // Fallback: secondary btn in the add-row area
   const btns = Array.from(document.querySelectorAll('button')) as HTMLButtonElement[]
-  return btns.find(b => !b.className.includes('bg-[#F97316]') && !b.closest('[role="dialog"]'))!
+  return btns.find(b => !b.className.includes('bg-accent') && !b.closest('[role="dialog"]'))!
 }
 
 describe('AuthSettingsPanel', () => {

@@ -70,7 +70,7 @@ export function ProfilePage({ repository, loadRefData }: ProfilePageProps) {
 
   if (loading) {
     return (
-      <div className="anim-content-enter space-y-5">
+      <div className="space-y-5">
         <PageHeader icon="user" title="…" />
         <LoadingState rows={5} />
       </div>
@@ -79,7 +79,7 @@ export function ProfilePage({ repository, loadRefData }: ProfilePageProps) {
 
   if (loadError) {
     return (
-      <div className="anim-content-enter space-y-5">
+      <div className="space-y-5">
         <PageHeader icon="user" title={t('self.profile')} />
         <ErrorState onRetry={load} />
       </div>
@@ -88,7 +88,7 @@ export function ProfilePage({ repository, loadRefData }: ProfilePageProps) {
 
   if (employee === null) {
     return (
-      <div className="anim-content-enter space-y-5">
+      <div className="space-y-5">
         <PageHeader icon="user" title={t('self.profile')} />
         <EmptyState icon="user" title={t('self.noProfile')} />
       </div>
@@ -100,7 +100,7 @@ export function ProfilePage({ repository, loadRefData }: ProfilePageProps) {
   const deptName   = employee.departmentId ? (deptMap.get(employee.departmentId) ?? '—') : '—'
 
   return (
-    <div className="anim-content-enter space-y-5">
+    <div className="space-y-5">
       <PageHeader
         icon="user"
         title={fullName}
@@ -114,22 +114,22 @@ export function ProfilePage({ repository, loadRefData }: ProfilePageProps) {
       <SectionCard title={t('detail.profile')} icon="user">
         <dl className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
           <Field label={t('form.firstName')}>
-            <p className="text-[13px] text-[#F8FAFC]">{employee.firstName || '—'}</p>
+            <p className="text-[13px] text-text-primary">{employee.firstName || '—'}</p>
           </Field>
           <Field label={t('form.lastName')}>
-            <p className="text-[13px] text-[#F8FAFC]">{employee.lastName || '—'}</p>
+            <p className="text-[13px] text-text-primary">{employee.lastName || '—'}</p>
           </Field>
           <Field label={t('form.email')}>
-            <p className="text-[13px] text-[#F8FAFC] font-mono">{employee.email || '—'}</p>
+            <p className="text-[13px] text-text-primary font-mono">{employee.email || '—'}</p>
           </Field>
           <Field label={t('form.position')}>
-            <p className="text-[13px] text-[#F8FAFC]">{employee.position ?? '—'}</p>
+            <p className="text-[13px] text-text-primary">{employee.position ?? '—'}</p>
           </Field>
           <Field label={t('form.branch')}>
-            <p className="text-[13px] text-[#F8FAFC]">{branchName}</p>
+            <p className="text-[13px] text-text-primary">{branchName}</p>
           </Field>
           <Field label={t('form.department')}>
-            <p className="text-[13px] text-[#F8FAFC]">{deptName}</p>
+            <p className="text-[13px] text-text-primary">{deptName}</p>
           </Field>
         </dl>
       </SectionCard>

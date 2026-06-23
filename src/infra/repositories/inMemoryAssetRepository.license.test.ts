@@ -46,22 +46,24 @@ function makeRepos() {
 }
 
 // ---------------------------------------------------------------------------
-// Suite 1: rawKey branch — new device-bound OEM license created on asset create
+// Suite 1: manual branch — a MANUAL product key creates a Retail (reusable),
+// NOT an OEM, license. (Manual ≠ OEM-digital — that was the original bug.)
 // ---------------------------------------------------------------------------
 
-describe('createAsset with oemLicense: { rawKey } (new OEM license)', () => {
-  it('creates a device-bound OEM workstation license for the new asset', async () => {
+describe('createAsset with oemLicense: { kind: manual, rawKey } (Retail key license)', () => {
+  it('creates a device-bound Retail (reusable) workstation license for the new asset', async () => {
     const { assetRepo, licenseRepo } = makeRepos()
 
     const { value: asset } = await assetRepo.createAsset(
-      { ...BASE_INPUT, oemLicense: { rawKey: 'WIN-1122-3344-5566' } },
+      { ...BASE_INPUT, oemLicense: { kind: 'manual', rawKey: 'WIN-1122-3344-5566' } },
       ACTOR,
     )
 
     const bound = await licenseRepo.listForAsset(asset.id)
     expect(bound).toHaveLength(1)
-    expect(bound[0]!.type).toBe('OEM')
-    expect(bound[0]!.isReusable).toBe(false)
+    // Manual key → Retail, NOT OEM (this is the core regression guard).
+    expect(bound[0]!.type).toBe('Retail')
+    expect(bound[0]!.isReusable).toBe(true)
     expect(bound[0]!.assignmentType).toBe('device')
     expect(bound[0]!.assignedToAssetId).toBe(asset.id)
     expect(bound[0]!.lifecycleStatus).toBe('active')
@@ -71,7 +73,7 @@ describe('createAsset with oemLicense: { rawKey } (new OEM license)', () => {
     const { assetRepo, store } = makeRepos()
 
     await assetRepo.createAsset(
-      { ...BASE_INPUT, oemLicense: { rawKey: 'WIN-1122-3344-5566' } },
+      { ...BASE_INPUT, oemLicense: { kind: 'manual', rawKey: 'WIN-1122-3344-5566' } },
       ACTOR,
     )
 
@@ -86,7 +88,7 @@ describe('createAsset with oemLicense: { rawKey } (new OEM license)', () => {
     const { assetRepo, store } = makeRepos()
 
     await assetRepo.createAsset(
-      { ...BASE_INPUT, oemLicense: { rawKey: 'WIN-1122-3344-5566' } },
+      { ...BASE_INPUT, oemLicense: { kind: 'manual', rawKey: 'WIN-1122-3344-5566' } },
       ACTOR,
     )
 
@@ -102,7 +104,7 @@ describe('createAsset with oemLicense: { rawKey } (new OEM license)', () => {
     const { assetRepo } = makeRepos()
 
     const { value: asset } = await assetRepo.createAsset(
-      { ...BASE_INPUT, oemLicense: { rawKey: 'WIN-1122-3344-5566' } },
+      { ...BASE_INPUT, oemLicense: { kind: 'manual', rawKey: 'WIN-1122-3344-5566' } },
       ACTOR,
     )
 
@@ -119,16 +121,44 @@ describe('createAsset with oemLicense: { rawKey } (new OEM license)', () => {
     expect((stored as unknown as Record<string, unknown>).oemLicense).toBeUndefined()
   })
 
-  it('license name is derived from brand + model', async () => {
+  it('license name is derived from brand + model with the "Ключ продукта" suffix', async () => {
     const { assetRepo, licenseRepo } = makeRepos()
 
     const { value: asset } = await assetRepo.createAsset(
-      { ...BASE_INPUT, oemLicense: { rawKey: 'WIN-1122-3344-5566' } },
+      { ...BASE_INPUT, oemLicense: { kind: 'manual', rawKey: 'WIN-1122-3344-5566' } },
       ACTOR,
     )
 
     const bound = await licenseRepo.listForAsset(asset.id)
+    expect(bound[0]!.name).toBe('Dell XPS 15 — Ключ продукта')
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Suite 1b: oem-digital branch — firmware-embedded OEM license, NO key.
+// ---------------------------------------------------------------------------
+
+describe('createAsset with oemLicense: { kind: oem-digital } (firmware OEM, no key)', () => {
+  it('creates a device-bound OEM (non-reusable) license with no rawKey/secret', async () => {
+    const { assetRepo, licenseRepo, store } = makeRepos()
+
+    const { value: asset } = await assetRepo.createAsset(
+      { ...BASE_INPUT, oemLicense: { kind: 'oem-digital' } },
+      ACTOR,
+    )
+
+    const bound = await licenseRepo.listForAsset(asset.id)
+    expect(bound).toHaveLength(1)
+    expect(bound[0]!.type).toBe('OEM')
+    expect(bound[0]!.isReusable).toBe(false)
+    expect(bound[0]!.assignmentType).toBe('device')
+    expect(bound[0]!.assignedToAssetId).toBe(asset.id)
     expect(bound[0]!.name).toBe('OEM — Dell XPS 15')
+
+    // No raw key was supplied → audit carries no `key` payload (masked or otherwise).
+    const licLog = store.logs.find(l => l.entityType === 'license' && l.action === 'created')
+    expect(licLog).toBeDefined()
+    expect((licLog!.after as Record<string, unknown> | null)?.key).toBeUndefined()
   })
 })
 
@@ -207,7 +237,7 @@ describe('createAsset regression: no oemLicense, no licenses repo', () => {
     const assetRepo = new InMemoryAssetRepository([], REF, ctx)
 
     const { value } = await assetRepo.createAsset(
-      { ...BASE_INPUT, invCode: 'LAP/OEM/REG', serial: 'SN-REG', oemLicense: { rawKey: 'WIN-9999-8888-7777-6666' } },
+      { ...BASE_INPUT, invCode: 'LAP/OEM/REG', serial: 'SN-REG', oemLicense: { kind: 'manual', rawKey: 'WIN-9999-8888-7777-6666' } },
       ACTOR,
     )
     expect(value.id).toBeTruthy()

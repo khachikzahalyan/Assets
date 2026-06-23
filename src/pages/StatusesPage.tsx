@@ -52,7 +52,7 @@ export function StatusesPage({ repository }: StatusesPageProps) {
     {
       key: 'name',
       header: t('col.name'),
-      render: s => <span className="text-[#F8FAFC]">{s.name}</span>,
+      render: s => <span className="text-text-primary">{s.name}</span>,
     },
     {
       key: 'color',
@@ -73,12 +73,12 @@ export function StatusesPage({ repository }: StatusesPageProps) {
       header: t('col.system'),
       render: s => s.isSystem
         ? <Chip color="indigo">{t('systemBadge')}</Chip>
-        : <span className="text-[#64748B]">—</span>,
+        : <span className="text-text-subtle">—</span>,
     },
     {
       key: 'order',
       header: t('col.order'),
-      render: s => <span className="text-[#94A3B8]">{s.sortOrder}</span>,
+      render: s => <span className="text-text-tertiary">{s.sortOrder}</span>,
     },
   ]
 
@@ -141,8 +141,8 @@ export function StatusesPage({ repository }: StatusesPageProps) {
           canDeleteRow={s => !s.isSystem}
         />
         {total > PAGE_SIZE && (
-          <div className="flex items-center justify-between pt-4 border-t border-[#2A2F36] mt-2">
-            <span className="text-[12px] text-[#64748B]">
+          <div className="flex items-center justify-between pt-4 border-t border-border mt-2">
+            <span className="text-[12px] text-text-subtle">
               {t('pagination.range', { from, to, total })}
             </span>
             <div className="flex gap-2">
@@ -160,7 +160,7 @@ export function StatusesPage({ repository }: StatusesPageProps) {
   }
 
   return (
-    <div className="anim-content-enter space-y-5">
+    <div className="space-y-5">
       <PageHeader
         icon="circle-dot" title={t('title')} {...(!loading ? { count: total } : {})}
         {...(canMutate ? { actions: (

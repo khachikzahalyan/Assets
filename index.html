@@ -3,8 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#111315" />
     <title>AMS — Asset Management System</title>
+    <!-- Critical inline styles: paint the dark theme on the very first frame,
+         BEFORE the JS-injected index.css loads, so there is no white flash on
+         refresh (dev injects CSS via JS; this guarantees dark from byte 0). -->
+    <style>
+      html { background-color: #111315; color-scheme: dark; }
+      body { margin: 0; background-color: #111315; color: #F8FAFC; }
+      #root { min-height: 100vh; background-color: #111315; }
+    </style>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
     <link

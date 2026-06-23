@@ -60,7 +60,7 @@ export function AssigneeCell({
       const deptName = deptMap.get(asset.assignment.departmentId)
       if (deptName) {
         subEl = (
-          <div className="text-[13px] text-[#94A3B8] truncate leading-tight mt-0.5">
+          <div className="text-[13px] text-text-tertiary truncate leading-tight mt-0.5">
             {deptName}
           </div>
         )
@@ -69,7 +69,7 @@ export function AssigneeCell({
 
     return (
       <div className="min-w-0">
-        <div className="text-[15px] font-semibold truncate leading-tight text-[#F8FAFC]">
+        <div className="text-[15px] font-semibold truncate leading-tight text-text-primary">
           {name}
         </div>
         {subEl}
@@ -97,7 +97,7 @@ export function AssigneeCell({
           : 'text-amber-300/80'
     return (
       <div className="min-w-0">
-        <div className="text-[15px] font-semibold truncate leading-tight text-[#F8FAFC]">
+        <div className="text-[15px] font-semibold truncate leading-tight text-text-primary">
           {name}
         </div>
         <div className={`text-[13px] font-medium leading-tight mt-0.5 truncate ${subCls}`}>
@@ -114,10 +114,10 @@ export function AssigneeCell({
       : '—'
     return (
       <div className="min-w-0">
-        <div className="text-[15px] font-semibold text-[#F8FAFC] truncate leading-tight">
+        <div className="text-[15px] font-semibold text-text-primary truncate leading-tight">
           {name}
         </div>
-        <div className="text-[13px] text-[#94A3B8] leading-tight mt-0.5">
+        <div className="text-[13px] text-text-tertiary leading-tight mt-0.5">
           {deptLabel}
         </div>
       </div>
@@ -131,10 +131,10 @@ export function AssigneeCell({
       : '—'
     return (
       <div className="min-w-0">
-        <div className="text-[15px] font-semibold text-[#F8FAFC] truncate leading-tight">
+        <div className="text-[15px] font-semibold text-text-primary truncate leading-tight">
           {name}
         </div>
-        <div className="text-[13px] text-[#94A3B8] leading-tight mt-0.5">
+        <div className="text-[13px] text-text-tertiary leading-tight mt-0.5">
           {branchLabel}
         </div>
       </div>
@@ -144,10 +144,10 @@ export function AssigneeCell({
   // ── warehouse / none ────────────────────────────────────────────────────────
   return (
     <div className="min-w-0">
-      <div className="text-[15px] font-semibold text-[#F8FAFC] leading-tight">
+      <div className="text-[15px] font-semibold text-text-primary leading-tight">
         {onShelf}
       </div>
-      <div className="text-[13px] text-[#94A3B8] leading-tight mt-0.5">
+      <div className="text-[13px] text-text-tertiary leading-tight mt-0.5">
         {onShelfSub}
       </div>
     </div>

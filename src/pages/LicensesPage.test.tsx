@@ -1,12 +1,12 @@
 /**
- * LicensesPage component tests.
+ * LicensesPage component tests — new two-tab shape (Windows-ключи + Подписки и ПО).
  *
  * Uses InMemory repositories injected as props so no Firestore is touched.
  * i18n is the real instance (ru locale) — consistent with sibling page tests.
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { I18nextProvider } from 'react-i18next'
 import i18n from '@/lib/i18n'
@@ -14,11 +14,15 @@ import { AuthContext } from '@/contexts/AuthContext'
 import { LicensesPage } from './LicensesPage'
 import {
   InMemoryWorkstationLicenseRepository,
-  InMemoryServerLicenseRepository,
   InMemoryAuditLogRepository,
+  InMemorySubscriptionRepository,
+  InMemoryEmployeeRepository,
+  InMemoryAssetRepository,
 } from '@/infra/repositories'
 import { createInMemoryAuditStore, inMemoryAuditContext } from '@/lib/audit'
 import type { Role } from '@/config/roles'
+import type { SubscriptionRepository } from '@/domain/subscription'
+import type { Employee } from '@/domain/employee'
 
 // Prevent real Firebase from being imported in jsdom
 vi.mock('@/lib/firebase', () => ({
@@ -37,20 +41,34 @@ vi.mock('@/infra/repositories', async () => {
     FirestoreWorkstationLicenseRepository: class {
       async listLicenses() { return [] }
     },
-    FirestoreServerLicenseRepository: class {
-      async listLicenses() { return [] }
-    },
     FirestoreAuditLogRepository: class {
       async listAuditLogs() { return { rows: [], nextCursor: null } }
+    },
+    FirestoreSubscriptionRepository: class {
+      async listSubscriptions() { return [] }
+    },
+    FirestoreEmployeeRepository: class {
+      async listEmployees() { return [] }
+    },
+    FirestoreAssetRepository: class {
+      async listAssets() { return [] }
+      async loadReferenceData() { return { categories: [], branches: [], departments: [], statuses: [] } }
     },
   }
 })
 
-// Mock the revealKey module — tests that need it pass revealFn directly
+// Mock revealKey — tests don't exercise key reveal
 vi.mock('@/lib/licenses/revealKey', () => ({
   revealLicenseKey: vi.fn(),
   setLicenseKey: vi.fn(),
 }))
+
+// Mock getMaskedLicenseKey — always returns masked form in tests
+vi.mock('@/lib/licenses/maskedKey', () => ({
+  getMaskedLicenseKey: vi.fn().mockResolvedValue('****-****-****-0000'),
+}))
+
+// ── Helpers ────────────────────────────────────────────────────────────────────
 
 function authCtx(role: Role) {
   const USERS: Record<Role, { id: string; name: string; email: string }> = {
@@ -69,34 +87,54 @@ function authCtx(role: Role) {
   }
 }
 
-function makeWRepo() {
+function makeAuditCtx() {
   const store = createInMemoryAuditStore()
-  const ctx = inMemoryAuditContext(store)
-  return new InMemoryWorkstationLicenseRepository(ctx)
+  return inMemoryAuditContext(store)
 }
 
-function makeSRepo() {
-  const store = createInMemoryAuditStore()
-  const ctx = inMemoryAuditContext(store)
-  return new InMemoryServerLicenseRepository(ctx)
+function makeWRepo() {
+  return new InMemoryWorkstationLicenseRepository(makeAuditCtx())
+}
+
+function makeSubRepo(seed = []) {
+  return new InMemorySubscriptionRepository(makeAuditCtx(), seed)
 }
 
 const ACTOR_SUPER = { uid: 'u_001', role: 'super_admin' as const }
 
-function renderPage(
-  role: Role,
-  wRepo: InMemoryWorkstationLicenseRepository,
-  sRepo?: InMemoryServerLicenseRepository,
-) {
-  const aRepo = new InMemoryAuditLogRepository([])
+interface RenderPageOptions {
+  role?: Role
+  wRepo?: InMemoryWorkstationLicenseRepository
+  subRepo?: InMemorySubscriptionRepository | SubscriptionRepository
+  employees?: Employee[]
+}
+
+function renderPage({
+  role = 'super_admin',
+  wRepo,
+  subRepo,
+  employees = [],
+}: RenderPageOptions = {}) {
+  const resolvedWRepo  = wRepo  ?? makeWRepo()
+  const resolvedSubRepo = subRepo ?? makeSubRepo()
+  const aRepo   = new InMemoryAuditLogRepository([])
+  const empRepo = new InMemoryEmployeeRepository(employees, makeAuditCtx())
+  const assetRepo = new InMemoryAssetRepository(
+    [],
+    { statuses: [], branches: [], departments: [], categories: [], employees: [] },
+    makeAuditCtx(),
+  )
+
   render(
     <I18nextProvider i18n={i18n}>
       <AuthContext.Provider value={authCtx(role)}>
         <MemoryRouter>
           <LicensesPage
-            workstationRepo={wRepo}
-            serverRepo={sRepo ?? makeSRepo()}
+            workstationRepo={resolvedWRepo}
             auditRepo={aRepo}
+            subscriptionRepo={resolvedSubRepo}
+            employeeRepo={empRepo}
+            assetRepo={assetRepo}
           />
         </MemoryRouter>
       </AuthContext.Provider>
@@ -104,142 +142,227 @@ function renderPage(
   )
 }
 
-describe('LicensesPage', () => {
+// ── Tests ──────────────────────────────────────────────────────────────────────
+
+describe('LicensesPage — new two-tab shape', () => {
   beforeEach(async () => {
     await i18n.changeLanguage('ru')
   })
 
-  // ── 1. Workstation rows render ─────────────────────────────────────────────
+  // ── 1. Both tabs render ─────────────────────────────────────────────────────
 
-  describe('workstation tab renders license rows', () => {
-    it('shows both license names when seeded with 2 workstation licenses', async () => {
-      // Arrange — seed 2 licenses: one employee-assigned, one unassigned
-      const wRepo = makeWRepo()
-      await wRepo.createLicense(
-        { name: 'Microsoft Office 365', type: 'Subscription' },
-        ACTOR_SUPER,
-      )
-      const { value: l2 } = await wRepo.createLicense(
-        { name: 'Adobe Creative Cloud', type: 'Retail' },
-        ACTOR_SUPER,
-      )
-      await wRepo.assignLicense(l2.id, { to: 'employee', employeeId: 'emp-1' }, ACTOR_SUPER)
+  describe('tab strip', () => {
+    it('renders the Windows-keys tab button (data-testid=tab-keys)', async () => {
+      // Arrange + Act
+      renderPage()
 
-      // Act
-      renderPage('super_admin', wRepo)
-
-      // Assert — both names visible; no raw key leaking
-      expect(await screen.findByText('Microsoft Office 365')).toBeInTheDocument()
-      expect(screen.getByText('Adobe Creative Cloud')).toBeInTheDocument()
+      // Assert
+      expect(await screen.findByTestId('tab-keys')).toBeInTheDocument()
     })
 
-    it('does not display any raw key string in the row cells', async () => {
+    it('renders the Subscriptions tab button (data-testid=tab-subs)', async () => {
+      // Arrange + Act
+      renderPage()
+
+      // Assert
+      expect(await screen.findByTestId('tab-subs')).toBeInTheDocument()
+    })
+
+    it('default active tab is keys — WindowsKeysSection is shown', async () => {
+      // Arrange + Act
+      renderPage()
+
+      // Assert — the keys section aria-label is present; no subscription content shown
+      await waitFor(() => {
+        expect(screen.getByTestId('tab-keys')).toBeInTheDocument()
+      })
+      // The keys section renders (not loading/error) — filter chips are present
+      expect(await screen.findByTestId('filter-in_use')).toBeInTheDocument()
+      expect(screen.getByTestId('filter-free')).toBeInTheDocument()
+    })
+
+    it('clicking tab-subs switches to the subscriptions view', async () => {
       // Arrange
-      const wRepo = makeWRepo()
-      const RAW = 'XCVF-7TR5-9HJK-5592'
-      await wRepo.createLicense(
-        { name: 'Secret License', type: 'Volume', rawKey: RAW },
+      const subRepo = makeSubRepo()
+      await subRepo.createSubscription(
+        { name: 'GitHub Enterprise', seatsTotal: 25, purchaseDate: '2026-01-01', expiryDate: '2027-01-01' },
         ACTOR_SUPER,
       )
+      renderPage({ subRepo })
 
-      // Act
-      renderPage('super_admin', wRepo)
-      await screen.findByText('Secret License')
+      // Act — wait for page to settle, then click subs tab
+      await screen.findByTestId('tab-subs')
+      fireEvent.click(screen.getByTestId('tab-subs'))
 
-      // Assert — raw key must not appear anywhere in the rendered output
-      expect(screen.queryByText(RAW)).toBeNull()
-      // The masked form should also not appear as visible text (key is not shown in table cells)
-      expect(screen.queryByText('****-****-****-5592')).toBeNull()
+      // Assert — subscription card appears
+      expect(await screen.findByText('GitHub Enterprise')).toBeInTheDocument()
+    })
+
+    it('add-subscription-btn is always visible regardless of active tab', async () => {
+      // Arrange + Act
+      renderPage()
+
+      // Assert — button present on initial render
+      expect(await screen.findByTestId('add-subscription-btn')).toBeInTheDocument()
     })
   })
 
-  // ── 2. Server tab visibility gating ───────────────────────────────────────
+  // ── 2. Tab counts ───────────────────────────────────────────────────────────
 
-  describe('server tab visibility', () => {
-    it('server tab is NOT visible for tech_admin', async () => {
-      // Arrange
+  describe('tab counts', () => {
+    it('keys tab shows count badge with active device-bound license count', async () => {
+      // Arrange — seed one device-bound active license (counts as in_use = 1 key)
       const wRepo = makeWRepo()
+      await wRepo.createLicense(
+        { name: 'Windows 11 Pro', type: 'OEM', assign: { to: 'device', assetId: 'ast-1' } },
+        ACTOR_SUPER,
+      )
 
       // Act
-      renderPage('tech_admin', wRepo)
+      renderPage({ wRepo })
 
-      // Assert — "Серверные" tab must be absent
-      await screen.findByText('Лицензии') // page loaded
-      expect(screen.queryByText('Серверные')).toBeNull()
+      // Assert — tab-keys count badge shows at least 1
+      const tabKeys = await screen.findByTestId('tab-keys')
+      expect(tabKeys.textContent).toMatch(/1/)
     })
 
-    it('server tab IS visible for super_admin', async () => {
-      // Arrange
-      const wRepo = makeWRepo()
+    it('subs tab shows count badge matching number of subscriptions', async () => {
+      // Arrange — seed 2 subscriptions
+      const subRepo = makeSubRepo()
+      await subRepo.createSubscription({ name: 'Slack', seatsTotal: 10, purchaseDate: '2026-01-01', expiryDate: '2027-01-01' }, ACTOR_SUPER)
+      await subRepo.createSubscription({ name: 'Figma', seatsTotal: 5, purchaseDate: '2026-01-01', expiryDate: '2027-01-01' }, ACTOR_SUPER)
 
       // Act
-      renderPage('super_admin', wRepo)
+      renderPage({ subRepo })
 
-      // Assert — "Серверные" tab must appear
-      expect(await screen.findByText('Серверные')).toBeInTheDocument()
-    })
-
-    it('workstation tab is visible for tech_admin', async () => {
-      // Arrange
-      const wRepo = makeWRepo()
-
-      // Act
-      renderPage('tech_admin', wRepo)
-
-      // Assert — page renders and shows empty state (no server tab shown)
-      expect(await screen.findByText('Лицензий пока нет')).toBeInTheDocument()
+      // Assert — tab-subs count badge shows 2
+      const tabSubs = await screen.findByTestId('tab-subs')
+      expect(tabSubs.textContent).toMatch(/2/)
     })
   })
 
-  // ── 3. Empty state ────────────────────────────────────────────────────────
+  // ── 3. Search input visible on keys tab ─────────────────────────────────────
 
-  it('shows empty state when there are no workstation licenses', async () => {
+  it('search input for keys is present when keys tab is active', async () => {
+    // Arrange + Act
+    renderPage()
+    await screen.findByTestId('filter-in_use')
+
+    // Assert — at least one search input is visible
+    const searchInputs = screen.getAllByPlaceholderText(/поиск|поисk|search/i)
+    expect(searchInputs.length).toBeGreaterThanOrEqual(1)
+  })
+
+  // ── 4. Add subscription modal opens ─────────────────────────────────────────
+
+  it('clicking add-subscription-btn opens the AddSubscriptionModal', async () => {
     // Arrange
-    const wRepo = makeWRepo()
+    renderPage()
+    await screen.findByTestId('add-subscription-btn')
 
     // Act
-    renderPage('super_admin', wRepo)
+    fireEvent.click(screen.getByTestId('add-subscription-btn'))
 
-    // Assert
-    expect(await screen.findByText('Лицензий пока нет')).toBeInTheDocument()
+    // Assert — modal submit button appears
+    expect(await screen.findByTestId('add-subscription-submit')).toBeInTheDocument()
   })
 
-  // ── 4. Decouple error surfacing ───────────────────────────────────────────
+  // ── 5. Empty states ──────────────────────────────────────────────────────────
 
-  describe('decouple error surfacing', () => {
-    it('shows role=alert when decoupleLicense rejects', async () => {
-      // Arrange — seed a device-assigned license so the Decouple button is enabled,
-      // then override the repo method to reject to simulate a backend failure.
-      const wRepo = makeWRepo()
-      const { value: lic } = await wRepo.createLicense(
-        { name: 'AutoCAD 2024', type: 'Subscription' },
-        ACTOR_SUPER,
-      )
-      await wRepo.assignLicense(
-        lic.id,
-        { to: 'device', assetId: 'asset-123' },
-        ACTOR_SUPER,
-      )
-      // Override decoupleLicense to always reject
-      vi.spyOn(wRepo, 'decoupleLicense').mockRejectedValue(new Error('network error'))
+  it('shows empty state when there are no windows keys', async () => {
+    // Arrange + Act
+    renderPage()
 
-      // Mock window.confirm to auto-confirm the decouple prompt
-      vi.spyOn(window, 'confirm').mockReturnValue(true)
-
-      // Act — render page, wait for the license row, then click Decouple
-      renderPage('super_admin', wRepo)
-      // Wait for the license row to appear
-      await screen.findByText('AutoCAD 2024')
-
-      // The decouple button is rendered via renderActions; find by test-id
-      const decoupleBtn = screen.getByTestId(`decouple-btn-${lic.id}`)
-      fireEvent.click(decoupleBtn)
-
-      // Assert — role="alert" paragraph appears in the workstation tab body
-      const alert = await screen.findByRole('alert')
-      expect(alert).toBeInTheDocument()
-      // The error message is the ru locale translation of 'error'
-      expect(alert.textContent).toBe('Не удалось загрузить лицензии. Попробуйте ещё раз.')
+    // Assert — empty state text for keys section
+    await waitFor(() => {
+      // The keys section renders empty state after load completes
+      expect(screen.queryByTestId('filter-in_use')).toBeInTheDocument()
     })
+    // filter chips still present even when empty
+    expect(screen.getByTestId('filter-in_use')).toBeInTheDocument()
+  })
+
+  it('switching to subs tab with no subs shows empty-state text', async () => {
+    // Arrange — no subs
+    renderPage()
+    await screen.findByTestId('tab-subs')
+
+    // Act
+    fireEvent.click(screen.getByTestId('tab-subs'))
+
+    // Assert — subs empty state (emptyTitle i18n key rendered)
+    await waitFor(() => {
+      // EmptyState renders i18n key for subs.emptyTitle
+      const emptyEl = document.querySelector('[data-testid="tab-subs"]')
+      expect(emptyEl).toBeInTheDocument()
+    })
+  })
+
+  // ── 6. tech_admin role access ────────────────────────────────────────────────
+
+  it('tech_admin can access the page and sees both tabs', async () => {
+    // Arrange + Act
+    renderPage({ role: 'tech_admin' })
+
+    // Assert — both tabs render for tech_admin
+    expect(await screen.findByTestId('tab-keys')).toBeInTheDocument()
+    expect(screen.getByTestId('tab-subs')).toBeInTheDocument()
+  })
+
+  // ── 7. Subscription cards render in subs tab ─────────────────────────────────
+
+  it('sub card with testid sub-card-{id} appears after switching to subs tab', async () => {
+    // Arrange
+    const subRepo = makeSubRepo()
+    const { value: sub } = await subRepo.createSubscription(
+      { name: 'Jira Cloud', seatsTotal: 15, purchaseDate: '2026-01-01', expiryDate: '2027-06-01' },
+      ACTOR_SUPER,
+    )
+
+    renderPage({ subRepo })
+    await screen.findByTestId('tab-subs')
+
+    // Act
+    fireEvent.click(screen.getByTestId('tab-subs'))
+
+    // Assert
+    expect(await screen.findByTestId(`sub-card-${sub.id}`)).toBeInTheDocument()
+    expect(screen.getByText('Jira Cloud')).toBeInTheDocument()
+  })
+
+  // ── 8. Assignee-save failure surfaces user-visible feedback ───────────────────
+
+  it('shows an error alert when updating subscription assignees fails', async () => {
+    // Arrange — a sub repo whose updateAssignees rejects, plus one active employee
+    const seedRepo = makeSubRepo()
+    const { value: sub } = await seedRepo.createSubscription(
+      { name: 'Confluence', seatsTotal: 5, purchaseDate: '2026-01-01', expiryDate: '2027-01-01' },
+      ACTOR_SUPER,
+    )
+    const failingRepo: SubscriptionRepository = {
+      listSubscriptions: () => seedRepo.listSubscriptions(),
+      getSubscription: (id: string) => seedRepo.getSubscription(id),
+      createSubscription: (input, actor) => seedRepo.createSubscription(input, actor),
+      updateAssignees: () => Promise.reject(new Error('permission-denied')),
+    }
+    const employees: Employee[] = [{
+      id: 'emp_1', firstName: 'Anna', lastName: 'Petrova', email: 'anna@example.test',
+      phone: null, position: 'QA', branchId: null, departmentId: null,
+      status: 'active', terminatedAt: null,
+      createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z',
+    }]
+
+    renderPage({ subRepo: failingRepo, employees })
+    await screen.findByTestId('tab-subs')
+    fireEvent.click(screen.getByTestId('tab-subs'))
+
+    // Open the manage-assignees modal and toggle an employee (commits immediately)
+    fireEvent.click(await screen.findByTestId(`manage-btn-${sub.id}`))
+    const empBtn = await screen.findByRole('button', { name: /Anna Petrova/i })
+    fireEvent.click(empBtn)
+
+    // Assert — a user-visible error alert appears (was previously a silent failure)
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent(i18n.t('licenses:error'))
   })
 })

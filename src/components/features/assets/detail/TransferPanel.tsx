@@ -39,7 +39,7 @@ interface BannerConfig {
 const MODE_CONTEXT_BANNER: Record<string, BannerConfig> = {
   warehouse:  {
     icon: 'warehouse',   labelKey: 'detail.transfer.bannerWarehouseLabel',  hintKey: 'detail.transfer.bannerWarehouseHint',
-    softBg: 'bg-[#22272E]',     softText: 'text-[#94A3B8]',  ring: 'ring-[#2A2F36]',
+    softBg: 'bg-surface-2',     softText: 'text-text-tertiary',  ring: 'ring-border',
   },
   employee:   {
     icon: 'user-round',  labelKey: 'detail.transfer.bannerEmployeeLabel',   hintKey: 'detail.transfer.bannerEmployeeHint',
@@ -47,7 +47,7 @@ const MODE_CONTEXT_BANNER: Record<string, BannerConfig> = {
   },
   branch:     {
     icon: 'git-branch',  labelKey: 'detail.transfer.bannerBranchLabel',     hintKey: 'detail.transfer.bannerBranchHint',
-    softBg: 'bg-[#F97316]/10',  softText: 'text-[#FB923C]',  ring: 'ring-[#F97316]/30',
+    softBg: 'bg-accent/10',  softText: 'text-accent-light',  ring: 'ring-accent/30',
   },
   department: {
     icon: 'layout-list', labelKey: 'detail.transfer.bannerDepartmentLabel', hintKey: 'detail.transfer.bannerDepartmentHint',
@@ -112,7 +112,7 @@ function TransferModeForm({
       {mode === 'employee' && (
         <div className="mt-3 space-y-3">
           <div>
-            <label className="block text-[12px] uppercase tracking-[0.06em] font-semibold text-[#94A3B8] mb-1">
+            <label className="block text-[12px] uppercase tracking-[0.06em] font-semibold text-text-tertiary mb-1">
               {t('detail.transfer.employeeLabel')}
             </label>
             <Select
@@ -127,19 +127,19 @@ function TransferModeForm({
           </div>
           {caps?.isLaptop && (
             <div>
-              <label className="block text-[12px] uppercase tracking-[0.06em] font-semibold text-[#94A3B8] mb-1">
+              <label className="block text-[12px] uppercase tracking-[0.06em] font-semibold text-text-tertiary mb-1">
                 {t('detail.transfer.workModeLabel')}
               </label>
-              <div className="flex items-center gap-1 h-8 max-md:h-11 bg-[#111315] border border-[#2A2F36] rounded-lg overflow-hidden">
+              <div className="flex items-center gap-1 h-8 max-md:h-11 bg-bg border border-border rounded-lg overflow-hidden">
                 {(['office', 'remote'] as const).map((wm, i) => (
                   <button
                     key={wm}
                     type="button"
                     onClick={() => setWorkMode(wm)}
-                    className={`flex-1 h-full text-[13px] font-medium transition-colors ${i > 0 ? 'border-l border-[#2A2F36]' : ''}
+                    className={`flex-1 h-full text-[13px] font-medium transition-colors ${i > 0 ? 'border-l border-border' : ''}
                       ${workMode === wm
-                        ? 'bg-[#F97316] text-white'
-                        : 'text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-[#22272E]'
+                        ? 'bg-accent text-white'
+                        : 'text-text-tertiary hover:text-text-primary hover:bg-surface-2'
                       }`}
                   >
                     {wm === 'office' ? t('detail.transfer.workModeOffice') : t('detail.transfer.workModeRemote')}
@@ -153,7 +153,7 @@ function TransferModeForm({
 
       {mode === 'branch' && (
         <div className="mt-3">
-          <label className="block text-[12px] uppercase tracking-[0.06em] font-semibold text-[#94A3B8] mb-1">
+          <label className="block text-[12px] uppercase tracking-[0.06em] font-semibold text-text-tertiary mb-1">
             {t('detail.transfer.branchLabel')}
           </label>
           <Select
@@ -167,7 +167,7 @@ function TransferModeForm({
 
       {mode === 'department' && (
         <div className="mt-3">
-          <label className="block text-[12px] uppercase tracking-[0.06em] font-semibold text-[#94A3B8] mb-1">
+          <label className="block text-[12px] uppercase tracking-[0.06em] font-semibold text-text-tertiary mb-1">
             {t('detail.transfer.departmentLabel')}
           </label>
           <Select
@@ -183,7 +183,7 @@ function TransferModeForm({
         <div className="mt-3 space-y-3">
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="block text-[12px] uppercase tracking-[0.06em] font-semibold text-[#94A3B8] mb-1">
+              <label className="block text-[12px] uppercase tracking-[0.06em] font-semibold text-text-tertiary mb-1">
                 {t('detail.transfer.kindLabel')}
               </label>
               <Select
@@ -197,7 +197,7 @@ function TransferModeForm({
               />
             </div>
             <div>
-              <label htmlFor="transfer-return-date" className="block text-[12px] uppercase tracking-[0.06em] font-semibold text-[#94A3B8] mb-1">
+              <label htmlFor="transfer-return-date" className="block text-[12px] uppercase tracking-[0.06em] font-semibold text-text-tertiary mb-1">
                 {t('detail.transfer.returnDateLabel')}
               </label>
               <DatePicker
@@ -210,19 +210,19 @@ function TransferModeForm({
           </div>
           {caps?.isLaptop && (
             <div>
-              <label className="block text-[12px] uppercase tracking-[0.06em] font-semibold text-[#94A3B8] mb-1">
+              <label className="block text-[12px] uppercase tracking-[0.06em] font-semibold text-text-tertiary mb-1">
                 {t('detail.transfer.workModeLabel')}
               </label>
-              <div className="flex items-center gap-1 h-8 max-md:h-11 bg-[#111315] border border-[#2A2F36] rounded-lg overflow-hidden">
+              <div className="flex items-center gap-1 h-8 max-md:h-11 bg-bg border border-border rounded-lg overflow-hidden">
                 {(['office', 'remote'] as const).map((wm, i) => (
                   <button
                     key={wm}
                     type="button"
                     onClick={() => setWorkMode(wm)}
-                    className={`flex-1 h-full text-[13px] font-medium transition-colors ${i > 0 ? 'border-l border-[#2A2F36]' : ''}
+                    className={`flex-1 h-full text-[13px] font-medium transition-colors ${i > 0 ? 'border-l border-border' : ''}
                       ${workMode === wm
-                        ? 'bg-[#F97316] text-white'
-                        : 'text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-[#22272E]'
+                        ? 'bg-accent text-white'
+                        : 'text-text-tertiary hover:text-text-primary hover:bg-surface-2'
                       }`}
                   >
                     {wm === 'office' ? t('detail.transfer.workModeOffice') : t('detail.transfer.workModeRemote')}
@@ -317,14 +317,14 @@ export function TransferPanel({ asset: _asset, refData, caps, busy, onCommit, on
   }
 
   return (
-    <div className="mt-3 border-t border-[#2A2F36] pt-3 anim-fade-slide-in">
+    <div className="mt-3 border-t border-border pt-3 anim-fade-slide-in">
       {/* Divider header */}
       <div className="flex items-center gap-3 mb-3">
-        <div className="flex-1 h-px bg-[#22272E]" />
-        <span className="text-[12px] text-[#94A3B8] uppercase tracking-widest whitespace-nowrap">
+        <div className="flex-1 h-px bg-surface-2" />
+        <span className="text-[12px] text-text-tertiary uppercase tracking-widest whitespace-nowrap">
           {t('detail.transfer.title')}
         </span>
-        <div className="flex-1 h-px bg-[#22272E]" />
+        <div className="flex-1 h-px bg-surface-2" />
       </div>
 
       {/* Mode tiles row */}
@@ -360,7 +360,7 @@ export function TransferPanel({ asset: _asset, refData, caps, busy, onCommit, on
       <div className="mt-4 flex gap-2 pt-1">
         <Btn
           variant="ghost"
-          className="flex-1 py-2.5 border border-[#2A2F36] rounded-xl"
+          className="flex-1 py-2.5 border border-border rounded-xl"
           onClick={onCancel}
           disabled={busy}
         >
@@ -370,7 +370,7 @@ export function TransferPanel({ asset: _asset, refData, caps, busy, onCommit, on
           type="button"
           onClick={handleCommit}
           disabled={!isValid || busy}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[14px] bg-[#F97316] text-white hover:bg-[#EA580C] disabled:opacity-35 disabled:cursor-not-allowed transition-all shadow-sm"
+          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[14px] bg-accent text-white hover:bg-accent-hover disabled:opacity-35 disabled:cursor-not-allowed transition-all shadow-sm"
         >
           {busy
             ? <Icon name="loader-circle" size={14} className="animate-spin" />

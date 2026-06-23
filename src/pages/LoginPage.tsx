@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
+import { Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { completeEmailLinkIfPresent, sendEmployeeLink, signInWithGoogle } from '@/lib/auth'
+import { useAuth } from '@/contexts/AuthContext'
 import { Btn } from '@/components/ui/btn'
 import { Input } from '@/components/ui/input'
 import { Icon } from '@/components/ui/icon'
@@ -12,6 +14,7 @@ function isValidEmail(v: string): boolean {
 
 export function LoginPage() {
   const { t } = useTranslation('login')
+  const { status } = useAuth()
 
   // Email-link completion state
   const [linkCheckError, setLinkCheckError] = useState<string | null>(null)
@@ -79,21 +82,29 @@ export function LoginPage() {
     }
   }
 
+  // Already authenticated → leave the public login route. RequireAuth then routes
+  // 'ready' → the app (index redirects to /dashboard) and 'no-role' → AccessPending.
+  // Without this, a successful sign-in updates auth context but the user stays
+  // visually stranded on /login (this page is outside the RequireAuth guard).
+  if (status === 'ready' || status === 'no-role') {
+    return <Navigate to="/" replace />
+  }
+
   return (
     <div className="min-h-screen bg-[#0D1117] flex items-center justify-center px-4">
       <div
-        className="w-full max-w-sm bg-[#1B1F24] border border-[#2A2F36] rounded-2xl overflow-hidden"
+        className="w-full max-w-sm bg-surface border border-border rounded-2xl overflow-hidden"
         style={{ boxShadow: '0 1px 2px rgba(0,0,0,0.4),0 8px 24px rgba(0,0,0,0.4)' }}
       >
         {/* Brand header */}
-        <div className="px-8 pt-8 pb-6 text-center border-b border-[#2A2F36]">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-[#F97316] mb-4">
+        <div className="px-8 pt-8 pb-6 text-center border-b border-border">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-accent mb-4">
             <Icon name="package" size={22} className="text-white" />
           </div>
-          <h1 className="text-[20px] font-bold text-[#F8FAFC] tracking-tight">
+          <h1 className="text-[20px] font-bold text-text-primary tracking-tight">
             {t('page.title')}
           </h1>
-          <p className="text-[12.5px] text-[#64748B] mt-1">{t('page.subtitle')}</p>
+          <p className="text-[12.5px] text-text-subtle mt-1">{t('page.subtitle')}</p>
         </div>
 
         <div className="px-8 py-6 space-y-6">
@@ -111,8 +122,8 @@ export function LoginPage() {
           {/* Loading indicator for email link completion */}
           {linkChecking && (
             <div className="flex items-center justify-center gap-2 py-2">
-              <Icon name="loader-circle" size={16} className="text-[#64748B] animate-spin" />
-              <span className="text-[12.5px] text-[#64748B]">{t('loading')}</span>
+              <Icon name="loader-circle" size={16} className="text-text-subtle animate-spin" />
+              <span className="text-[12.5px] text-text-subtle">{t('loading')}</span>
             </div>
           )}
 
@@ -120,7 +131,7 @@ export function LoginPage() {
           <section aria-labelledby="admin-section-label">
             <p
               id="admin-section-label"
-              className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[#64748B] mb-3"
+              className="text-[11px] font-semibold uppercase tracking-[0.06em] text-text-subtle mb-3"
             >
               {t('admin.label')}
             </p>
@@ -174,16 +185,16 @@ export function LoginPage() {
 
           {/* ── Divider ── */}
           <div className="flex items-center gap-3" aria-hidden="true">
-            <div className="flex-1 h-px bg-[#2A2F36]" />
+            <div className="flex-1 h-px bg-border" />
             <span className="text-[11px] text-[#475569] font-medium">{t('divider')}</span>
-            <div className="flex-1 h-px bg-[#2A2F36]" />
+            <div className="flex-1 h-px bg-border" />
           </div>
 
           {/* ── Employee section ── */}
           <section aria-labelledby="employee-section-label">
             <p
               id="employee-section-label"
-              className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[#64748B] mb-3"
+              className="text-[11px] font-semibold uppercase tracking-[0.06em] text-text-subtle mb-3"
             >
               {t('employee.label')}
             </p>
@@ -194,14 +205,14 @@ export function LoginPage() {
                 <span className="w-10 h-10 rounded-full bg-emerald-950/50 border border-emerald-700/40 inline-flex items-center justify-center">
                   <Icon name="mail-check" size={18} className="text-emerald-400" />
                 </span>
-                <p className="text-[14px] font-semibold text-[#F8FAFC]">{t('employee.successTitle')}</p>
-                <p className="text-[12.5px] text-[#64748B] max-w-xs">
+                <p className="text-[14px] font-semibold text-text-primary">{t('employee.successTitle')}</p>
+                <p className="text-[12.5px] text-text-subtle max-w-xs">
                   {t('employee.successDesc', { email: email.trim() })}
                 </p>
                 <button
                   type="button"
                   onClick={() => { setLinkSent(false); setEmail(''); setLinkError(null) }}
-                  className="mt-1 text-[12px] text-[#64748B] underline underline-offset-2 hover:text-[#CBD5E1] transition-colors"
+                  className="mt-1 text-[12px] text-text-subtle underline underline-offset-2 hover:text-text-secondary transition-colors"
                 >
                   {t('employee.tryAnother')}
                 </button>

@@ -22,10 +22,10 @@ describe('Btn', () => {
     expect(screen.getByRole('button', { name: 'Click me' })).toBeInTheDocument()
   })
 
-  it('variant="primary" className contains bg-[#F97316]', () => {
+  it('variant="primary" className contains bg-accent', () => {
     render(<Btn variant="primary">Primary</Btn>)
     const btn = screen.getByRole('button', { name: 'Primary' })
-    expect(btn.className).toContain('bg-[#F97316]')
+    expect(btn.className).toContain('bg-accent')
   })
 })
 

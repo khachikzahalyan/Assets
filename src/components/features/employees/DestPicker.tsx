@@ -46,13 +46,13 @@ interface PopoverPos {
 const KIND_ACCENT = {
   warehouse: {
     icon: 'warehouse',
-    iconCls: 'bg-[#22272E] text-[#94A3B8]',
-    chipCls: 'bg-[#111315] ring-[#2A2F36] text-[#94A3B8] hover:bg-[#22272E]',
+    iconCls: 'bg-surface-2 text-text-tertiary',
+    chipCls: 'bg-bg ring-border text-text-tertiary hover:bg-surface-2',
   },
   employee: {
     icon: 'user-round',
-    iconCls: 'bg-[#F97316]/10 text-[#F97316]',
-    chipCls: 'bg-[#F97316]/10 ring-[#F97316] text-[#F97316] hover:bg-[#F97316]/15',
+    iconCls: 'bg-accent/10 text-accent',
+    chipCls: 'bg-accent/10 ring-accent text-accent hover:bg-accent/15',
   },
   department: {
     icon: 'layout-list',
@@ -232,8 +232,8 @@ export function DestPicker({
 
   const emptyState = (
     <div className="flex flex-col items-center py-3 gap-1">
-      <Icon name="search-x" size={16} className="text-[#64748B]" />
-      <span className="text-[13.5px] text-[#94A3B8]">{t('dest.notFound')}</span>
+      <Icon name="search-x" size={16} className="text-text-subtle" />
+      <span className="text-[13.5px] text-text-tertiary">{t('dest.notFound')}</span>
     </div>
   )
 
@@ -271,7 +271,7 @@ export function DestPicker({
               ...(pos.left !== undefined ? { left: pos.left } : {}),
               ...(pos.right !== undefined ? { right: pos.right } : {}),
             }}
-            className="bg-[#1B1F24] shadow-2xl shadow-slate-900/15 rounded-2xl ring-1 ring-[#2A2F36] p-1.5 anim-fade-slide-in"
+            className="bg-surface shadow-2xl shadow-slate-900/15 rounded-2xl ring-1 ring-border p-1.5 anim-fade-slide-in"
           >
             {!sub ? (
               <div className="space-y-0.5">
@@ -287,7 +287,7 @@ export function DestPicker({
                         commit({ kind: 'warehouse' })
                       }
                     }}
-                    className="w-full text-left px-2.5 py-2 rounded-xl text-[14.5px] font-medium text-[#F8FAFC] hover:bg-[#111315] transition-colors duration-100 flex items-center gap-2.5"
+                    className="w-full text-left px-2.5 py-2 rounded-xl text-[14.5px] font-medium text-text-primary hover:bg-bg transition-colors duration-100 flex items-center gap-2.5"
                   >
                     <span
                       className={`inline-flex items-center justify-center w-[20px] h-[20px] rounded-[5px] shrink-0 ${opt.iconCls}`}
@@ -312,12 +312,12 @@ export function DestPicker({
                           setSub(null)
                           setQuery('')
                         }}
-                        className="p-1 rounded-md text-[#64748B] hover:text-[#CBD5E1] hover:bg-[#22272E] transition-colors"
+                        className="p-1 rounded-md text-text-subtle hover:text-text-secondary hover:bg-surface-2 transition-colors"
                       >
                         <Icon name="arrow-left" size={12} />
                       </button>
-                      <div className="ams-destpicker-search flex-1 flex items-center gap-1.5 bg-[#111315] rounded-lg px-2 py-1">
-                        <Icon name="search" size={11} className="text-[#64748B] shrink-0" />
+                      <div className="ams-destpicker-search flex-1 flex items-center gap-1.5 bg-bg rounded-lg px-2 py-1">
+                        <Icon name="search" size={11} className="text-text-subtle shrink-0" />
                         <input
                           type="text"
                           value={query}
@@ -325,7 +325,7 @@ export function DestPicker({
                           placeholder={t('dest.search')}
                           aria-label={t('dest.search')}
                           autoFocus
-                          className="ams-destpicker-search-input flex-1 text-[14px] bg-transparent border-none outline-none placeholder:text-[#64748B] text-[#F8FAFC] min-w-0"
+                          className="ams-destpicker-search-input flex-1 text-[14px] bg-transparent border-none outline-none placeholder:text-text-subtle text-text-primary min-w-0"
                         />
                       </div>
                     </div>
@@ -336,7 +336,7 @@ export function DestPicker({
                             key={e.id}
                             type="button"
                             onClick={() => commit({ kind: 'employee', id: e.id, label: e.name })}
-                            className="w-full text-left px-2.5 py-2 rounded-xl text-[14px] font-medium text-[#F8FAFC] hover:bg-[#111315] transition-colors duration-100 flex items-center gap-2 truncate"
+                            className="w-full text-left px-2.5 py-2 rounded-xl text-[14px] font-medium text-text-primary hover:bg-bg transition-colors duration-100 flex items-center gap-2 truncate"
                           >
                             <span
                               className={`inline-flex items-center justify-center w-[18px] h-[18px] rounded-[4px] shrink-0 ${SUB_ICON.employee.iconCls}`}
@@ -354,7 +354,7 @@ export function DestPicker({
                             onClick={() =>
                               commit({ kind: 'department', id: d.id, label: d.name })
                             }
-                            className="w-full text-left px-2.5 py-2 rounded-xl text-[14px] font-medium text-[#F8FAFC] hover:bg-[#111315] transition-colors duration-100 flex items-center gap-2 truncate"
+                            className="w-full text-left px-2.5 py-2 rounded-xl text-[14px] font-medium text-text-primary hover:bg-bg transition-colors duration-100 flex items-center gap-2 truncate"
                           >
                             <span
                               className={`inline-flex items-center justify-center w-[18px] h-[18px] rounded-[4px] shrink-0 ${SUB_ICON.department.iconCls}`}
@@ -370,7 +370,7 @@ export function DestPicker({
                             key={b.id}
                             type="button"
                             onClick={() => commit({ kind: 'branch', id: b.id, label: b.name })}
-                            className="w-full text-left px-2.5 py-2 rounded-xl text-[14px] font-medium text-[#F8FAFC] hover:bg-[#111315] transition-colors duration-100 flex items-center gap-2 truncate"
+                            className="w-full text-left px-2.5 py-2 rounded-xl text-[14px] font-medium text-text-primary hover:bg-bg transition-colors duration-100 flex items-center gap-2 truncate"
                           >
                             <span
                               className={`inline-flex items-center justify-center w-[18px] h-[18px] rounded-[4px] shrink-0 ${SUB_ICON.branch.iconCls}`}
@@ -395,29 +395,29 @@ export function DestPicker({
                         type="button"
                         aria-label={t('dest.back')}
                         onClick={() => { setSub(null); setTempKind(null); setReturnDate(plusDaysISO(7)) }}
-                        className="p-1 rounded-md text-[#64748B] hover:text-[#CBD5E1] hover:bg-[#22272E] transition-colors"
+                        className="p-1 rounded-md text-text-subtle hover:text-text-secondary hover:bg-surface-2 transition-colors"
                       >
                         <Icon name="arrow-left" size={12} />
                       </button>
-                      <span className="text-[12px] uppercase tracking-[0.06em] font-semibold text-[#94A3B8]">
+                      <span className="text-[12px] uppercase tracking-[0.06em] font-semibold text-text-tertiary">
                         {t('dest.temporary')}
                       </span>
                     </div>
-                    <div className="flex items-center gap-1 h-9 bg-[#111315] border border-[#2A2F36] rounded-lg overflow-hidden mb-2">
+                    <div className="flex items-center gap-1 h-9 bg-bg border border-border rounded-lg overflow-hidden mb-2">
                       {(['audit', 'intern'] as const).map((k, i) => (
                         <button
                           key={k}
                           type="button"
                           onClick={() => setTempKind(k)}
                           aria-pressed={tempKind === k}
-                          className={`flex-1 h-full text-[13px] font-medium transition-colors ${i > 0 ? 'border-l border-[#2A2F36]' : ''}
-                            ${tempKind === k ? 'bg-rose-500/80 text-white' : 'text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-[#22272E]'}`}
+                          className={`flex-1 h-full text-[13px] font-medium transition-colors ${i > 0 ? 'border-l border-border' : ''}
+                            ${tempKind === k ? 'bg-rose-500/80 text-white' : 'text-text-tertiary hover:text-text-primary hover:bg-surface-2'}`}
                         >
                           {k === 'audit' ? t('dest.kindAudit') : t('dest.kindIntern')}
                         </button>
                       ))}
                     </div>
-                    <label htmlFor="dest-return-date" className="block text-[12px] uppercase tracking-[0.06em] font-semibold text-[#94A3B8] mb-1">
+                    <label htmlFor="dest-return-date" className="block text-[12px] uppercase tracking-[0.06em] font-semibold text-text-tertiary mb-1">
                       {t('dest.returnDate')}
                     </label>
                     <DatePicker

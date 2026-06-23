@@ -1,99 +1,252 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-// Mock firebase/functions before importing the module under test
-vi.mock('firebase/functions', () => ({
-  httpsCallable: vi.fn(),
+// Mock ./licenseSecrets so revealKey.ts delegates to its helpers without
+// touching real Firestore. We test that revealKey.ts wires the helpers
+// correctly; licenseSecrets.ts is covered by its own test file.
+vi.mock('./licenseSecrets', () => ({
+  getLicenseSecretKey: vi.fn(),
+  setLicenseSecretKey: vi.fn(),
 }))
 
-// Mock @/lib/firebase so functions() is a stable stub
+// Mock firebase/firestore — revealKey.ts uses doc() + getDoc() directly
+// to resolve the caller's role from /users/{uid}.
+vi.mock('firebase/firestore', () => ({
+  doc: vi.fn((_db: unknown, ...segments: string[]) => ({ path: segments.join('/') })),
+  getDoc: vi.fn(),
+}))
+
+// Mock @/lib/firebase so db() and auth() never touch the real SDK.
 vi.mock('@/lib/firebase', () => ({
-  functions: vi.fn(() => ({ /* stub Functions instance */ })),
+  db: vi.fn(() => ({ type: 'stub-firestore' })),
+  auth: vi.fn(() => ({ currentUser: { uid: 'u_super' } })),
 }))
 
-import { httpsCallable, type HttpsCallable } from 'firebase/functions'
-import { revealLicenseKey, setLicenseKey } from './revealKey'
+// Mock @/lib/audit — prevents withAudit from touching real Firestore in unit
+// tests while letting us assert the correct spec reaches the audit path.
+// sanitizeLicenseAuditPayload is kept as a real passthrough so masking
+// behaviour is exercised; firestoreAuditContext returns a stub context object.
+vi.mock('@/lib/audit', async (importOriginal) => {
+  const real = await importOriginal<typeof import('@/lib/audit')>()
+  return {
+    ...real,
+    // sanitizeLicenseAuditPayload — use the real implementation so the mask
+    // is applied and we can assert the key is masked in the captured spec.
+    firestoreAuditContext: vi.fn(() => ({ _stub: 'audit-ctx' })),
+    withAudit: vi.fn().mockResolvedValue({ value: undefined, auditId: 'al_stub' }),
+  }
+})
 
-const mockCallable = vi.fn()
+import { getDoc } from 'firebase/firestore'
+import { auth } from '@/lib/firebase'
+import { withAudit } from '@/lib/audit'
+import { getLicenseSecretKey, setLicenseSecretKey } from './licenseSecrets'
+import { revealLicenseKey, setLicenseKey } from './revealKey'
 
 beforeEach(() => {
   vi.clearAllMocks()
-  // The production code only ever invokes the callable as a function; the rest of
-  // the HttpsCallable surface (e.g. `.stream`) is irrelevant to these tests.
-  vi.mocked(httpsCallable).mockReturnValue(mockCallable as unknown as HttpsCallable)
 })
 
-describe('revealLicenseKey', () => {
-  it('calls the revealLicenseKey callable with the correct name and args', async () => {
-    mockCallable.mockResolvedValue({ data: { key: 'RAW-KEY-123' } })
+// ---------------------------------------------------------------------------
+// revealLicenseKey
+// ---------------------------------------------------------------------------
 
+describe('revealLicenseKey', () => {
+  it('throws license-key/unauthenticated when auth().currentUser is null', async () => {
+    // Arrange — override auth mock to return no user
+    vi.mocked(auth).mockReturnValueOnce({ currentUser: null } as ReturnType<typeof auth>)
+
+    // Act & Assert
+    await expect(revealLicenseKey('licenses', 'lic_abc')).rejects.toThrow(
+      'license-key/unauthenticated',
+    )
+    // The secret must NOT be read if unauthenticated
+    expect(getLicenseSecretKey).not.toHaveBeenCalled()
+    // No audit written for unauthenticated callers
+    expect(withAudit).not.toHaveBeenCalled()
+  })
+
+  it('returns the raw key when getLicenseSecretKey resolves a key', async () => {
+    // Arrange — auth returns u_super; /users/u_super doc has role super_admin
+    vi.mocked(getLicenseSecretKey).mockResolvedValue('RAW-KEY-123')
+    vi.mocked(getDoc).mockResolvedValue({
+      exists: () => true,
+      data: () => ({ role: 'super_admin' }),
+    } as ReturnType<typeof getDoc> extends Promise<infer S> ? S : never)
+
+    // Act
     const result = await revealLicenseKey('licenses', 'lic_abc')
 
-    // httpsCallable should have been called with the functions instance and the
-    // exact Cloud Function name
-    expect(httpsCallable).toHaveBeenCalledWith(
-      expect.anything(),
-      'revealLicenseKey',
+    // Assert — secret was fetched with correct args
+    expect(getLicenseSecretKey).toHaveBeenCalledWith(
+      expect.anything(),  // db() stub
+      'licenses',
+      'lic_abc',
     )
-
-    // The callable itself should have been invoked with the right payload
-    expect(mockCallable).toHaveBeenCalledWith({
-      collection: 'licenses',
-      licenseId: 'lic_abc',
-    })
-
-    // Returns the raw key from res.data.key
     expect(result).toBe('RAW-KEY-123')
   })
 
-  it('works for server_licenses collection', async () => {
-    mockCallable.mockResolvedValue({ data: { key: 'SRV-KEY-XYZ' } })
+  it('writes a masked key_revealed audit entry on successful reveal', async () => {
+    // Arrange
+    vi.mocked(getLicenseSecretKey).mockResolvedValue('XCVF-7TR5-9HJK-5592')
+    vi.mocked(getDoc).mockResolvedValue({
+      exists: () => true,
+      data: () => ({ role: 'super_admin' }),
+    } as ReturnType<typeof getDoc> extends Promise<infer S> ? S : never)
 
-    const result = await revealLicenseKey('server_licenses', 'srv_001')
+    // Act
+    await revealLicenseKey('licenses', 'lic_abc')
 
-    expect(mockCallable).toHaveBeenCalledWith({
-      collection: 'server_licenses',
-      licenseId: 'srv_001',
-    })
-    expect(result).toBe('SRV-KEY-XYZ')
+    // Assert — withAudit was called exactly once
+    expect(withAudit).toHaveBeenCalledTimes(1)
+
+    // Retrieve the spec passed to withAudit (second argument)
+    const [_ctx, capturedSpec] = vi.mocked(withAudit).mock.calls[0]!
+
+    // entityType + entityId + action
+    expect(capturedSpec.entityType).toBe('license')
+    expect(capturedSpec.entityId).toBe('lic_abc')
+    expect(capturedSpec.action).toBe('key_revealed')
+    expect(capturedSpec.actorUid).toBe('u_super')
+    expect(capturedSpec.actorRole).toBe('super_admin')
+    expect(capturedSpec.before).toBeNull()
+
+    // The `key` in `after` must be MASKED — sanitizeLicenseAuditPayload applies
+    // last-4 masking ('XCVF-7TR5-9HJK-5592' → '****-****-****-5592').
+    expect(capturedSpec.after).toBeDefined()
+    const afterKey = (capturedSpec.after as Record<string, unknown>)['key']
+    expect(afterKey).toBe('****-****-****-5592')
+
+    // The raw key must NEVER appear in the spec passed to withAudit.
+    expect(JSON.stringify(capturedSpec)).not.toContain('XCVF-7TR5-9HJK-5592')
   })
 
-  it('propagates callable errors', async () => {
-    mockCallable.mockRejectedValue(new Error('permission-denied'))
+  it('uses entityType server_license for server_licenses collection', async () => {
+    // Arrange
+    vi.mocked(getLicenseSecretKey).mockResolvedValue('SRV-KEY-XYZ00')
+    vi.mocked(getDoc).mockResolvedValue({
+      exists: () => true,
+      data: () => ({ role: 'super_admin' }),
+    } as ReturnType<typeof getDoc> extends Promise<infer S> ? S : never)
+
+    // Act
+    const result = await revealLicenseKey('server_licenses', 'srv_001')
+
+    // Assert — correct collection forwarded to getLicenseSecretKey
+    expect(getLicenseSecretKey).toHaveBeenCalledWith(
+      expect.anything(),
+      'server_licenses',
+      'srv_001',
+    )
+    expect(result).toBe('SRV-KEY-XYZ00')
+
+    // entityType should be server_license (not license)
+    const [_ctx, capturedSpec] = vi.mocked(withAudit).mock.calls[0]!
+    expect(capturedSpec.entityType).toBe('server_license')
+  })
+
+  it('throws license-key/not-found when the secret is null and writes NO audit entry', async () => {
+    // Arrange — key was never set
+    vi.mocked(getLicenseSecretKey).mockResolvedValue(null)
+
+    // Act & Assert
+    await expect(revealLicenseKey('licenses', 'lic_abc')).rejects.toThrow('license-key/not-found')
+
+    // No audit written — there is nothing revealed when the key does not exist.
+    expect(withAudit).not.toHaveBeenCalled()
+  })
+
+  it('propagates errors thrown by getLicenseSecretKey', async () => {
+    // Arrange
+    vi.mocked(getLicenseSecretKey).mockRejectedValue(new Error('permission-denied'))
+
+    // Act & Assert
     await expect(revealLicenseKey('licenses', 'lic_abc')).rejects.toThrow('permission-denied')
+  })
+
+  it('falls back to empty string role when the user doc does not exist', async () => {
+    // Arrange
+    vi.mocked(getLicenseSecretKey).mockResolvedValue('ABCD-EFGH-12345')
+    vi.mocked(getDoc).mockResolvedValue({
+      exists: () => false,
+      data: () => undefined,
+    } as ReturnType<typeof getDoc> extends Promise<infer S> ? S : never)
+
+    // Act
+    await revealLicenseKey('licenses', 'lic_abc')
+
+    // Assert — actorRole defaults to '' when user doc is missing
+    const [_ctx, capturedSpec] = vi.mocked(withAudit).mock.calls[0]!
+    expect(capturedSpec.actorRole).toBe('')
   })
 })
 
-describe('setLicenseKey', () => {
-  it('calls the setLicenseKey callable with the correct name and args', async () => {
-    mockCallable.mockResolvedValue({ data: undefined })
+// ---------------------------------------------------------------------------
+// setLicenseKey
+// ---------------------------------------------------------------------------
 
+describe('setLicenseKey', () => {
+  it('resolves caller uid+role and calls setLicenseSecretKey with the raw key', async () => {
+    // Arrange — auth returns u_super; /users/u_super doc has role super_admin
+    vi.mocked(getDoc).mockResolvedValue({
+      exists: () => true,
+      data: () => ({ role: 'super_admin' }),
+    } as ReturnType<typeof getDoc> extends Promise<infer S> ? S : never)
+    vi.mocked(setLicenseSecretKey).mockResolvedValue(undefined)
+
+    // Act
     await setLicenseKey('licenses', 'lic_abc', 'MY-RAW-KEY')
 
-    expect(httpsCallable).toHaveBeenCalledWith(
-      expect.anything(),
-      'setLicenseKey',
+    // Assert — the actor object passed to setLicenseSecretKey carries the right uid + role
+    expect(setLicenseSecretKey).toHaveBeenCalledWith(
+      expect.anything(),      // db() stub
+      'licenses',
+      'lic_abc',
+      'MY-RAW-KEY',
+      { uid: 'u_super', role: 'super_admin' },
     )
-    expect(mockCallable).toHaveBeenCalledWith({
-      collection: 'licenses',
-      licenseId: 'lic_abc',
-      rawKey: 'MY-RAW-KEY',
-    })
   })
 
-  it('works for server_licenses collection', async () => {
-    mockCallable.mockResolvedValue({ data: undefined })
+  it('throws license-key/unauthenticated when auth().currentUser is null', async () => {
+    // Arrange — override the auth mock to return no user for this test only
+    vi.mocked(auth).mockReturnValueOnce({ currentUser: null } as ReturnType<typeof auth>)
 
-    await setLicenseKey('server_licenses', 'srv_001', 'SRV-KEY')
-
-    expect(mockCallable).toHaveBeenCalledWith({
-      collection: 'server_licenses',
-      licenseId: 'srv_001',
-      rawKey: 'SRV-KEY',
-    })
+    // Act & Assert
+    await expect(setLicenseKey('licenses', 'lic_abc', 'MY-RAW-KEY')).rejects.toThrow(
+      'license-key/unauthenticated',
+    )
+    expect(setLicenseSecretKey).not.toHaveBeenCalled()
   })
 
-  it('propagates callable errors', async () => {
-    mockCallable.mockRejectedValue(new Error('unauthenticated'))
-    await expect(setLicenseKey('licenses', 'lic_abc', 'key')).rejects.toThrow('unauthenticated')
+  it('falls back to empty string role when the user doc does not exist', async () => {
+    // Arrange — user doc is missing from Firestore (fresh user, no role assigned yet)
+    vi.mocked(getDoc).mockResolvedValue({
+      exists: () => false,
+      data: () => undefined,
+    } as ReturnType<typeof getDoc> extends Promise<infer S> ? S : never)
+    vi.mocked(setLicenseSecretKey).mockResolvedValue(undefined)
+
+    // Act
+    await setLicenseKey('licenses', 'lic_abc', 'MY-RAW-KEY')
+
+    // Assert — role defaults to '' when doc missing
+    expect(setLicenseSecretKey).toHaveBeenCalledWith(
+      expect.anything(),
+      'licenses',
+      'lic_abc',
+      'MY-RAW-KEY',
+      { uid: 'u_super', role: '' },
+    )
+  })
+
+  it('propagates errors thrown by setLicenseSecretKey', async () => {
+    // Arrange
+    vi.mocked(getDoc).mockResolvedValue({
+      exists: () => true,
+      data: () => ({ role: 'super_admin' }),
+    } as ReturnType<typeof getDoc> extends Promise<infer S> ? S : never)
+    vi.mocked(setLicenseSecretKey).mockRejectedValue(new Error('permission-denied'))
+
+    // Act & Assert
+    await expect(setLicenseKey('licenses', 'lic_abc', 'KEY')).rejects.toThrow('permission-denied')
   })
 })

@@ -65,8 +65,8 @@ beforeAll(async () => {
 
 // ── RequireAuth ────────────────────────────────────────────────────
 describe('RequireAuth', () => {
-  it('status=loading renders a loading skeleton (no redirect)', () => {
-    const { container } = render(
+  it('renders the branded app loader (no redirect)', () => {
+    render(
       <Wrapper authValue={makeAuthValue('loading')}>
         <MemoryRouter initialEntries={['/dashboard']}>
           <Routes>
@@ -79,8 +79,8 @@ describe('RequireAuth', () => {
     )
     // Inner content not rendered
     expect(screen.queryByTestId('inner')).toBeNull()
-    // Some loading markup exists
-    expect(container.querySelector('.anim-skeleton, [class*="skeleton"]')).toBeTruthy()
+    // Branded loader is present
+    expect(screen.getByTestId('app-loader')).toBeInTheDocument()
   })
 
   it('status=signed-out redirects to /login', () => {

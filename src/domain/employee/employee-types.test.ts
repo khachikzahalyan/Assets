@@ -9,7 +9,7 @@ describe('employee domain types', () => {
   })
   it('Employee shape compiles', () => {
     const e: Employee = {
-      id: 'uid_1', firstName: 'Иван', lastName: 'Петров', email: 'i@x.com',
+      id: 'uid_1', firstName: 'Иван', lastName: 'Петров', email: 'i@x.com', phone: null,
       position: 'Инженер', branchId: 'br_1', departmentId: 'dep_1',
       status: 'active', terminatedAt: null,
       createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z',

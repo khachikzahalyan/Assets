@@ -6,11 +6,12 @@ import {
   deriveCreateStatus, isSpecTracked, SPEC_KEY,
   type AssetWriteRepository, type CreateAssetInput, type UpdateAssetInput,
   type ChangeStatusOpts, type Actor, type AssetStatusId, type AssetSpecs,
-  type UpgradeComponent, type UpgradeEvent,
+  type AssetAssignment, type UpgradeComponent, type UpgradeEvent,
 } from '@/domain/asset'
 import { withAudit, type AuditContext, createInMemoryAuditStore, inMemoryAuditContext } from '@/lib/audit'
 import type { AuditLog } from '@/domain/audit'
 import type { WorkstationLicenseRepository } from '@/domain/license'
+import { assertBatchUnique } from './firestoreAssetRepository'
 
 const SORTERS: Record<AssetSort, (a: Asset, b: Asset) => number> = {
   updated_desc: (a, b) => b.updatedAt.localeCompare(a.updatedAt),
@@ -128,6 +129,7 @@ export class InMemoryAssetRepository implements AssetRepository, AssetWriteRepos
       categoryId: input.categoryId,
       brand: input.brand,
       model: input.model,
+      type: input.type ?? null,
       invCode: input.invCode,
       serial: input.serial,
       statusId,
@@ -136,6 +138,9 @@ export class InMemoryAssetRepository implements AssetRepository, AssetWriteRepos
       deptId: input.deptId,
       updatedAt: new Date().toISOString(),
       currentSpecs: input.currentSpecs ?? null,
+      condition: input.condition ?? null,
+      purchaseDate: input.condition === 'new' ? (input.purchaseDate ?? null) : null,
+      warrantyEndsAt: input.condition === 'new' ? (input.warrantyEndsAt ?? null) : null,
     }
     const r = await withAudit(
       this.audit,
@@ -154,16 +159,29 @@ export class InMemoryAssetRepository implements AssetRepository, AssetWriteRepos
     // License coupling — runs AFTER the asset write so the new asset id is stable.
     // Produces its own audit entry via the license repo (two total: asset created + license created/assigned).
     if (input.oemLicense && this.licenses) {
-      if ('rawKey' in input.oemLicense) {
-        const name = [`OEM —`, input.brand, input.model].filter(Boolean).join(' ').replace(/^OEM —\s*$/, 'OEM License')
+      if ('kind' in input.oemLicense && input.oemLicense.kind === 'manual') {
+        // Manual/retail product key — type:'Retail', isReusable:true
+        const manualName = [input.brand, input.model].filter(Boolean).join(' ').trim()
+          ? `${[input.brand, input.model].filter(Boolean).join(' ')} — Ключ продукта`
+          : 'Лицензия ОС'
         await this.licenses.createLicense({
-          name,
-          type: 'OEM',
-          isReusable: false,
+          name: manualName,
+          type: 'Retail',
+          isReusable: true,
           rawKey: input.oemLicense.rawKey,
           assign: { to: 'device', assetId: id },
         }, actor)
-      } else {
+      } else if ('kind' in input.oemLicense && input.oemLicense.kind === 'oem-digital') {
+        // Firmware-embedded OEM — type:'OEM', isReusable:false, NO rawKey
+        const oemName = ['OEM —', input.brand, input.model].filter(Boolean).join(' ').trim()
+          || 'OEM License'
+        await this.licenses.createLicense({
+          name: oemName,
+          type: 'OEM',
+          isReusable: false,
+          assign: { to: 'device', assetId: id },
+        }, actor)
+      } else if ('existingLicenseId' in input.oemLicense) {
         // existingLicenseId branch
         await this.licenses.assignLicense(
           input.oemLicense.existingLicenseId,
@@ -174,6 +192,21 @@ export class InMemoryAssetRepository implements AssetRepository, AssetWriteRepos
     }
 
     return r
+  }
+
+  /** Group registration with dual uniqueness (within-batch + existing). See interface doc. */
+  async createAssetsBatch(inputs: CreateAssetInput[], actor: Actor): Promise<Asset[]> {
+    assertBatchUnique(inputs)
+    for (const input of inputs) {
+      if (await this.isInvCodeTaken(input.invCode)) throw new Error(`Inventory code already in use: ${input.invCode}`)
+      if (input.serial && await this.isSerialTaken(input.serial)) throw new Error(`Serial already in use: ${input.serial}`)
+    }
+    const created: Asset[] = []
+    for (const input of inputs) {
+      const r = await this.createAsset(input, actor)
+      created.push(r.value)
+    }
+    return created
   }
 
   async updateAsset(id: string, patch: UpdateAssetInput, actor: Actor) {
@@ -213,13 +246,24 @@ export class InMemoryAssetRepository implements AssetRepository, AssetWriteRepos
       assignment: opts && 'assignment' in opts ? (opts.assignment ?? null) : before.assignment,
       updatedAt: new Date().toISOString(),
     }
+    const hasAssignment = !!opts && 'assignment' in opts
+    const beforeAssignment = before.assignment ?? null
+    const afterAssignment = hasAssignment ? (opts!.assignment ?? null) : null
+    const auditBefore: Record<string, unknown> = {
+      statusId: before.statusId,
+      ...(hasAssignment ? { assignment: beforeAssignment } : {}),
+    }
+    const auditAfter: Record<string, unknown> = {
+      statusId: toStatusId,
+      ...(hasAssignment ? { assignment: afterAssignment } : {}),
+    }
     const r = await withAudit(
       this.audit,
       {
         entityType: 'asset', entityId: id, action: 'status_changed',
         actorUid: actor.uid, actorRole: actor.role,
-        before: { statusId: before.statusId },
-        after: { statusId: toStatusId },
+        before: auditBefore,
+        after: auditAfter,
         comment: opts?.comment ?? null,
       },
       async () => {
@@ -228,8 +272,8 @@ export class InMemoryAssetRepository implements AssetRepository, AssetWriteRepos
       },
     )
     this.mirror(id, r, 'status_changed', actor.uid, actor.role,
-      { statusId: before.statusId },
-      { statusId: toStatusId })
+      auditBefore,
+      auditAfter)
     return r
   }
 
@@ -272,6 +316,21 @@ export class InMemoryAssetRepository implements AssetRepository, AssetWriteRepos
       before === null ? null : { value: before },
       { component: ev.component, value: ev.after })
     return r
+  }
+
+  async bulkChangeAssignment(
+    ids: string[],
+    assignment: AssetAssignment,
+    actor: Actor,
+    comment?: string,
+  ): Promise<{ assetId: string; auditId: string }[]> {
+    const results = await Promise.all(
+      ids.map(async (id) => {
+        const r = await this.changeStatus(id, 'st_assigned', actor, { assignment, ...(comment !== undefined ? { comment } : {}) })
+        return { assetId: id, auditId: r.auditId }
+      }),
+    )
+    return results
   }
 
   async listUpgrades(id: string): Promise<UpgradeEvent[]> {

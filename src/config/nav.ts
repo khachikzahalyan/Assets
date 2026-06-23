@@ -28,7 +28,7 @@ export const ADMIN_NAV: NavGroup[] = [
     { id: 'assignments', labelKey: 'items.assignments', icon: 'arrow-right-left', allow: ['super_admin', 'asset_admin'], phase: 3 },
     { id: 'repairs',     labelKey: 'items.repairs',     icon: 'wrench',           allow: ['super_admin', 'tech_admin'],  phase: 2 },
     { id: 'licenses',    labelKey: 'items.licenses',    icon: 'key-round',        allow: ['super_admin', 'tech_admin'] },
-    { id: 'parts',       labelKey: 'items.parts',       icon: 'package',          allow: ['super_admin', 'asset_admin', 'tech_admin'], phase: 2 },
+    { id: 'parts',       labelKey: 'items.parts',       icon: 'cpu',              allow: ['super_admin', 'asset_admin', 'tech_admin'] },
   ]},
   { id: 'org', labelKey: 'groups.org', items: [
     { id: 'employees',   labelKey: 'items.employees',   icon: 'users',   allow: ['super_admin', 'asset_admin'] },
@@ -78,5 +78,5 @@ export function defaultRouteForRole(role: Role): RouteId {
 /** Routes that render a StubPage ("Скоро") — Phase 2/3 features + Phase-1 feature
  *  pages whose own plans haven't landed yet. Single source of truth for the router. */
 export const PHASE_STUB_ROUTES: RouteId[] = [
-  'assignments', 'repairs', 'parts',
+  'assignments', 'repairs',
 ]

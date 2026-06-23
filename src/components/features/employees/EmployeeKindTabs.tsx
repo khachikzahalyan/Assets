@@ -23,7 +23,7 @@ export function EmployeeKindTabs({ selected, onSelect, counts }: EmployeeKindTab
   const { t } = useTranslation('employees')
 
   return (
-    <div className="flex items-center gap-1.5 flex-wrap">
+    <div className="flex items-center gap-1.5 flex-wrap max-md:flex-nowrap max-md:overflow-x-auto no-scrollbar">
       {TABS.map(({ id, icon, labelKey }) => {
         const isActive = selected === id
         return (
@@ -33,22 +33,22 @@ export function EmployeeKindTabs({ selected, onSelect, counts }: EmployeeKindTab
             onClick={() => onSelect(id)}
             aria-pressed={isActive}
             className={cn(
-              'inline-flex items-center gap-2 h-9 px-3 rounded-lg text-[15px] font-semibold tracking-tight transition-colors duration-100',
+              'inline-flex items-center gap-2 h-9 px-3 rounded-lg text-[15px] font-semibold tracking-tight transition-colors duration-100 max-md:h-8 max-md:text-[13px] max-md:shrink-0',
               isActive
-                ? 'bg-[#F97316] text-white'
-                : 'bg-[#1B1F24] text-[#F8FAFC] border border-[#2A2F36] hover:border-[#3A4048]',
+                ? 'bg-accent text-white'
+                : 'bg-surface text-text-primary border border-border hover:border-border-strong',
             )}
           >
             <Icon
               name={icon}
               size={14}
-              className={isActive ? 'text-white' : 'text-[#F8FAFC]'}
+              className={cn(isActive ? 'text-white' : 'text-text-primary', 'max-md:hidden')}
             />
             <span>{t(labelKey)}</span>
             <span
               className={cn(
                 'tabular-nums text-[14px]',
-                isActive ? 'text-white/70' : 'text-[#64748B]',
+                isActive ? 'text-white/70' : 'text-text-subtle',
               )}
             >
               {counts[id]}

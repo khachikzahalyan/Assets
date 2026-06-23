@@ -9,6 +9,10 @@ export interface InputProps {
   autoFocus?: boolean
   /** HTML id forwarded to the underlying <input> — required for <label htmlFor> association. */
   id?: string
+  /** Optional keydown handler (e.g. Enter-to-confirm in the group stepper). */
+  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void
+  /** Optional aria-label when no visible <label> is associated. */
+  ariaLabel?: string
 }
 
 export function Input({
@@ -21,6 +25,8 @@ export function Input({
   disabled,
   autoFocus,
   id,
+  onKeyDown,
+  ariaLabel,
 }: InputProps) {
   return (
     <input
@@ -28,10 +34,12 @@ export function Input({
       type={type}
       value={value}
       onChange={e => onChange && onChange(e.target.value)}
+      onKeyDown={onKeyDown}
+      aria-label={ariaLabel}
       placeholder={placeholder}
       disabled={disabled}
       autoFocus={autoFocus}
-      className={`w-full h-9 px-3 text-sm bg-[#111315] border border-[#2A2F36] rounded-lg text-[#F8FAFC] placeholder:text-[#64748B] focus:outline-none focus:border-[#F97316] focus:ring-2 focus:ring-[rgba(249,115,22,0.40)] transition-all duration-150 disabled:bg-[#1B1F24] disabled:text-[#64748B] ${mono ? 'font-mono tracking-tight' : ''} ${className}`}
+      className={`w-full h-9 px-3 text-sm bg-bg border border-border rounded-lg text-text-primary placeholder:text-text-subtle focus:outline-none focus:border-accent focus:ring-2 focus:ring-[rgba(249,115,22,0.40)] transition-all duration-150 disabled:bg-surface disabled:text-text-subtle ${mono ? 'font-mono tracking-tight' : ''} ${className}`}
     />
   )
 }

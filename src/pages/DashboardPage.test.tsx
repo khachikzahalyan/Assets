@@ -175,8 +175,8 @@ describe('DashboardPage loading state', () => {
     }
     // @ts-expect-error — intentionally partial stub for loading test
     renderPage('super_admin', slowRepo)
-    // Page renders its container div — the anim-content-enter wrapper is always present
-    expect(document.querySelector('.anim-content-enter')).toBeInTheDocument()
+    // Page renders its container div while loading
+    expect(document.querySelector('.space-y-5')).toBeInTheDocument()
   })
 })
 

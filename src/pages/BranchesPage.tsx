@@ -50,9 +50,9 @@ export function BranchesPage({ repository }: BranchesPageProps) {
   const pageRows = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   const columns: CatalogColumn<Branch>[] = [
-    { key: 'name', header: t('col.name'), render: b => <span className="text-[#F8FAFC]">{b.name}</span> },
+    { key: 'name', header: t('col.name'), render: b => <span className="text-text-primary">{b.name}</span> },
     { key: 'type', header: t('col.type'), render: b => <Chip color={b.type === 'warehouse' ? 'amber' : 'blue'}>{t(`type.${b.type}`)}</Chip> },
-    { key: 'city', header: t('col.city'), render: b => <span className="text-[#94A3B8]">{b.city ?? '—'}</span> },
+    { key: 'city', header: t('col.city'), render: b => <span className="text-text-tertiary">{b.city ?? '—'}</span> },
   ]
 
   async function handleSubmit(v: BranchFormValues) {
@@ -97,8 +97,8 @@ export function BranchesPage({ repository }: BranchesPageProps) {
           onDelete={askDelete}
         />
         {total > PAGE_SIZE && (
-          <div className="flex items-center justify-between pt-4 border-t border-[#2A2F36] mt-2">
-            <span className="text-[12px] text-[#64748B]">{t('pagination.range', { from, to, total })}</span>
+          <div className="flex items-center justify-between pt-4 border-t border-border mt-2">
+            <span className="text-[12px] text-text-subtle">{t('pagination.range', { from, to, total })}</span>
             <div className="flex gap-2">
               <Btn variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}><Icon name="chevron-right" size={13} className="rotate-180" /></Btn>
               <Btn variant="secondary" size="sm" disabled={to >= total} onClick={() => setPage(p => p + 1)}><Icon name="chevron-right" size={13} /></Btn>
@@ -110,7 +110,7 @@ export function BranchesPage({ repository }: BranchesPageProps) {
   }
 
   return (
-    <div className="anim-content-enter space-y-5">
+    <div className="space-y-5">
       <PageHeader
         icon="building" title={t('title')} {...(!loading ? { count: total } : {})}
         {...(canMutate ? { actions: (

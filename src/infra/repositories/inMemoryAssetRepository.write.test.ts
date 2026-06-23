@@ -88,6 +88,75 @@ describe('InMemory write methods', () => {
   })
 })
 
+describe('changeStatus — all 5 transfer modes persist assignment verbatim, one audit each', () => {
+  it('employee mode: persists assignment.mode + employeeId, one status_changed audit', async () => {
+    const { repo, store } = makeRepo()
+    const { value } = await repo.createAsset(baseInput, ACTOR)
+    const assignment = { mode: 'employee' as const, employeeId: 'e1', workMode: 'remote' as const }
+    await repo.changeStatus(value.id, 'st_assigned', ACTOR, { assignment, comment: 'new hire' })
+    const after = await repo.getAsset(value.id)
+    expect(after?.statusId).toBe('st_assigned')
+    expect(after?.assignment).toEqual(assignment)
+    const statusLogs = store.logs.filter(l => l.action === 'status_changed')
+    expect(statusLogs).toHaveLength(1)
+  })
+
+  it('department mode: persists assignment.mode + departmentId, one status_changed audit', async () => {
+    const { repo, store } = makeRepo()
+    const { value } = await repo.createAsset(baseInput, ACTOR)
+    const assignment = { mode: 'department' as const, departmentId: 'd_it' }
+    await repo.changeStatus(value.id, 'st_assigned', ACTOR, { assignment })
+    const after = await repo.getAsset(value.id)
+    expect(after?.statusId).toBe('st_assigned')
+    expect(after?.assignment).toEqual(assignment)
+    const statusLogs = store.logs.filter(l => l.action === 'status_changed')
+    expect(statusLogs).toHaveLength(1)
+  })
+
+  it('branch mode: persists assignment.mode + branchId, one status_changed audit', async () => {
+    const { repo, store } = makeRepo()
+    const { value } = await repo.createAsset(baseInput, ACTOR)
+    const assignment = { mode: 'branch' as const, branchId: 'b_gym' }
+    await repo.changeStatus(value.id, 'st_assigned', ACTOR, { assignment })
+    const after = await repo.getAsset(value.id)
+    expect(after?.assignment).toEqual(assignment)
+    const statusLogs = store.logs.filter(l => l.action === 'status_changed')
+    expect(statusLogs).toHaveLength(1)
+  })
+
+  it('warehouse mode: persists assignment null (unassigned), one status_changed audit', async () => {
+    const { repo, store } = makeRepo()
+    const { value } = await repo.createAsset(
+      { ...baseInput, invCode: '450/w', serial: 'SNW', assignment: { mode: 'employee', employeeId: 'e1' } },
+      ACTOR,
+    )
+    await repo.changeStatus(value.id, 'st_warehouse', ACTOR, { assignment: null })
+    const after = await repo.getAsset(value.id)
+    expect(after?.statusId).toBe('st_warehouse')
+    expect(after?.assignment).toBeNull()
+    const statusLogs = store.logs.filter(l => l.action === 'status_changed')
+    expect(statusLogs).toHaveLength(1)
+  })
+
+  it('temporary mode: persists all temporary fields verbatim, one status_changed audit', async () => {
+    const { repo, store } = makeRepo()
+    const { value } = await repo.createAsset(baseInput, ACTOR)
+    const assignment = {
+      mode: 'temporary' as const,
+      tempKind: 'audit' as const,
+      expiresAt: '2026-12-31T00:00:00.000Z',
+      isTemporary: true,
+      workMode: 'office' as const,
+    }
+    await repo.changeStatus(value.id, 'st_assigned', ACTOR, { assignment, comment: 'audit team' })
+    const after = await repo.getAsset(value.id)
+    expect(after?.statusId).toBe('st_assigned')
+    expect(after?.assignment).toEqual(assignment)
+    const statusLogs = store.logs.filter(l => l.action === 'status_changed')
+    expect(statusLogs).toHaveLength(1)
+  })
+})
+
 describe('listAssetsForEmployee', () => {
   it('returns only assets whose assignment.employeeId matches', async () => {
     const ref: AssetReferenceData = { statuses: [], branches: [], departments: [], categories: [], employees: [] }
@@ -103,5 +172,60 @@ describe('listAssetsForEmployee', () => {
     const mine = await repo.listAssetsForEmployee('uid_1')
     expect(mine).toHaveLength(1)
     expect(mine[0]!.id).toBe('a_1')
+  })
+})
+
+describe('createAssetsBatch (group registration, dual uniqueness)', () => {
+  it('creates N assets sharing fields, each with its own audit entry', async () => {
+    const { repo, store } = makeRepo()
+    const rows = [
+      { ...baseInput, invCode: '450/10', serial: 'SN10' },
+      { ...baseInput, invCode: '450/11', serial: 'SN11' },
+      { ...baseInput, invCode: '450/12', serial: 'SN12' },
+    ]
+    const created = await repo.createAssetsBatch(rows, ACTOR)
+    expect(created).toHaveLength(3)
+    expect(created.map(a => a.invCode)).toEqual(['450/10', '450/11', '450/12'])
+    expect(created.every(a => a.brand === 'Dell' && a.statusId === 'st_warehouse')).toBe(true)
+    // 3 created audit entries
+    expect(store.logs.filter(l => l.action === 'created')).toHaveLength(3)
+  })
+
+  it('rejects a within-batch duplicate inventory code before any write', async () => {
+    const { repo, store } = makeRepo()
+    const rows = [
+      { ...baseInput, invCode: '450/20', serial: 'SN20' },
+      { ...baseInput, invCode: '450/20', serial: 'SN21' }, // dup code
+    ]
+    await expect(repo.createAssetsBatch(rows, ACTOR)).rejects.toThrow(/inv/i)
+    expect(store.logs).toHaveLength(0)
+  })
+
+  it('rejects a within-batch duplicate serial before any write', async () => {
+    const { repo, store } = makeRepo()
+    const rows = [
+      { ...baseInput, invCode: '450/30', serial: 'DUP' },
+      { ...baseInput, invCode: '450/31', serial: 'DUP' }, // dup serial
+    ]
+    await expect(repo.createAssetsBatch(rows, ACTOR)).rejects.toThrow(/serial/i)
+    expect(store.logs).toHaveLength(0)
+  })
+
+  it('rejects when a row collides with an existing asset', async () => {
+    const { repo } = makeRepo()
+    await repo.createAsset({ ...baseInput, invCode: '450/40', serial: 'SN40' }, ACTOR)
+    const rows = [{ ...baseInput, invCode: '450/40', serial: 'SN41' }]
+    await expect(repo.createAssetsBatch(rows, ACTOR)).rejects.toThrow(/inv/i)
+  })
+
+  it('persists condition + warranty fields for new assets', async () => {
+    const { repo } = makeRepo()
+    const created = await repo.createAssetsBatch(
+      [{ ...baseInput, invCode: '450/50', serial: 'SN50', condition: 'new', purchaseDate: '2026-06-21', warrantyEndsAt: '2027-06-21' }],
+      ACTOR,
+    )
+    expect(created[0]!.condition).toBe('new')
+    expect(created[0]!.purchaseDate).toBe('2026-06-21')
+    expect(created[0]!.warrantyEndsAt).toBe('2027-06-21')
   })
 })

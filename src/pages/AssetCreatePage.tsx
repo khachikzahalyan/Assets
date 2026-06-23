@@ -36,7 +36,7 @@ export function AssetCreatePage({ repository, licenseRepository, onCreated, onPe
   // Build the default Firestore repo lazily — only when no test repo is injected.
   // The useMemo factory only executes if repository is undefined at mount time.
   const defaultRepo = useMemo<AssetRepository & AssetWriteRepository | null>(
-    () => (repository ? null : new FirestoreAssetRepository(db())),
+    () => (repository ? null : new FirestoreAssetRepository(db(), new FirestoreWorkstationLicenseRepository(db()))),
     // repository identity is stable across renders (passed from parent or undefined)
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
@@ -82,6 +82,26 @@ export function AssetCreatePage({ repository, licenseRepository, onCreated, onPe
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  async function handleSubmitBatch(inputs: CreateAssetInput[]) {
+    setSubmitting(true)
+    setSaveError(null)
+    setOemKeyWarning(null)
+    try {
+      const actor = { uid: user.id, role }
+      const created = await (repo as AssetWriteRepository).createAssetsBatch(inputs, actor)
+      // Navigate to the list after a successful batch create.
+      onCreated?.(created[0] ?? (undefined as unknown as Asset))
+      navigate('/assets')
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      if (/inv/i.test(msg)) setSaveError(t('validation.invTaken'))
+      else if (/serial/i.test(msg)) setSaveError(t('validation.serialTaken'))
+      else setSaveError(t('validation.saveFailed'))
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   async function handleSubmit(input: CreateAssetInput) {
     setSubmitting(true)
     setSaveError(null)
@@ -94,7 +114,7 @@ export function AssetCreatePage({ repository, licenseRepository, onCreated, onPe
       // The repo already created the license DOC (without the secret). Now we must
       // persist the raw secret via the setLicenseKey callable (admin SDK writes to
       // secrets/current; client SDK rules block direct writes).
-      if (input.oemLicense && 'rawKey' in input.oemLicense && input.oemLicense.rawKey) {
+      if (input.oemLicense && 'kind' in input.oemLicense && input.oemLicense.kind === 'manual' && input.oemLicense.rawKey) {
         const rawKey = input.oemLicense.rawKey
         try {
           if (onPersistOemSecret) {
@@ -133,6 +153,8 @@ export function AssetCreatePage({ repository, licenseRepository, onCreated, onPe
       }
 
       onCreated?.(value)
+      // Navigate to the list after a successful single create (mirrors the batch path).
+      navigate('/assets')
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err)
       if (/inv/i.test(msg)) {
@@ -149,7 +171,7 @@ export function AssetCreatePage({ repository, licenseRepository, onCreated, onPe
 
   if (loading) {
     return (
-      <div className="anim-content-enter space-y-5">
+      <div className="space-y-5">
         <PageHeader icon="package-plus" title={t('form.createTitle')} />
         <LoadingState rows={5} />
       </div>
@@ -158,7 +180,7 @@ export function AssetCreatePage({ repository, licenseRepository, onCreated, onPe
 
   if (loadError || !refData) {
     return (
-      <div className="anim-content-enter space-y-5">
+      <div className="space-y-5">
         <PageHeader icon="package-plus" title={t('form.createTitle')} />
         <ErrorState onRetry={loadRef} />
       </div>
@@ -166,14 +188,14 @@ export function AssetCreatePage({ repository, licenseRepository, onCreated, onPe
   }
 
   return (
-    <div className="anim-content-enter space-y-5">
-      <PageHeader icon="package-plus" title={t('form.createTitle')} />
+    <div className="space-y-5">
       {oemKeyWarning && (
         <p role="alert" className="text-[12px] text-[#FCD34D] px-1">{oemKeyWarning}</p>
       )}
       <AssetCreateForm
-        ref={refData}
+        referenceData={refData}
         onSubmit={handleSubmit}
+        onSubmitBatch={handleSubmitBatch}
         submitting={submitting}
         error={saveError}
         onCancel={() => navigate('/assets')}

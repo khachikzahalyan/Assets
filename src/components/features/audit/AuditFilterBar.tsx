@@ -55,8 +55,8 @@ export function AuditFilterBar({ query, onChange, ref: refData }: AuditFilterBar
       {/* Search + selects row */}
       <div className="flex items-center gap-2 flex-wrap">
         {/* Search */}
-        <div className="relative flex-1 min-w-[200px]">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B] pointer-events-none">
+        <div className="relative flex-1 min-w-[200px] max-md:min-w-full">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-subtle pointer-events-none">
             <Icon name="search" size={13} />
           </span>
           <input
@@ -65,12 +65,12 @@ export function AuditFilterBar({ query, onChange, ref: refData }: AuditFilterBar
             onChange={e => onChange({ search: e.target.value })}
             placeholder={t('search')}
             aria-label={t('search')}
-            className="w-full h-9 pl-8 pr-3 text-sm bg-[#111315] border border-[#2A2F36] rounded-lg text-[#F8FAFC] placeholder:text-[#64748B] focus:outline-none focus:border-[#F97316] focus:ring-2 focus:ring-[rgba(249,115,22,0.40)] transition-all duration-150"
+            className="w-full h-9 pl-8 pr-3 text-sm bg-bg border border-border rounded-lg text-text-primary placeholder:text-text-subtle focus:outline-none focus:border-accent focus:ring-2 focus:ring-[rgba(249,115,22,0.40)] transition-all duration-150"
           />
         </div>
 
         {/* Entity type */}
-        <div className="w-44">
+        <div className="w-44 max-md:w-full">
           <Select
             value={query.entityType}
             onChange={v => onChange({ entityType: v as AuditLogQuery['entityType'] })}
@@ -79,7 +79,7 @@ export function AuditFilterBar({ query, onChange, ref: refData }: AuditFilterBar
         </div>
 
         {/* Action */}
-        <div className="w-44">
+        <div className="w-44 max-md:w-full">
           <Select
             value={query.action}
             onChange={v => onChange({ action: v as AuditLogQuery['action'] })}
@@ -88,7 +88,7 @@ export function AuditFilterBar({ query, onChange, ref: refData }: AuditFilterBar
         </div>
 
         {/* Actor */}
-        <div className="w-44">
+        <div className="w-44 max-md:w-full">
           <Select
             value={query.actorUid}
             onChange={v => onChange({ actorUid: v })}
@@ -99,7 +99,7 @@ export function AuditFilterBar({ query, onChange, ref: refData }: AuditFilterBar
 
       {/* Date range + reset row */}
       <div className="flex items-center gap-2 flex-wrap">
-        <label className="flex items-center gap-2 text-[12px] text-[#94A3B8]">
+        <label className="flex items-center gap-2 text-[12px] text-text-tertiary max-md:w-full">
           {t('filters.from')}
           <input
             type="date"
@@ -108,11 +108,11 @@ export function AuditFilterBar({ query, onChange, ref: refData }: AuditFilterBar
               onChange({ fromDate: e.target.value ? `${e.target.value}T00:00:00.000Z` : null })
             }
             aria-label={t('filters.from')}
-            className="h-9 px-2 text-sm bg-[#111315] border border-[#2A2F36] rounded-lg text-[#F8FAFC] focus:outline-none focus:border-[#F97316] transition-all duration-150"
+            className="h-9 px-2 text-sm bg-bg border border-border rounded-lg text-text-primary focus:outline-none focus:border-accent transition-all duration-150 max-md:flex-1"
           />
         </label>
 
-        <label className="flex items-center gap-2 text-[12px] text-[#94A3B8]">
+        <label className="flex items-center gap-2 text-[12px] text-text-tertiary max-md:w-full">
           {t('filters.to')}
           <input
             type="date"
@@ -121,7 +121,7 @@ export function AuditFilterBar({ query, onChange, ref: refData }: AuditFilterBar
               onChange({ toDate: e.target.value ? `${e.target.value}T23:59:59.999Z` : null })
             }
             aria-label={t('filters.to')}
-            className="h-9 px-2 text-sm bg-[#111315] border border-[#2A2F36] rounded-lg text-[#F8FAFC] focus:outline-none focus:border-[#F97316] transition-all duration-150"
+            className="h-9 px-2 text-sm bg-bg border border-border rounded-lg text-text-primary focus:outline-none focus:border-accent transition-all duration-150 max-md:flex-1"
           />
         </label>
 

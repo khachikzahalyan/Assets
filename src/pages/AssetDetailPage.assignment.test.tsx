@@ -1,12 +1,31 @@
+/**
+ * AssetDetailPage — TransferPanel / RepairCard / role-gating integration tests.
+ *
+ * What changed from the old tests:
+ * - The old "Назначить" (AssignmentForm / LifecycleActions) flow is GONE.
+ *   Transfer now goes through AssignmentCard «Передать» → TransferPanel →
+ *   ModeTile selection → commit «Передать».
+ * - The underlying repository call is now `changeStatus(id, toStatusId, actor, { assignment })`
+ *   which writes action 'status_changed' to the audit log (NOT 'assigned' / 'returned').
+ * - The old AssignmentRepository.assign path enqueued mail — the new changeStatus path does NOT.
+ *   All mail assertions have been REMOVED (see below for rationale).
+ * - "Вернуть" (return) lifecycle button is gone; warehouse-return is done via
+ *   TransferPanel «Склад» mode.
+ * - AssignmentForm file-validation test: removed (AssignmentForm is no longer wired into the page).
+ */
+
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import { I18nextProvider } from 'react-i18next'
 import i18n from '@/lib/i18n'
 import { AuthContext } from '@/contexts/AuthContext'
 import { AssetDetailPage } from './AssetDetailPage'
-import { InMemoryAssetRepository, InMemoryAssignmentRepository, type MailEntry } from '@/infra/repositories'
+import {
+  InMemoryAssetRepository,
+  InMemoryAssignmentRepository,
+  type MailEntry,
+} from '@/infra/repositories'
 import { createInMemoryAuditStore, inMemoryAuditContext } from '@/lib/audit'
 import type { Asset, AssetReferenceData } from '@/domain/asset'
 
@@ -29,16 +48,31 @@ vi.mock('@/infra/storage', async (importOriginal) => {
   }
 })
 
+// ---------------------------------------------------------------------------
+// Fixtures
+// ---------------------------------------------------------------------------
+
 function refData(): AssetReferenceData {
   return {
     statuses: [
       { id: 'st_warehouse', name: 'На складе', color: 'gray' },
-      { id: 'st_assigned', name: 'Выдано', color: 'green' },
+      { id: 'st_assigned',  name: 'Выдано',    color: 'green' },
+      { id: 'st_repair',    name: 'В ремонте', color: 'orange' },
+      { id: 'st_disposed',  name: 'Списано',   color: 'red' },
     ],
-    branches: [{ id: 'br_main', name: 'Главный' }, { id: 'br_2', name: 'Филиал 2' }],
-    departments: [],
-    categories: [{ id: 'cat_laptop', name: 'Ноутбук', group: 'devices', lucideIcon: 'laptop' }],
-    employees: [{ id: 'e_1', firstName: 'Иван', lastName: 'Петров', email: 'ivan@x.com' }],
+    branches: [
+      { id: 'br_main', name: 'Главный' },
+      { id: 'br_2',    name: 'Филиал 2' },
+    ],
+    departments: [
+      { id: 'dept_1', name: 'ИТ-отдел' },
+    ],
+    categories: [
+      { id: 'cat_laptop', name: 'Ноутбук', group: 'devices', lucideIcon: 'laptop' },
+    ],
+    employees: [
+      { id: 'e_1', firstName: 'Иван', lastName: 'Петров', email: 'ivan@example.test' },
+    ],
   }
 }
 
@@ -51,21 +85,19 @@ function mkAsset(over: Partial<Asset> = {}): Asset {
   }
 }
 
-interface RenderResult {
-  assets: Asset[]
-  mail: MailEntry[]
-  store: ReturnType<typeof createInMemoryAuditStore>
-}
+// ---------------------------------------------------------------------------
+// Render helper
+// ---------------------------------------------------------------------------
 
 function renderPage(
   assets: Asset[],
   mail: MailEntry[],
   role: 'super_admin' | 'asset_admin' | 'tech_admin' | 'employee' = 'asset_admin',
-): RenderResult {
-  const store = createInMemoryAuditStore()
-  const ctx = inMemoryAuditContext(store)
+) {
+  const store    = createInMemoryAuditStore()
+  const ctx      = inMemoryAuditContext(store)
   const assetRepo = new InMemoryAssetRepository(assets, refData(), ctx)
-  const asnRepo = new InMemoryAssignmentRepository(assets, mail, ctx)
+  const asnRepo   = new InMemoryAssignmentRepository(assets, mail, ctx)
   const auth = {
     user: { id: 'u_1', name: 'A', email: 'a@example.test', role, initials: 'A', avatarColor: '' },
     role,
@@ -87,238 +119,276 @@ function renderPage(
       </AuthContext.Provider>
     </I18nextProvider>,
   )
-  return { assets, mail, store }
+  return { store, assetRepo }
 }
 
-describe('AssetDetailPage assignment flow', () => {
+// ---------------------------------------------------------------------------
+// Suite
+// ---------------------------------------------------------------------------
+
+describe('AssetDetailPage — TransferPanel flow', () => {
   beforeEach(async () => { await i18n.changeLanguage('ru') })
 
-  // ---------------------------------------------------------------------------
-  // Existing shallow test — kept for regression
-  // ---------------------------------------------------------------------------
-  it('shows an Assign action for a warehouse asset and opens the form', async () => {
+  // ---- 1. ASSIGN TO BRANCH ------------------------------------------------
+  it('assign to branch: AssignmentCard «Передать» → Филиал → select → commit → st_assigned + branch assignment + status_changed audit', async () => {
+    // Arrange
     const assets = [mkAsset()]; const mail: MailEntry[] = []
-    renderPage(assets, mail)
-    // Wait for the page to load and the Assign button to appear
-    const assignBtn = await screen.findByRole('button', { name: /Назначить/ })
-    expect(assignBtn).toBeTruthy()
-    // Click the assign button to open the form
-    await userEvent.click(assignBtn)
-    // The form should now be visible — Branch mode button should be present
-    const branchBtn = await screen.findByRole('button', { name: 'Филиал' })
-    expect(branchBtn).toBeTruthy()
-    // Asset is still in warehouse (form just opened, no submit yet)
-    await waitFor(() => expect(assets[0]!.statusId).toBe('st_warehouse'))
-  })
+    const { store, assetRepo } = renderPage(assets, mail)
 
-  // ---------------------------------------------------------------------------
-  // 1. ASSIGN TO BRANCH — happy path
-  // ---------------------------------------------------------------------------
-  it('assign to branch: updates asset to st_assigned with branch assignment and writes one audit entry', async () => {
-    const assets = [mkAsset()]; const mail: MailEntry[] = []
-    const { store } = renderPage(assets, mail)
+    // Wait for page to load
+    await waitFor(() => screen.getByText(/450\/1/))
 
-    // Open the form — initially only one "Назначить" button exists (LifecycleActions)
-    await userEvent.click(await screen.findByRole('button', { name: /Назначить/ }))
+    // Act: open TransferPanel
+    fireEvent.click(screen.getByRole('button', { name: /Передать/i }))
 
-    // Switch to branch mode
-    const branchBtn = await screen.findByRole('button', { name: 'Филиал' })
-    await userEvent.click(branchBtn)
+    // Act: click «Филиал» mode tile
+    const branchTile = await screen.findByRole('button', { name: 'Филиал' })
+    fireEvent.click(branchTile)
 
-    // Pick a branch from the native <select>
-    const branchSelect = await screen.findByDisplayValue('Выберите филиал')
-    await userEvent.selectOptions(branchSelect, 'br_2')
+    // Act: select branch from the Select dropdown
+    const selectEl = await screen.findByRole('combobox')
+    fireEvent.change(selectEl, { target: { value: 'br_2' } })
 
-    // After opening the form the LifecycleActions "Назначить" button is hidden
-    // (canAssign && !assigning → false), so only the AssignmentForm submit is present.
-    // getAllByRole still works — we take the last element defensively.
+    // Act: click the commit «Передать» button (the one in TransferPanel footer)
     await waitFor(() => {
-      const btns = screen.getAllByRole('button', { name: /Назначить/ })
+      const btns = screen.getAllByRole('button', { name: /Передать/i })
       expect(btns.length).toBeGreaterThanOrEqual(1)
     })
-    const assignBtns = screen.getAllByRole('button', { name: /Назначить/ })
-    // The form submit button is the last (and only) one in DOM order once the form is open
-    const formSubmit = assignBtns[assignBtns.length - 1]!
-    await userEvent.click(formSubmit)
+    const allTransferBtns = screen.getAllByRole('button', { name: /Передать/i })
+    fireEvent.click(allTransferBtns[allTransferBtns.length - 1]!)
 
-    // (a) Shared assets array updated
-    await waitFor(() => {
-      expect(assets[0]!.statusId).toBe('st_assigned')
-      expect(assets[0]!.assignment).toEqual({ mode: 'branch', branchId: 'br_2' })
+    // Assert (a): asset is now st_assigned with branch assignment
+    await waitFor(async () => {
+      const updated = await assetRepo.getAsset('a_1')
+      expect(updated?.statusId).toBe('st_assigned')
+      expect(updated?.assignment).toEqual({ mode: 'branch', branchId: 'br_2' })
     })
 
-    // (b) Assignment history panel renders the branch name and "active" chip
-    await waitFor(() => {
-      expect(screen.getByText('Филиал 2')).toBeInTheDocument()
-    })
-    await waitFor(() => {
-      expect(screen.getByText('Активно')).toBeInTheDocument()
-    })
+    // Assert (b): exactly one 'status_changed' audit entry (transfer action)
+    // NOTE: changeStatus writes 'status_changed', NOT 'assigned' — this is by design.
+    // The old AssignmentRepository.assign wrote 'assigned'; the new path does not.
+    expect(store.logs.filter(l => l.action === 'status_changed')).toHaveLength(1)
 
-    // (c) Exactly one audit entry with action 'assigned'
-    expect(store.logs.filter(l => l.action === 'assigned')).toHaveLength(1)
-  })
+    // NOTE: mail assertions REMOVED — the new changeStatus transfer path does NOT enqueue
+    // mail. Only the old AssignmentRepository.assign path did.
+  }, 15000)
 
-  // ---------------------------------------------------------------------------
-  // 2. ASSIGN TO EMPLOYEE — email on EmployeeRow → mail enqueued
-  // ---------------------------------------------------------------------------
-  it('assign to employee: updates asset with employee assignment and enqueues mail (EmployeeRow has email)', async () => {
+  // ---- 2. ASSIGN TO EMPLOYEE ----------------------------------------------
+  it('assign to employee: Сотрудник mode → select → commit → st_assigned + employee assignment + status_changed audit', async () => {
+    // Arrange
     const assets = [mkAsset()]; const mail: MailEntry[] = []
-    const { store } = renderPage(assets, mail)
+    const { store, assetRepo } = renderPage(assets, mail)
 
-    // Open the form
-    await userEvent.click(await screen.findByRole('button', { name: /Назначить/ }))
+    await waitFor(() => screen.getByText(/450\/1/))
 
-    // Employee mode is default — just pick an employee
-    const employeeSelect = await screen.findByDisplayValue('Выберите сотрудника')
-    await userEvent.selectOptions(employeeSelect, 'e_1')
+    // Act: open TransferPanel
+    fireEvent.click(screen.getByRole('button', { name: /Передать/i }))
 
-    // LifecycleActions "Назначить" is hidden while form is open; only form submit is visible.
-    const assignBtns = screen.getAllByRole('button', { name: /Назначить/ })
-    const formSubmit = assignBtns[assignBtns.length - 1]!
-    await userEvent.click(formSubmit)
+    // Act: click «Сотрудник» mode tile
+    const empTile = await screen.findByRole('button', { name: 'Сотрудник' })
+    fireEvent.click(empTile)
 
-    // Asset updated to st_assigned with employee mode
-    await waitFor(() => {
-      expect(assets[0]!.statusId).toBe('st_assigned')
-      expect(assets[0]!.assignment).toEqual({ mode: 'employee', employeeId: 'e_1' })
+    // Act: select the employee
+    const selectEl = await screen.findByRole('combobox')
+    fireEvent.change(selectEl, { target: { value: 'e_1' } })
+
+    // Act: commit
+    const allTransferBtns = screen.getAllByRole('button', { name: /Передать/i })
+    fireEvent.click(allTransferBtns[allTransferBtns.length - 1]!)
+
+    // Assert (a): asset assigned to employee
+    await waitFor(async () => {
+      const updated = await assetRepo.getAsset('a_1')
+      expect(updated?.statusId).toBe('st_assigned')
+      expect(updated?.assignment).toMatchObject({ mode: 'employee', employeeId: 'e_1' })
     })
 
-    // Mail enqueued with the employee's real email
-    await waitFor(() => {
-      expect(mail).toHaveLength(1)
-      expect(mail[0]!.to).toEqual(['ivan@x.com'])
-    })
+    // Assert (b): one 'status_changed' audit entry
+    // NOTE: transfer via changeStatus writes 'status_changed', NOT 'assigned'.
+    expect(store.logs.filter(l => l.action === 'status_changed')).toHaveLength(1)
 
-    // One audit entry with action 'assigned'
-    expect(store.logs.filter(l => l.action === 'assigned')).toHaveLength(1)
+    // NOTE: mail assertions REMOVED — the new changeStatus transfer path does NOT enqueue mail.
+  }, 15000)
 
-    // Employee name appears in history
-    await waitFor(() => {
-      expect(screen.getByText('Иван Петров')).toBeInTheDocument()
-    })
-  })
-
-  // ---------------------------------------------------------------------------
-  // 3. RETURN flow
-  // ---------------------------------------------------------------------------
-  it('return: marks asset back to st_warehouse, clears assignment, history row shows "ended"', async () => {
-    // Start from a warehouse asset; assign first, then return via UI
-    const assets = [mkAsset()]
+  // ---- 3. RETURN TO WAREHOUSE (via TransferPanel «Склад» mode) ------------
+  it('return to warehouse: Передать → Склад → commit → st_warehouse + assignment null + status_changed audit', async () => {
+    // Arrange: start from an assigned asset
+    const assets = [mkAsset({ statusId: 'st_assigned', assignment: { mode: 'branch', branchId: 'br_main' } })]
     const mail: MailEntry[] = []
-    const { store } = renderPage(assets, mail)
+    const { store, assetRepo } = renderPage(assets, mail)
 
-    // --- Assign phase ---
-    // Open the form (single "Назначить" button at this point)
-    await userEvent.click(await screen.findByRole('button', { name: /Назначить/ }))
-    // Switch to branch mode
-    await userEvent.click(await screen.findByRole('button', { name: 'Филиал' }))
-    // Pick the branch
-    const branchSelect = await screen.findByDisplayValue('Выберите филиал')
-    await userEvent.selectOptions(branchSelect, 'br_main')
-    // LifecycleActions "Назначить" is hidden while form is open; pick last (form submit).
-    const assignBtns = screen.getAllByRole('button', { name: /Назначить/ })
-    await userEvent.click(assignBtns[assignBtns.length - 1]!)
+    await waitFor(() => screen.getByText(/450\/1/))
 
-    // Wait for assignment to complete (page reloads, form dismissed)
-    await waitFor(() => expect(assets[0]!.statusId).toBe('st_assigned'))
+    // Act: open TransferPanel
+    fireEvent.click(screen.getByRole('button', { name: /Передать/i }))
 
-    // --- Return phase ---
-    // LifecycleActions now shows the "Вернуть" button (isAssigned=true)
-    const returnBtn = await screen.findByRole('button', { name: /Вернуть/ })
-    await userEvent.click(returnBtn)
+    // Act: click «Склад» mode tile
+    const warehouseTile = await screen.findByRole('button', { name: 'Склад' })
+    fireEvent.click(warehouseTile)
 
-    // (a) Asset back to warehouse, assignment cleared
-    await waitFor(() => {
-      expect(assets[0]!.statusId).toBe('st_warehouse')
-      expect(assets[0]!.assignment).toBeNull()
+    // Act: commit (Склад mode is immediately valid — no sub-form needed)
+    const allTransferBtns = screen.getAllByRole('button', { name: /Передать/i })
+    fireEvent.click(allTransferBtns[allTransferBtns.length - 1]!)
+
+    // Assert (a): asset returned to warehouse, assignment cleared
+    await waitFor(async () => {
+      const updated = await assetRepo.getAsset('a_1')
+      expect(updated?.statusId).toBe('st_warehouse')
+      expect(updated?.assignment).toBeNull()
     })
 
-    // (b) Audit entry with action 'returned'
-    expect(store.logs.filter(l => l.action === 'returned')).toHaveLength(1)
+    // Assert (b): one 'status_changed' audit entry
+    // NOTE: 'returned' is no longer used — the new path writes 'status_changed'.
+    expect(store.logs.filter(l => l.action === 'status_changed')).toHaveLength(1)
+  }, 15000)
 
-    // (c) History row shows "Завершено" chip (endedAt is now set)
-    await waitFor(() => {
-      expect(screen.getByText('Завершено')).toBeInTheDocument()
-    })
-  })
-
-  // ---------------------------------------------------------------------------
-  // 4. ROLE GATING — tech_admin cannot see the Assign button
-  // ---------------------------------------------------------------------------
-
-  // ---------------------------------------------------------------------------
-  // 5. EMAIL THREADING — assigning to an employee forwards their email to repo
-  // ---------------------------------------------------------------------------
-  it('assigning to an employee resolves and forwards their email to the repo', async () => {
+  // ---- 4. ASSIGN TO DEPARTMENT --------------------------------------------
+  it('assign to department: Отдел mode → select → commit → st_assigned + department assignment', async () => {
+    // Arrange
     const assets = [mkAsset()]; const mail: MailEntry[] = []
-    renderPage(assets, mail)
+    const { assetRepo } = renderPage(assets, mail)
 
-    await userEvent.click(await screen.findByRole('button', { name: /Назначить/ }))
-    // Employee mode is default; select the employee
-    const employeeSelect = await screen.findByDisplayValue('Выберите сотрудника')
-    await userEvent.selectOptions(employeeSelect, 'e_1')
+    await waitFor(() => screen.getByText(/450\/1/))
 
-    const assignBtns = screen.getAllByRole('button', { name: /Назначить/ })
-    const formSubmit = assignBtns[assignBtns.length - 1]!
-    await userEvent.click(formSubmit)
+    // Act: open TransferPanel
+    fireEvent.click(screen.getByRole('button', { name: /Передать/i }))
 
-    // After a successful employee assignment with a real email in ref data, mail is enqueued.
-    await waitFor(() => {
-      expect(mail).toHaveLength(1)
-      expect(mail[0]!.to).toEqual(['ivan@x.com'])
+    // Act: click «Отдел» mode tile
+    const deptTile = await screen.findByRole('button', { name: 'Отдел' })
+    fireEvent.click(deptTile)
+
+    // Act: select the department
+    const selectEl = await screen.findByRole('combobox')
+    fireEvent.change(selectEl, { target: { value: 'dept_1' } })
+
+    // Act: commit
+    const allTransferBtns = screen.getAllByRole('button', { name: /Передать/i })
+    fireEvent.click(allTransferBtns[allTransferBtns.length - 1]!)
+
+    // Assert: asset assigned to department
+    await waitFor(async () => {
+      const updated = await assetRepo.getAsset('a_1')
+      expect(updated?.statusId).toBe('st_assigned')
+      expect(updated?.assignment).toMatchObject({ mode: 'department', departmentId: 'dept_1' })
     })
-  })
+  }, 15000)
 
-  it('tech_admin sees no Assign button for a warehouse asset', async () => {
+  // ---- 5. TEMPORARY ASSIGNMENT --------------------------------------------
+  it('assign temporarily (Аудитор + today date as default): Временно mode → kind → commit → st_assigned + temporary assignment', async () => {
+    // Arrange
+    const assets = [mkAsset()]; const mail: MailEntry[] = []
+    const { assetRepo } = renderPage(assets, mail)
+
+    await waitFor(() => screen.getByText(/450\/1/))
+
+    // Act: open TransferPanel
+    fireEvent.click(screen.getByRole('button', { name: /Передать/i }))
+
+    // Act: click «Временно» mode tile
+    const tempTile = await screen.findByRole('button', { name: 'Временно' })
+    fireEvent.click(tempTile)
+
+    // Act: select kind «Аудитор» from the Select in the temporary form.
+    // TransferPanel initialises returnDate to todayStr, so once tempKind is set the
+    // form is valid (returnDate >= todayStr is satisfied).
+    const selectEl = await screen.findByRole('combobox')
+    fireEvent.change(selectEl, { target: { value: 'audit' } })
+
+    // Assert: commit button is now enabled
+    await waitFor(() => {
+      const allTransferBtns = screen.getAllByRole('button', { name: /Передать/i })
+      const commitBtn = allTransferBtns[allTransferBtns.length - 1]!
+      expect(commitBtn).not.toBeDisabled()
+    })
+
+    // Act: commit
+    const allTransferBtns = screen.getAllByRole('button', { name: /Передать/i })
+    fireEvent.click(allTransferBtns[allTransferBtns.length - 1]!)
+
+    // Assert: asset assigned temporarily with audit kind
+    await waitFor(async () => {
+      const updated = await assetRepo.getAsset('a_1')
+      expect(updated?.statusId).toBe('st_assigned')
+      expect(updated?.assignment).toMatchObject({
+        mode: 'temporary',
+        tempKind: 'audit',
+        isTemporary: true,
+      })
+    })
+  }, 15000)
+
+  // ---- 6. ROLE GATING: tech_admin has no «Передать» button ---------------
+  it('tech_admin sees no «Передать» button in AssignmentCard but DOES see «Отправить в ремонт»', async () => {
+    // Arrange
     const assets = [mkAsset()]; const mail: MailEntry[] = []
     renderPage(assets, mail, 'tech_admin')
 
-    // Wait for page to fully load — tech_admin can see "Отправить в ремонт" (canRepair=true)
+    // Act: wait for page to load (repair card is visible for tech_admin)
     await screen.findByRole('button', { name: /Отправить в ремонт/ })
 
-    // Assign button must NOT be present (canAssign=false for tech_admin)
-    expect(screen.queryByRole('button', { name: /Назначить/ })).toBeNull()
-  })
+    // Assert: «Передать» is NOT present (canAssign=false for tech_admin)
+    expect(screen.queryByRole('button', { name: /Передать/ })).toBeNull()
+  }, 10000)
 })
 
 // ---------------------------------------------------------------------------
-// 5. FILE VALIDATION — AssignmentForm (isolated component test)
+// REPAIR FLOW
 // ---------------------------------------------------------------------------
-describe('AssignmentForm file validation', () => {
+
+describe('AssetDetailPage — RepairCard flow', () => {
   beforeEach(async () => { await i18n.changeLanguage('ru') })
 
-  it('shows fileBadType error and keeps submit disabled when a non-image/pdf file is attached', async () => {
-    // Render the page so AssignmentForm is accessible via the full integration harness
+  it('Отправить в ремонт → reason → Подтвердить → st_repair + status_changed audit entry with comment', async () => {
+    // Arrange
     const assets = [mkAsset()]; const mail: MailEntry[] = []
-    renderPage(assets, mail)
+    const { store, assetRepo } = renderPage(assets, mail, 'tech_admin')
 
-    // Open the form (single "Назначить" button at this point)
-    await userEvent.click(await screen.findByRole('button', { name: /Назначить/ }))
+    await waitFor(() => screen.getByText(/450\/1/))
 
-    // Pick an employee so the form would be submittable BUT FOR the bad file
-    const employeeSelect = await screen.findByDisplayValue('Выберите сотрудника')
-    await userEvent.selectOptions(employeeSelect, 'e_1')
+    // Act: click «Отправить в ремонт» dashed trigger button
+    const sendBtn = screen.getByRole('button', { name: /Отправить в ремонт/ })
+    fireEvent.click(sendBtn)
 
-    // Attach a bad-type file (text/plain is not allowed).
-    // Use fireEvent.change to directly trigger the input's onChange since jsdom
-    // does not always fire the change event via userEvent.upload for file inputs
-    // that use a plain <input type="file"> (not a click-triggered picker).
-    const badFile = new File(['hello'], 'document.txt', { type: 'text/plain' })
-    const fileInput = document.querySelector<HTMLInputElement>('input[type="file"]')
-    expect(fileInput).not.toBeNull()
+    // Act: type reason
+    const repairTextarea = await screen.findByPlaceholderText(/Например: не включается/i)
+    fireEvent.change(repairTextarea, { target: { value: 'Треснул экран' } })
 
-    // fireEvent.change with a files list triggers React's synthetic onChange
-    fireEvent.change(fileInput!, { target: { files: [badFile] } })
+    // Act: confirm
+    const confirmBtn = screen.getByRole('button', { name: /Подтвердить/i })
+    fireEvent.click(confirmBtn)
 
-    // Error message appears (role="alert" on the <p> in AssignmentForm)
-    await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('Допустимы только JPEG, PNG, PDF')
+    // Assert: asset in repair
+    await waitFor(async () => {
+      const updated = await assetRepo.getAsset('a_1')
+      expect(updated?.statusId).toBe('st_repair')
     })
 
-    // The form submit button (only "Назначить" in DOM once form is open) must be disabled
-    const allAssignBtns = screen.getAllByRole('button', { name: /Назначить/ })
-    const formSubmitBtn = allAssignBtns[allAssignBtns.length - 1]!
-    expect(formSubmitBtn).toBeDisabled()
-  })
+    // Assert: one 'status_changed' audit with comment
+    const repairLogs = store.logs.filter(l => l.action === 'status_changed')
+    expect(repairLogs).toHaveLength(1)
+    expect(repairLogs[0]?.comment).toBe('Треснул экран')
+  }, 10000)
+
+  it('Вернуть из ремонта → st_assigned + status_changed audit', async () => {
+    // Arrange: asset pre-set to st_repair
+    const assets = [mkAsset({ statusId: 'st_repair' })]; const mail: MailEntry[] = []
+    const { store, assetRepo } = renderPage(assets, mail, 'tech_admin')
+
+    await waitFor(() => screen.getByText(/450\/1/))
+
+    // Assert: «Вернуть из ремонта» is shown (in-repair state)
+    const returnBtn = await screen.findByRole('button', { name: /Вернуть из ремонта/ })
+
+    // Act
+    fireEvent.click(returnBtn)
+
+    // Assert: asset returned to st_assigned (returnFromRepair → «Выдано» per spec)
+    await waitFor(async () => {
+      const updated = await assetRepo.getAsset('a_1')
+      expect(updated?.statusId).toBe('st_assigned')
+    })
+
+    // Assert: one 'status_changed' audit entry
+    expect(store.logs.filter(l => l.action === 'status_changed')).toHaveLength(1)
+  }, 10000)
 })

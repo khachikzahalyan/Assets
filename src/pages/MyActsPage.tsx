@@ -57,7 +57,7 @@ export function MyActsPage({ repository }: MyActsPageProps) {
 
   if (loading) {
     return (
-      <div className="anim-content-enter space-y-5">
+      <div className="space-y-5">
         <PageHeader icon="file-text" title="…" />
         <LoadingState rows={5} />
       </div>
@@ -66,7 +66,7 @@ export function MyActsPage({ repository }: MyActsPageProps) {
 
   if (loadError) {
     return (
-      <div className="anim-content-enter space-y-5">
+      <div className="space-y-5">
         <PageHeader icon="file-text" title={t('self.myActs')} />
         <ErrorState onRetry={load} />
       </div>
@@ -74,7 +74,7 @@ export function MyActsPage({ repository }: MyActsPageProps) {
   }
 
   return (
-    <div className="anim-content-enter space-y-5">
+    <div className="space-y-5">
       <PageHeader icon="file-text" title={t('self.myActs')} />
 
       {actionError && (
@@ -87,8 +87,8 @@ export function MyActsPage({ repository }: MyActsPageProps) {
         ) : (
           <ul className="space-y-2">
             {acts.map(a => (
-              <li key={a.id} className="flex items-center gap-3">
-                <span className="text-[12px] text-[#94A3B8] font-mono">{a.assetId}</span>
+              <li key={a.id} className="flex items-center gap-3 min-h-[44px]">
+                <span className="text-[12px] text-text-tertiary font-mono">{a.assetId}</span>
                 <Btn
                   variant="ghost"
                   size="sm"

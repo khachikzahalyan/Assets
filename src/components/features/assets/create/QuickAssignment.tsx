@@ -1,5 +1,7 @@
+import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Btn, Chip, Select } from '@/components/ui'
+import { Icon } from '@/components/ui'
+import { MiniDropdown } from './MiniDropdown'
 import type { AssetAssignment, EmployeeRow, StatusRow } from '@/domain/asset'
 import type { RefRow } from '@/domain/asset'
 
@@ -18,133 +20,136 @@ export interface QuickAssignmentProps {
   branches: RefRow[]
   mainBranchId: string
   statuses: StatusRow[]
+  /** Whether the chosen category supports a work-mode (laptops only). */
+  isLaptop?: boolean
+  /** Whether the chosen category is a network device (gates modes to warehouse+employee). */
+  isNetwork?: boolean
 }
 
+const MODE_BUTTONS: { id: Exclude<QAPicked, null>; key: string; icon: string }[] = [
+  { id: 'warehouse', key: 'qa.warehouse', icon: 'warehouse' },
+  { id: 'employee', key: 'qa.employee', icon: 'user' },
+  { id: 'branch', key: 'qa.branch', icon: 'map-pin' },
+  { id: 'department', key: 'qa.department', icon: 'users' },
+]
+
 export function QuickAssignment({
-  value,
-  onChange,
-  employees,
-  departments,
-  branches,
-  statuses,
+  value, onChange, employees, departments, branches, mainBranchId, statuses, isLaptop = false, isNetwork = false,
 }: QuickAssignmentProps) {
   const { t } = useTranslation('assets')
-
   const { picked, assignment } = value
 
-  function pick(mode: QAPicked) {
-    if (mode === 'warehouse') {
-      onChange({ picked: 'warehouse', assignment: null })
-    } else {
-      // Clear sub-selection when switching modes
-      onChange({ picked: mode, assignment: null })
-    }
+  const visibleModes = isNetwork ? MODE_BUTTONS.filter(m => m.id === 'warehouse' || m.id === 'employee') : MODE_BUTTONS
+
+  function pick(mode: Exclude<QAPicked, null>) {
+    if (mode === 'warehouse') { onChange({ picked: 'warehouse', assignment: null }); return }
+    const needsWorkMode = (mode === 'employee' || mode === 'department') && isLaptop
+    const base: AssetAssignment = { mode }
+    if (needsWorkMode) base.workMode = 'office'
+    onChange({ picked: mode, assignment: base })
   }
 
-  function handleEmployeeChange(employeeId: string) {
-    onChange({ picked: 'employee', assignment: { mode: 'employee', employeeId } })
+  function setEmployee(employeeId: string) {
+    const next: AssetAssignment = { mode: 'employee', employeeId }
+    if (isLaptop) next.workMode = (assignment?.workMode ?? 'office')
+    onChange({ picked: 'employee', assignment: next })
   }
-
-  function handleDepartmentChange(departmentId: string) {
-    onChange({ picked: 'department', assignment: { mode: 'department', departmentId } })
+  function setDepartment(departmentId: string) {
+    const next: AssetAssignment = { mode: 'department', departmentId }
+    if (isLaptop) next.workMode = (assignment?.workMode ?? 'office')
+    onChange({ picked: 'department', assignment: next })
   }
-
-  function handleBranchChange(branchId: string) {
+  function setBranch(branchId: string) {
     onChange({ picked: 'branch', assignment: { mode: 'branch', branchId } })
   }
+  function setWorkMode(workMode: 'office' | 'remote') {
+    if (!assignment) return
+    onChange({ picked, assignment: { ...assignment, workMode } })
+  }
 
-  const warehouseStatus = statuses.find(s => s.id === 'st_warehouse')
-  const assignedStatus = statuses.find(s => s.id === 'st_assigned')
+  // Snap-back: network device cannot be on branch/department.
+  useEffect(() => {
+    if (isNetwork && (picked === 'branch' || picked === 'department')) pick('warehouse')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isNetwork])
 
-  const warehouseName = warehouseStatus?.name ?? 'На складе'
-  const assignedName = assignedStatus?.name ?? 'Выдано'
+  // Snap-back: non-laptop never carries a workMode.
+  useEffect(() => {
+    if (!isLaptop && assignment?.workMode != null) {
+      onChange({ picked, assignment: { ...assignment, workMode: null } })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLaptop])
 
-  const employeeOptions = employees.map(e => ({
-    value: e.id,
-    label: [e.firstName, e.lastName].filter(Boolean).join(' '),
-  }))
+  const warehouseName = statuses.find(s => s.id === 'st_warehouse')?.name ?? 'На складе'
+  // Warehouse always lives at the Head Office by default (br_main) — show that branch
+  // with its own icon/colour (landmark / emerald), not the first branch in the list.
+  const headBranch = branches.find(b => b.id === mainBranchId) ?? null
+  const showWorkMode = isLaptop && (picked === 'employee' || picked === 'department')
 
+  const employeeOptions = employees.map(e => ({ value: e.id, label: [e.firstName, e.lastName].filter(Boolean).join(' ') || e.email || e.id }))
   const departmentOptions = departments.map(d => ({ value: d.id, label: d.name }))
   const branchOptions = branches.map(b => ({ value: b.id, label: b.name }))
 
-  function btnVariant(mode: QAPicked): 'primary' | 'secondary' {
-    return picked === mode ? 'primary' : 'secondary'
-  }
-
   return (
     <div className="space-y-3">
-      {/* Four toggle buttons */}
-      <div className="flex flex-wrap gap-2">
-        <Btn
-          variant={btnVariant('warehouse')}
-          size="sm"
-          onClick={() => pick('warehouse')}
-          type="button"
-        >
-          {t('qa.warehouse')}
-        </Btn>
-        <Btn
-          variant={btnVariant('employee')}
-          size="sm"
-          onClick={() => pick('employee')}
-          type="button"
-        >
-          {t('qa.employee')}
-        </Btn>
-        <Btn
-          variant={btnVariant('department')}
-          size="sm"
-          onClick={() => pick('department')}
-          type="button"
-        >
-          {t('qa.department')}
-        </Btn>
-        <Btn
-          variant={btnVariant('branch')}
-          size="sm"
-          onClick={() => pick('branch')}
-          type="button"
-        >
-          {t('qa.branch')}
-        </Btn>
+      <div className={`grid ${visibleModes.length === 2 ? 'grid-cols-2' : 'grid-cols-4 max-md:grid-cols-2'} gap-1.5`}>
+        {visibleModes.map(b => {
+          const active = picked === b.id
+          return (
+            <button
+              key={b.id}
+              type="button"
+              onClick={() => pick(b.id)}
+              aria-pressed={active}
+              className={`group flex flex-col items-center justify-center gap-1.5 py-2.5 px-1.5 rounded-lg border transition-all duration-150 text-[13px] font-semibold tracking-tight
+                ${active
+                  ? 'bg-[rgba(249,115,22,0.12)] border-accent text-[#9A4D33] ring-1 ring-accent/15'
+                  : 'bg-surface border-border text-text-primary hover:border-border-strong hover:bg-surface-2'}`}
+            >
+              <div className={`w-7 h-7 rounded-md flex items-center justify-center transition-colors ${active ? 'bg-accent text-white' : 'bg-surface-2 text-text-primary group-hover:bg-border'}`}>
+                <Icon name={b.icon} size={14} />
+              </div>
+              <span>{t(b.key)}</span>
+            </button>
+          )
+        })}
       </div>
 
-      {/* Conditional sub-selects */}
       {picked === 'employee' && (
-        <Select
-          value={(assignment as AssetAssignment & { employeeId?: string })?.employeeId ?? ''}
-          onChange={handleEmployeeChange}
-          options={employeeOptions}
-          placeholder={t('qa.pickRecipient')}
-        />
+        <MiniDropdown value={assignment?.employeeId ?? ''} onChange={setEmployee} options={employeeOptions} placeholder={t('qa.pickRecipient')} ariaLabel={t('qa.employee')} />
       )}
       {picked === 'department' && (
-        <Select
-          value={(assignment as AssetAssignment & { departmentId?: string })?.departmentId ?? ''}
-          onChange={handleDepartmentChange}
-          options={departmentOptions}
-          placeholder={t('qa.pickRecipient')}
-        />
+        <MiniDropdown value={assignment?.departmentId ?? ''} onChange={setDepartment} options={departmentOptions} placeholder={t('qa.pickRecipient')} ariaLabel={t('qa.department')} />
       )}
       {picked === 'branch' && (
-        <Select
-          value={(assignment as AssetAssignment & { branchId?: string })?.branchId ?? ''}
-          onChange={handleBranchChange}
-          options={branchOptions}
-          placeholder={t('qa.pickRecipient')}
-        />
+        <MiniDropdown value={assignment?.branchId ?? ''} onChange={setBranch} options={branchOptions} placeholder={t('qa.pickRecipient')} ariaLabel={t('qa.branch')} />
       )}
-
-      {/* Derived status chip — shown only when a mode is picked */}
-      {picked !== null && (
-        <div className="pt-1">
-          <Chip color={picked === 'warehouse' ? 'gray' : 'green'} dot>
-            {t('statusLine.derived', {
-              name: picked === 'warehouse' ? warehouseName : assignedName,
-            })}
-          </Chip>
+      {picked === 'warehouse' && (
+        <div className="bg-bg/60 border border-border/70 rounded-lg px-3.5 py-2 text-[14px] text-text-primary flex items-center gap-2 anim-fade-slide-in">
+          <Icon name="landmark" size={13} className="text-[#10B981] shrink-0" />
+          <span>{t('qa.onShelf')} · <span className="font-medium">{headBranch?.name ?? warehouseName}</span></span>
         </div>
       )}
+
+      {showWorkMode && (
+        <div>
+          {/* B6: work-mode label font text-[13px] */}
+          <div className="text-[13px] uppercase tracking-[0.06em] font-semibold text-text-tertiary mb-1.5">{t('qa.workMode')}</div>
+          <div className="inline-flex bg-surface-2/80 rounded-lg border border-border/80 p-1 w-full gap-1">
+            <button type="button" onClick={() => setWorkMode('office')} aria-pressed={assignment?.workMode === 'office'}
+              className={`flex-1 px-3 py-1.5 text-[14px] font-semibold rounded-md transition-all duration-150 flex items-center justify-center gap-1.5 ${assignment?.workMode === 'office' ? 'bg-surface text-accent-hover ring-1 ring-[#F4CFB8]' : 'text-text-primary hover:bg-surface/60'}`}>
+              <Icon name="building-2" size={12} />{t('qa.office')}
+            </button>
+            <button type="button" onClick={() => setWorkMode('remote')} aria-pressed={assignment?.workMode === 'remote'}
+              className={`flex-1 px-3 py-1.5 text-[14px] font-semibold rounded-md transition-all duration-150 flex items-center justify-center gap-1.5 ${assignment?.workMode === 'remote' ? 'bg-surface text-sky-300 ring-1 ring-sky-500/30' : 'text-text-primary hover:bg-surface/60'}`}>
+              <Icon name="house" size={12} />{t('qa.remote')}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* B6: derived-status pill removed — prototype QA card has none */}
     </div>
   )
 }

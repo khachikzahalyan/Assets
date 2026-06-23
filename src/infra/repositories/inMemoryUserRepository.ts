@@ -62,6 +62,7 @@ export class InMemoryUserRepository implements UserRepository {
           firstName: create.firstName,
           lastName: create.lastName,
           email,
+          phone: null,
           position: null,
           branchId: null,
           departmentId: null,

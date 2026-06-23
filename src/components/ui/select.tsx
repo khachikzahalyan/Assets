@@ -28,7 +28,7 @@ export function Select({
       value={value ?? ''}
       onChange={e => onChange && onChange(e.target.value)}
       disabled={disabled}
-      className={`w-full h-9 px-3 pr-9 text-sm bg-[#111315] border border-[#2A2F36] rounded-lg text-[#F8FAFC] appearance-none focus:outline-none focus:border-[#F97316] focus:ring-2 focus:ring-[rgba(249,115,22,0.40)] transition-all duration-150 disabled:bg-[#1B1F24] ${className}`}
+      className={`w-full h-9 px-3 pr-9 text-sm bg-bg border border-border rounded-lg text-text-primary appearance-none focus:outline-none focus:border-accent focus:ring-2 focus:ring-[rgba(249,115,22,0.40)] transition-all duration-150 disabled:bg-surface ${className}`}
     >
       {placeholder && <option value="" disabled>{placeholder}</option>}
       {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}

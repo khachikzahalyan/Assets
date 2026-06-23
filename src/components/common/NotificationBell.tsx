@@ -95,13 +95,13 @@ export function NotificationBell({ repository, onSelect }: NotificationBellProps
         onClick={toggle}
         title={t('bellTooltip')}
         aria-label={t('bellTooltip')}
-        className="relative inline-flex items-center justify-center w-9 h-9 min-w-[44px] min-h-[44px] max-md:w-11 max-md:h-11 rounded-lg text-[#94A3B8] hover:bg-[#22272E] transition-colors"
+        className="relative inline-flex items-center justify-center w-9 h-9 min-w-[44px] min-h-[44px] max-md:w-11 max-md:h-11 rounded-lg text-text-tertiary hover:bg-surface-2 transition-colors"
       >
         <Icon name="bell" size={18} />
         {count > 0 && (
           <span
             data-testid="bell-badge"
-            className="absolute top-1 right-1 min-w-[16px] h-4 px-1 inline-flex items-center justify-center rounded-full bg-[#F97316] text-white text-[10px] font-bold leading-none"
+            className="absolute top-1 right-1 min-w-[16px] h-4 px-1 inline-flex items-center justify-center rounded-full bg-accent text-white text-[10px] font-bold leading-none"
           >
             {count > 99 ? '99+' : count}
           </span>
@@ -118,11 +118,11 @@ export function NotificationBell({ repository, onSelect }: NotificationBellProps
             ...(pos.left !== undefined ? { left: pos.left } : {}),
             ...(pos.right !== undefined ? { right: pos.right } : {}),
           }}
-          className="bg-[#22272E] border border-[#2A2F36] rounded-xl anim-fade-slide-in overflow-hidden"
+          className="bg-surface-2 border border-border rounded-xl anim-fade-slide-in overflow-hidden"
         >
-          <div className="px-3.5 py-3 border-b border-[#2A2F36]">
-            <div className="text-[13px] font-semibold text-[#F8FAFC]">{t('title')}</div>
-            <div className="text-[11px] text-[#64748B]">{t('subtitle')}</div>
+          <div className="px-3.5 py-3 border-b border-border">
+            <div className="text-[13px] font-semibold text-text-primary">{t('title')}</div>
+            <div className="text-[11px] text-text-subtle">{t('subtitle')}</div>
           </div>
           {error ? (
             <div className="px-3.5 py-3 text-[12.5px] text-rose-400">
@@ -130,9 +130,9 @@ export function NotificationBell({ repository, onSelect }: NotificationBellProps
             </div>
           ) : notifications.length === 0 ? (
             <div className="flex flex-col items-center gap-1.5 px-4 py-8 text-center">
-              <Icon name="check-check" size={20} className="text-[#64748B]" />
-              <div className="text-[13px] text-[#94A3B8]">{t('empty')}</div>
-              <div className="text-[11px] text-[#64748B] max-w-[240px]">{t('emptyHint')}</div>
+              <Icon name="check-check" size={20} className="text-text-subtle" />
+              <div className="text-[13px] text-text-tertiary">{t('empty')}</div>
+              <div className="text-[11px] text-text-subtle max-w-[240px]">{t('emptyHint')}</div>
             </div>
           ) : (
             <div className="max-h-[360px] overflow-y-auto py-1">
@@ -147,14 +147,14 @@ export function NotificationBell({ repository, onSelect }: NotificationBellProps
                     type="button"
                     data-testid="bell-item"
                     onClick={() => { setOpen(false); onSelect(n.assetId) }}
-                    className="w-full text-left px-3.5 py-2.5 hover:bg-[#1B1F24] transition-colors flex flex-col gap-0.5"
+                    className="w-full text-left px-3.5 py-2.5 hover:bg-surface transition-colors flex flex-col gap-0.5"
                   >
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-[13px] font-semibold text-[#F8FAFC] truncate">{n.title}</span>
-                      <span className="text-[11px] font-mono text-[#64748B] shrink-0">{n.invCode}</span>
+                      <span className="text-[13px] font-semibold text-text-primary truncate">{n.title}</span>
+                      <span className="text-[11px] font-mono text-text-subtle shrink-0">{n.invCode}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-[11px] text-[#94A3B8]">{kindLabel(n.tempKind)}</span>
+                      <span className="text-[11px] text-text-tertiary">{kindLabel(n.tempKind)}</span>
                       <span className={`text-[12px] font-medium ${overdue ? 'text-rose-400' : 'text-amber-300'}`}>
                         {statusText}
                       </span>

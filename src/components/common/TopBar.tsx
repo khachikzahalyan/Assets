@@ -26,8 +26,9 @@ export function TopBar({ breadcrumbs, customContent, onOpenSidebar }: TopBarProp
       <button
         type="button"
         onClick={onOpenSidebar}
-        className="lg:hidden inline-flex items-center justify-center w-9 h-9 rounded-lg text-[#94A3B8] hover:bg-[#22272E] transition-colors"
+        className="ams-hamburger lg:hidden inline-flex items-center justify-center w-9 h-9 min-w-[44px] min-h-[44px] max-md:w-11 max-md:h-11 rounded-lg text-text-tertiary hover:bg-surface-2 transition-colors"
         title={t('actions.openMenu')}
+        aria-label={t('actions.openMenu')}
       >
         <Icon name="menu" size={18} />
       </button>

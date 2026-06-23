@@ -46,7 +46,9 @@ export function buildSeedDocs(opts: BuildSeedOptions): SeedDoc[] {
   const cats: CategorySeed[] = opts.allCategories ? buildAllCategorySeed() : CORE_CATEGORY_SEED
   for (const c of cats) {
     docs.push({ collection: 'categories', id: c.id, data: {
-      name: c.name, group: c.group, prefix: c.prefix, hasSpecs: c.hasSpecs,
+      name: c.name, group: c.group, prefix: c.prefix,
+      hasSpecs: c.hasSpecs, hasOemLicense: c.hasOemLicense,
+      requiresSerial: c.requiresSerial, hasTypeField: c.hasTypeField,
       lucideIcon: c.lucideIcon, ...stamp } })
   }
 

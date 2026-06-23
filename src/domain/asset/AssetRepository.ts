@@ -56,17 +56,26 @@ export interface CreateAssetInput {
   branchId: string
   deptId: string | null
   currentSpecs?: AssetSpecs | null
+  /** Condition at registration; 'new' carries purchase + warranty dates. */
+  condition?: 'new' | 'used' | null
+  /** ISO date (YYYY-MM-DD); only when condition === 'new'. */
+  purchaseDate?: string | null
+  /** ISO date (YYYY-MM-DD); only when condition === 'new'. */
+  warrantyEndsAt?: string | null
   /**
    * OEM license to create or re-bind when the asset is created.
    *
-   * - `{ rawKey }`: asset-create creates a new device-bound OEM workstation license.
-   *   The raw secret itself is persisted by the `setLicenseKey` callable in the page
-   *   layer (Firestore rules deny `secrets/*` from the client SDK).
+   * - `{ kind: 'manual', rawKey }`: creates a new device-bound Retail workstation
+   *   license (type:'Retail', isReusable:true). The raw secret is persisted by the
+   *   `setLicenseKey` callable in the page layer (Firestore rules deny `secrets/*`
+   *   from the client SDK).
+   * - `{ kind: 'oem-digital' }`: creates a firmware-embedded OEM license
+   *   (type:'OEM', isReusable:false). No rawKey — the key is burned into firmware.
    * - `{ existingLicenseId }`: the identified license is re-bound to the new asset
    *   as a device assignment (it must currently exist in the workstation-license store).
    * - Absent / null: no license action is taken (backwards-compatible default).
    */
-  oemLicense?: { rawKey: string } | { existingLicenseId: string } | null
+  oemLicense?: { kind: 'manual'; rawKey: string } | { kind: 'oem-digital' } | { existingLicenseId: string } | null
 }
 
 export interface UpdateAssetInput {
@@ -87,10 +96,29 @@ export interface AssetWriteRepository {
   isInvCodeTaken(invCode: string, exceptId?: string): Promise<boolean>
   isSerialTaken(serial: string, exceptId?: string): Promise<boolean>
   createAsset(input: CreateAssetInput, actor: Actor): Promise<AuditedResult<Asset>>
+  /**
+   * Group registration: creates many assets sharing all fields except inventory
+   * code + serial. Enforces dual uniqueness — each invCode/serial is checked against
+   * existing assets AND against the other rows in the same batch (GOLDEN RULE). Throws
+   * on the first duplicate before any write. Returns the created assets in input order.
+   */
+  createAssetsBatch(inputs: CreateAssetInput[], actor: Actor): Promise<Asset[]>
   updateAsset(id: string, patch: UpdateAssetInput, actor: Actor): Promise<AuditedResult<Asset>>
   changeStatus(id: string, toStatusId: AssetStatusId, actor: Actor, opts?: ChangeStatusOpts): Promise<AuditedResult<Asset>>
   addUpgrade(id: string, ev: { component: UpgradeComponent; after: string }, actor: Actor): Promise<AuditedResult<UpgradeEvent>>
   listUpgrades(id: string): Promise<UpgradeEvent[]>
   /** Audit history for a single entity (asset detail page). */
   listAudit(entityId: string): Promise<AuditLog[]>
+  /**
+   * Re-assigns many assets to the same target in one logical operation.
+   * Internally loops changeStatus(id, 'st_assigned', actor, { assignment, comment })
+   * so each asset gets its own audit entry (assignment + status atomic). Returns the
+   * audit ids in input order. Errors propagate (caller decides retry).
+   */
+  bulkChangeAssignment(
+    ids: string[],
+    assignment: AssetAssignment,
+    actor: Actor,
+    comment?: string,
+  ): Promise<{ assetId: string; auditId: string }[]>
 }

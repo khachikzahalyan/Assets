@@ -48,6 +48,7 @@ export class InMemoryEmployeeRepository implements EmployeeRepository {
       firstName: input.firstName,
       lastName: input.lastName,
       email: input.email,
+      phone: input.phone ?? null,
       position: input.position ?? null,
       branchId: input.branchId ?? null,
       departmentId: input.departmentId ?? null,

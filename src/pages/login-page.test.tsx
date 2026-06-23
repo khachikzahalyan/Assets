@@ -19,6 +19,7 @@ vi.mock('@/lib/auth', () => ({
   signOutUser: vi.fn(),
   subscribeToAuthState: vi.fn(() => () => {}),
   fetchUserRole: vi.fn(async () => null),
+  claimPendingUser: vi.fn(async () => undefined),
 }))
 
 // ── Mock @/lib/firebase (AuthContext transitive dep) ───────────────
@@ -31,13 +32,27 @@ vi.mock('@/lib/firebase', () => ({
 }))
 
 import { LoginPage } from './LoginPage'
+import { AuthContext, type AuthContextValue } from '@/contexts/AuthContext'
+
+// LoginPage reads useAuth().status to redirect away once authenticated. These
+// tests exercise the signed-out form, so provide a 'signed-out' context directly
+// (the real AuthProvider's mock path is always 'ready', which would redirect).
+const signedOutAuth: AuthContextValue = {
+  user: { id: 'u', name: 'Test', email: 't@example.com', role: 'employee', initials: 'T', avatarColor: 'bg-slate-600' },
+  role: 'employee',
+  status: 'signed-out',
+  setRole: () => {},
+  signOut: () => {},
+}
 
 function renderLoginPage() {
   return render(
     <I18nextProvider i18n={i18n}>
-      <MemoryRouter>
-        <LoginPage />
-      </MemoryRouter>
+      <AuthContext.Provider value={signedOutAuth}>
+        <MemoryRouter>
+          <LoginPage />
+        </MemoryRouter>
+      </AuthContext.Provider>
     </I18nextProvider>,
   )
 }

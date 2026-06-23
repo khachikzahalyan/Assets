@@ -46,14 +46,14 @@ export function useAuth(): AuthContextValue {
  *     without ever exposing fake identity to a real user.
  */
 const MOCK_USERS: Record<Role, AuthUser> = {
-  super_admin: { id: 'u_001', name: 'Иван Петров',    email: 'i.petrov@example.com',   role: 'super_admin', initials: 'ИП', avatarColor: 'bg-[#F97316]' },
+  super_admin: { id: 'u_001', name: 'Иван Петров',    email: 'i.petrov@example.com',   role: 'super_admin', initials: 'ИП', avatarColor: 'bg-accent' },
   asset_admin: { id: 'u_002', name: 'Анна Сидорова',  email: 'a.sidorova@example.com', role: 'asset_admin', initials: 'АС', avatarColor: 'bg-emerald-500' },
   tech_admin:  { id: 'u_003', name: 'Дмитрий Козлов', email: 'd.kozlov@example.com',   role: 'tech_admin',  initials: 'ДК', avatarColor: 'bg-sky-500' },
   employee:    { id: 'u_004', name: 'Сергей Иванов',  email: 's.ivanov@example.com',   role: 'employee',    initials: 'СИ', avatarColor: 'bg-slate-600' },
 }
 
 /** Deterministic avatar palette, keyed off a stable string (uid/email). */
-const AVATAR_COLORS = ['bg-[#F97316]', 'bg-emerald-500', 'bg-sky-500', 'bg-indigo-500', 'bg-rose-500', 'bg-slate-600']
+const AVATAR_COLORS = ['bg-accent', 'bg-emerald-500', 'bg-sky-500', 'bg-indigo-500', 'bg-rose-500', 'bg-slate-600']
 function avatarColorFor(seed: string): string {
   let hash = 0
   for (let i = 0; i < seed.length; i++) hash = (hash * 31 + seed.charCodeAt(i)) | 0

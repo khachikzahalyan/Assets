@@ -22,8 +22,14 @@ export function StubPage({ routeId }: StubPageProps) {
   const { t } = useTranslation(['common', 'nav'])
   const icon = ROUTE_ICON[routeId] ?? 'inbox'
 
+  // Per-route title/description when defined under stub.byRoute.<id>, else the
+  // generic "section under construction" copy. defaultValue:'' lets us detect a
+  // missing route key and fall back cleanly.
+  const routeTitle = t(`stub.byRoute.${routeId}.title`, { ns: 'common', defaultValue: '' })
+  const routeDesc = t(`stub.byRoute.${routeId}.desc`, { ns: 'common', defaultValue: '' })
+
   return (
-    <div className="anim-content-enter">
+    <div>
       <PageHeader
         icon={icon}
         title={t('items.' + routeId, { ns: 'nav' })}
@@ -31,8 +37,8 @@ export function StubPage({ routeId }: StubPageProps) {
       <SectionCard noHeader>
         <EmptyState
           icon="inbox"
-          title={t('stub.title', { ns: 'common' })}
-          description={t('stub.desc', { ns: 'common' })}
+          title={routeTitle || t('stub.title', { ns: 'common' })}
+          description={routeDesc || t('stub.desc', { ns: 'common' })}
           action={
             <Chip color="amber" size="sm">
               {t('stub.soon', { ns: 'common' })}

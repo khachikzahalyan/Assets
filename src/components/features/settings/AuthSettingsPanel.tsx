@@ -35,7 +35,7 @@ function DialogShell({ onBackdropClick, children, labelledBy }: DialogShellProps
       aria-labelledby={labelledBy}
     >
       <div
-        className="w-[440px] max-w-[90vw] rounded-lg border border-[#2A2F36] bg-[#1B1F24] p-5"
+        className="w-[440px] max-w-[90vw] rounded-lg border border-border bg-surface p-5"
         onClick={e => e.stopPropagation()}
       >
         {children}
@@ -57,10 +57,10 @@ interface StandardConfirmProps {
 function StandardConfirmDialog({ working, saving, onConfirm, onCancel, t }: StandardConfirmProps) {
   return (
     <DialogShell onBackdropClick={onCancel} labelledBy="settings-confirm-title">
-      <h3 id="settings-confirm-title" className="text-[15px] font-semibold text-[#F8FAFC] mb-2">
+      <h3 id="settings-confirm-title" className="text-[15px] font-semibold text-text-primary mb-2">
         {t('confirm.title')}
       </h3>
-      <p className="text-[13px] text-[#94A3B8] mb-4">
+      <p className="text-[13px] text-text-tertiary mb-4">
         {t('confirm.body', { list: working.join(', ') })}
       </p>
       <div className="flex justify-end gap-2">
@@ -104,7 +104,7 @@ function DangerConfirmDialog({ saving, onConfirm, onCancel, t }: DangerConfirmPr
           {t('dangerConfirm.title')}
         </h3>
       </div>
-      <p className="text-[13px] text-[#94A3B8] mb-4">
+      <p className="text-[13px] text-text-tertiary mb-4">
         {t('dangerConfirm.body')}
       </p>
       <Field label={t('dangerConfirm.tokenLabel')}>
@@ -117,7 +117,7 @@ function DangerConfirmDialog({ saving, onConfirm, onCancel, t }: DangerConfirmPr
           onChange={e => setToken(e.target.value)}
           placeholder={required}
           autoFocus
-          className="w-full h-9 px-3 text-sm bg-[#111315] border border-[#2A2F36] rounded-lg text-[#F8FAFC] placeholder:text-[#64748B] focus:outline-none focus:border-[#F97316] focus:ring-2 focus:ring-[rgba(249,115,22,0.40)] transition-all duration-150 font-mono tracking-tight"
+          className="w-full h-9 px-3 text-sm bg-bg border border-border rounded-lg text-text-primary placeholder:text-text-subtle focus:outline-none focus:border-accent focus:ring-2 focus:ring-[rgba(249,115,22,0.40)] transition-all duration-150 font-mono tracking-tight"
         />
       </Field>
       <div className="flex justify-end gap-2 mt-4">
@@ -261,7 +261,7 @@ export function AuthSettingsPanel({ repository }: AuthSettingsPanelProps) {
     <SectionCard title={t('auth.title')} icon="shield-check">
       <div className="space-y-5">
         {/* subtitle */}
-        <p className="text-[13px] text-[#64748B]">{t('auth.subtitle')}</p>
+        <p className="text-[13px] text-text-subtle">{t('auth.subtitle')}</p>
 
         {/* fail-closed banner */}
         {working.length === 0 && (
@@ -284,14 +284,14 @@ export function AuthSettingsPanel({ repository }: AuthSettingsPanelProps) {
             {working.map(domain => (
               <li
                 key={domain}
-                className="flex items-center justify-between px-3 py-2 rounded-lg border border-[#2A2F36] bg-[#111315]"
+                className="flex items-center justify-between px-3 py-2 rounded-lg border border-border bg-bg"
               >
-                <span className="font-mono text-[13px] text-[#F8FAFC]">{domain}</span>
+                <span className="font-mono text-[13px] text-text-primary">{domain}</span>
                 <button
                   type="button"
                   aria-label={t('auth.removeAria', { domain })}
                   onClick={() => handleRemove(domain)}
-                  className="w-6 h-6 rounded flex items-center justify-center text-[#64748B] hover:text-[#FDA4AF] hover:bg-rose-950/40 transition-colors"
+                  className="w-6 h-6 rounded flex items-center justify-center text-text-subtle hover:text-[#FDA4AF] hover:bg-rose-950/40 transition-colors"
                 >
                   <Icon name="x" size={13} />
                 </button>
@@ -299,7 +299,7 @@ export function AuthSettingsPanel({ repository }: AuthSettingsPanelProps) {
             ))}
           </ul>
         ) : (
-          <p className="text-[13px] text-[#64748B] italic">{t('auth.empty')}</p>
+          <p className="text-[13px] text-text-subtle italic">{t('auth.empty')}</p>
         )}
 
         {/* add row */}
@@ -337,7 +337,7 @@ export function AuthSettingsPanel({ repository }: AuthSettingsPanelProps) {
         )}
 
         {/* save button */}
-        <div className="flex justify-end pt-2 border-t border-[#2A2F36]">
+        <div className="flex justify-end pt-2 border-t border-border">
           <Btn
             variant="primary"
             size="md"

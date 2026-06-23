@@ -3,8 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
 import {
-  Btn, Icon, EmptyState, LoadingState, ErrorState,
-  ListCard, ListPageShell,
+  Btn, Icon, EmptyState, ErrorState,
+  ListCard, ListPageShell, TableSkeleton,
 } from '@/components/ui'
 import {
   EmployeesFilterBar,
@@ -629,8 +629,8 @@ export function EmployeesPage({
 
   function renderPagination() {
     return (
-      <div className="flex items-center justify-between px-5 py-2 border-t border-[#2A2F36]">
-        <span className="text-[14px] text-[#94A3B8] tabular-nums">
+      <div className="flex items-center justify-between px-5 py-2 border-t border-border">
+        <span className="text-[14px] text-text-tertiary tabular-nums">
           {t('pagination.showing', { from, to, total: totalCount })}
         </span>
         <div className="flex items-center gap-1">
@@ -638,15 +638,15 @@ export function EmployeesPage({
             type="button"
             onClick={() => goTo(page - 1)}
             disabled={page === 1}
-            className="inline-flex items-center justify-center w-8 h-8 rounded-md text-[#F8FAFC] hover:bg-[#22272E] disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-100"
+            className="inline-flex items-center justify-center w-8 h-8 rounded-md text-text-primary hover:bg-surface-2 disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-100"
             aria-label={t('pagination.prev')}
           >
             <Icon name="chevron-right" size={14} className="rotate-180" />
           </button>
           {winStart > 1 && (
             <>
-              <button type="button" onClick={() => goTo(1)} className="w-8 h-8 rounded-md text-[14px] font-semibold text-[#F8FAFC] hover:bg-[#22272E]">1</button>
-              {winStart > 2 && <span className="px-1 text-[#64748B] text-[14px]">…</span>}
+              <button type="button" onClick={() => goTo(1)} className="w-8 h-8 rounded-md text-[14px] font-semibold text-text-primary hover:bg-surface-2">1</button>
+              {winStart > 2 && <span className="px-1 text-text-subtle text-[14px]">…</span>}
             </>
           )}
           {pageNums.map(p => (
@@ -657,8 +657,8 @@ export function EmployeesPage({
               aria-current={p === page ? 'page' : undefined}
               className={`w-8 h-8 rounded-md text-[14px] font-semibold tabular-nums transition-colors duration-100 ${
                 p === page
-                  ? 'bg-[#F97316] text-white shadow-sm shadow-[#F97316]/25'
-                  : 'text-[#F8FAFC] hover:bg-[#22272E]'
+                  ? 'bg-accent text-white shadow-sm shadow-accent/25'
+                  : 'text-text-primary hover:bg-surface-2'
               }`}
             >
               {p}
@@ -666,15 +666,15 @@ export function EmployeesPage({
           ))}
           {winEnd < totalPages && (
             <>
-              {winEnd < totalPages - 1 && <span className="px-1 text-[#64748B] text-[14px]">…</span>}
-              <button type="button" onClick={() => goTo(totalPages)} className="w-8 h-8 rounded-md text-[14px] font-semibold text-[#F8FAFC] hover:bg-[#22272E]">{totalPages}</button>
+              {winEnd < totalPages - 1 && <span className="px-1 text-text-subtle text-[14px]">…</span>}
+              <button type="button" onClick={() => goTo(totalPages)} className="w-8 h-8 rounded-md text-[14px] font-semibold text-text-primary hover:bg-surface-2">{totalPages}</button>
             </>
           )}
           <button
             type="button"
             onClick={() => goTo(page + 1)}
             disabled={page === totalPages}
-            className="inline-flex items-center justify-center w-8 h-8 rounded-md text-[#F8FAFC] hover:bg-[#22272E] disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-100"
+            className="inline-flex items-center justify-center w-8 h-8 rounded-md text-text-primary hover:bg-surface-2 disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-100"
             aria-label={t('pagination.next')}
           >
             <Icon name="chevron-right" size={14} />
@@ -685,7 +685,7 @@ export function EmployeesPage({
   }
 
   function renderTableRegion() {
-    if (loading) return <LoadingState rows={8} />
+    if (loading) return <TableSkeleton rows={PAGE_SIZE} columns={8} firstColWide lastColAction gridTemplate="minmax(180px,1.6fr) minmax(120px,0.9fr) minmax(140px,1.2fr) minmax(110px,0.85fr) minmax(160px,1.4fr) minmax(80px,0.6fr) minmax(100px,0.9fr) 56px" />
     if (error)   return <ErrorState onRetry={reload} />
     if (sorted.length === 0) {
       return (
@@ -729,23 +729,23 @@ export function EmployeesPage({
               <div className="flex items-center gap-2 max-md:w-full">
                 {/* Search input */}
                 <div
-                  className="flex items-center gap-2 bg-[#111315] rounded-xl px-3 py-1.5 ring-1 ring-[#2A2F36] max-md:flex-1"
+                  className="flex items-center gap-2 bg-bg rounded-xl px-3 py-1.5 ring-1 ring-border max-md:flex-1"
                   style={{ width: 220 }}
                 >
-                  <Icon name="search" size={13} className="text-[#64748B] shrink-0" />
+                  <Icon name="search" size={13} className="text-text-subtle shrink-0" />
                   <input
                     type="text"
                     value={search}
                     onChange={e => { setSearch(e.target.value); setPage(1) }}
                     placeholder={t('filter.search')}
                     aria-label={t('filter.search')}
-                    className="flex-1 text-[14px] bg-transparent border-none outline-none placeholder:text-[#64748B] text-[#F8FAFC] min-w-0"
+                    className="flex-1 text-[14px] bg-transparent border-none outline-none placeholder:text-text-subtle text-text-primary min-w-0"
                   />
                   {search && (
                     <button
                       type="button"
                       onClick={() => { setSearch(''); setPage(1) }}
-                      className="text-[#64748B] hover:text-[#94A3B8] transition-colors"
+                      className="text-text-subtle hover:text-text-tertiary transition-colors"
                       aria-label={t('filter.reset')}
                     >
                       <Icon name="x" size={11} />
@@ -782,7 +782,7 @@ export function EmployeesPage({
                   <button
                     type="button"
                     onClick={resetFilters}
-                    className="text-[13px] text-[#F97316] hover:underline"
+                    className="text-[13px] text-accent hover:underline"
                   >
                     {t('filter.reset')}
                   </button>

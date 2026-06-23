@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeAll } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { I18nextProvider } from 'react-i18next'
 import i18n from '@/lib/i18n'
@@ -51,11 +51,23 @@ function setup() {
   return { repo, store, onCreated }
 }
 
+/**
+ * Select a category from the combobox by clicking the trigger to open it,
+ * then clicking the option by name inside the listbox (portal).
+ */
+async function chooseCategory(categoryName: string) {
+  fireEvent.click(screen.getByRole('combobox', { name: /Категория/i }))
+  const listbox = await waitFor(() => screen.getByRole('listbox'), { timeout: 15000 })
+  const option = within(listbox).getByText(categoryName)
+  fireEvent.click(option)
+}
+
 describe('AssetCreatePage', () => {
+  vi.setConfig({ testTimeout: 15000 })
   it('save is disabled until identity + a Quick Assignment recipient are provided', async () => {
     setup()
     await waitFor(() => screen.getByText(/Регистрация актива/i))
-    const save = screen.getByRole('button', { name: /Сохранить/i })
+    const save = screen.getByRole('button', { name: /Создать актив/i })
     expect(save).toBeDisabled()
   })
 
@@ -63,37 +75,37 @@ describe('AssetCreatePage', () => {
     const { store, onCreated } = setup()
     await waitFor(() => screen.getByText(/Регистрация актива/i))
 
-    // 1. Select the category (cat_laptop)
-    // Field wraps in <label> so the <select> is accessible via its label text
-    const categorySelect = screen.getByRole('combobox', { name: /Категория/i })
-    fireEvent.change(categorySelect, { target: { value: 'cat_laptop' } })
+    // 1. Select the category (cat_laptop) via the combobox
+    await chooseCategory('Ноутбук')
 
     // 2. Fill brand
-    await waitFor(() => screen.getByPlaceholderText(/Apple, Dell/i))
-    const brandInput = screen.getByPlaceholderText(/Apple, Dell/i)
+    await waitFor(() => screen.getByPlaceholderText(/HPE/i))
+    const brandInput = screen.getByPlaceholderText(/HPE/i)
     fireEvent.change(brandInput, { target: { value: 'Dell' } })
 
     // 3. Fill model
-    const modelInput = screen.getByPlaceholderText(/XPS 15, MacBook Pro/i)
+    const modelInput = screen.getByPlaceholderText(/ProLiant/i)
     fireEvent.change(modelInput, { target: { value: 'XPS' } })
 
     // 4. Fill inventory code
-    const invCodeInput = screen.getByPlaceholderText(/450\/100/i)
+    const invCodeInput = screen.getByPlaceholderText(/460\/00007/)
     fireEvent.change(invCodeInput, { target: { value: '450/100' } })
 
-    // 5. Fill serial
-    const serialInput = screen.getByPlaceholderText(/SN-XXXX/i)
+    // 5. Fill serial — cat_laptop in this test has no requiresSerial field, but placeholder check
+    // Note: cat_laptop in this test has no requiresSerial field, so it defaults via categoryCapabilities
+    // requiresSerial defaults to !isFurniture = true, so serial field appears
+    const serialInput = screen.getByPlaceholderText(/SN-…|SN-/)
     fireEvent.change(serialInput, { target: { value: 'SN-100' } })
 
-    // 6. Click Склад (warehouse) QA button
+    // 6. Warehouse is default QA — no click needed, but clicking is harmless
     const warehouseBtn = screen.getByRole('button', { name: /Склад/i })
     fireEvent.click(warehouseBtn)
 
     // 7. Save button should now be enabled
-    const save = screen.getByRole('button', { name: /Сохранить/i })
+    const save = screen.getByRole('button', { name: /Создать актив/i })
     await waitFor(() => expect(save).not.toBeDisabled())
 
-    // 8. Click save
+    // 8. Click Создать актив
     fireEvent.click(save)
 
     // 9. Verify audit entry and callback

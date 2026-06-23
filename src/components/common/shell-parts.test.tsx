@@ -238,7 +238,7 @@ describe('SearchPalette', () => {
 // Breadcrumbs
 // ----------------------------------------------------------------
 describe('Breadcrumbs', () => {
-  it('renders last item with font-semibold text-[#F8FAFC] class', () => {
+  it('renders last item with font-semibold text-text-primary class', () => {
     const { container } = render(
       <Breadcrumbs items={['AMS', 'Активы']} />
     )
@@ -246,7 +246,7 @@ describe('Breadcrumbs', () => {
     // Find the last text span
     const lastSpan = spans[spans.length - 1]
     expect(lastSpan?.className).toContain('font-semibold')
-    expect(lastSpan?.className).toContain('text-[#F8FAFC]')
+    expect(lastSpan?.className).toContain('text-text-primary')
   })
 
   it('renders a separator between items', () => {

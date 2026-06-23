@@ -10,7 +10,7 @@
 import { useState, useEffect, useRef } from 'react'
 import ReactDOM from 'react-dom'
 import { useTranslation } from 'react-i18next'
-import { Icon, Btn } from '@/components/ui'
+import { Icon, Btn, MODAL_BACKDROP_ABS } from '@/components/ui'
 import { useModalA11y } from '@/components/ui/useModalA11y'
 import { employeeInitials, employeeAvatarColor } from './employeeFormat'
 import { DestPicker } from './DestPicker'
@@ -56,18 +56,18 @@ interface HandoverRow extends HandoverAsset {
 
 function iconTileCls(iconName: string): string {
   const map: Record<string, string> = {
-    laptop: 'bg-[#F97316]/10 text-[#F97316]',
-    desktop: 'bg-[#F97316]/10 text-[#F97316]',
-    monitor: 'bg-[#F97316]/10 text-[#F97316]',
-    computer: 'bg-[#F97316]/10 text-[#F97316]',
+    laptop: 'bg-accent/10 text-accent',
+    desktop: 'bg-accent/10 text-accent',
+    monitor: 'bg-accent/10 text-accent',
+    computer: 'bg-accent/10 text-accent',
     smartphone: 'bg-violet-500/10 text-violet-300',
     tablet: 'bg-violet-500/10 text-violet-300',
-    printer: 'bg-[#111315] text-[#94A3B8]',
+    printer: 'bg-bg text-text-tertiary',
     keyboard: 'bg-sky-500/10 text-sky-300',
     mouse: 'bg-sky-500/10 text-sky-300',
     armchair: 'bg-amber-500/10 text-amber-300',
   }
-  return map[iconName] ?? 'bg-[#111315] text-[#94A3B8]'
+  return map[iconName] ?? 'bg-bg text-text-tertiary'
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -150,21 +150,21 @@ export function HandoverModal({
 
   // ── Step indicator strip ─────────────────────────────────────────────────
   const StepIndicator = () => (
-    <div className="px-6 py-2.5 bg-[#111315]/60 border-b border-[#2A2F36] flex items-center gap-3 shrink-0">
+    <div className="px-6 py-2.5 bg-bg/60 border-b border-border flex items-center gap-3 shrink-0">
       <div className="flex items-center gap-1.5">
         <span
           className={`w-2.5 h-2.5 rounded-full transition-colors duration-200 ${
             step === 'receive' ? 'bg-emerald-500' : 'bg-slate-300'
           }`}
         />
-        <span className="h-px bg-[#2A2F36]" style={{ width: 80 }} />
+        <span className="h-px bg-border" style={{ width: 80 }} />
         <span
           className={`w-2.5 h-2.5 rounded-full transition-colors duration-200 ${
             step === 'route' ? 'bg-emerald-500' : 'bg-slate-300'
           }`}
         />
       </div>
-      <span className="text-[13.5px] font-medium text-[#F8FAFC] tabular-nums">
+      <span className="text-[13.5px] font-medium text-text-primary tabular-nums">
         {step === 'receive' ? t('handover.step1') : t('handover.step2')}
       </span>
     </div>
@@ -177,7 +177,7 @@ export function HandoverModal({
       <div className="ams-handover-progress-row1 flex items-center gap-3 flex-wrap">
         <span
           className={`ams-handover-progress-counter text-[14px] font-semibold tabular-nums ${
-            step === 'route' || allDone ? 'text-emerald-300' : 'text-[#F8FAFC]'
+            step === 'route' || allDone ? 'text-emerald-300' : 'text-text-primary'
           }`}
         >
           {t('handover.received')} {step === 'route' ? total : checkedCount}/{total}
@@ -186,7 +186,7 @@ export function HandoverModal({
           <button
             type="button"
             onClick={toggleAll}
-            className="ams-handover-toggle-all inline-flex items-center gap-1 text-[13.5px] font-semibold text-[#F97316] hover:text-[#F97316] hover:underline underline-offset-4 decoration-[#FB923C]/60 transition-colors duration-100"
+            className="ams-handover-toggle-all inline-flex items-center gap-1 text-[13.5px] font-semibold text-accent hover:text-accent hover:underline underline-offset-4 decoration-accent-light/60 transition-colors duration-100"
           >
             <Icon name={checkedCount < total ? 'check-check' : 'square'} size={11} />
             <span className="ams-handover-toggle-all-label">
@@ -195,7 +195,7 @@ export function HandoverModal({
           </button>
         )}
         {redirectedCount > 0 && (
-          <span className="ams-handover-progress-breakdown text-[13px] text-[#94A3B8] tabular-nums">
+          <span className="ams-handover-progress-breakdown text-[13px] text-text-tertiary tabular-nums">
             · → {t('dest.warehouse')}: {warehouseCount} · Перенаправлено: {redirectedCount}
           </span>
         )}
@@ -211,14 +211,14 @@ export function HandoverModal({
                 ? 'bg-emerald-500'
                 : r.received
                   ? 'bg-emerald-500'
-                  : 'bg-[#2A2F36]'
+                  : 'bg-border'
             }`}
           />
         ))}
       </div>
       {/* Row 3: keyboard hint — only in step 1 */}
       {step === 'receive' && (
-        <span className="ams-handover-progress-kbhint text-[12.5px] text-[#64748B] font-mono leading-none">
+        <span className="ams-handover-progress-kbhint text-[12.5px] text-text-subtle font-mono leading-none">
           {t('handover.kbHint')}
         </span>
       )}
@@ -228,7 +228,7 @@ export function HandoverModal({
   return ReactDOM.createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-[2px] anim-backdrop-fade"
+        className={MODAL_BACKDROP_ABS}
         onClick={onClose}
       />
       <div
@@ -236,12 +236,12 @@ export function HandoverModal({
         tabIndex={-1}
         role="dialog"
         aria-modal="true"
-        className="relative w-full max-w-3xl bg-[#1B1F24] rounded-2xl shadow-2xl shadow-slate-900/20 border border-[#2A2F36]/60 anim-modal-pop flex flex-col"
+        className="relative w-full max-w-3xl bg-surface rounded-2xl shadow-2xl shadow-slate-900/20 border border-border/60 anim-modal-pop flex flex-col"
         style={{ minHeight: 'min(680px, 92vh)', maxHeight: '92vh' }}
       >
         {/* Sticky header */}
         <div
-          className={`px-5 pt-4 pb-3 border-b border-[#2A2F36] flex items-center gap-3 shrink-0 transition-shadow duration-200 ${
+          className={`px-5 pt-4 pb-3 border-b border-border flex items-center gap-3 shrink-0 transition-shadow duration-200 ${
             scrolledFromTop
               ? 'shadow-[0_1px_0_0_rgba(15,23,42,0.04),0_4px_8px_-6px_rgba(15,23,42,0.12)]'
               : ''
@@ -255,15 +255,15 @@ export function HandoverModal({
           </span>
           {/* Title block */}
           <div className="flex-1 min-w-0">
-            <div className="text-[17px] font-bold text-[#F8FAFC] tracking-tight leading-tight">
+            <div className="text-[17px] font-bold text-text-primary tracking-tight leading-tight">
               {t('handover.title')}
             </div>
-            <div className="text-[15.5px] font-semibold text-[#F8FAFC] leading-snug truncate">
+            <div className="text-[15.5px] font-semibold text-text-primary leading-snug truncate">
               {empName} · {total} активов ·{' '}
               {step === 'receive' ? 'отметьте полученные' : 'выберите назначение'}
             </div>
             {(emp.position || emp.departmentName) && (
-              <div className="text-[13.5px] text-[#CBD5E1] leading-snug truncate">
+              <div className="text-[13.5px] text-text-secondary leading-snug truncate">
                 {[emp.position, emp.departmentName].filter(Boolean).join(' · ')}
               </div>
             )}
@@ -274,7 +274,7 @@ export function HandoverModal({
             onClick={onClose}
             title={t('handover.cancel')}
             aria-label={t('handover.cancel')}
-            className="w-8 h-8 rounded-md text-[#64748B] hover:text-[#CBD5E1] hover:bg-[#22272E] flex items-center justify-center transition-colors shrink-0"
+            className="w-8 h-8 rounded-md text-text-subtle hover:text-text-secondary hover:bg-surface-2 flex items-center justify-center transition-colors shrink-0"
           >
             <Icon name="x" size={16} />
           </button>
@@ -286,8 +286,8 @@ export function HandoverModal({
         {/* Step 2 helper hint */}
         {step === 'route' && (
           <div className="px-6 pt-3 pb-0 flex items-center gap-1.5 shrink-0">
-            <Icon name="info" size={11} className="text-[#64748B] shrink-0" />
-            <span className="text-[13.5px] text-[#F8FAFC]">{t('handover.destInfo')}</span>
+            <Icon name="info" size={11} className="text-text-subtle shrink-0" />
+            <span className="text-[13.5px] text-text-primary">{t('handover.destInfo')}</span>
           </div>
         )}
 
@@ -316,7 +316,7 @@ export function HandoverModal({
                 className={`ams-handover-row rounded-xl ring-1 p-3 flex items-center gap-3 transition-colors duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-1 ${
                   row.received
                     ? 'bg-emerald-500/10 ring-emerald-500/30 hover:ring-emerald-500/30'
-                    : 'bg-[#1B1F24] ring-[#2A2F36] hover:bg-[#22272E]/80 hover:ring-[#2A2F36]'
+                    : 'bg-surface ring-border hover:bg-surface-2/80 hover:ring-border'
                 }`}
               >
                 {/* Checkbox */}
@@ -325,7 +325,7 @@ export function HandoverModal({
                     className={`ams-handover-check w-5 h-5 rounded-md border-2 transition-colors duration-150 flex items-center justify-center ${
                       row.received
                         ? 'border-emerald-500 bg-emerald-500'
-                        : 'border-[#3A4048]'
+                        : 'border-border-strong'
                     }`}
                   >
                     {row.received && <Icon name="check" size={12} className="text-white" />}
@@ -343,16 +343,16 @@ export function HandoverModal({
                 <div className="flex-1 min-w-0 pr-2">
                   <div
                     className={`text-[15px] font-medium truncate transition-colors duration-150 ${
-                      row.received ? 'text-emerald-300' : 'text-[#F8FAFC]'
+                      row.received ? 'text-emerald-300' : 'text-text-primary'
                     }`}
                   >
                     {row.title}
                   </div>
                   <div className="ams-handover-meta flex items-center gap-2 mt-0.5 flex-wrap">
-                    <span className="ams-handover-inv inline-flex items-center px-1.5 h-4.5 rounded bg-[#22272E] text-[#94A3B8] font-mono text-[13px] tabular-nums">
+                    <span className="ams-handover-inv inline-flex items-center px-1.5 h-4.5 rounded bg-surface-2 text-text-tertiary font-mono text-[13px] tabular-nums">
                       {row.invCode}
                     </span>
-                    <span className="ams-handover-sn text-[13px] text-[#CBD5E1]">
+                    <span className="ams-handover-sn text-[13px] text-text-secondary">
                       SN: {row.sn}
                     </span>
                   </div>
@@ -384,10 +384,10 @@ export function HandoverModal({
                     {row.title}
                   </div>
                   <div className="ams-handover-meta flex items-center gap-2 mt-0.5 flex-wrap">
-                    <span className="ams-handover-inv inline-flex items-center px-1.5 h-4.5 rounded bg-[#22272E] text-[#94A3B8] font-mono text-[13px] tabular-nums">
+                    <span className="ams-handover-inv inline-flex items-center px-1.5 h-4.5 rounded bg-surface-2 text-text-tertiary font-mono text-[13px] tabular-nums">
                       {row.invCode}
                     </span>
-                    <span className="ams-handover-sn text-[13px] text-[#CBD5E1]">
+                    <span className="ams-handover-sn text-[13px] text-text-secondary">
                       SN: {row.sn}
                     </span>
                   </div>
@@ -412,7 +412,7 @@ export function HandoverModal({
 
         {/* Sticky footer */}
         <div
-          className={`ams-handover-footer border-t border-[#2A2F36] px-5 py-3 flex items-center gap-3 shrink-0 transition-shadow duration-200 ${
+          className={`ams-handover-footer border-t border-border px-5 py-3 flex items-center gap-3 shrink-0 transition-shadow duration-200 ${
             scrolledFromBottom
               ? 'shadow-[0_-1px_0_0_rgba(15,23,42,0.04),0_-4px_8px_-6px_rgba(15,23,42,0.12)]'
               : ''
@@ -451,7 +451,7 @@ export function HandoverModal({
             {step === 'receive' ? (
               <>
                 {!allDone && (
-                  <span className="ams-handover-remaining-hint text-[13.5px] text-[#94A3B8] select-none whitespace-nowrap">
+                  <span className="ams-handover-remaining-hint text-[13.5px] text-text-tertiary select-none whitespace-nowrap">
                     ← {t('handover.remaining')} {remaining}
                   </span>
                 )}

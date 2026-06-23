@@ -15,6 +15,7 @@ export interface EmployeeFormSubmit {
   firstName: string
   lastName: string
   email: string
+  phone: string | null
   position: string | null
   branchId: string | null
   departmentId: string | null
@@ -31,7 +32,7 @@ export interface EmployeeFormProps {
   onCancel: () => void
 }
 
-const LABEL_CLS = 'block mb-1 text-[11px] uppercase tracking-[0.06em] font-semibold text-[#64748B]'
+const LABEL_CLS = 'block mb-1 text-[11px] uppercase tracking-[0.06em] font-semibold text-text-subtle'
 const ERROR_CLS  = 'mt-1 text-[11px] text-[#FDA4AF]'
 
 export function EmployeeForm({
@@ -50,6 +51,7 @@ export function EmployeeForm({
   const [firstName,    setFirstName]    = useState(initial?.firstName   ?? '')
   const [lastName,     setLastName]     = useState(initial?.lastName    ?? '')
   const [email,        setEmail]        = useState(initial?.email       ?? '')
+  const [phone,        setPhone]        = useState(initial?.phone       ?? '')
   const [position,     setPosition]     = useState(initial?.position    ?? '')
   const [branchId,     setBranchId]     = useState(initial?.branchId    ?? '')
   const [departmentId, setDepartmentId] = useState(initial?.departmentId ?? '')
@@ -112,6 +114,7 @@ export function EmployeeForm({
       firstName:    firstName.trim(),
       lastName:     lastName.trim(),
       email:        email.trim(),
+      phone:        phone.trim() || null,
       position:     position.trim() || null,
       branchId:     branchId || null,
       departmentId: departmentId || null,
@@ -150,7 +153,7 @@ export function EmployeeForm({
               onChange={setUid}
               mono
             />
-            <p className="mt-1 text-[11px] text-[#64748B]">{t('form.uidHint')}</p>
+            <p className="mt-1 text-[11px] text-text-subtle">{t('form.uidHint')}</p>
             {uidErr && <p className={ERROR_CLS}>{uidErr}</p>}
           </div>
         )}
@@ -192,7 +195,7 @@ export function EmployeeForm({
             value={email}
             onChange={e => { setEmail(e.target.value); if (emailErr) setEmailErr(null) }}
             onBlur={validateEmailOnBlur}
-            className="w-full h-9 px-3 text-sm bg-[#111315] border border-[#2A2F36] rounded-lg text-[#F8FAFC] placeholder:text-[#64748B] focus:outline-none focus:border-[#F97316] focus:ring-2 focus:ring-[rgba(249,115,22,0.40)] transition-all duration-150"
+            className="w-full h-9 px-3 text-sm bg-bg border border-border rounded-lg text-text-primary placeholder:text-text-subtle focus:outline-none focus:border-accent focus:ring-2 focus:ring-[rgba(249,115,22,0.40)] transition-all duration-150"
           />
           {emailErr && <p className={ERROR_CLS}>{emailErr}</p>}
         </div>
@@ -206,6 +209,20 @@ export function EmployeeForm({
             id="emp-position"
             value={position}
             onChange={setPosition}
+          />
+        </div>
+
+        {/* Phone */}
+        <div>
+          <label htmlFor="emp-phone" className={LABEL_CLS}>
+            {t('form.phone')}
+          </label>
+          <Input
+            id="emp-phone"
+            value={phone}
+            onChange={setPhone}
+            placeholder="099 12 34 56"
+            mono
           />
         </div>
 

@@ -37,16 +37,17 @@ export function LanguageToggle() {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg border border-[#2A2F36] bg-[#1B1F24] hover:border-[#3A4048] text-[12px] font-semibold text-[#CBD5E1] transition-colors"
+        className="ams-lang-toggle-btn inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg border border-border bg-surface hover:border-border-strong text-[12px] font-semibold text-text-secondary transition-colors"
         title={t('lang.title')}
+        aria-label={t('lang.title')}
       >
-        <Icon name="globe" size={13} className="text-[#64748B]" />
+        <Icon name="globe" size={13} className="text-text-subtle max-md:hidden" />
         {activeLang.short}
-        <Icon name="chevron-down" size={12} className="text-[#64748B]" />
+        <Icon name="chevron-down" size={12} className="ams-lang-chevron text-text-subtle" />
       </button>
       {open && (
         <div
-          className="ams-lang-dropdown absolute right-0 top-full mt-1.5 w-44 bg-[#22272E] border border-[#2A2F36] rounded-lg anim-dropdown-in overflow-hidden z-[50]"
+          className="ams-lang-dropdown absolute right-0 top-full mt-1.5 w-44 bg-surface-2 border border-border rounded-lg anim-dropdown-in overflow-hidden z-[200]"
           style={{ boxShadow: '0 12px 32px rgba(0,0,0,0.55)' }}
         >
           {langs.map((l) => {
@@ -56,11 +57,11 @@ export function LanguageToggle() {
                 key={l.id}
                 type="button"
                 onClick={() => { void i18n.changeLanguage(l.id); setOpen(false) }}
-                className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-left transition-colors ${isActive ? 'bg-[#F97316] text-white' : 'hover:bg-[#1B1F24] text-[#CBD5E1]'}`}
+                className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-left transition-colors ${isActive ? 'bg-accent text-white' : 'hover:bg-surface text-text-secondary'}`}
               >
                 <span className="text-[12.5px] font-semibold">{l.label}</span>
                 <span className="flex items-center gap-1.5">
-                  <span className={`text-[10.5px] font-mono ${isActive ? 'text-white/80' : 'text-[#64748B]'}`}>{l.short}</span>
+                  <span className={`text-[10.5px] font-mono ${isActive ? 'text-white/80' : 'text-text-subtle'}`}>{l.short}</span>
                   {isActive && <Icon name="check" size={13} className="text-white" />}
                 </span>
               </button>

@@ -23,19 +23,19 @@ export function GroupBreakdown({ byGroup }: GroupBreakdownProps) {
           return (
             <div key={group} className="flex flex-col gap-1">
               <div className="flex items-center justify-between">
-                <span className="text-[12.5px] text-[#94A3B8]">
+                <span className="text-[12.5px] text-text-tertiary">
                   {t(`groups.${group}`)}
                 </span>
-                <span className="text-[12.5px] font-semibold text-[#F8FAFC] tabular-nums">
+                <span className="text-[12.5px] font-semibold text-text-primary tabular-nums">
                   {count}
                 </span>
               </div>
               <div
-                className="w-full h-1 rounded-full bg-[#22272E] overflow-hidden"
+                className="w-full h-1 rounded-full bg-surface-2 overflow-hidden"
                 aria-hidden="true"
               >
                 <div
-                  className="h-full rounded-full bg-[#F97316] transition-all duration-300"
+                  className="h-full rounded-full bg-accent transition-all duration-300"
                   style={{ width: `${pct}%` }}
                 />
               </div>

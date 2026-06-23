@@ -1,4 +1,4 @@
-{
+﻿{
   "actions": {
     "edit": "Edit"
   },
@@ -53,7 +53,9 @@
     "group": "Group",
     "reset": "Reset",
     "sort": "Sort",
-    "status": "Status"
+    "status": "Status",
+    "temp": "Temporarily issued",
+    "tempShort": "Temporary"
   },
   "form": {
     "addUpgrade": "Add upgrade",
@@ -89,9 +91,11 @@
     "sectionTitle": "OEM License"
   },
   "groups": {
+    "all": "All",
     "devices": "Devices",
     "furniture": "Furniture",
-    "network": "Network"
+    "network": "Network",
+    "networkShort": "Network"
   },
   "history": {
     "action": {
@@ -108,7 +112,11 @@
     }
   },
   "pagination": {
-    "range": "{{from}}–{{to}} of {{total}}"
+    "next": "Next page",
+    "prev": "Previous page",
+    "range": "{{from}}–{{to}} of {{total}}",
+    "shown": "Showing {{from}}–{{to}} of {{total}}",
+    "shownBold": "Showing <0>{{from}}–{{to}}</0> of <1>{{total}}</1>"
   },
   "placeholders": {
     "brand": "e.g. Apple, Dell",

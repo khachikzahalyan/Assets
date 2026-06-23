@@ -1,5 +1,5 @@
 const AVATAR_PALETTE = [
-  'bg-[#F97316]',
+  'bg-accent',
   'bg-sky-500',
   'bg-emerald-500',
   'bg-amber-500',

@@ -24,6 +24,7 @@ function toEmployee(id: string, d: Record<string, unknown>): Employee {
     firstName: String(d.firstName ?? ''),
     lastName: String(d.lastName ?? ''),
     email: String(d.email ?? ''),
+    phone: (d.phone as string | null) ?? null,
     position: (d.position as string | null) ?? null,
     branchId: (d.branchId as string | null) ?? null,
     departmentId: (d.departmentId as string | null) ?? null,
@@ -76,6 +77,7 @@ export class FirestoreEmployeeRepository implements EmployeeRepository {
     if (await this.isEmailTaken(input.email)) throw new Error(`Email already in use: ${input.email}`)
     const data: Record<string, unknown> = {
       firstName: input.firstName, lastName: input.lastName, email: input.email,
+      phone: input.phone ?? null,
       position: input.position ?? null, branchId: input.branchId ?? null,
       departmentId: input.departmentId ?? null, status: 'active', terminatedAt: null,
       createdBy: actor.uid, updatedBy: actor.uid,

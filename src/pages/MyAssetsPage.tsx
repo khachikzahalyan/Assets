@@ -68,7 +68,7 @@ export function MyAssetsPage({ repository }: MyAssetsPageProps) {
 
   if (loading) {
     return (
-      <div className="anim-content-enter space-y-5">
+      <div className="space-y-5">
         <PageHeader icon="package" title="…" />
         <LoadingState rows={5} />
       </div>
@@ -77,7 +77,7 @@ export function MyAssetsPage({ repository }: MyAssetsPageProps) {
 
   if (loadError) {
     return (
-      <div className="anim-content-enter space-y-5">
+      <div className="space-y-5">
         <PageHeader icon="package" title={t('self.myAssets')} />
         <ErrorState onRetry={load} />
       </div>
@@ -85,7 +85,7 @@ export function MyAssetsPage({ repository }: MyAssetsPageProps) {
   }
 
   return (
-    <div className="anim-content-enter space-y-5">
+    <div className="space-y-5">
       <PageHeader icon="package" title={t('self.myAssets')} />
 
       <SectionCard title={t('self.myAssets')} icon="package">
@@ -100,10 +100,10 @@ export function MyAssetsPage({ repository }: MyAssetsPageProps) {
               return (
                 <li
                   key={a.id}
-                  className="flex items-center gap-3 rounded-md border border-[#1E293B] bg-[#0F172A] px-3 py-2"
+                  className="flex items-center gap-3 rounded-md border border-[#1E293B] bg-[#0F172A] px-3 py-2 min-h-[44px]"
                 >
-                  <span className="font-mono text-[12px] text-[#94A3B8] min-w-[80px]">{a.invCode}</span>
-                  <span className="flex-1 text-[13px] text-[#F8FAFC]">
+                  <span className="font-mono text-[12px] text-text-tertiary min-w-[80px]">{a.invCode}</span>
+                  <span className="flex-1 text-[13px] text-text-primary">
                     {[a.brand, a.model].filter(Boolean).join(' ') || category?.name || '—'}
                   </span>
                   {status && (

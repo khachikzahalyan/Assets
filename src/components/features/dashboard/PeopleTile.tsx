@@ -16,24 +16,24 @@ export function PeopleTile({ employeeCount, pendingUsersCount }: PeopleTileProps
     <SectionCard noHeader>
       <div className="flex flex-col gap-3">
         <span
-          className="w-9 h-9 rounded-md bg-[#22272E] text-[#94A3B8] inline-flex items-center justify-center"
+          className="w-9 h-9 rounded-md bg-surface-2 text-text-tertiary inline-flex items-center justify-center"
           aria-hidden="true"
         >
           <Icon name="users" size={16} />
         </span>
         <div>
-          <div className="text-[12px] text-[#64748B]">
+          <div className="text-[12px] text-text-subtle">
             {t('people.employees')}
           </div>
-          <div className="text-[22px] font-bold text-[#F8FAFC] tabular-nums">
+          <div className="text-[22px] font-bold text-text-primary tabular-nums">
             {employeeCount}
           </div>
           {hasPending && (
             <Link
               to="/pending-users"
-              className="inline-flex items-center gap-1 mt-1 text-[11.5px] text-[#F97316] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#F97316]"
+              className="inline-flex items-center gap-1 mt-1 text-[11.5px] text-accent hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent"
             >
-              <Icon name="triangle-alert" size={11} className="text-[#F97316]" />
+              <Icon name="triangle-alert" size={11} className="text-accent" />
               <span>{pendingUsersCount}</span>
               <span>{t('people.pending')}</span>
             </Link>

@@ -38,10 +38,10 @@ export function AssignmentHistory({ assignments, refData, onViewScan }: Assignme
               className="flex items-center justify-between gap-3 rounded-md bg-[#18181B] px-3 py-2"
             >
               <div className="min-w-0">
-                <p className="text-[13px] text-[#F8FAFC] truncate">
+                <p className="text-[13px] text-text-primary truncate">
                   {recipientName(a, refData)}
                 </p>
-                <p className="text-[11px] text-[#64748B]">
+                <p className="text-[11px] text-text-subtle">
                   {t(a.mode === 'employee' ? 'assign.employee' : 'assign.branch')}
                   {' · '}
                   {t('assign.started')} {fmt(a.startedAt)}

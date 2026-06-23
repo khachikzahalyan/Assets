@@ -3,7 +3,7 @@
  *
  * Assertions:
  * (a) Renders both chips with correct labels and counts.
- * (b) The active tab (`selected='all'`) has `bg-[#F97316]` class; inactive does not.
+ * (b) The active tab (`selected='all'`) has `bg-accent` class; inactive does not.
  * (c) Clicking Сотрудники calls onSelect('staff').
  */
 
@@ -56,24 +56,24 @@ describe('EmployeeKindTabs', () => {
     expect(countSpans).toHaveLength(2)
   })
 
-  // ── (b) Active chip has bg-[#F97316]; inactive does not ──────────────────
+  // ── (b) Active chip has bg-accent; inactive does not ──────────────────
 
-  it('(b) active tab (all) has bg-[#F97316] class', () => {
+  it('(b) active tab (all) has bg-accent class', () => {
     renderTabs('all')
     const allButton = screen.getByRole('button', { name: /Все/ })
-    expect(allButton.className).toContain('bg-[#F97316]')
+    expect(allButton.className).toContain('bg-accent')
   })
 
-  it('(b) inactive tab (staff) does NOT have bg-[#F97316] class', () => {
+  it('(b) inactive tab (staff) does NOT have bg-accent class', () => {
     renderTabs('all')
     const staffButton = screen.getByRole('button', { name: /Сотрудники/ })
-    expect(staffButton.className).not.toContain('bg-[#F97316]')
+    expect(staffButton.className).not.toContain('bg-accent')
   })
 
-  it('(b) when staff is active, staff chip has bg-[#F97316]', () => {
+  it('(b) when staff is active, staff chip has bg-accent', () => {
     renderTabs('staff')
     const staffButton = screen.getByRole('button', { name: /Сотрудники/ })
-    expect(staffButton.className).toContain('bg-[#F97316]')
+    expect(staffButton.className).toContain('bg-accent')
   })
 
   // ── (c) Clicking Сотрудники calls onSelect('staff') ──────────────────────

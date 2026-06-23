@@ -2,60 +2,71 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
-  PageHeader, SectionCard, Field, Input, Btn, Icon, Chip, LoadingState, ErrorState, EmptyState,
+  PageHeader, LoadingState, ErrorState, EmptyState,
 } from '@/components/ui'
-import type { ChipColor } from '@/components/ui'
-import { UpgradesPanel } from '@/components/features/assets/detail/UpgradesPanel'
-import { AssetHistory } from '@/components/features/assets/detail/AssetHistory'
-import { LifecycleActions } from '@/components/features/assets/detail/LifecycleActions'
-import { AssignmentForm, type AssignmentSubmit } from '@/components/features/assets/detail/AssignmentForm'
-import { AssignmentHistory } from '@/components/features/assets/detail/AssignmentHistory'
+import { DetailHero } from '@/components/features/assets/detail/DetailHero'
+import { DetailTabs, type TabId } from '@/components/features/assets/detail/DetailTabs'
+import { TechSpecsCard } from '@/components/features/assets/detail/TechSpecsCard'
+import { HistoryCard } from '@/components/features/assets/detail/HistoryCard'
+import { DocumentsTab } from '@/components/features/assets/detail/DocumentsTab'
+import { LocationCard } from '@/components/features/assets/detail/LocationCard'
+import { AssignmentCard } from '@/components/features/assets/detail/AssignmentCard'
+import { RepairCard } from '@/components/features/assets/detail/RepairCard'
+import { WriteOffModal } from '@/components/features/assets/detail/WriteOffModal'
+import { auditToHistoryEvent } from '@/components/features/assets/detail/auditToHistoryEvent'
 import { categoryCapabilities } from '@/components/features/assets/create/CategoryPicker'
+import { deriveDisplayStatus } from '@/components/features/assets/assetFormat'
 import { useAuth } from '@/contexts/AuthContext'
 import type {
   Asset,
   AssetReferenceData,
   AssetWriteRepository,
   AssetRepository,
-  UpgradeComponent,
   CategoryRow,
 } from '@/domain/asset'
 import type { AuditLog } from '@/domain/audit'
-import type { UpgradeEvent } from '@/domain/asset'
 import type { Assignment, AssignmentRepository } from '@/domain/assignment'
+import type { TransferPatch } from '@/domain/asset/transferRules'
+import type { WorkstationLicense } from '@/domain/license'
 import { FirestoreAssetRepository, FirestoreAssignmentRepository, FirestoreWorkstationLicenseRepository } from '@/infra/repositories'
-import { uploadActScan, actScanUrl } from '@/infra/storage'
+import { actScanUrl } from '@/infra/storage'
 import { db, storage } from '@/lib/firebase'
 import type { WorkstationLicenseRepository } from '@/domain/license'
 import { WriteOffAssetService } from '@/domain/services/WriteOffAssetService'
+import { setLicenseKey } from '@/lib/licenses/revealKey'
+import type { AttachChoice } from '@/components/features/assets/detail/LicenseBlock'
 
-// Map status color strings from ref data to ChipColor values
-function toChipColor(color: string): ChipColor {
-  const map: Record<string, ChipColor> = {
-    gray: 'gray',
-    grey: 'gray',
-    emerald: 'green',
-    green: 'green',
-    orange: 'orange',
-    amber: 'amber',
-    red: 'red',
-    rose: 'red',
-    blue: 'blue',
-    indigo: 'indigo',
-    violet: 'violet',
-    teal: 'teal',
-    cyan: 'cyan',
-  }
-  return map[color] ?? 'gray'
+// ---------------------------------------------------------------------------
+// Act record type (derived from assignment list)
+// ---------------------------------------------------------------------------
+
+interface ActRecord {
+  id: string
+  name: string
+  date: string
+  path: string
 }
+
+// ---------------------------------------------------------------------------
+// Component props
+// ---------------------------------------------------------------------------
 
 export interface AssetDetailPageProps {
   repository?: AssetRepository & AssetWriteRepository
   assignmentRepository?: AssignmentRepository
   licenseRepository?: WorkstationLicenseRepository
+  /**
+   * Optional hook to persist the raw OEM key to the secrets store after license creation.
+   * Defaults to the `setLicenseKey` Cloud Function via httpsCallable.
+   * Inject a stub in tests to avoid calling Firebase Functions.
+   *
+   * NOTE: The raw key must never reach Firestore directly — it is routed through the
+   * Cloud Function which writes to `licenses/{id}/secrets/current` under admin SDK.
+   */
+  onPersistOemSecret?: (licenseId: string, rawKey: string) => Promise<void>
 }
 
-export function AssetDetailPage({ repository, assignmentRepository, licenseRepository }: AssetDetailPageProps) {
+export function AssetDetailPage({ repository, assignmentRepository, licenseRepository, onPersistOemSecret }: AssetDetailPageProps) {
   const { t } = useTranslation('assets')
   const { user, role } = useAuth()
   const { id } = useParams<{ id: string }>()
@@ -88,58 +99,47 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [asset, setAsset] = useState<Asset | null>(null)
-  const [upgrades, setUpgrades] = useState<UpgradeEvent[]>([])
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([])
   const [ref, setRef] = useState<AssetReferenceData | null>(null)
   const [assignments, setAssignments] = useState<Assignment[]>([])
+  const [licenses, setLicenses] = useState<WorkstationLicense[]>([])
+  const [licensePool, setLicensePool] = useState<{ id: string; name: string; vendor: string | null }[]>([])
 
-  // ---- Identity edit state ----
-  const [editing, setEditing] = useState(false)
-  const [editBrand, setEditBrand] = useState('')
-  const [editModel, setEditModel] = useState('')
-  const [editSerial, setEditSerial] = useState('')
-  const [savingIdentity, setSavingIdentity] = useState(false)
-  const [identityError, setIdentityError] = useState<string | null>(null)
-
-  // ---- Lifecycle action error ----
+  // ---- UI state ----
+  const [activeTab, setActiveTab] = useState<TabId>('specs')
+  const [transferOpen, setTransferOpen] = useState(false)
+  const [writeOffOpen, setWriteOffOpen] = useState(false)
+  const [busy, setBusy] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
-
-  // ---- Assignment state ----
-  const [assigning, setAssigning] = useState(false)
-  const [assignBusy, setAssignBusy] = useState(false)
-  const [assignError, setAssignError] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     if (!id) return
     setLoading(true)
     setLoadError(null)
     try {
-      // Run asset data + assignments in parallel.
-      // Assignment list is best-effort: if Firestore is unavailable (e.g. tests
-      // without a Firebase mock), the error is swallowed and assignments stay [].
-      const [a, ups, logs, refData, asnList] = await Promise.all([
+      const [a, logs, refData, asnList, licList, poolList] = await Promise.all([
         repo.getAsset(id),
-        (repo as AssetWriteRepository).listUpgrades(id),
         (repo as AssetWriteRepository).listAudit(id),
         repo.loadReferenceData(),
-        // Only call listAssignments when a real repo was injected.
-        // When assignmentRepository is undefined (old tests without the new prop),
-        // skip the network call entirely to avoid blocking those tests.
-        assignmentRepository
-          ? repoAsn.listAssignments(id).catch(() => [] as Assignment[])
-          : Promise.resolve([] as Assignment[]),
+        repoAsn.listAssignments(id).catch(() => [] as Assignment[]),
+        licenseRepo.listForAsset(id).catch(() => [] as WorkstationLicense[]),
+        licenseRepo.listAssignablePool().catch(() => [] as WorkstationLicense[]),
       ])
       setAsset(a)
-      setUpgrades(ups)
       setAuditLogs(logs)
       setRef(refData)
       setAssignments(asnList)
+      setLicenses(licList)
+      const freeOem = poolList.filter(
+        l => l.type === 'OEM' && l.assignmentType === 'unassigned' && l.lifecycleStatus === 'active',
+      )
+      setLicensePool(freeOem.map(l => ({ id: l.id, name: l.name, vendor: l.vendor ?? null })))
     } catch {
       setLoadError(t('validation.saveFailed'))
     } finally {
       setLoading(false)
     }
-  }, [id, repo, repoAsn, assignmentRepository, t])
+  }, [id, repo, repoAsn, licenseRepo, t])
 
   useEffect(() => {
     void load()
@@ -151,145 +151,177 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
     : null
   const caps = category ? categoryCapabilities(category) : null
   const statusRow = asset && ref
-    ? (ref.statuses.find(s => s.id === asset.statusId) ?? null)
+    ? deriveDisplayStatus(asset, ref.statuses)
     : null
 
-  const canIssue = role === 'super_admin' || role === 'asset_admin'
-  const canRepair = role === 'super_admin' || role === 'tech_admin'
-  const canEditUpgrades = role === 'super_admin' || role === 'tech_admin'
-  const canAssign = role === 'super_admin' || role === 'asset_admin'
+  // Acts derived from assignment list (those with an actStoragePath)
+  const acts: ActRecord[] = useMemo(() => {
+    return assignments
+      .filter(a => Boolean((a as { actStoragePath?: string | null }).actStoragePath))
+      .map((a, i) => ({
+        id: a.id ?? String(i),
+        name: t('detail.docs.actName', { n: String(i + 1) }),
+        date: a.startedAt ?? a.createdAt ?? '',
+        path: (a as { actStoragePath?: string | null }).actStoragePath ?? '',
+      }))
+  }, [assignments, t])
 
-  // ---- Identity edit handlers ----
-  function handleStartEdit() {
+  const historyEvents = useMemo(() => {
+    if (!ref) return []
+    return auditLogs.map(log => auditToHistoryEvent(log, ref, { currentUid: user.id }))
+  }, [auditLogs, ref, user.id])
+
+  const canRepair  = role === 'super_admin' || role === 'tech_admin'
+  const canAssign  = role === 'super_admin' || role === 'asset_admin'
+  const canWriteOff = role === 'super_admin' || role === 'asset_admin'
+
+  const isDisposed = asset?.statusId === 'st_disposed'
+
+  const canManageLicense = (role === 'super_admin' || role === 'tech_admin') && !isDisposed && Boolean(caps?.hasOemLicense)
+
+  // ---- Transfer handler ----
+  async function onTransfer(patch: TransferPatch) {
     if (!asset) return
-    setEditBrand(asset.brand ?? '')
-    setEditModel(asset.model ?? '')
-    setEditSerial(asset.serial ?? '')
-    setIdentityError(null)
-    setEditing(true)
-  }
-
-  function handleCancelEdit() {
-    setEditing(false)
-    setIdentityError(null)
-  }
-
-  async function handleSaveIdentity() {
-    if (!asset) return
-    setSavingIdentity(true)
-    setIdentityError(null)
+    setBusy(true)
+    setActionError(null)
     try {
-      await (repo as AssetWriteRepository).updateAsset(
+      await (repo as AssetWriteRepository).changeStatus(
         asset.id,
-        {
-          brand: editBrand || null,
-          model: editModel || null,
-          serial: editSerial || null,
-        },
+        patch.toStatusId,
         actor,
+        { assignment: patch.assignment ?? null },
       )
-      setEditing(false)
+      setTransferOpen(false)
       await load()
     } catch {
-      setIdentityError(t('validation.saveFailed'))
+      setActionError(t('assign.assignFailed'))
     } finally {
-      setSavingIdentity(false)
+      setBusy(false)
     }
   }
 
-  // ---- Upgrade handler ----
-  async function handleAddUpgrade(ev: { component: UpgradeComponent; after: string }) {
+  // ---- Repair handlers ----
+  async function onSendToRepair(reason: string) {
     if (!asset) return
-    await (repo as AssetWriteRepository).addUpgrade(asset.id, ev, actor)
-    await load()
-  }
-
-  // ---- Lifecycle action handlers ----
-  async function handleSendToRepair() {
-    if (!asset) return
+    setBusy(true)
     setActionError(null)
     try {
-      await (repo as AssetWriteRepository).changeStatus(asset.id, 'st_repair', actor)
+      await (repo as AssetWriteRepository).changeStatus(asset.id, 'st_repair', actor, { comment: reason })
       await load()
     } catch {
       setActionError(t('validation.saveFailed'))
+    } finally {
+      setBusy(false)
     }
   }
 
-  async function handleWriteOff() {
+  async function onReturnFromRepair() {
     if (!asset) return
+    setBusy(true)
+    setActionError(null)
+    try {
+      await (repo as AssetWriteRepository).changeStatus(asset.id, 'st_assigned', actor)
+      await load()
+    } catch {
+      setActionError(t('validation.saveFailed'))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  // ---- Write-off handlers ----
+  function onOpenWriteOff() {
+    setWriteOffOpen(true)
+  }
+
+  async function onConfirmWriteOff(reason: string) {
+    if (!asset) return
+    setBusy(true)
     setActionError(null)
     try {
       const svc = new WriteOffAssetService(repo as AssetWriteRepository, licenseRepo)
-      await svc.writeOff(asset.id, actor)
+      await svc.writeOff(asset.id, actor, reason)
+      setWriteOffOpen(false)
       await load()
     } catch {
       setActionError(t('validation.saveFailed'))
+    } finally {
+      setBusy(false)
     }
   }
 
-  async function handleReturn() {
+  // ---- Scan viewer ----
+  function onOpenScan(path: string) {
+    void actScanUrl(storage(), path)
+      .then(u => window.open(u, '_blank', 'noopener'))
+      .catch(() => setActionError(t('assign.scanFailed')))
+  }
+
+  // ---- License attach handler ----
+  async function onAttachLicense(choice: AttachChoice) {
     if (!asset) return
+    setBusy(true)
     setActionError(null)
     try {
-      await repoAsn.returnAsset(asset.id, actor)
-      await load()
-    } catch {
-      setActionError(t('assign.returnFailed'))
-    }
-  }
-
-  // ---- Assignment handler ----
-  async function handleAssign(v: AssignmentSubmit) {
-    if (!asset) return
-    setAssignBusy(true)
-    try {
-      let actPath: string | null = null
-      if (v.file) {
-        // Upload BEFORE transaction (Decision B — orphaned scan on txn failure is acceptable)
-        actPath = await uploadActScan(storage(), asset.id, v.file)
-      }
-
-      // Resolve the employee's email so the assignment repo can enqueue the notification mail.
-      let employeeName: string | null = null
-      let employeeEmail: string | null = null
-      if (v.mode === 'employee' && v.employeeId && ref) {
-        const emp = ref.employees.find(e => e.id === v.employeeId)
-        if (emp) {
-          employeeName = [emp.firstName, emp.lastName].filter(Boolean).join(' ') || null
-          employeeEmail = emp.email ?? null
+      if (choice.kind === 'existing') {
+        await licenseRepo.assignLicense(choice.licenseId, { to: 'device', assetId: asset.id }, actor)
+      } else if (choice.kind === 'new-key') {
+        // Manual/retail product key — type:'Retail', isReusable:true
+        const manualName = [asset.brand, asset.model].filter(Boolean).join(' ').trim()
+          ? `${[asset.brand, asset.model].filter(Boolean).join(' ').trim()} — Ключ продукта`
+          : 'Лицензия ОС'
+        const created = await licenseRepo.createLicense(
+          {
+            name: manualName,
+            type: 'Retail',
+            isReusable: true,
+            rawKey: choice.rawKey,
+            assign: { to: 'device', assetId: asset.id },
+          },
+          actor,
+        )
+        if (choice.rawKey) {
+          // Persist the raw secret via the callable — never write the raw key to Firestore directly.
+          try {
+            const licenseId = created.value.id
+            if (licenseId) {
+              const persist = onPersistOemSecret ?? ((lid: string, key: string) => setLicenseKey('licenses', lid, key))
+              await persist(licenseId, choice.rawKey)
+            } else {
+              setActionError(t('validation.oemKeyNotStored'))
+            }
+          } catch {
+            setActionError(t('validation.oemKeyNotStored'))
+          }
         }
+      } else {
+        // oem-digital: firmware-embedded OEM license — type:'OEM', isReusable:false, NO rawKey
+        const oemName = ['OEM —', asset.brand, asset.model].filter(Boolean).join(' ').trim() || 'OEM'
+        await licenseRepo.createLicense(
+          {
+            name: oemName,
+            type: 'OEM',
+            isReusable: false,
+            assign: { to: 'device', assetId: asset.id },
+          },
+          actor,
+        )
       }
-
-      const assignInput: Parameters<typeof repoAsn.assign>[0] = {
-        assetId: asset.id,
-        mode: v.mode,
-        actStoragePath: actPath,
-        transferComment: v.comment,
-        invCode: asset.invCode,
-      }
-      if (v.employeeId) assignInput.employeeId = v.employeeId
-      if (v.branchId) assignInput.branchId = v.branchId
-      if (employeeName) assignInput.employeeName = employeeName
-      if (employeeEmail) assignInput.employeeEmail = employeeEmail
-      await repoAsn.assign(assignInput, actor)
-      setAssigning(false)
       await load()
     } catch {
-      setAssignError(t('assign.assignFailed'))
+      setActionError(t('detail.license.attachFailed'))
     } finally {
-      setAssignBusy(false)
+      setBusy(false)
     }
   }
 
-  function handleViewScan(path: string) {
-    void actScanUrl(storage(), path).then(u => window.open(u, '_blank', 'noopener')).catch(() => setActionError(t('assign.scanFailed')))
-  }
+  // ---- License detach handler (kept for Licenses module — not wired into asset card) ----
+  // detach lives in the Licenses module, not the asset card; removed from TechSpecsCard prop
 
   // ---- Render states ----
   if (loading) {
     return (
-      <div className="anim-content-enter space-y-5">
+      <div className="space-y-5">
         <PageHeader icon="package" title="…" />
         <LoadingState rows={5} />
       </div>
@@ -298,7 +330,7 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
 
   if (loadError) {
     return (
-      <div className="anim-content-enter space-y-5">
+      <div className="space-y-5">
         <PageHeader icon="package" title="—" />
         <ErrorState onRetry={load} />
       </div>
@@ -307,184 +339,146 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
 
   if (!asset) {
     return (
-      <div className="anim-content-enter space-y-5">
+      <div className="space-y-5">
         <PageHeader icon="package" title={t('form.notFound')} />
         <EmptyState icon="search-x" title={t('form.notFound')} />
       </div>
     )
   }
 
-  // PageHeader title = "Актив 450/1"; no description (brand/model shown in identity card)
-  const pageTitle = t('form.editTitle', { code: asset.invCode })
+  if (!statusRow) {
+    return (
+      <div className="space-y-5">
+        <PageHeader icon="package" title={asset.invCode} />
+        <LoadingState rows={3} />
+      </div>
+    )
+  }
+
+  // Tab body visibility
+  const showSpecs = Boolean(caps?.hasSpecs)
+
+  // Derive creation date from history events (the event with kind === 'created')
+  const creationEvent = historyEvents.find(ev => ev.kind === 'created')
+  const addedDate = creationEvent?.date ?? asset.updatedAt
 
   return (
-    <div className="anim-content-enter space-y-5">
-      {/* Page header */}
-      <PageHeader
-        icon={category?.lucideIcon ?? 'package'}
-        title={pageTitle}
-        actions={
-          <div className="flex items-center gap-2">
-            {statusRow && (
-              <Chip color={toChipColor(statusRow.color)} dot>
-                {statusRow.name}
-              </Chip>
-            )}
-          </div>
-        }
-      />
-
-      {/* Lifecycle action error */}
+    <>
+      {/* Action error banner */}
       {actionError && (
-        <p role="alert" className="text-[12px] text-[#FDA4AF] px-1">{actionError}</p>
+        <p role="alert" className="mb-3 text-[12px] text-[#FDA4AF] px-1">{actionError}</p>
       )}
 
-      {/* Lifecycle actions */}
-      <LifecycleActions
-        statusId={asset.statusId}
-        canIssue={canIssue}
-        canRepair={canRepair}
-        canAssign={canAssign && !assigning}
-        onSendToRepair={handleSendToRepair}
-        onWriteOff={handleWriteOff}
-        onReturn={handleReturn}
-        onAssign={() => { setAssignError(null); setAssigning(true) }}
-      />
-
-      {/* Assignment form */}
-      {assigning && (
-        <SectionCard title={t('assign.title')} icon="user-check">
-          {assignError && (
-            <p role="alert" className="mb-3 text-[12px] text-[#FDA4AF]">{assignError}</p>
-          )}
-          <AssignmentForm
-            employees={ref?.employees ?? []}
-            branches={ref?.branches ?? []}
-            busy={assignBusy}
-            onSubmit={handleAssign}
-            onCancel={() => { setAssigning(false); setAssignError(null) }}
+      {/* Two-column grid on large screens */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
+        {/* ---------------------------------------------------------------- */}
+        {/* LEFT column — hero + tabs + tab body                             */}
+        {/* ---------------------------------------------------------------- */}
+        <div className="lg:col-span-2 space-y-0">
+          {/* Hero */}
+          <DetailHero
+            asset={asset}
+            category={category}
+            statusRow={statusRow}
+            canWriteOff={canWriteOff && !isDisposed}
+            isDisposed={isDisposed}
+            onWriteOff={onOpenWriteOff}
           />
-        </SectionCard>
-      )}
 
-      {/* Identity section */}
-      <SectionCard
-        title={t('form.brand') + ' / ' + t('form.model')}
-        icon="fingerprint"
-        action={
-          !editing ? (
-            <Btn variant="ghost" size="sm" onClick={handleStartEdit}>
-              <Icon name="pencil" size={13} />
-              {t('form.change')}
-            </Btn>
-          ) : undefined
-        }
-      >
-        {identityError && (
-          <p role="alert" className="mb-3 text-[12px] text-[#FDA4AF]">{identityError}</p>
-        )}
+          {/* Tabs */}
+          <DetailTabs
+            active={activeTab}
+            onChange={setActiveTab}
+            showSpecs={showSpecs}
+            showDocs={true}
+            addedDate={addedDate}
+          />
 
-        {editing ? (
-          <div className="space-y-3">
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <div>
-                <label htmlFor="edit-brand" className="block mb-1 text-[11px] uppercase tracking-[0.06em] font-semibold text-[#64748B]">
-                  {t('form.brand')}
-                </label>
-                <Input id="edit-brand" value={editBrand} onChange={setEditBrand} />
+          {/* Tab body — WAI-ARIA tabpanel */}
+          <div
+            role="tabpanel"
+            id={`panel-${activeTab}`}
+            aria-labelledby={`tab-${activeTab}`}
+            tabIndex={0}
+            className="bg-surface rounded-b-2xl border-x border-b border-border px-5 sm:px-6 py-5"
+          >
+            {activeTab === 'specs' && (
+              <div className="space-y-5">
+                {(caps?.hasSpecs || canManageLicense || licenses.length > 0 || caps?.hasOemLicense) ? (
+                  <TechSpecsCard
+                    asset={asset}
+                    licenses={licenses}
+                    hasOemLicenseCap={Boolean(caps?.hasOemLicense)}
+                    canManageLicense={canManageLicense}
+                    onAttachLicense={onAttachLicense}
+                    licensePool={licensePool}
+                    licenseBusy={busy}
+                  />
+                ) : (
+                  <p className="text-[13px] text-text-subtle italic">{t('detail.specs.empty')}</p>
+                )}
               </div>
-              <div>
-                <label htmlFor="edit-model" className="block mb-1 text-[11px] uppercase tracking-[0.06em] font-semibold text-[#64748B]">
-                  {t('form.model')}
-                </label>
-                <Input id="edit-model" value={editModel} onChange={setEditModel} />
-              </div>
-              <div>
-                <label htmlFor="edit-serial" className="block mb-1 text-[11px] uppercase tracking-[0.06em] font-semibold text-[#64748B]">
-                  {t('form.serial')}
-                </label>
-                <Input id="edit-serial" value={editSerial} onChange={setEditSerial} mono />
-              </div>
-            </div>
-            <div className="flex items-center gap-2 pt-1">
-              <Btn
-                variant="primary"
-                size="sm"
-                onClick={handleSaveIdentity}
-                disabled={savingIdentity}
-              >
-                {savingIdentity
-                  ? <Icon name="loader-circle" size={13} className="animate-spin" />
-                  : <Icon name="check" size={13} />}
-                {t('form.save')}
-              </Btn>
-              <Btn variant="ghost" size="sm" onClick={handleCancelEdit} disabled={savingIdentity}>
-                {t('form.cancel')}
-              </Btn>
-            </div>
+            )}
+
+            {activeTab === 'history' && (
+              <HistoryCard events={historyEvents} />
+            )}
+
+            {activeTab === 'docs' && (
+              <DocumentsTab
+                acts={acts}
+                onOpen={onOpenScan}
+                purchaseDate={asset.purchaseDate ?? null}
+                warrantyEndsAt={asset.warrantyEndsAt ?? null}
+              />
+            )}
           </div>
-        ) : (
-          <dl className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
-            <Field label={`${t('form.brand')} / ${t('form.model')}`}>
-              <p className="text-[13px] text-[#F8FAFC]">
-                {[asset.brand, asset.model].filter(Boolean).join(' ') || '—'}
-              </p>
-            </Field>
-            <Field label={t('form.serial')}>
-              <p className="text-[13px] font-mono text-[#F8FAFC]">{asset.serial ?? '—'}</p>
-            </Field>
-          </dl>
-        )}
-      </SectionCard>
+        </div>
 
-      {/* Specs section (only for hasSpecs categories) */}
-      {caps?.hasSpecs && asset.currentSpecs && (
-        <SectionCard title={t('form.specs')} icon="cpu">
-          <dl className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-4">
-            {asset.currentSpecs.cpu && (
-              <Field label={t('form.specCpu')}>
-                <p className="text-[13px] text-[#F8FAFC]">{asset.currentSpecs.cpu}</p>
-              </Field>
-            )}
-            {asset.currentSpecs.ram && (
-              <Field label={t('form.specRam')}>
-                <p className="text-[13px] text-[#F8FAFC]">{asset.currentSpecs.ram}</p>
-              </Field>
-            )}
-            {asset.currentSpecs.ssd && (
-              <Field label={t('form.specSsd')}>
-                <p className="text-[13px] text-[#F8FAFC]">{asset.currentSpecs.ssd}</p>
-              </Field>
-            )}
-            {asset.currentSpecs.gpu && (
-              <Field label={t('form.specGpu')}>
-                <p className="text-[13px] text-[#F8FAFC]">{asset.currentSpecs.gpu}</p>
-              </Field>
-            )}
-          </dl>
-        </SectionCard>
-      )}
+        {/* ---------------------------------------------------------------- */}
+        {/* RIGHT column — assignment + location + repair                    */}
+        {/* ---------------------------------------------------------------- */}
+        <div className="space-y-4">
+          {/* Assignment card */}
+          {ref && (
+            <AssignmentCard
+              asset={asset}
+              refData={ref}
+              caps={caps}
+              canAssign={canAssign && !isDisposed}
+              busy={busy}
+              transferOpen={transferOpen}
+              onOpenTransfer={() => setTransferOpen(true)}
+              onCloseTransfer={() => setTransferOpen(false)}
+              onCommit={onTransfer}
+            />
+          )}
 
-      {/* Upgrades panel (only for hasSpecs categories) */}
-      {caps?.hasSpecs && (
-        <UpgradesPanel
-          assetId={asset.id}
-          currentSpecs={asset.currentSpecs}
-          upgrades={upgrades}
-          canEditUpgrades={canEditUpgrades}
-          onAdd={handleAddUpgrade}
+          {/* Location card */}
+          {ref && (
+            <LocationCard asset={asset} refData={ref} />
+          )}
+
+          {/* Repair card */}
+          <RepairCard
+            asset={asset}
+            canRepair={canRepair && !isDisposed}
+            busy={busy}
+            onSendToRepair={onSendToRepair}
+            onReturnFromRepair={onReturnFromRepair}
+          />
+        </div>
+      </div>
+
+      {/* Write-off modal — portal */}
+      {writeOffOpen && (
+        <WriteOffModal
+          asset={asset}
+          busy={busy}
+          onClose={() => setWriteOffOpen(false)}
+          onConfirm={onConfirmWriteOff}
         />
       )}
-
-      {/* Audit history */}
-      <AssetHistory logs={auditLogs} ref={ref ?? undefined} />
-
-      {/* Assignment history */}
-      <AssignmentHistory
-        assignments={assignments}
-        {...(ref ? { refData: ref } : {})}
-        onViewScan={handleViewScan}
-      />
-    </div>
+    </>
   )
 }

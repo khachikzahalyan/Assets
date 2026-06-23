@@ -1,3 +1,5 @@
+import type { UpgradeSlot } from '@/domain/part/types'
+
 /** The four canonical AMS asset statuses (CONFIRMED v8). Order = display order. */
 export const ASSET_STATUS_IDS = ['st_warehouse', 'st_assigned', 'st_repair', 'st_disposed'] as const
 export type AssetStatusId = (typeof ASSET_STATUS_IDS)[number]
@@ -6,13 +8,37 @@ export function isAssetStatusId(v: string): v is AssetStatusId {
   return (ASSET_STATUS_IDS as readonly string[]).includes(v)
 }
 
-export type AssignmentMode = 'employee' | 'department' | 'branch'
+/**
+ * The transfer modes available from the Asset Detail screen.
+ *
+ * - `'employee'`    — assigned to a person (employeeId). May be office/remote.
+ * - `'department'`  — attributed to a department (shared asset).
+ * - `'branch'`      — relocated to a branch (the ONLY mode that moves the asset's branchId).
+ * - `'warehouse'`   — unassigned-on-shelf. This is a transfer INTENT only; the persisted
+ *                     `asset.assignment` becomes `null` (see {@link Asset.assignment}). There is
+ *                     no stored assignment object whose `mode === 'warehouse'`.
+ * - `'temporary'`   — temporary hold referencing a KIND (tempKind: audit / intern), NOT a person.
+ *                     Requires `expiresAt`.
+ */
+export type AssignmentMode = 'employee' | 'department' | 'branch' | 'warehouse' | 'temporary'
 
 export interface AssetAssignment {
   mode: AssignmentMode
   employeeId?: string
   departmentId?: string
   branchId?: string
+  workMode?: 'office' | 'remote' | null   // carried through from Firestore by the raw-cast repo
+  /** Forward-compatible temporary-assignment attribute (AMS schema §5 assignments.isTemporary). */
+  isTemporary?: boolean
+  /**
+   * ISO string; required when `mode === 'temporary'` (and whenever `isTemporary === true`).
+   */
+  expiresAt?: string | null
+  /**
+   * Role tag for temporary holders (auditor / intern). When `mode === 'temporary'` the
+   * assignment references this KIND, never an employee — `employeeId` is left unset.
+   */
+  tempKind?: 'audit' | 'intern' | 'staff' | null
 }
 
 export interface AssetSpecs {
@@ -28,6 +54,8 @@ export interface Asset {
   categoryId: string
   brand: string | null
   model: string | null
+  /** Furniture free-text type (e.g. «Стол»); null for devices/network. */
+  type?: string | null
   invCode: string
   serial: string | null
   statusId: string
@@ -37,6 +65,17 @@ export interface Asset {
   /** ISO timestamp string. */
   updatedAt: string
   currentSpecs?: AssetSpecs | null
+  /**
+   * Live hardware-slot snapshot maintained by the parts module (install/uninstall flow);
+   * complements currentSpecs (which stays the create-form spec object).
+   */
+  upgradeCurrent?: UpgradeSlot[] | null
+  /** Condition at registration: 'new' captures purchase date + warranty; 'used' omits them. */
+  condition?: 'new' | 'used' | null
+  /** ISO date (YYYY-MM-DD); set when condition === 'new'. */
+  purchaseDate?: string | null
+  /** ISO date (YYYY-MM-DD); set when condition === 'new'. */
+  warrantyEndsAt?: string | null
 }
 
 /** Reference rows resolved alongside assets so the table can render names. */
@@ -46,6 +85,12 @@ export interface CategoryRow extends RefRow {
   lucideIcon: string
   /** When true, the asset-create form renders the OEM License Key section. */
   hasOemLicense?: boolean
+  /** When true, the form renders the Характеристики (specs) panel. */
+  hasSpecs?: boolean
+  /** When true, a Серийный номер is required (devices/network); false for furniture. */
+  requiresSerial?: boolean
+  /** When true, the form renders the single «Тип» field instead of Brand+Model (furniture). */
+  hasTypeField?: boolean
 }
 export interface StatusRow extends RefRow { color: string }
 
@@ -54,6 +99,8 @@ export interface EmployeeRow {
   firstName: string | null
   lastName: string | null
   email: string | null
+  departmentId?: string | null
+  position?: string | null
 }
 
 export type AssetGroupFilter = 'all' | 'devices' | 'network' | 'furniture'

@@ -74,8 +74,10 @@ describe('AppShell', () => {
     // Find the "Ремонты" button in the sidebar — 'repairs' is still a PHASE_STUB_ROUTE
     const repairsBtn = screen.getByRole('button', { name: /Ремонты/i })
     fireEvent.click(repairsBtn)
-    // StubPage for repairs renders the "Раздел в разработке" empty state title
-    expect(screen.getByText('Раздел в разработке')).toBeInTheDocument()
+    // StubPage for repairs renders its route-specific description (unique to the page body)
+    expect(
+      screen.getByText('Учёт ремонтов и обслуживания: заявки, статусы и история по активам.'),
+    ).toBeInTheDocument()
   })
 
   it('Cmd+K opens the SearchPalette', () => {

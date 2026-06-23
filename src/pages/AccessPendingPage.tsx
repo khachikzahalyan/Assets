@@ -10,7 +10,7 @@ export function AccessPendingPage() {
   return (
     <div className="min-h-screen bg-[#0D1117] flex items-center justify-center px-4">
       <div
-        className="w-full max-w-sm bg-[#1B1F24] border border-[#2A2F36] rounded-2xl overflow-hidden text-center"
+        className="w-full max-w-sm bg-surface border border-border rounded-2xl overflow-hidden text-center"
         style={{ boxShadow: '0 1px 2px rgba(0,0,0,0.4),0 8px 24px rgba(0,0,0,0.4)' }}
       >
         <div className="px-8 py-8 space-y-5">
@@ -23,18 +23,18 @@ export function AccessPendingPage() {
 
           {/* Copy */}
           <div className="space-y-2">
-            <h1 className="text-[17px] font-bold text-[#F8FAFC] tracking-tight">
+            <h1 className="text-[17px] font-bold text-text-primary tracking-tight">
               {t('title')}
             </h1>
-            <p className="text-[13px] text-[#64748B] leading-relaxed">
+            <p className="text-[13px] text-text-subtle leading-relaxed">
               {t('desc')}
             </p>
           </div>
 
           {/* Signed-in as */}
-          <div className="px-3.5 py-2.5 bg-[#111315] border border-[#2A2F36] rounded-lg text-left">
+          <div className="px-3.5 py-2.5 bg-bg border border-border rounded-lg text-left">
             <p className="text-[11px] text-[#475569] mb-0.5">{t('signedInAs')}</p>
-            <p className="text-[13px] font-medium text-[#F8FAFC] truncate">{user.email}</p>
+            <p className="text-[13px] font-medium text-text-primary truncate">{user.email}</p>
           </div>
 
           {/* Contact note */}

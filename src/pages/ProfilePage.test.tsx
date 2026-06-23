@@ -31,14 +31,14 @@ describe('ProfilePage', () => {
     expect(await screen.findByText(/профиль ещё не заполнен/i)).toBeInTheDocument()
   })
   it('shows the profile when a doc exists', async () => {
-    render_([{ id: 'uid_1', firstName: 'Иван', lastName: 'Петров', email: 'i@x.com', position: null,
+    render_([{ id: 'uid_1', firstName: 'Иван', lastName: 'Петров', email: 'i@x.com', phone: null, position: null,
       branchId: null, departmentId: null, status: 'active', terminatedAt: null,
       createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z' }])
     expect(await screen.findByText('Иван Петров')).toBeInTheDocument()
   })
   it('resolves branch and department names via loadRefData', async () => {
     render_(
-      [{ id: 'uid_1', firstName: 'Иван', lastName: 'Петров', email: 'i@x.com', position: null,
+      [{ id: 'uid_1', firstName: 'Иван', lastName: 'Петров', email: 'i@x.com', phone: null, position: null,
         branchId: 'br_main', departmentId: 'dp_it', status: 'active', terminatedAt: null,
         createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z' }],
       withRefData,

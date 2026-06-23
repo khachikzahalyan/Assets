@@ -16,18 +16,18 @@ export function AuditDiff({ log }: AuditDiffProps) {
   const rows = computeDiff(log.before, log.after)
 
   return (
-    <div className="bg-[#111315] border border-[#2A2F36] rounded-lg p-3 space-y-2">
+    <div className="bg-bg border border-border rounded-lg p-3 space-y-2">
       {log.comment && (
-        <p className="text-[12px] text-[#94A3B8]">
-          <span className="text-[#64748B]">{t('diff.comment')}: </span>{log.comment}
+        <p className="text-[12px] text-text-tertiary">
+          <span className="text-text-subtle">{t('diff.comment')}: </span>{log.comment}
         </p>
       )}
       {rows.length === 0 ? (
-        <p className="text-[12px] text-[#64748B]">{t('diff.noChanges')}</p>
+        <p className="text-[12px] text-text-subtle">{t('diff.noChanges')}</p>
       ) : (
         <table className="w-full text-[12px]">
           <thead>
-            <tr className="text-[#64748B] text-left">
+            <tr className="text-text-subtle text-left">
               <th className="font-medium pb-1 pr-3">{t('diff.field')}</th>
               <th className="font-medium pb-1 pr-3">{t('diff.before')}</th>
               <th className="font-medium pb-1">{t('diff.after')}</th>
@@ -35,8 +35,8 @@ export function AuditDiff({ log }: AuditDiffProps) {
           </thead>
           <tbody>
             {rows.map(r => (
-              <tr key={r.key} className="align-top border-t border-[#2A2F36]">
-                <td className="py-1 pr-3 font-mono text-[#94A3B8] whitespace-nowrap">{r.key}</td>
+              <tr key={r.key} className="align-top border-t border-border">
+                <td className="py-1 pr-3 font-mono text-text-tertiary whitespace-nowrap">{r.key}</td>
                 <td className="py-1 pr-3 font-mono text-[#F87171] break-all">{r.before ?? '—'}</td>
                 <td className="py-1 font-mono text-[#34D399] break-all">{r.after ?? '—'}</td>
               </tr>

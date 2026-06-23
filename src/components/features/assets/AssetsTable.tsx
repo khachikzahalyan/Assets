@@ -144,7 +144,7 @@ export function AssetsTable({
             tabIndex={0}
             onClick={() => onRowClick?.(a)}
             onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onRowClick?.(a) } }}
-            className="flex flex-row items-center gap-3 bg-[#1B1F24] px-[14px] py-[11px] border-b border-white/[0.06] cursor-pointer transition-colors duration-[140ms] min-h-[64px] box-border last:border-b-0 active:bg-[#22272E] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[rgba(249,115,22,0.40)]"
+            className="flex flex-row items-center gap-3 bg-surface px-[14px] py-[11px] border-b border-white/[0.06] cursor-pointer transition-colors duration-[140ms] min-h-[64px] box-border last:border-b-0 active:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[rgba(249,115,22,0.40)]"
           >
             {/* Icon tile — always muted on mobile (prototype §5 spec) */}
             <span
@@ -175,7 +175,7 @@ export function AssetsTable({
                 >
                   {assigneeName}
                 </span>
-                <span className="font-['JetBrains_Mono',ui-monospace,monospace] text-[10px] text-[#FB923C] bg-transparent border border-[rgba(249,115,22,0.3)] rounded-[4px] px-[6px] h-[18px] leading-[16px] tracking-[0.02em] shrink-0 whitespace-nowrap inline-flex items-center">
+                <span className="font-['JetBrains_Mono',ui-monospace,monospace] text-[10px] text-accent-light bg-transparent border border-[rgba(249,115,22,0.3)] rounded-[4px] px-[6px] h-[18px] leading-[16px] tracking-[0.02em] shrink-0 whitespace-nowrap inline-flex items-center">
                   {a.invCode}
                 </span>
               </div>
@@ -211,24 +211,24 @@ export function AssetsTable({
           {/* Asset col header */}
           <div
             role="columnheader"
-            className="flex items-center gap-2 text-[12px] uppercase tracking-[0.09em] font-semibold text-[#94A3B8]"
+            className="flex items-center gap-2 text-[12px] uppercase tracking-[0.09em] font-semibold text-text-tertiary"
             style={{ paddingLeft: 20 }}
           >
             {t('cols.asset')}
           </div>
-          <div role="columnheader" className="px-3 text-[12px] uppercase tracking-[0.09em] font-semibold text-[#94A3B8]">
+          <div role="columnheader" className="px-3 text-[12px] uppercase tracking-[0.09em] font-semibold text-text-tertiary">
             {t('cols.branch')}
           </div>
-          <div role="columnheader" className="px-3 text-[12px] uppercase tracking-[0.09em] font-semibold text-[#94A3B8]">
+          <div role="columnheader" className="px-3 text-[12px] uppercase tracking-[0.09em] font-semibold text-text-tertiary">
             {t('cols.code')}
           </div>
-          <div role="columnheader" className="px-3 text-[12px] uppercase tracking-[0.09em] font-semibold text-[#94A3B8]">
+          <div role="columnheader" className="px-3 text-[12px] uppercase tracking-[0.09em] font-semibold text-text-tertiary">
             {t('cols.assignee')}
           </div>
-          <div role="columnheader" className="px-3 text-[12px] uppercase tracking-[0.09em] font-semibold text-[#94A3B8]">
+          <div role="columnheader" className="px-3 text-[12px] uppercase tracking-[0.09em] font-semibold text-text-tertiary">
             {t('cols.status')}
           </div>
-          <div role="columnheader" className="px-3 text-[12px] uppercase tracking-[0.09em] font-semibold text-[#94A3B8]">
+          <div role="columnheader" className="px-3 text-[12px] uppercase tracking-[0.09em] font-semibold text-text-tertiary">
             {t('cols.updated')}
           </div>
           <div role="columnheader" className="px-3" aria-label="" />

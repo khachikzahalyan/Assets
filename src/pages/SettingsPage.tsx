@@ -17,7 +17,7 @@ export function SettingsPage({ repository }: SettingsPageProps) {
   )
   const repo = repository ?? defaultRepo
   return (
-    <div className="anim-content-enter space-y-5">
+    <div className="space-y-5">
       <PageHeader icon="settings" title={t('title')} />
       <AuthSettingsPanel repository={repo} />
     </div>

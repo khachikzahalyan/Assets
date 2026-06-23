@@ -36,7 +36,7 @@ export function DashboardPage({ repo }: DashboardPageProps) {
 
   if (loading) {
     return (
-      <div className="anim-content-enter space-y-5">
+      <div className="space-y-5">
         <PageHeader icon="layout-dashboard" title={t('title')} />
         <LoadingState rows={6} />
       </div>
@@ -61,7 +61,7 @@ export function DashboardPage({ repo }: DashboardPageProps) {
   }))
 
   return (
-    <div className="anim-content-enter space-y-5">
+    <div className="space-y-5">
       <PageHeader icon="layout-dashboard" title={t('title')} />
 
       {error && (

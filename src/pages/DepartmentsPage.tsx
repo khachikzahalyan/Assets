@@ -49,7 +49,7 @@ export function DepartmentsPage({ repository }: DepartmentsPageProps) {
   const pageRows = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   const columns: CatalogColumn<Department>[] = [
-    { key: 'name', header: t('col.name'), render: d => <span className="text-[#F8FAFC]">{d.name}</span> },
+    { key: 'name', header: t('col.name'), render: d => <span className="text-text-primary">{d.name}</span> },
   ]
 
   async function handleSubmit(v: DepartmentFormValues) {
@@ -94,8 +94,8 @@ export function DepartmentsPage({ repository }: DepartmentsPageProps) {
           onDelete={askDelete}
         />
         {total > PAGE_SIZE && (
-          <div className="flex items-center justify-between pt-4 border-t border-[#2A2F36] mt-2">
-            <span className="text-[12px] text-[#64748B]">{t('pagination.range', { from, to, total })}</span>
+          <div className="flex items-center justify-between pt-4 border-t border-border mt-2">
+            <span className="text-[12px] text-text-subtle">{t('pagination.range', { from, to, total })}</span>
             <div className="flex gap-2">
               <Btn variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}><Icon name="chevron-right" size={13} className="rotate-180" /></Btn>
               <Btn variant="secondary" size="sm" disabled={to >= total} onClick={() => setPage(p => p + 1)}><Icon name="chevron-right" size={13} /></Btn>
@@ -107,7 +107,7 @@ export function DepartmentsPage({ repository }: DepartmentsPageProps) {
   }
 
   return (
-    <div className="anim-content-enter space-y-5">
+    <div className="space-y-5">
       <PageHeader
         icon="network" title={t('title')} {...(!loading ? { count: total } : {})}
         {...(canMutate ? { actions: (

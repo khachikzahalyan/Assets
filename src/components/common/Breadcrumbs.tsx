@@ -11,8 +11,8 @@ export function Breadcrumbs({ items }: BreadcrumbsProps) {
         const last = i === items.length - 1
         return (
           <span key={i} className="flex items-center gap-1.5 min-w-0">
-            {i > 0 && <Icon name="chevron-right" size={11} className="text-[#2A2F36]" />}
-            <span className={`truncate ${last ? 'font-semibold text-[#F8FAFC]' : 'text-[#64748B]'}`}>{it}</span>
+            {i > 0 && <Icon name="chevron-right" size={11} className="text-border" />}
+            <span className={`truncate ${last ? 'font-semibold text-text-primary' : 'text-text-subtle'}`}>{it}</span>
           </span>
         )
       })}

@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { cn } from '@/lib/utils'
 import { SectionCard } from '@/components/ui/section-card'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Icon } from '@/components/ui/icon'
+import { LIST_ROW_SEPARATOR } from '@/components/ui/styles'
 
 export interface ActivityRowVM {
   id: string
@@ -54,16 +56,16 @@ export function RecentActivityList({
             const content = (
               <div className="flex items-start gap-3 py-2.5 group">
                 <span
-                  className="w-7 h-7 rounded-md bg-[#22272E] text-[#94A3B8] inline-flex items-center justify-center flex-shrink-0 mt-0.5"
+                  className="w-7 h-7 rounded-md bg-surface-2 text-text-tertiary inline-flex items-center justify-center flex-shrink-0 mt-0.5"
                   aria-hidden="true"
                 >
                   <Icon name={row.icon} size={13} />
                 </span>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[12.5px] text-[#F8FAFC] leading-snug truncate">
+                  <div className="text-[12.5px] text-text-primary leading-snug truncate">
                     {row.label}
                   </div>
-                  <div className="text-[11px] text-[#64748B] mt-0.5">
+                  <div className="text-[11px] text-text-subtle mt-0.5">
                     {formatDdMonYyyy(row.at)}
                   </div>
                 </div>
@@ -75,7 +77,7 @@ export function RecentActivityList({
                 <Link
                   key={row.id}
                   to={row.to}
-                  className="block border-b border-[#2A2F36] last:border-b-0 hover:bg-[#22272E] rounded-md -mx-1 px-1 transition-colors duration-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#F97316]"
+                  className={cn(LIST_ROW_SEPARATOR, 'block hover:bg-surface-2 rounded-md -mx-1 px-1 transition-colors duration-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent')}
                 >
                   {content}
                 </Link>
@@ -85,7 +87,7 @@ export function RecentActivityList({
             return (
               <div
                 key={row.id}
-                className="border-b border-[#2A2F36] last:border-b-0"
+                className={LIST_ROW_SEPARATOR}
               >
                 {content}
               </div>
@@ -96,7 +98,7 @@ export function RecentActivityList({
             <div className="pt-3 text-right">
               <Link
                 to={moreTo}
-                className="text-[11.5px] text-[#F97316] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#F97316]"
+                className="text-[11.5px] text-accent hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent"
               >
                 {t('viewAll')}
               </Link>

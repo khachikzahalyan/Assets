@@ -8,6 +8,7 @@ export interface CreateEmployeeInput {
   firstName: string
   lastName: string
   email: string
+  phone?: string | null
   position?: string | null
   branchId?: string | null
   departmentId?: string | null
@@ -17,6 +18,7 @@ export interface UpdateEmployeeInput {
   firstName?: string
   lastName?: string
   email?: string
+  phone?: string | null
   position?: string | null
   branchId?: string | null
   departmentId?: string | null

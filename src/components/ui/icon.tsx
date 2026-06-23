@@ -111,6 +111,11 @@ import {
   Info,
   Square,
   ListChecks,
+  OctagonX,
+  PcCase,
+  CircleX,
+  ArrowLeftRight,
+  ClipboardList,
   type LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -147,6 +152,7 @@ const REGISTRY: Record<string, LucideIcon> = {
   monitor: Monitor,
   user: User,
   'loader-circle': Loader2,
+  'loader-2': Loader2,
   clock: Clock,
   'mail-check': MailCheck,
   pencil: Pencil,
@@ -227,6 +233,12 @@ const REGISTRY: Record<string, LucideIcon> = {
   square: Square,
   'list-checks': ListChecks,
   bell: Bell,
+  'octagon-x': OctagonX,
+  'x-octagon': OctagonX,
+  'pc-case': PcCase,
+  'x-circle': CircleX,
+  'arrow-left-right': ArrowLeftRight,
+  'clipboard-list': ClipboardList,
 }
 
 export interface IconProps {

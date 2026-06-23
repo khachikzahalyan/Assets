@@ -54,8 +54,8 @@ export function AuditPage({ repository }: AuditPageProps) {
     return (
       <>
         {ref && <AuditTable rows={rows} ref={ref} />}
-        <div className="flex items-center justify-between pt-4 border-t border-[#2A2F36] mt-2">
-          <span className="text-[12px] text-[#64748B]">{t('pagination.page', { page })}</span>
+        <div className="flex items-center justify-between pt-4 border-t border-border mt-2">
+          <span className="text-[12px] text-text-subtle">{t('pagination.page', { page })}</span>
           <div className="flex items-center gap-2">
             <Btn variant="secondary" size="sm" disabled={!hasPrev} onClick={prev} aria-label={t('pagination.prev')}>
               <Icon name="chevron-right" size={13} className="rotate-180" />
@@ -70,7 +70,7 @@ export function AuditPage({ repository }: AuditPageProps) {
   }
 
   return (
-    <div className="anim-content-enter space-y-5">
+    <div className="space-y-5">
       <PageHeader icon="history" title={t('items.audit', { ns: 'nav' })} />
       <SectionCard noHeader>
         <div className="space-y-4">

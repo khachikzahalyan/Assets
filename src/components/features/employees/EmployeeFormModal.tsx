@@ -58,7 +58,7 @@ function blankDraft(): Draft {
 // ── Sub-components ────────────────────────────────────────────────────────────
 
 const LABEL_CLS =
-  'block mb-1 text-[11px] uppercase tracking-[0.06em] font-semibold text-[#64748B]'
+  'block mb-1 text-[11px] uppercase tracking-[0.06em] font-semibold text-text-subtle'
 const ERROR_CLS = 'mt-1 text-[11px] text-[#FDA4AF]'
 
 interface FieldWrapProps {
@@ -94,7 +94,7 @@ interface ReadOnlyValueProps {
 function ReadOnlyValue({ children, mono, icon }: ReadOnlyValueProps) {
   return (
     <div
-      className={`w-full h-9 px-3 flex items-center gap-2 text-[16px] rounded-lg border border-[#2A2F36] bg-[#22272E] text-[#F8FAFC] ${
+      className={`w-full h-9 px-3 flex items-center gap-2 text-[16px] rounded-lg border border-border bg-surface-2 text-text-primary ${
         mono ? 'font-mono tracking-tight' : ''
       }`}
     >
@@ -209,12 +209,12 @@ export function EmployeeFormModal({
   return (
     <EmployeeModalShell open={open} onClose={onClose} width="max-w-2xl">
       {/* Header — prototype lines 1524-1537 */}
-      <div className="px-6 pt-5 pb-4 border-b border-[#2A2F36] flex items-center justify-between">
+      <div className="px-6 pt-5 pb-4 border-b border-border flex items-center justify-between">
         <div>
-          <div className="text-[17px] font-bold text-[#F8FAFC] tracking-tight">
+          <div className="text-[17px] font-bold text-text-primary tracking-tight">
             {isEdit ? t('form.editTitle') : t('form.createTitle')}
           </div>
-          <div className="text-[14px] text-[#64748B] mt-0.5">
+          <div className="text-[14px] text-text-subtle mt-0.5">
             {isEdit ? t('form.editSubtitle') : t('form.createSubtitle')}
           </div>
         </div>
@@ -222,7 +222,7 @@ export function EmployeeFormModal({
           type="button"
           onClick={onClose}
           aria-label={t('form.cancel')}
-          className="w-8 h-8 rounded-md text-[#64748B] hover:text-[#CBD5E1] hover:bg-[#22272E] flex items-center justify-center transition-colors"
+          className="w-8 h-8 rounded-md text-text-subtle hover:text-text-secondary hover:bg-surface-2 flex items-center justify-center transition-colors"
         >
           <Icon name="x" size={16} />
         </button>
@@ -231,7 +231,7 @@ export function EmployeeFormModal({
       {/* Body — prototype lines 1539-1583 */}
       <div className="px-6 py-5 space-y-4">
         {/* Row 1: Имя / Фамилия */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
           <FieldWrap
             label={t('form.firstName')}
             required={!isEdit}
@@ -267,7 +267,7 @@ export function EmployeeFormModal({
         </div>
 
         {/* Row 2: Должность / Отдел */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
           <FieldWrap
             label={t('form.position')}
             required
@@ -296,7 +296,7 @@ export function EmployeeFormModal({
         </div>
 
         {/* Row 3: Телефон / Gmail */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
           <FieldWrap
             label={t('form.phone')}
             required
@@ -333,11 +333,11 @@ export function EmployeeFormModal({
       </div>
 
       {/* Footer — prototype lines 1585-1591 */}
-      <div className="px-6 py-3.5 bg-[#111315]/60 border-t border-[#2A2F36] flex items-center justify-end gap-2">
-        <Btn variant="ghost" onClick={onClose}>
+      <div className="px-6 py-3.5 bg-bg/60 border-t border-border flex items-center justify-end gap-2 max-md:flex-col-reverse max-md:gap-2">
+        <Btn variant="ghost" onClick={onClose} className="max-md:w-full max-md:justify-center">
           {t('form.cancel')}
         </Btn>
-        <Btn variant="primary" onClick={handleSubmit} disabled={!canSave}>
+        <Btn variant="primary" onClick={handleSubmit} disabled={!canSave} className="max-md:w-full max-md:justify-center">
           <Icon name="check" size={14} />
           {isEdit ? t('form.save') : t('form.create')}
         </Btn>

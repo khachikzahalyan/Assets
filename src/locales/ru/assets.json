@@ -1,7 +1,5 @@
-{
-  "actions": {
-    "edit": "Редактировать"
-  },
+﻿{
+  "title": "Активы",
   "assign": {
     "action": "Назначить",
     "actScan": "Скан акта приёма-передачи",
@@ -30,7 +28,18 @@
   },
   "assignee": {
     "none": "—",
-    "warehouse": "На складе"
+    "shelf": "Склад",
+    "temp": "Временно",
+    "waiting": "Ожидает выдачи",
+    "warehouse": "На складе",
+    "kindAudit": "Аудитор",
+    "kindIntern": "Стажёр"
+  },
+  "actions": {
+    "edit": "Редактировать"
+  },
+  "badges": {
+    "remote": "Удалённый"
   },
   "cols": {
     "asset": "Актив",
@@ -40,28 +49,56 @@
     "status": "Статус",
     "updated": "Обновлено"
   },
-  "create": "Создать актив",
+  "create": "Создать",
   "empty": {
     "desc": "Измените фильтры или создайте первый актив.",
-    "title": "Активы не найдены"
+    "title": "Активы не найдены",
+    "titleFiltered": "Активов не найдено",
+    "titleEmpty": "Пока нет активов",
+    "descFiltered": "Попробуйте сменить фильтр или поисковый запрос.",
+    "descEmpty": "Создайте первый актив, чтобы начать учёт.",
+    "reset": "Сбросить фильтры"
+  },
+  "export": {
+    "cols": {
+      "assignee": "Назначен",
+      "brand": "Бренд",
+      "branch": "Филиал",
+      "category": "Категория",
+      "invCode": "Инв. код",
+      "model": "Модель",
+      "serial": "Серийный №",
+      "status": "Статус",
+      "updatedAt": "Обновлено"
+    },
+    "filename": "АМС-активы",
+    "sheetName": "Активы",
+    "xlsx": "Экспорт"
   },
   "filters": {
-    "allBranches": "Все филиалы",
+    "allBranches": "Все",
     "allGroups": "Все группы",
-    "allStatuses": "Все статусы",
+    "allStatuses": "Все",
     "branch": "Филиал",
     "group": "Группа",
     "reset": "Сбросить",
     "sort": "Сортировка",
-    "status": "Статус"
+    "status": "Статус",
+    "temp": "Временно выданные",
+    "tempShort": "Временно"
   },
   "form": {
     "addUpgrade": "Добавить апгрейд",
     "brand": "Бренд",
+    "backToList": "Назад к списку активов",
     "cancel": "Отмена",
     "category": "Категория",
     "change": "Изменить",
     "createTitle": "Регистрация актива",
+    "createTitleGroup": "Регистрация партии",
+    "createAsset": "Создать актив",
+    "subtitle": "Новый актив · АМС",
+    "close": "Закрыть",
     "editTitle": "Актив {{code}}",
     "history": "История",
     "invCode": "Инвентарный код",
@@ -75,10 +112,39 @@
     "specGpu": "Видеокарта",
     "specRam": "Оперативная память",
     "specSsd": "Накопитель",
+    "specSsdPlural": "Накопители",
     "specs": "Характеристики",
     "type": "Тип",
     "upgrades": "Апгрейды",
     "writeOff": "Списать"
+  },
+  "condition": {
+    "new": "Новый",
+    "purchaseDate": "Дата покупки",
+    "title": "Состояние и гарантия",
+    "used": "Б/У",
+    "warrantyBeforePurchase": "Дата гарантии не может быть раньше даты покупки",
+    "warrantyEndsAt": "Гарантия до"
+  },
+  "groupMode": {
+    "batchHint": "Партия активов — выдача назначается после регистрации",
+    "createN": "Создать {{count}} {{noun}}",
+    "current": "Текущая запись",
+    "incomplete": "Подтвердите все {{total}} {{noun}} в партии ({{done}} из {{total}})",
+    "progress": "Прогресс",
+    "quantity": "Количество",
+    "single": "Один",
+    "group": "Группа",
+    "title": "Партия активов"
+  },
+  "osLicense": {
+    "digital": "Цифровая",
+    "digitalDesc": "Привязка к оборудованию",
+    "manual": "Ручной ввод",
+    "manualDesc": "Ввод ключа продукта",
+    "productKey": "Ключ продукта",
+    "productKeyPlaceholder": "Введите ключ или выберите из списанных…",
+    "title": "Лицензия ОС"
   },
   "oem": {
     "keyLabel": "Лицензионный ключ OEM",
@@ -89,9 +155,11 @@
     "sectionTitle": "OEM-лицензия"
   },
   "groups": {
+    "all": "Все",
     "devices": "Устройства",
     "furniture": "Мебель",
-    "network": "Сетевые"
+    "network": "Сетевые устройства",
+    "networkShort": "Сетевые уст."
   },
   "history": {
     "action": {
@@ -108,14 +176,22 @@
     }
   },
   "pagination": {
-    "range": "{{from}}–{{to}} из {{total}}"
+    "next": "Следующая страница",
+    "prev": "Предыдущая страница",
+    "range": "{{from}}–{{to}} из {{total}}",
+    "shown": "Показано {{from}}–{{to}} из {{total}}",
+    "shownBold": "Показано <0>{{from}}–{{to}}</0> из <1>{{total}}</1>"
   },
   "placeholders": {
-    "brand": "Например: Apple, Dell",
+    "brand": "HPE",
     "category": "Выберите категорию",
-    "invCode": "450/100",
-    "model": "Например: XPS 15, MacBook Pro",
-    "serial": "SN-XXXX",
+    "categorySearch": "Поиск категории…",
+    "noResults": "Ничего не найдено",
+    "cpu": "Например: Intel Core i7-1265U",
+    "invCode": "460/00007",
+    "invCodeFurniture": "470/00012",
+    "model": "ProLiant DL380 Gen11",
+    "serial": "SN-…",
     "spec": "Не указано",
     "type": "Например: Стол, Кресло"
   },
@@ -123,9 +199,13 @@
     "branch": "Филиал",
     "department": "Отдел",
     "employee": "Сотрудник",
+    "office": "Основной",
+    "onShelf": "Актив на складе",
     "pickRecipient": "Выберите получателя",
-    "title": "Куда назначить",
-    "warehouse": "Склад"
+    "remote": "Удалённый",
+    "title": "Быстрая выдача",
+    "warehouse": "Склад",
+    "workMode": "Режим работы"
   },
   "relTime": {
     "dayAgo": "{{n}} дн назад",
@@ -133,13 +213,33 @@
     "minAgo": "{{n}} мин назад",
     "now": "только что"
   },
-  "search": "Поиск по названию, инв. коду, серийному…",
+  "search": "Поиск по названию, коду, серийному…",
+  "toolbar": {
+    "import": "Импорт",
+    "importSoon": "Скоро",
+    "create": "Создать"
+  },
   "sort": {
-    "inv_asc": "Инв. код",
-    "name_asc": "Название А–Я",
-    "name_desc": "Название Я–А",
+    "hint": {
+      "alpha": "По алфавиту",
+      "inv": "По инвентарному коду",
+      "updated": "По дате обновления"
+    },
+    "inv_asc": "Инв. код ↑",
+    "name_asc": "Название А → Я",
+    "name_desc": "Название Я → А",
+    "short": {
+      "inv_asc": "Инв. код",
+      "name_asc": "А → Я",
+      "name_desc": "Я → А",
+      "updated_asc": "Старые",
+      "updated_desc": "Новые"
+    },
     "updated_asc": "Сначала старые",
-    "updated_desc": "Сначала новые"
+    "updated_desc": "Сначала новые",
+    "view": "Вид",
+    "viewSubtitle": "Порядок отображения активов",
+    "viewTitle": "Сортировка"
   },
   "statusLine": {
     "derived": "Статус: {{name}}"
@@ -150,8 +250,138 @@
     "component": "Компонент",
     "notTracked": "не отслеживается в характеристиках"
   },
+  "detail": {
+    "added": "Добавлено",
+    "hero": {
+      "writeOff": "Списать"
+    },
+    "tabs": {
+      "specs": "Тех. характеристики",
+      "history": "История",
+      "docs": "Документы"
+    },
+    "specs": {
+      "title": "Тех. характеристики",
+      "copy": "Скопировать",
+      "copied": "Скопировано",
+      "empty": "Нет характеристик",
+      "cooling": "Охлаждение",
+      "psu": "Блок питания",
+      "psuPlural": "Блоки питания",
+      "battery": "Аккумулятор",
+      "factoryCooling": "Заводское",
+      "factoryPsu": "Заводской",
+      "factoryBattery": "Заводская"
+    },
+    "parts": {
+      "note": "Комплектующие управляются в разделе «Запчасти»"
+    },
+    "license": {
+      "none": "Лицензия не привязана",
+      "builtIn": "Встроен в BIOS",
+      "oemKey": "OEM",
+      "oem": "OEM",
+      "retail": "Retail",
+      "title": "Лицензия",
+      "add": "Добавить лицензию",
+      "attachTitle": "Привязать лицензию",
+      "attach": "Привязать",
+      "attachFailed": "Не удалось привязать лицензию. Попробуйте ещё раз.",
+      "cancel": "Отмена",
+      "copy": "Копировать",
+      "copied": "Скопировано",
+      "copyFailed": "Не удалось получить ключ",
+      "keyAbsent": "Ключ не задан"
+    },
+    "location": {
+      "title": "Местонахождение",
+      "branch": "Филиал",
+      "dept": "Отдел"
+    },
+    "history": {
+      "title": "История",
+      "created": "Создан",
+      "added": "добавил",
+      "noRecords": "Записей нет",
+      "noOther": "Других записей нет"
+    },
+    "docs": {
+      "actName": "Акт {{n}}",
+      "empty": "Актов приёма ещё нет",
+      "notice": "Загрузка появится после настройки хранилища",
+      "open": "Открыть",
+      "soon": "Скоро",
+      "upload": "Загрузить акт"
+    },
+    "transfer": {
+      "title": "Кому передать",
+      "modeWarehouse": "Склад",
+      "modeEmployee": "Сотрудник",
+      "modeBranch": "Филиал",
+      "modeDepartment": "Отдел",
+      "modeTemporary": "Временно",
+      "bannerWarehouseLabel": "Вернуть на склад",
+      "bannerWarehouseHint": "Актив будет помечен как готов к выдаче",
+      "bannerEmployeeLabel": "Назначить сотруднику",
+      "bannerEmployeeHint": "Выберите сотрудника из списка ниже",
+      "bannerBranchLabel": "Передать в филиал",
+      "bannerBranchHint": "Актив закрепляется за выбранным филиалом",
+      "bannerDepartmentLabel": "Передать в отдел",
+      "bannerDepartmentHint": "Актив закрепляется за выбранным отделом",
+      "bannerTemporaryLabel": "Временная передача",
+      "bannerTemporaryHint": "Укажите роль и дату возврата",
+      "warehouseHint": "Актив будет помечен как «На полке, готов к выдаче»",
+      "employeeLabel": "Сотрудник",
+      "employeePlaceholder": "— выберите сотрудника —",
+      "branchLabel": "Филиал",
+      "branchPlaceholder": "— выберите филиал —",
+      "departmentLabel": "Отдел",
+      "departmentPlaceholder": "— выберите отдел —",
+      "kindLabel": "Роль",
+      "kindPlaceholder": "— выберите —",
+      "kindAudit": "Аудитор",
+      "kindIntern": "Стажёр",
+      "returnDateLabel": "Вернуть до",
+      "returnDatePlaceholder": "— выберите дату —",
+      "workModeLabel": "Режим работы",
+      "workModeOffice": "Основной",
+      "workModeRemote": "Удалённый",
+      "commit": "Передать",
+      "cancel": "Отмена"
+    },
+    "repair": {
+      "title": "Ремонт",
+      "sendToRepair": "Отправить в ремонт",
+      "returnFromRepair": "Вернуть из ремонта",
+      "inRepair": "Актив сейчас в ремонте",
+      "reasonLabel": "Причина ремонта",
+      "reasonPlaceholder": "Например: не включается, требуется замена клавиатуры…",
+      "severityLabel": "Срочность",
+      "severityLow": "Низкая",
+      "severityMedium": "Средняя",
+      "severityHigh": "Высокая",
+      "confirm": "Подтвердить",
+      "cancel": "Отмена"
+    },
+    "writeOff": {
+      "title": "Списать актив?",
+      "reasonLabel": "Причина списания",
+      "reasonPlaceholder": "Например: вышел из строя после падения, ремонт нерентабелен",
+      "confirm": "Списать",
+      "cancel": "Отмена"
+    },
+    "assignment": {
+      "active": "Активен",
+      "title": "Назначение",
+      "transfer": "Передать",
+      "warehouse": "Склад"
+    }
+  },
   "validation": {
     "brandModelRequired": "Заполните «Бренд» и «Модель»",
+    "brandRequired": "Заполните «Бренд»",
+    "modelRequired": "Заполните «Модель»",
+    "warrantyBeforePurchase": "Гарантия не может быть раньше даты покупки",
     "invRequired": "Заполните «Инвентарный код»",
     "invTaken": "Инвентарный код уже используется",
     "oemKeyNotStored": "Актив создан, но ключ не сохранён — задайте его повторно через карточку лицензии.",

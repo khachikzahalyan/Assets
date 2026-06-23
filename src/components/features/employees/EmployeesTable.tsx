@@ -84,7 +84,7 @@ export function EmployeesTable({
               tabIndex={0}
               onClick={() => onRowClick(emp)}
               onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onRowClick(emp) } }}
-              className="flex flex-row items-start gap-3 bg-[#1B1F24] px-[14px] py-[10px] border-b border-white/[0.06] cursor-pointer transition-colors duration-[140ms] min-h-[68px] box-border last:border-b-0 active:bg-[#22272E] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[rgba(249,115,22,0.40)]"
+              className="flex flex-row items-start gap-3 bg-surface px-[14px] py-[10px] border-b border-white/[0.06] cursor-pointer transition-colors duration-[140ms] min-h-[68px] box-border last:border-b-0 active:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[rgba(249,115,22,0.40)]"
             >
               {/* Icon tile — generic muted user icon (matches prototype mobile card) */}
               <span className="w-8 h-8 min-w-[32px] rounded-[8px] bg-white/[0.04] border-[0.5px] border-white/[0.06] inline-flex items-center justify-center flex-shrink-0 text-white/60 mt-[1px]">
@@ -104,7 +104,7 @@ export function EmployeesTable({
                 </div>
 
                 {/* Row 2: position · department */}
-                <div className="text-[12.5px] text-[#94A3B8] truncate">
+                <div className="text-[12.5px] text-text-tertiary truncate">
                   {emp.position ?? ''}
                   {deptName ? ` · ${deptName}` : ''}
                 </div>
@@ -118,11 +118,11 @@ export function EmployeesTable({
                     >
                       <Icon name={isHeadOffice ? 'landmark' : 'building'} size={11} />
                     </span>
-                    <span className="text-[12px] text-[#64748B] truncate">
+                    <span className="text-[12px] text-text-subtle truncate">
                       {branchName || '—'}
                     </span>
                   </div>
-                  <span className="text-[12px] text-[#64748B] shrink-0">
+                  <span className="text-[12px] text-text-subtle shrink-0">
                     {assetCount} {t('table.assets')}
                   </span>
                 </div>
@@ -171,7 +171,7 @@ export function EmployeesTable({
           <div
             key={i}
             role="columnheader"
-            className="px-3 text-[12px] uppercase tracking-[0.09em] font-semibold text-[#94A3B8] truncate overflow-hidden min-w-0"
+            className="px-3 text-[12px] uppercase tracking-[0.09em] font-semibold text-text-tertiary truncate overflow-hidden min-w-0"
             style={{ paddingLeft: pl }}
           >
             {label}

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Btn, Field, Input, Select } from '@/components/ui'
+import { Btn, Field, Input, Select, DIALOG_BACKDROP } from '@/components/ui'
 import { maskLicenseKey } from '@/lib/audit/maskSecrets'
 import type {
   CreateWorkstationLicenseInput,
@@ -122,14 +122,14 @@ export function LicenseFormDialog({ open, kind, submitting, submitError, onSubmi
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+      className={DIALOG_BACKDROP}
       onClick={onCancel}
     >
       <div
-        className="w-[480px] max-h-[90vh] overflow-y-auto rounded-lg border border-[#2A2F36] bg-[#1B1F24] p-5"
+        className="w-[480px] max-md:w-full max-md:rounded-b-none max-md:rounded-t-[18px] max-h-[90vh] max-md:max-h-[85vh] overflow-y-auto rounded-lg border border-border bg-surface p-5 mx-4 max-md:mx-0"
         onClick={e => e.stopPropagation()}
       >
-        <h3 className="text-[15px] font-semibold text-[#F8FAFC] mb-4">{title}</h3>
+        <h3 className="text-[15px] font-semibold text-text-primary mb-4">{title}</h3>
 
         <div className="space-y-3">
           {submitError && (
@@ -185,9 +185,9 @@ export function LicenseFormDialog({ open, kind, submitting, submitError, onSubmi
                 id="lic-reusable"
                 checked={isReusable}
                 onChange={e => setIsReusable(e.target.checked)}
-                className="w-4 h-4 rounded border-[#2A2F36] accent-[#F97316]"
+                className="w-4 h-4 rounded border-border accent-accent"
               />
-              <span className="text-[13px] text-[#94A3B8]">{t('form.isReusable')}</span>
+              <span className="text-[13px] text-text-tertiary">{t('form.isReusable')}</span>
             </label>
           )}
 
@@ -214,7 +214,7 @@ export function LicenseFormDialog({ open, kind, submitting, submitError, onSubmi
               <Input id="lic-raw-key" value={rawKey} onChange={setRawKey} mono />
             </Field>
             {maskedPreview && (
-              <p className="mt-1 text-[11px] text-[#64748B] font-mono">
+              <p className="mt-1 text-[11px] text-text-subtle font-mono">
                 {t('form.keyMaskedPreview', { masked: maskedPreview })}
               </p>
             )}

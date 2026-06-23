@@ -100,7 +100,7 @@ export function AssignmentForm({ employees, branches, busy, onSubmit, onCancel }
       <div>
         <label
           htmlFor="assign-comment"
-          className="block mb-1 text-[11px] uppercase tracking-[0.06em] font-semibold text-[#64748B]"
+          className="block mb-1 text-[11px] uppercase tracking-[0.06em] font-semibold text-text-subtle"
         >
           {t('assign.comment')}
         </label>
@@ -116,7 +116,7 @@ export function AssignmentForm({ employees, branches, busy, onSubmit, onCancel }
       <div>
         <label
           htmlFor="assign-act-scan"
-          className="block mb-1 text-[11px] uppercase tracking-[0.06em] font-semibold text-[#64748B]"
+          className="block mb-1 text-[11px] uppercase tracking-[0.06em] font-semibold text-text-subtle"
         >
           {t('assign.actScan')}
         </label>
@@ -125,9 +125,9 @@ export function AssignmentForm({ employees, branches, busy, onSubmit, onCancel }
           type="file"
           accept="image/jpeg,image/png,application/pdf"
           onChange={onFile}
-          className="block w-full text-[12px] text-[#94A3B8] file:mr-3 file:rounded-md file:border-0 file:bg-[#27272A] file:px-3 file:py-1.5 file:text-[#F8FAFC]"
+          className="block w-full text-[12px] text-text-tertiary file:mr-3 file:rounded-md file:border-0 file:bg-[#27272A] file:px-3 file:py-1.5 file:text-text-primary max-md:file:py-3 max-md:py-2"
         />
-        <p className="mt-1 text-[11px] text-[#64748B]">{t('assign.actScanHint')}</p>
+        <p className="mt-1 text-[11px] text-text-subtle">{t('assign.actScanHint')}</p>
         {fileError && (
           <p role="alert" className="mt-1 text-[12px] text-[#FDA4AF]">{fileError}</p>
         )}

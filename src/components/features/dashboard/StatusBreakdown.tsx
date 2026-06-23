@@ -40,16 +40,16 @@ export function StatusBreakdown({ byStatus, statuses, total }: StatusBreakdownPr
           return (
             <div key={id} className="flex flex-col gap-1">
               <div className="flex items-center justify-between">
-                <span className="text-[12.5px] text-[#94A3B8]">
+                <span className="text-[12.5px] text-text-tertiary">
                   {status?.name ?? id}
                 </span>
-                <span className="text-[12.5px] font-semibold text-[#F8FAFC] tabular-nums">
+                <span className="text-[12.5px] font-semibold text-text-primary tabular-nums">
                   {count}
                 </span>
               </div>
               {/* Proportion bar — decorative; numeric count is the accessible value */}
               <div
-                className="w-full h-1 rounded-full bg-[#22272E] overflow-hidden"
+                className="w-full h-1 rounded-full bg-surface-2 overflow-hidden"
                 aria-hidden="true"
               >
                 <div

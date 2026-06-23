@@ -29,7 +29,16 @@ service firebase.storage {
     }
 
     function assignedToCaller(assetId) {
+      // Null-guard mirrors the firestore.rules /assets read pattern:
+      // if assignment is absent/null (warehouse, branch, repair) or employeeId is
+      // missing the chain would error — guard both before comparing to the caller.
       return request.auth != null
+        && firestore.get(
+             /databases/(default)/documents/assets/$(assetId)
+           ).data.assignment != null
+        && firestore.get(
+             /databases/(default)/documents/assets/$(assetId)
+           ).data.assignment.employeeId != null
         && firestore.get(
              /databases/(default)/documents/assets/$(assetId)
            ).data.assignment.employeeId == request.auth.uid;

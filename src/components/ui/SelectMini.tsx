@@ -113,10 +113,10 @@ export function SelectMini({ label, leadingIcon, value, onChange, options, sheet
     'inline-flex items-center gap-1.5 h-9 pl-2.5 pr-2 rounded-lg border leading-none transition-colors duration-150 cursor-pointer',
     'max-md:h-[30px] max-md:pl-[10px] max-md:pr-[8px] max-md:text-[12px]',
     isNonDefault
-      ? 'bg-[rgba(249,115,22,0.12)] border-[rgba(249,115,22,0.30)]/80 text-[#EA580C]'
+      ? 'bg-[rgba(249,115,22,0.12)] border-[rgba(249,115,22,0.30)]/80 text-accent-hover'
       : open
-        ? 'bg-[#1B1F24] border-[#3A4048] ring-2 ring-[#3A4048]/70'
-        : 'bg-[#1B1F24] border-[#2A2F36] hover:border-[#3A4048]',
+        ? 'bg-surface border-border-strong ring-2 ring-border-strong/70'
+        : 'bg-surface border-border hover:border-border-strong',
   ].join(' ')
 
   /** Shared option rows used in both sheet and dropdown */
@@ -136,7 +136,7 @@ export function SelectMini({ label, leadingIcon, value, onChange, options, sheet
             }}
             className={[
               'w-full flex items-center gap-2 px-3 py-2.5 text-left transition-colors duration-100',
-              isActive ? 'bg-[#F97316] text-white' : 'text-[#CBD5E1] hover:bg-[#111315]',
+              isActive ? 'bg-accent text-white' : 'text-text-secondary hover:bg-bg',
             ].join(' ')}
           >
             {leadingIcon && (
@@ -186,13 +186,13 @@ export function SelectMini({ label, leadingIcon, value, onChange, options, sheet
           <Icon
             name={leadingIcon}
             size={14}
-            className={isNonDefault ? 'text-[#FB923C]' : 'text-[#64748B]'}
+            className={isNonDefault ? 'text-accent-light' : 'text-text-subtle'}
           />
         )}
         <span
           className={[
             'text-[14px] leading-none uppercase tracking-[0.07em] font-semibold max-md:text-[12px]',
-            isNonDefault ? 'text-[#F97316]' : 'text-[#94A3B8]',
+            isNonDefault ? 'text-accent' : 'text-text-tertiary',
           ].join(' ')}
         >
           {label}
@@ -200,7 +200,7 @@ export function SelectMini({ label, leadingIcon, value, onChange, options, sheet
         <span
           className={[
             'text-[14px] leading-none font-semibold tracking-tight truncate max-w-[140px] max-md:text-[12px]',
-            isNonDefault ? 'text-[#EA580C]' : 'text-[#CBD5E1]',
+            isNonDefault ? 'text-accent-hover' : 'text-text-secondary',
           ].join(' ')}
         >
           {current?.label ?? value}
@@ -211,7 +211,7 @@ export function SelectMini({ label, leadingIcon, value, onChange, options, sheet
           className={[
             'transition-transform duration-150',
             open ? 'rotate-180' : '',
-            isNonDefault ? 'text-[#FB923C]' : 'text-[#64748B]',
+            isNonDefault ? 'text-accent-light' : 'text-text-subtle',
           ].join(' ')}
         />
       </button>
@@ -235,7 +235,7 @@ export function SelectMini({ label, leadingIcon, value, onChange, options, sheet
               minWidth: pos.minWidth,
               zIndex: 1000,
             }}
-            className="bg-[#1B1F24] border border-[#2A2F36] rounded-xl shadow-xl shadow-black/40 anim-fade-slide-in overflow-hidden"
+            className="bg-surface border border-border rounded-xl shadow-xl shadow-black/40 anim-fade-slide-in overflow-hidden"
           >
             <div className="py-1.5 max-h-[280px] overflow-y-auto" role="listbox">
               {options.map(opt => {
@@ -252,7 +252,7 @@ export function SelectMini({ label, leadingIcon, value, onChange, options, sheet
                     }}
                     className={[
                       'w-full flex items-center gap-2 px-3 py-2 text-left transition-colors duration-100',
-                      isActive ? 'bg-[#F97316] text-white' : 'text-[#CBD5E1] hover:bg-[#111315]',
+                      isActive ? 'bg-accent text-white' : 'text-text-secondary hover:bg-bg',
                     ].join(' ')}
                   >
                     {leadingIcon && (

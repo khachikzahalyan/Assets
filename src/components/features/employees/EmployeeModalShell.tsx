@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import ReactDOM from 'react-dom'
 import { useModalA11y } from '@/components/ui/useModalA11y'
+import { MODAL_BACKDROP_ABS } from '@/components/ui'
 
 export interface EmployeeModalShellProps {
   open: boolean
@@ -55,20 +56,22 @@ export function EmployeeModalShell({
   if (!open) return null
 
   return ReactDOM.createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 max-md:items-end max-md:p-0">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-[2px] anim-backdrop-fade"
+        className={MODAL_BACKDROP_ABS}
         onClick={onClose}
       />
-      {/* Panel */}
+      {/* Panel — centered on desktop, bottom-sheet on mobile */}
       <div
         ref={panelRef}
         tabIndex={-1}
         role="dialog"
         aria-modal="true"
-        className={`relative w-full ${width} bg-[#1B1F24] rounded-2xl shadow-2xl shadow-slate-900/20 border border-[#2A2F36]/60 anim-modal-pop overflow-hidden`}
+        className={`relative w-full ${width} bg-surface rounded-2xl shadow-2xl shadow-slate-900/20 border border-border/60 anim-modal-pop overflow-hidden max-md:rounded-t-[18px] max-md:rounded-b-none max-md:max-w-full max-md:max-h-[85vh] max-md:overflow-y-auto`}
       >
+        {/* Pull-handle — mobile only */}
+        <div aria-hidden="true" className="hidden max-md:block mx-auto mt-2.5 mb-0 w-10 h-1 rounded-full bg-[rgba(148,163,184,0.35)]" />
         {children}
       </div>
     </div>,

@@ -84,7 +84,12 @@ service cloud.firestore {
     // Read: any admin, OR the employee who has the asset currently assigned to them.
     //   assignment.employeeId is null-guarded: if assignment is null (warehouse) or
     //   employeeId is absent, the condition short-circuits to false (fail-closed).
-    // Write: super | asset_admin only.
+    // Write: super | asset_admin (full write — create, update, delete).
+    // Update (tech_admin, constrained): tech_admin may ONLY flip the repair-workflow
+    //   statusId. The write must touch nothing beyond statusId + the two bookkeeping
+    //   fields (updatedAt, updatedBy) and the new statusId must be one of the three
+    //   repair-workflow values. Assignment, branchId, categoryId, invCode, serial,
+    //   etc. are untouchable by tech_admin.
     match /assets/{id} {
       allow read: if isAnyAdmin()
         || (
@@ -94,6 +99,10 @@ service cloud.firestore {
           && resource.data.assignment.employeeId == request.auth.uid
         );
       allow write: if isSuperAdmin() || isAssetAdmin();
+      allow update: if isTechAdmin()
+        && request.resource.data.diff(resource.data)
+             .affectedKeys().hasOnly(['statusId', 'upgradeCurrent', 'updatedAt', 'updatedBy'])
+        && request.resource.data.statusId in ['st_repair', 'st_assigned', 'st_warehouse'];
 
       // Upgrade events: append-only business trail. tech_admin and super_admin only
       // (tech attributes / component upgrades are tech_admin per the role matrix).
@@ -106,30 +115,50 @@ service cloud.firestore {
     // ---- /licenses — workstation/employee licenses ----
     // Read: any admin (device-detail license listing). Write: super | tech_admin
     //   (tech_admin manages licenses per the role matrix). NO employee read.
-    // Secrets sub-collection: DENIED to ALL client callers (incl. super_admin).
-    //   Raw keys are only ever read by the revealLicenseKey Cloud Function via the
-    //   Admin SDK, which bypasses these rules.
+    // Secrets sub-collection: gated to super_admin OR tech_admin (the two roles
+    //   that can manage licenses). Raw keys are written/read directly via the
+    //   client SDK; masking is enforced in app code (sanitizeLicenseAuditPayload)
+    //   before audit_logs entries are written. asset_admin, employee, and
+    //   unauthenticated callers are denied.
     match /licenses/{id} {
       allow read: if isAnyAdmin();
       // A raw `key` field must NEVER live on the license doc — keys belong in the
-      // deny-all secrets sub-collection only. Reject any doc write carrying `key`,
+      // secrets sub-collection only. Reject any doc write carrying `key`,
       // so even a privileged admin client cannot bypass the masking architecture.
       allow write: if (isSuperAdmin() || isTechAdmin())
         && !('key' in request.resource.data);
       match /secrets/{s} {
-        allow read, write: if false;
+        allow read, write: if isSuperAdmin() || isTechAdmin();
       }
     }
 
+    // ---- /subscriptions — seat-based SaaS subscriptions ----
+    // Read: super_admin OR tech_admin only. The Licenses route is gated to
+    //   these two roles; subscription assignee lists are employee PII that
+    //   asset_admin does not need to access.
+    // Write (create/update): super_admin OR tech_admin. Shape guard requires
+    //   assignedEmployeeIds to be a list — defense-in-depth against a malformed
+    //   privileged client corrupting the field.
+    // Delete: forbidden for all principals.
+    match /subscriptions/{id} {
+      allow read: if isSuperAdmin() || isTechAdmin();
+      allow create, update: if (isSuperAdmin() || isTechAdmin())
+        && request.resource.data.assignedEmployeeIds is list;
+      allow delete: if false;
+    }
+
     // ---- /server_licenses — global/server/company-wide licenses ----
-    // Super-admin WRITE only. Read: any admin. Secrets denied to all clients.
+    // Super-admin WRITE only. Read: any admin.
+    // Secrets sub-collection: super_admin only (server licenses are more sensitive
+    //   than workstation licenses; tech_admin cannot manage server licenses, so
+    //   they cannot access their secrets either).
     match /server_licenses/{id} {
       allow read: if isAnyAdmin();
       // Same key-field guard as /licenses: raw keys live only in secrets/*.
       allow write: if isSuperAdmin()
         && !('key' in request.resource.data);
       match /secrets/{s} {
-        allow read, write: if false;
+        allow read, write: if isSuperAdmin();
       }
     }
 
@@ -265,6 +294,77 @@ service cloud.firestore {
     match /settings/{doc} {
       allow read: if isSuperAdmin();
       allow write: if isSuperAdmin() && doc != 'auth';
+    }
+
+    // ---- /parts — SKU catalog ----
+    // Read + create + update: three admin roles. No client delete (MVP boundary —
+    // deleteGpu is routed through a Cloud Function in a post-MVP plan).
+    // Shape guards:
+    //   · category must be one of the 7 defined PartCategory values.
+    //   · name must be a non-empty string.
+    //   · numeric snapshot fields (onHand, broken, lowStockThreshold) must be numbers.
+    //   · attribution: createdBy/updatedBy must equal the caller's uid.
+    //   · allowed keys whitelist (optional fields: variantId, variantLabel, ddr).
+    match /parts/{id} {
+      allow read: if isSignedIn() && role() in ['super_admin', 'asset_admin', 'tech_admin'];
+
+      allow create: if isSignedIn()
+        && role() in ['super_admin', 'asset_admin', 'tech_admin']
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.category in ['psu', 'cooler', 'ssd', 'hdd', 'nvme', 'ram', 'gpu']
+        && request.resource.data.onHand is number
+        && request.resource.data.broken is number
+        && request.resource.data.lowStockThreshold is number
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.updatedBy == request.auth.uid
+        && request.resource.data.keys().hasOnly([
+             'name', 'category', 'unit', 'onHand', 'broken', 'lowStockThreshold',
+             'variantId', 'variantLabel', 'ddr',
+             'createdAt', 'updatedAt', 'createdBy', 'updatedBy']);
+
+      allow update: if isSignedIn()
+        && role() in ['super_admin', 'asset_admin', 'tech_admin']
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.category in ['psu', 'cooler', 'ssd', 'hdd', 'nvme', 'ram', 'gpu']
+        && request.resource.data.onHand is number
+        && request.resource.data.broken is number
+        && request.resource.data.lowStockThreshold is number
+        && request.resource.data.updatedBy == request.auth.uid
+        && request.resource.data.keys().hasOnly([
+             'name', 'category', 'unit', 'onHand', 'broken', 'lowStockThreshold',
+             'variantId', 'variantLabel', 'ddr',
+             'createdAt', 'updatedAt', 'createdBy', 'updatedBy']);
+
+      allow delete: if false;
+    }
+
+    // ---- /part_movements — append-only stock journal ----
+    // Immutable like audit_logs: update and delete forbidden for ALL principals.
+    // Create allowed for the three admin roles, with server-trusted attribution guards
+    // (mirroring audit_logs create) so forged actorUid/actorRole/at can never persist:
+    //   · actorUid   must equal the caller's uid.
+    //   · actorRole  must equal the caller's server-verified role (read from /users/{uid}).
+    //   · at         must equal request.time (server timestamp — rules compare timestamps).
+    //   · type       must be one of the four defined MovementType values.
+    //   · keys()     are whitelisted; optional fields (assetId, assetInvCode, note, reason,
+    //                kindId, kindLabel) may be absent but are the ONLY extras allowed.
+    match /part_movements/{id} {
+      allow read: if isSignedIn() && role() in ['super_admin', 'asset_admin', 'tech_admin'];
+
+      allow create: if isSignedIn()
+        && role() in ['super_admin', 'asset_admin', 'tech_admin']
+        && request.resource.data.actorUid == request.auth.uid
+        && request.resource.data.actorRole == role()
+        && request.resource.data.at == request.time
+        && request.resource.data.type in ['receive', 'install', 'uninstall', 'service']
+        && request.resource.data.keys().hasOnly([
+             'type', 'skuId', 'qty', 'broken', 'assetId', 'assetInvCode',
+             'serviceReplace', 'note', 'reason', 'kindId', 'kindLabel',
+             'actorUid', 'actorRole', 'at']);
+
+      allow update, delete: if false;
     }
 
     // ---- Catch-all: deny everything not matched above ----

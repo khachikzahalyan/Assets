@@ -109,6 +109,14 @@
     { "collectionGroup": "licenses", "queryScope": "COLLECTION", "fields": [
       { "fieldPath": "lifecycleStatus", "order": "ASCENDING" },
       { "fieldPath": "assignmentType", "order": "ASCENDING" }
+    ]},
+    { "collectionGroup": "part_movements", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "skuId", "order": "ASCENDING" },
+      { "fieldPath": "at", "order": "DESCENDING" }
+    ]},
+    { "collectionGroup": "part_movements", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "assetId", "order": "ASCENDING" },
+      { "fieldPath": "at", "order": "DESCENDING" }
     ]}
   ],
   "fieldOverrides": []

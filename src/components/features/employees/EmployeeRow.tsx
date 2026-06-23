@@ -37,7 +37,7 @@ export function EmployeeRow({
       onClick={onClick}
       onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick() } }}
       tabIndex={0}
-      className="group cursor-pointer transition-colors duration-150 hover:bg-[rgba(249,115,22,0.08)] border-t border-[#2A2F36] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F97316] focus-visible:ring-inset"
+      className="group cursor-pointer transition-colors duration-150 hover:bg-[rgba(249,115,22,0.08)] border-t border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset"
       style={{
         display: 'grid',
         gridTemplateColumns: GRID_COLS,
@@ -53,7 +53,7 @@ export function EmployeeRow({
         style={{ paddingLeft: '20px' }}
       >
         <EmployeeAvatar firstName={employee.firstName} lastName={employee.lastName} id={employee.id} size="sm" />
-        <span className="text-[15px] font-semibold text-[#F8FAFC] truncate leading-tight">
+        <span className="text-[15px] font-semibold text-text-primary truncate leading-tight">
           {employee.firstName} {employee.lastName}
         </span>
       </div>
@@ -66,19 +66,19 @@ export function EmployeeRow({
         >
           <Icon name={isHeadOffice ? 'landmark' : 'building'} size={12} />
         </span>
-        <span className="text-[14.5px] text-[#CBD5E1] truncate">
-          {branchName || <span className="text-[#64748B]">—</span>}
+        <span className="text-[14.5px] text-text-secondary truncate">
+          {branchName || <span className="text-text-subtle">—</span>}
         </span>
       </div>
 
       {/* 3 — Position (primary) + Department (secondary) */}
       <div role="cell" className="flex items-center overflow-hidden px-3 h-full min-w-0">
         <div className="min-w-0 w-full">
-          <div className="text-[14.5px] font-medium text-[#F8FAFC] truncate whitespace-nowrap leading-tight">
-            {employee.position || <span className="text-[#64748B]">—</span>}
+          <div className="text-[14.5px] font-medium text-text-primary truncate whitespace-nowrap leading-tight">
+            {employee.position || <span className="text-text-subtle">—</span>}
           </div>
-          <div className="text-[13px] text-[#94A3B8] truncate whitespace-nowrap leading-tight mt-0.5">
-            {deptName || <span className="text-[#64748B]">—</span>}
+          <div className="text-[13px] text-text-tertiary truncate whitespace-nowrap leading-tight mt-0.5">
+            {deptName || <span className="text-text-subtle">—</span>}
           </div>
         </div>
       </div>
@@ -86,22 +86,22 @@ export function EmployeeRow({
       {/* 4 — Phone */}
       <div role="cell" className="flex items-center overflow-hidden px-3 h-full min-w-0">
         {employee.phone ? (
-          <span className="text-[14px] text-[#CBD5E1] font-mono tabular-nums whitespace-nowrap truncate">
+          <span className="text-[14px] text-text-secondary font-mono tabular-nums whitespace-nowrap truncate">
             {formatLocalPhone(employee.phone)}
           </span>
         ) : (
-          <span className="text-[14px] text-[#64748B]" aria-label={t('table.phone')}>—</span>
+          <span className="text-[14px] text-text-subtle" aria-label={t('table.phone')}>—</span>
         )}
       </div>
 
       {/* 5 — Gmail */}
       <div role="cell" className="flex items-center overflow-hidden px-3 h-full min-w-0">
         {employee.email ? (
-          <span className="text-[14px] text-[#94A3B8] truncate inline-block max-w-full">
+          <span className="text-[14px] text-text-tertiary truncate inline-block max-w-full">
             {employee.email}
           </span>
         ) : (
-          <span className="text-[14px] text-[#64748B]">—</span>
+          <span className="text-[14px] text-text-subtle">—</span>
         )}
       </div>
 
@@ -110,12 +110,12 @@ export function EmployeeRow({
         <span
           className={`inline-flex items-center gap-1.5 font-mono text-[14px] font-medium px-1.5 py-0.5 rounded border ${
             assetCount === 0
-              ? 'text-[#64748B] bg-[#111315] border-[#2A2F36]'
-              : 'text-[#CBD5E1] bg-[#111315] border-[#2A2F36]/70'
+              ? 'text-text-subtle bg-bg border-border'
+              : 'text-text-secondary bg-bg border-border/70'
           }`}
           aria-label={t('table.assets')}
         >
-          <Icon name="package" size={11} className="text-[#64748B]" />
+          <Icon name="package" size={11} className="text-text-subtle" />
           {assetCount}
         </span>
       </div>
@@ -139,7 +139,7 @@ export function EmployeeRow({
             onClick={e => { e.stopPropagation(); onRestore(employee.id) }}
             title={t('detail.restore')}
             aria-label={t('detail.restore')}
-            className="inline-flex items-center justify-center w-7 h-7 rounded-md text-[#64748B] hover:text-violet-300 hover:bg-violet-500/10 transition-colors duration-100 opacity-0 group-hover:opacity-100 focus:opacity-100"
+            className="inline-flex items-center justify-center w-7 h-7 rounded-md text-text-subtle hover:text-violet-300 hover:bg-violet-500/10 transition-colors duration-100 opacity-0 group-hover:opacity-100 focus:opacity-100"
           >
             <Icon name="rotate-ccw" size={13} />
           </button>
@@ -147,7 +147,7 @@ export function EmployeeRow({
         <Icon
           name="chevron-right"
           size={14}
-          className="text-[#64748B] group-hover:text-[#FB923C] transition-colors duration-150 ml-0.5"
+          className="text-text-subtle group-hover:text-accent-light transition-colors duration-150 ml-0.5"
         />
       </div>
     </div>

@@ -1,94 +1,198 @@
 {
-  "title": "Лицензии",
-  "tabs": {
-    "workstation": "Рабочие станции",
-    "server": "Серверные"
+  "actions": {
+    "addLicense": "Добавить лицензию",
+    "assign": "Назначить",
+    "create": "Добавить лицензию",
+    "decouple": "Открепить",
+    "edit": "Редактировать",
+    "reveal": "Показать ключ",
+    "rotate": "Обновить ключ"
+  },
+  "activate": {
+    "assetListLabel": "Активы без ключа",
+    "cancel": "Отмена",
+    "confirm": "Активировать",
+    "keyLabel": "Ключ",
+    "noAssets": "Нет активов без ключа",
+    "searchPlaceholder": "Поиск по названию, инв. коду или категории…",
+    "title": "Активировать ключ"
+  },
+  "add": {
+    "assignEmployees": "Назначить сотрудников",
+    "cancel": "Отмена",
+    "expiryDate": "Дата истечения",
+    "name": "Название",
+    "namePlaceholder": "например, AnyDesk",
+    "purchaseDate": "Дата покупки",
+    "seatsTotal": "Всего мест",
+    "submit": "Добавить",
+    "title": "Новая подписка",
+    "vendorEmail": "Email аккаунта вендора"
+  },
+  "assignDialog": {
+    "assetId": "ID актива",
+    "deviceRequiresAsset": "Для назначения на устройство укажите актив",
+    "employee": "Сотруднику",
+    "device": "Устройству (ПК/Ноутбук)",
+    "employeeId": "ID сотрудника",
+    "employeeRequires": "Укажите сотрудника",
+    "scope": "Кому назначить",
+    "title": "Назначить лицензию"
+  },
+  "assignment": {
+    "device": "Устройство",
+    "employee": "Сотрудник",
+    "unassigned": "Не назначена"
   },
   "col": {
-    "name": "Название",
-    "vendor": "Вендор",
-    "type": "Тип",
+    "actions": "Действия",
     "assignment": "Назначение",
-    "status": "Статус",
-    "expiry": "Истекает",
     "environment": "Среда",
+    "expiry": "Истекает",
     "host": "Хост",
-    "actions": "Действия"
+    "name": "Название",
+    "status": "Статус",
+    "type": "Тип",
+    "vendor": "Вендор"
+  },
+  "copied": "Скопировано",
+  "copyKey": "Скопировать",
+  "decoupleConfirm": "Открепить лицензию от текущего назначения?",
+  "empty": {
+    "desc": "Добавьте первую лицензию",
+    "title": "Лицензий пока нет"
+  },
+  "error": "Не удалось загрузить лицензии. Попробуйте ещё раз.",
+  "form": {
+    "cancel": "Отмена",
+    "createServerTitle": "Новая серверная лицензия",
+    "createWorkstationTitle": "Новая лицензия (рабочая станция)",
+    "editTitle": "Редактировать лицензию",
+    "environment": "Среда",
+    "expiresAt": "Истекает",
+    "host": "Хост",
+    "isReusable": "Многоразовая (возвращается в пул при списании)",
+    "keyMaskedPreview": "Превью: {{masked}}",
+    "name": "Название",
+    "rawKey": "Лицензионный ключ",
+    "rawKeyHint": "Ключ хранится зашифрованно и доступен только Супер Админу.",
+    "save": "Сохранить",
+    "type": "Тип",
+    "vendor": "Вендор"
+  },
+  "hideKey": "Скрыть",
+  "historyEmpty": "Записей в истории нет",
+  "historyHeading": "История",
+  "datePopover": {
+    "aria": "Выберите дату",
+    "nextMonth": "Следующий месяц",
+    "placeholder": "— выберите дату —",
+    "plus1y": "+1 год",
+    "plus6m": "+6 мес",
+    "prevMonth": "Предыдущий месяц",
+    "today": "Сегодня"
+  },
+  "keyDetails": {
+    "action": {
+      "assigned": "Назначена",
+      "created": "Создана",
+      "key_revealed": "Ключ показан",
+      "key_rotated": "Ключ обновлён",
+      "license_decoupled": "Откреплена",
+      "license_retired_with_asset": "Списана с активом"
+    },
+    "close": "Закрыть",
+    "copied": "Скопировано",
+    "copy": "Копировать",
+    "copyError": "Ошибка",
+    "historyEmpty": "Нет истории использования",
+    "historyHeading": "История использования",
+    "keyLabel": "Лицензионный ключ",
+    "now": "Сейчас",
+    "title": "Детали ключа"
+  },
+  "keys": {
+    "activate": "Активировать",
+    "activatedToast": "Ключ активирован на «{{name}}»",
+    "colAction": "Действие",
+    "colAsset": "Актив",
+    "colKey": "Ключ продукта",
+    "colStatus": "Статус",
+    "colVersion": "Версия",
+    "emptyDesc": "По выбранному фильтру ключей не найдено.",
+    "emptyTitle": "Нет ключей",
+    "freedOn": "Освобождён {{date}}",
+    "searchPlaceholder": "Поиск по активу или инв. коду…",
+    "sectionTitle": "Windows-ключи",
+    "statusFree": "Свободен",
+    "statusInUse": "Используется"
+  },
+  "loading": "Загрузка лицензий…",
+  "manage": {
+    "assignedSuffix": "{{phrase}} назначено",
+    "done": "Готово",
+    "notFound": "Ничего не найдено",
+    "searchPlaceholder": "Поиск по имени, должности или email…",
+    "subtitle": "Сотрудники · {{count}} / {{total}} мест",
+    "title": "Сотрудники"
+  },
+  "multiselect": {
+    "done": "Готово",
+    "placeholder": "Выберите сотрудников",
+    "searchAria": "Поиск сотрудников",
+    "searchPlaceholder": "Поиск по имени или должности…",
+    "selectedCount": "{{count}} выбр."
+  },
+  "maskedKeyLabel": "Ключ скрыт",
+  "pagination": {
+    "next": "Следующая",
+    "of": "из",
+    "prev": "Предыдущая",
+    "range": "{{from}}–{{to}} / {{total}}",
+    "showing": "Показано"
+  },
+  "revealConfirm": "Показать лицензионный ключ? Это действие будет записано в журнал аудита.",
+  "revealDenied": "Недостаточно прав для показа ключа",
+  "revealError": "Не удалось показать ключ. Попробуйте ещё раз.",
+  "revealedKeyLabel": "Ключ (виден временно)",
+  "serverTabSuperOnly": "Серверные лицензии доступны только Супер Админу",
+  "serverType": {
+    "Global": "Глобальная",
+    "Infrastructure": "Инфраструктурная",
+    "Server": "Серверная"
   },
   "status": {
     "active": "Активна",
     "retired": "Снята"
   },
-  "assignment": {
-    "employee": "Сотрудник",
-    "device": "Устройство",
-    "unassigned": "Не назначена"
+  "subs": {
+    "details": "Детали",
+    "emptyDesc": "Добавьте первую подписку кнопкой «Добавить лицензию».",
+    "emptyTitle": "Нет подписок",
+    "employees": "Сотрудники",
+    "sectionTitle": "Подписки и ПО",
+    "expiresInDays": "Истекает через {{days}} дн.",
+    "expiryDate": "Истекает",
+    "notAssigned": "не назначены",
+    "purchaseDate": "Куплено",
+    "seats": "Места",
+    "seatsProgress": "{{used}} / {{total}}"
   },
-  "actions": {
-    "create": "Добавить лицензию",
-    "edit": "Редактировать",
-    "assign": "Назначить",
-    "decouple": "Открепить",
-    "reveal": "Показать ключ",
-    "rotate": "Обновить ключ"
+  "tabs": {
+    "keys": "Windows-ключи",
+    "server": "Серверные",
+    "subs": "Подписки и ПО",
+    "workstation": "Рабочие станции"
   },
+  "title": "Лицензии",
   "type": {
     "Default": "Базовая",
     "OEM": "OEM",
     "Retail": "Коробочная",
-    "Volume": "Корпоративная",
-    "Subscription": "Подписка"
+    "Subscription": "Подписка",
+    "Volume": "Корпоративная"
   },
-  "serverType": {
-    "Server": "Серверная",
-    "Global": "Глобальная",
-    "Infrastructure": "Инфраструктурная"
-  },
-  "form": {
-    "createWorkstationTitle": "Новая лицензия (рабочая станция)",
-    "createServerTitle": "Новая серверная лицензия",
-    "editTitle": "Редактировать лицензию",
-    "name": "Название",
-    "vendor": "Вендор",
-    "type": "Тип",
-    "isReusable": "Многоразовая (возвращается в пул при списании)",
-    "expiresAt": "Истекает",
-    "environment": "Среда",
-    "host": "Хост",
-    "rawKey": "Лицензионный ключ",
-    "rawKeyHint": "Ключ хранится зашифрованно и доступен только Супер Админу.",
-    "keyMaskedPreview": "Превью: {{masked}}",
-    "save": "Сохранить",
-    "cancel": "Отмена"
-  },
-  "assignDialog": {
-    "title": "Назначить лицензию",
-    "scope": "Кому назначить",
-    "employee": "Сотруднику",
-    "device": "Устройству (ПК/Ноутбук)",
-    "employeeId": "ID сотрудника",
-    "assetId": "ID актива",
-    "deviceRequiresAsset": "Для назначения на устройство укажите актив",
-    "employeeRequires": "Укажите сотрудника"
-  },
-  "validation": { "required": "Обязательное поле" },
-  "maskedKeyLabel": "Ключ скрыт",
-  "revealedKeyLabel": "Ключ (виден временно)",
-  "copyKey": "Скопировать",
-  "copied": "Скопировано",
-  "hideKey": "Скрыть",
-  "revealDenied": "Недостаточно прав для показа ключа",
-  "revealError": "Не удалось показать ключ. Попробуйте ещё раз.",
-  "historyHeading": "История",
-  "historyEmpty": "Записей в истории нет",
-  "decoupleConfirm": "Открепить лицензию от текущего назначения?",
-  "revealConfirm": "Показать лицензионный ключ? Это действие будет записано в журнал аудита.",
-  "serverTabSuperOnly": "Серверные лицензии доступны только Супер Админу",
-  "loading": "Загрузка лицензий…",
-  "empty": {
-    "title": "Лицензий пока нет",
-    "desc": "Добавьте первую лицензию"
-  },
-  "error": "Не удалось загрузить лицензии. Попробуйте ещё раз.",
-  "pagination": { "range": "{{from}}–{{to}} / {{total}}" }
+  "validation": {
+    "required": "Обязательное поле"
+  }
 }

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Btn, Field, Input, Select } from '@/components/ui'
+import { Btn, Field, Input, Select, DIALOG_BACKDROP } from '@/components/ui'
 import type { Branch, BranchType } from '@/domain/branch'
 import { BRANCH_TYPES } from '@/domain/branch'
 
@@ -33,9 +33,9 @@ export function BranchFormDialog(p: BranchFormDialogProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={p.onCancel}>
-      <div className="w-[440px] rounded-lg border border-[#2A2F36] bg-[#1B1F24] p-5" onClick={e => e.stopPropagation()}>
-        <h3 className="text-[15px] font-semibold text-[#F8FAFC] mb-4">
+    <div className={DIALOG_BACKDROP} onClick={p.onCancel}>
+      <div className="w-[440px] max-md:w-full max-md:rounded-b-none max-md:rounded-t-[18px] max-md:max-h-[85vh] max-md:overflow-y-auto rounded-lg border border-border bg-surface p-5 mx-4 max-md:mx-0" onClick={e => e.stopPropagation()}>
+        <h3 className="text-[15px] font-semibold text-text-primary mb-4">
           {p.initial ? t('form.editTitle') : t('form.createTitle')}
         </h3>
         <div className="space-y-3">

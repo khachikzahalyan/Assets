@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Btn, Field, Input, Select, Chip } from '@/components/ui'
+import { Btn, Field, Input, Select, Chip, DIALOG_BACKDROP } from '@/components/ui'
 import type { AssetStatus } from '@/domain/asset_status'
 
 export interface AssetStatusFormValues {
@@ -51,15 +51,15 @@ export function AssetStatusFormDialog(p: AssetStatusFormDialogProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+      className={DIALOG_BACKDROP}
       onClick={p.onCancel}
     >
       <div
-        className="w-[480px] rounded-lg border border-[#2A2F36] bg-[#1B1F24] p-5"
+        className="w-[480px] max-md:w-full max-md:rounded-b-none max-md:rounded-t-[18px] max-md:max-h-[85vh] max-md:overflow-y-auto rounded-lg border border-border bg-surface p-5 mx-4 max-md:mx-0"
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center gap-2 mb-4">
-          <h3 className="text-[15px] font-semibold text-[#F8FAFC]">
+          <h3 className="text-[15px] font-semibold text-text-primary">
             {p.initial ? t('form.editTitle') : t('form.createTitle')}
           </h3>
           {isSystem && (
@@ -68,7 +68,7 @@ export function AssetStatusFormDialog(p: AssetStatusFormDialogProps) {
         </div>
 
         {isSystem && (
-          <p className="text-[11px] text-[#64748B] mb-3">{t('form.systemLocked')}</p>
+          <p className="text-[11px] text-text-subtle mb-3">{t('form.systemLocked')}</p>
         )}
 
         <div className="space-y-3">
@@ -103,11 +103,11 @@ export function AssetStatusFormDialog(p: AssetStatusFormDialogProps) {
               checked={isFinal}
               onChange={e => setIsFinal(e.target.checked)}
               disabled={isSystem}
-              className="w-4 h-4 accent-[#F97316] cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-4 h-4 accent-accent cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
             />
             <label
               htmlFor="status-is-final"
-              className="text-[13px] text-[#94A3B8] cursor-pointer select-none"
+              className="text-[13px] text-text-tertiary cursor-pointer select-none"
             >
               {t('form.isFinal')}
             </label>

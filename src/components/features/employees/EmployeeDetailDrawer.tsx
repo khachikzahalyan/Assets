@@ -53,7 +53,7 @@ export interface EmployeeDetailDrawerProps {
 
 /** Canonical icon tint map — unique hue per meaningful icon name. */
 const ICON_TINT: Record<string, string> = {
-  cpu: 'text-[#F97316]',
+  cpu: 'text-accent',
   'memory-stick': 'text-emerald-300',
   'hard-drive': 'text-sky-300',
   fan: 'text-cyan-300',
@@ -77,7 +77,7 @@ const ICON_TINT: Record<string, string> = {
 }
 
 function iconTint(name: string): string {
-  return ICON_TINT[name] ?? 'text-[#64748B]'
+  return ICON_TINT[name] ?? 'text-text-subtle'
 }
 
 // ── EmployeePropRow ───────────────────────────────────────────────────────────
@@ -108,11 +108,11 @@ function EmployeePropRow({ icon, label, value, mono = false, copyValue }: Employ
   const inner = (
     <>
       <Icon name={icon} size={13} className={`${iconTint(icon)} shrink-0 mt-px`} />
-      <dt className="text-[12.5px] font-semibold uppercase tracking-[0.07em] text-[#64748B] w-[72px] shrink-0 leading-none">
+      <dt className="text-[12.5px] font-semibold uppercase tracking-[0.07em] text-text-subtle w-[72px] shrink-0 leading-none">
         {label}
       </dt>
       <dd
-        className={`flex-1 min-w-0 text-[14.5px] text-[#F8FAFC] font-medium truncate text-left leading-none${mono ? ' font-mono tabular-nums' : ''}`}
+        className={`flex-1 min-w-0 text-[14.5px] text-text-primary font-medium truncate text-left leading-none${mono ? ' font-mono tabular-nums' : ''}`}
       >
         {value}
       </dd>
@@ -123,7 +123,7 @@ function EmployeePropRow({ icon, label, value, mono = false, copyValue }: Employ
           {copied ? (
             <Icon name="check" size={12} className="text-emerald-500" />
           ) : (
-            <Icon name="copy" size={12} className="text-[#64748B]" />
+            <Icon name="copy" size={12} className="text-text-subtle" />
           )}
         </span>
       )}
@@ -135,7 +135,7 @@ function EmployeePropRow({ icon, label, value, mono = false, copyValue }: Employ
       <button
         type="button"
         onClick={handleCopy}
-        className="group w-full flex items-center gap-x-3 px-4 py-[9px] text-left hover:bg-[#111315] transition-colors duration-100 rounded-md"
+        className="group w-full flex items-center gap-x-3 px-4 py-[9px] text-left hover:bg-bg transition-colors duration-100 rounded-md"
       >
         {inner}
       </button>
@@ -236,7 +236,7 @@ export function EmployeeDetailDrawer({
       {/* ──────────────────────────────────────────────
           HEADER — pinned. Avatar, name, status, joined-at, close.
           ────────────────────────────────────────────── */}
-      <header className="px-5 pt-5 pb-4 flex items-start gap-4 border-b border-[#2A2F36] shrink-0">
+      <header className="px-5 pt-5 pb-4 flex items-start gap-4 border-b border-border shrink-0">
         {/* Avatar with status dot */}
         <div className="relative shrink-0">
           <EmployeeAvatar
@@ -247,7 +247,7 @@ export function EmployeeDetailDrawer({
           />
           {/* Status dot — bottom-right corner */}
           <span
-            className={`absolute bottom-0 right-0 w-3 h-3 rounded-full ring-2 ring-[#2A2F36] ${
+            className={`absolute bottom-0 right-0 w-3 h-3 rounded-full ring-2 ring-border ${
               isActive ? 'bg-emerald-500' : 'bg-slate-300'
             }`}
             title={t(`status.${emp.status}`)}
@@ -256,19 +256,19 @@ export function EmployeeDetailDrawer({
 
         {/* Name + status chip + joined date */}
         <div className="flex-1 min-w-0 pt-0.5">
-          <h2 className="text-[17px] font-bold text-[#F8FAFC] tracking-[-0.01em] truncate leading-tight">
+          <h2 className="text-[17px] font-bold text-text-primary tracking-[-0.01em] truncate leading-tight">
             {emp.firstName} {emp.lastName}
           </h2>
           <div className="mt-2 flex items-center gap-2 flex-wrap">
             <Chip color={isActive ? 'green' : 'violet'} dot>
               {t(`status.${emp.status}`)}
             </Chip>
-            <span className="text-[#64748B] text-[13px] select-none">·</span>
+            <span className="text-text-subtle text-[13px] select-none">·</span>
             <span
-              className="inline-flex items-center gap-[5px] text-[13px] text-[#64748B] tabular-nums"
+              className="inline-flex items-center gap-[5px] text-[13px] text-text-subtle tabular-nums"
               title={t('table.employee')}
             >
-              <Icon name="calendar-plus" size={11} className="text-[#64748B] shrink-0" />
+              <Icon name="calendar-plus" size={11} className="text-text-subtle shrink-0" />
               {formatDateRu(new Date(emp.createdAt))}
             </span>
           </div>
@@ -280,7 +280,7 @@ export function EmployeeDetailDrawer({
           onClick={onClose}
           aria-label={tCommon('actions.close')}
           title={tCommon('actions.close')}
-          className="w-7 h-7 rounded-md text-[#64748B] hover:text-[#CBD5E1] hover:bg-[#22272E] flex items-center justify-center transition-colors shrink-0 mt-0.5"
+          className="w-7 h-7 rounded-md text-text-subtle hover:text-text-secondary hover:bg-surface-2 flex items-center justify-center transition-colors shrink-0 mt-0.5"
         >
           <Icon name="x" size={15} />
         </button>
@@ -289,7 +289,7 @@ export function EmployeeDetailDrawer({
       {/* ──────────────────────────────────────────────
           QUICK FACTS — pinned. Branch / Dept+Position / Gmail / Phone.
           ────────────────────────────────────────────── */}
-      <div className="py-1.5 border-b border-[#2A2F36] shrink-0">
+      <div className="py-1.5 border-b border-border shrink-0">
         <dl>
           <EmployeePropRow
             icon="building-2"
@@ -304,8 +304,8 @@ export function EmployeeDetailDrawer({
                 <span>{departmentName || '—'}</span>
                 {emp.position && (
                   <>
-                    <span className="text-[#64748B] mx-1.5 font-normal select-none">·</span>
-                    <span className="text-[#94A3B8] font-normal">{emp.position}</span>
+                    <span className="text-text-subtle mx-1.5 font-normal select-none">·</span>
+                    <span className="text-text-tertiary font-normal">{emp.position}</span>
                   </>
                 )}
               </>
@@ -330,10 +330,10 @@ export function EmployeeDetailDrawer({
       {/* ──────────────────────────────────────────────
           SECTION BAR — pinned. Assets title + count + select toggle + link CTA.
           ────────────────────────────────────────────── */}
-      <div className="px-5 h-11 flex items-center justify-between border-b border-[#2A2F36] shrink-0">
-        <h3 className="flex items-center text-[13px] font-semibold text-[#94A3B8] tracking-[0.06em] uppercase">
+      <div className="px-5 h-11 flex items-center justify-between border-b border-border shrink-0">
+        <h3 className="flex items-center text-[13px] font-semibold text-text-tertiary tracking-[0.06em] uppercase">
           {t('detail.assets')}
-          <span className="ml-2 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-[#22272E] text-[#94A3B8] text-[12.5px] font-semibold tabular-nums">
+          <span className="ml-2 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-surface-2 text-text-tertiary text-[12.5px] font-semibold tabular-nums">
             {linkedAssets.length}
           </span>
           {selectMode && linkedAssets.length > 0 && (
@@ -355,7 +355,7 @@ export function EmployeeDetailDrawer({
               <button
                 type="button"
                 onClick={() => (selectMode ? exitSelect() : setSelectMode(true))}
-                className="inline-flex items-center gap-1 h-7 px-2.5 rounded-md text-[14px] font-semibold text-[#94A3B8] bg-[#22272E] border border-[#2A2F36] hover:bg-[#2A2F36] transition-colors"
+                className="inline-flex items-center gap-1 h-7 px-2.5 rounded-md text-[14px] font-semibold text-text-tertiary bg-surface-2 border border-border hover:bg-border transition-colors"
               >
                 <Icon name={selectMode ? 'x' : 'list-checks'} size={12} />
                 {selectMode ? t('transfer.selectDone') : t('transfer.selectMode')}
@@ -379,7 +379,7 @@ export function EmployeeDetailDrawer({
           ────────────────────────────────────────────── */}
       <div className="flex-1 min-h-0 overflow-y-auto px-5 py-3">
         {linkedAssets.length === 0 ? (
-          <div className="text-[14.5px] text-[#64748B] italic px-3 py-6 rounded-lg border border-dashed border-[#2A2F36] text-center">
+          <div className="text-[14.5px] text-text-subtle italic px-3 py-6 rounded-lg border border-dashed border-border text-center">
             {t('detail.noAssets')}
           </div>
         ) : (
@@ -406,10 +406,10 @@ export function EmployeeDetailDrawer({
                   key={a.id}
                   {...rowSelectProps}
                   className={[
-                    'flex items-center gap-3 px-3 py-2.5 rounded-lg border border-[#2A2F36]/60 bg-[#1B1F24] transition-colors duration-150',
+                    'flex items-center gap-3 px-3 py-2.5 rounded-lg border border-border/60 bg-surface transition-colors duration-150',
                     selectMode
-                      ? 'cursor-pointer hover:border-[#3A4048]/80 hover:bg-[#111315]/60'
-                      : 'hover:border-[#3A4048]/80 hover:bg-[#111315]/60',
+                      ? 'cursor-pointer hover:border-border-strong/80 hover:bg-bg/60'
+                      : 'hover:border-border-strong/80 hover:bg-bg/60',
                     selectMode && isSelected ? 'ring-1 ring-emerald-500/30 bg-emerald-500/10' : '',
                   ]
                     .filter(Boolean)
@@ -419,30 +419,30 @@ export function EmployeeDetailDrawer({
                   {selectMode && (
                     <span
                       className={`w-5 h-5 rounded-md border-2 transition-colors flex items-center justify-center shrink-0 ${
-                        isSelected ? 'border-emerald-500 bg-emerald-500' : 'border-[#3A4048]'
+                        isSelected ? 'border-emerald-500 bg-emerald-500' : 'border-border-strong'
                       }`}
                     >
                       {isSelected && <Icon name="check" size={12} className="text-white" />}
                     </span>
                   )}
 
-                  <span className="w-8 h-8 rounded-lg bg-[#22272E] flex items-center justify-center text-[#94A3B8] shrink-0">
+                  <span className="w-8 h-8 rounded-lg bg-surface-2 flex items-center justify-center text-text-tertiary shrink-0">
                     <Icon name={a.icon} size={15} />
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-[14.5px] font-semibold text-[#F8FAFC] truncate">
+                      <span className="text-[14.5px] font-semibold text-text-primary truncate">
                         {a.title}
                       </span>
-                      <span className="inline-flex items-center px-1.5 h-5 rounded bg-[#22272E] text-[#94A3B8] font-mono text-[12.5px] tabular-nums shrink-0">
+                      <span className="inline-flex items-center px-1.5 h-5 rounded bg-surface-2 text-text-tertiary font-mono text-[12.5px] tabular-nums shrink-0">
                         {a.invCode}
                       </span>
                     </div>
-                    <div className="text-[13px] text-[#94A3B8] mt-0.5 flex items-center gap-1">
+                    <div className="text-[13px] text-text-tertiary mt-0.5 flex items-center gap-1">
                       <span>{a.cat}</span>
-                      <span className="text-[#64748B]">·</span>
+                      <span className="text-text-subtle">·</span>
                       <span className="inline-flex items-center gap-0.5">
-                        <Icon name="arrow-right-left" size={10} className="text-[#64748B]" />
+                        <Icon name="arrow-right-left" size={10} className="text-text-subtle" />
                         <span className="tabular-nums">
                           {formatDateRu(new Date(a.transferredAt))}
                         </span>
@@ -461,10 +461,10 @@ export function EmployeeDetailDrawer({
           Sits between the scroll region and the footer.
           ────────────────────────────────────────────── */}
       {selectMode && selected.size > 0 && (
-        <div className="px-5 py-3 border-t border-[#2A2F36] bg-[#111315]/60 shrink-0">
+        <div className="px-5 py-3 border-t border-border bg-bg/60 shrink-0">
           {!confirming ? (
             <div className="flex items-center gap-2">
-              <span className="text-[14px] font-semibold text-[#F8FAFC] tabular-nums">
+              <span className="text-[14px] font-semibold text-text-primary tabular-nums">
                 {t('transfer.nSelected', { count: selected.size })}
               </span>
               <div className="flex-1" />
@@ -484,7 +484,7 @@ export function EmployeeDetailDrawer({
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <span className="text-[14px] text-[#F8FAFC] flex-1 min-w-0">
+              <span className="text-[14px] text-text-primary flex-1 min-w-0">
                 {t('transfer.confirmTitle', { count: selected.size, dest: destLabel })}
               </span>
               <Btn variant="ghost" size="sm" onClick={() => setConfirming(false)} disabled={pending}>
@@ -503,7 +503,7 @@ export function EmployeeDetailDrawer({
           FOOTER — pinned. Status-dependent primary action.
           ────────────────────────────────────────────── */}
       {isActive && (
-        <footer className="px-5 py-3 bg-[#111315]/60 border-t border-[#2A2F36] flex items-center justify-end gap-2 shrink-0">
+        <footer className="px-5 py-3 bg-bg/60 border-t border-border flex items-center justify-end gap-2 shrink-0">
           <Btn variant="danger" onClick={() => onArchive(emp.id)}>
             <Icon name="package" size={14} />
             {t('detail.handover')}
@@ -511,7 +511,7 @@ export function EmployeeDetailDrawer({
         </footer>
       )}
       {!isActive && (
-        <footer className="px-5 py-3 bg-[#111315]/60 border-t border-[#2A2F36] flex items-center justify-end gap-2 shrink-0">
+        <footer className="px-5 py-3 bg-bg/60 border-t border-border flex items-center justify-end gap-2 shrink-0">
           <Btn variant="secondary" onClick={() => onRestore(emp.id)}>
             <Icon name="rotate-ccw" size={14} />
             {t('detail.restore')}

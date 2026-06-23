@@ -136,6 +136,54 @@ describe('buildSeedDocs', () => {
     expect(cat.prefix).toBe('LAP')
     expect(cat.group).toBe('devices')
   })
+  it('cat_computer doc carries all four capability flags (hasOemLicense/requiresSerial/hasTypeField)', () => {
+    const docs = buildSeedDocs({ nowIso: '2026-06-20T00:00:00.000Z' })
+    const c = docs.find(d => d.collection === 'categories' && d.id === 'cat_computer')!
+    const data = c.data as Record<string, unknown>
+    expect(data.hasSpecs).toBe(true)
+    expect(data.hasOemLicense).toBe(true)
+    expect(data.requiresSerial).toBe(true)
+    expect(data.hasTypeField).toBe(false)
+  })
+  it('cat_monitor doc has hasOemLicense:false and requiresSerial:true', () => {
+    const docs = buildSeedDocs({ nowIso: '2026-06-20T00:00:00.000Z' })
+    const c = docs.find(d => d.collection === 'categories' && d.id === 'cat_monitor')!
+    const data = c.data as Record<string, unknown>
+    expect(data.hasSpecs).toBe(false)
+    expect(data.hasOemLicense).toBe(false)
+    expect(data.requiresSerial).toBe(true)
+    expect(data.hasTypeField).toBe(false)
+  })
+  it('furniture doc (cat_desk) has hasTypeField:true and requiresSerial:false', () => {
+    const docs = buildSeedDocs({ nowIso: '2026-06-20T00:00:00.000Z' })
+    const c = docs.find(d => d.collection === 'categories' && d.id === 'cat_desk')!
+    const data = c.data as Record<string, unknown>
+    expect(data.hasSpecs).toBe(false)
+    expect(data.hasOemLicense).toBe(false)
+    expect(data.requiresSerial).toBe(false)
+    expect(data.hasTypeField).toBe(true)
+  })
+  it('cat_laptop has hasSpecs:true hasOemLicense:true (non-Apple laptop)', () => {
+    const docs = buildSeedDocs({ nowIso: '2026-06-20T00:00:00.000Z' })
+    const c = docs.find(d => d.collection === 'categories' && d.id === 'cat_laptop')!
+    const data = c.data as Record<string, unknown>
+    expect(data.hasSpecs).toBe(true)
+    expect(data.hasOemLicense).toBe(true)
+    expect(data.requiresSerial).toBe(true)
+    expect(data.hasTypeField).toBe(false)
+  })
+  it('all categories emitted under allCategories have all four flags as booleans', () => {
+    const docs = buildSeedDocs({ nowIso: '2026-06-20T00:00:00.000Z', allCategories: true })
+    const catDocs = docs.filter(d => d.collection === 'categories')
+    expect(catDocs.length).toBeGreaterThan(100)
+    for (const d of catDocs) {
+      const data = d.data as Record<string, unknown>
+      expect(typeof data.hasSpecs).toBe('boolean')
+      expect(typeof data.hasOemLicense).toBe('boolean')
+      expect(typeof data.requiresSerial).toBe('boolean')
+      expect(typeof data.hasTypeField).toBe('boolean')
+    }
+  })
 })
 
 describe('emitted docs round-trip through InMemory repositories', () => {

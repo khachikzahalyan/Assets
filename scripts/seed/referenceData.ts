@@ -1,6 +1,7 @@
 // scripts/seed/referenceData.ts
 // Pure reference data for the AMS seeder. NO Firebase imports.
 // Shapes mirror the production domain types (timestamps added by the writer).
+import { deriveCategoryFlags } from '../../src/domain/asset/categoryCapabilities'
 
 export interface StatusSeed {
   id: string; name: string; color: string; isFinal: boolean; isSystem: boolean; sortOrder: number
@@ -11,7 +12,8 @@ export interface BranchSeed {
 export interface DepartmentSeed { id: string; name: string }
 export interface CategorySeed {
   id: string; name: string; group: 'devices' | 'network' | 'furniture'; prefix: string;
-  hasSpecs: boolean; lucideIcon: string
+  hasSpecs: boolean; hasOemLicense: boolean; requiresSerial: boolean; hasTypeField: boolean;
+  lucideIcon: string
 }
 
 export const STATUS_SEED: StatusSeed[] = [
@@ -46,35 +48,45 @@ export const DEPARTMENT_SEED: DepartmentSeed[] = [
 // isNameTaken rule on seed; that is why the curated core set is the default).
 // DSK is assigned to cat_computer (matches the mock DSK/xxxxx inventory codes);
 // the furniture desk (cat_desk) uses DSKF to avoid a prefix collision.
+// Helper: build a CategorySeed row from name/group/prefix/lucideIcon, deriving all
+// four capability flags from the domain taxonomy (single source of truth).
+function makeCatSeed(
+  id: string, name: string, group: 'devices' | 'network' | 'furniture',
+  prefix: string, lucideIcon: string,
+): CategorySeed {
+  const flags = deriveCategoryFlags(id, group)
+  return { id, name, group, prefix, lucideIcon, ...flags }
+}
+
 export const CORE_CATEGORY_SEED: CategorySeed[] = [
   // devices
-  { id: 'cat_laptop',   name: 'Ноутбук',    group: 'devices',   prefix: 'LAP', hasSpecs: true,  lucideIcon: 'laptop'     },
-  { id: 'cat_computer', name: 'Компьютер',  group: 'devices',   prefix: 'DSK', hasSpecs: true,  lucideIcon: 'monitor'    },
-  { id: 'cat_monitor',  name: 'Монитор',    group: 'devices',   prefix: 'MON', hasSpecs: false, lucideIcon: 'monitor'    },
-  { id: 'cat_phone',    name: 'Смартфон',   group: 'devices',   prefix: 'PHN', hasSpecs: false, lucideIcon: 'smartphone' },
-  { id: 'cat_tablet',   name: 'Планшет',    group: 'devices',   prefix: 'TAB', hasSpecs: false, lucideIcon: 'tablet'     },
-  { id: 'cat_printer',  name: 'Принтер',    group: 'devices',   prefix: 'PRN', hasSpecs: false, lucideIcon: 'printer'    },
-  { id: 'cat_keyboard', name: 'Клавиатура', group: 'devices',   prefix: 'KBD', hasSpecs: false, lucideIcon: 'keyboard'   },
-  { id: 'cat_mouse',    name: 'Мышь',       group: 'devices',   prefix: 'MSE', hasSpecs: false, lucideIcon: 'mouse'      },
-  { id: 'cat_headset',  name: 'Гарнитура',  group: 'devices',   prefix: 'HST', hasSpecs: false, lucideIcon: 'headphones' },
-  { id: 'cat_dock',     name: 'Док-станция',group: 'devices',   prefix: 'DCK', hasSpecs: false, lucideIcon: 'plug'       },
-  { id: 'cat_webcam',   name: 'Веб-камера', group: 'devices',   prefix: 'WBC', hasSpecs: false, lucideIcon: 'camera'     },
-  { id: 'cat_projector',name: 'Проектор',   group: 'devices',   prefix: 'PRJ', hasSpecs: false, lucideIcon: 'projector'  },
+  makeCatSeed('cat_laptop',   'Ноутбук',    'devices',   'LAP',  'laptop'     ),
+  makeCatSeed('cat_computer', 'Компьютер',  'devices',   'DSK',  'monitor'    ),
+  makeCatSeed('cat_monitor',  'Монитор',    'devices',   'MON',  'monitor'    ),
+  makeCatSeed('cat_phone',    'Смартфон',   'devices',   'PHN',  'smartphone' ),
+  makeCatSeed('cat_tablet',   'Планшет',    'devices',   'TAB',  'tablet'     ),
+  makeCatSeed('cat_printer',  'Принтер',    'devices',   'PRN',  'printer'    ),
+  makeCatSeed('cat_keyboard', 'Клавиатура', 'devices',   'KBD',  'keyboard'   ),
+  makeCatSeed('cat_mouse',    'Мышь',       'devices',   'MSE',  'mouse'      ),
+  makeCatSeed('cat_headset',  'Гарнитура',  'devices',   'HST',  'headphones' ),
+  makeCatSeed('cat_dock',     'Dok-станция','devices',   'DCK',  'plug'       ),
+  makeCatSeed('cat_webcam',   'Веб-камера', 'devices',   'WBC',  'camera'     ),
+  makeCatSeed('cat_projector','Проектор',   'devices',   'PRJ',  'projector'  ),
   // network
-  { id: 'cat_server',   name: 'Сервер',         group: 'network', prefix: 'SRV', hasSpecs: true,  lucideIcon: 'server'  },
-  { id: 'cat_router',   name: 'Маршрутизатор',  group: 'network', prefix: 'RTR', hasSpecs: false, lucideIcon: 'router'  },
-  { id: 'cat_switch',   name: 'Коммутатор',     group: 'network', prefix: 'SWT', hasSpecs: false, lucideIcon: 'network' },
-  { id: 'cat_firewall', name: 'Файрвол',        group: 'network', prefix: 'FWL', hasSpecs: false, lucideIcon: 'shield'  },
-  { id: 'cat_ap',       name: 'Точка доступа',  group: 'network', prefix: 'WAP', hasSpecs: false, lucideIcon: 'wifi'    },
-  { id: 'cat_nas',      name: 'NAS',            group: 'network', prefix: 'NAS', hasSpecs: false, lucideIcon: 'hard-drive' },
-  { id: 'cat_ups',      name: 'ИБП',            group: 'network', prefix: 'UPS', hasSpecs: false, lucideIcon: 'battery-charging' },
+  makeCatSeed('cat_server',   'Сервер',         'network', 'SRV', 'server'         ),
+  makeCatSeed('cat_router',   'Маршрутизатор',  'network', 'RTR', 'router'         ),
+  makeCatSeed('cat_switch',   'Коммутатор',     'network', 'SWT', 'network'        ),
+  makeCatSeed('cat_firewall', 'Файрвол',        'network', 'FWL', 'shield'         ),
+  makeCatSeed('cat_ap',       'Точка доступа',  'network', 'WAP', 'wifi'           ),
+  makeCatSeed('cat_nas',      'NAS',            'network', 'NAS', 'hard-drive'     ),
+  makeCatSeed('cat_ups',      'ИБП',            'network', 'UPS', 'battery-charging'),
   // furniture
-  { id: 'cat_desk',     name: 'Стол офисный',     group: 'furniture', prefix: 'DSKF', hasSpecs: false, lucideIcon: 'table-2'  },
-  { id: 'cat_chair',    name: 'Стул',             group: 'furniture', prefix: 'CHR',  hasSpecs: false, lucideIcon: 'armchair' },
-  { id: 'cat_cabinet',  name: 'Шкаф',             group: 'furniture', prefix: 'CAB',  hasSpecs: false, lucideIcon: 'archive'  },
-  { id: 'cat_sofa',     name: 'Диван',            group: 'furniture', prefix: 'SOF',  hasSpecs: false, lucideIcon: 'sofa'     },
-  { id: 'cat_meet_tbl', name: 'Стол переговоров', group: 'furniture', prefix: 'MTG',  hasSpecs: false, lucideIcon: 'square'   },
-  { id: 'cat_safe',     name: 'Сейф',             group: 'furniture', prefix: 'SAF',  hasSpecs: false, lucideIcon: 'shield'   },
+  makeCatSeed('cat_desk',     'Стол офисный',     'furniture', 'DSKF', 'table-2'  ),
+  makeCatSeed('cat_chair',    'Стул',             'furniture', 'CHR',  'armchair' ),
+  makeCatSeed('cat_cabinet',  'Шкаф',             'furniture', 'CAB',  'archive'  ),
+  makeCatSeed('cat_sofa',     'Диван',            'furniture', 'SOF',  'sofa'     ),
+  makeCatSeed('cat_meet_tbl', 'Стол переговоров', 'furniture', 'MTG',  'square'   ),
+  makeCatSeed('cat_safe',     'Сейф',             'furniture', 'SAF',  'shield'   ),
 ]
 
 // --- Full source taxonomy (id/name/group/hasSpecs/lucideIcon only — NO prefix).
@@ -93,7 +105,11 @@ export const CORE_CATEGORY_SEED: CategorySeed[] = [
 // collision) but does NOT deduplicate names — the duplicate names are surfaced by a
 // builder test so the operator knows before running --all-categories. The curated
 // CORE_CATEGORY_SEED has no duplicate names, which is why it is the default.
-export const ALL_CATEGORY_SOURCE: Omit<CategorySeed, 'prefix'>[] = [
+// ALL_CATEGORY_SOURCE carries only the hand-authored fields (id/name/group/hasSpecs/lucideIcon).
+// The remaining three capability flags (hasOemLicense/requiresSerial/hasTypeField) are
+// derived at build time in buildAllCategorySeed() via deriveCategoryFlags() to avoid
+// hand-editing 131 rows.
+export const ALL_CATEGORY_SOURCE: Pick<CategorySeed, 'id' | 'name' | 'group' | 'hasSpecs' | 'lucideIcon'>[] = [
   // === DEVICES — computers, laptops ===
   { id: 'cat_computer',       name: 'Компьютер',             group: 'devices', hasSpecs: true,  lucideIcon: 'monitor'        },
   { id: 'cat_workstation',    name: 'Рабочая станция',       group: 'devices', hasSpecs: true,  lucideIcon: 'monitor'        },
@@ -269,6 +285,7 @@ export function buildAllCategorySeed(): CategorySeed[] {
     }
     if (!/^[A-Z0-9]{2,6}$/.test(p)) throw new Error(`Invalid generated prefix "${p}" for ${c.id}`)
     used.add(p)
-    return { ...c, prefix: p }
+    const flags = deriveCategoryFlags(c.id, c.group)
+    return { ...c, prefix: p, ...flags }
   })
 }
