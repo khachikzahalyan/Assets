@@ -18,6 +18,7 @@ import ruAudit from '@/locales/ru/audit.json'
 import ruLicenses from '@/locales/ru/licenses.json'
 import ruDashboard from '@/locales/ru/dashboard.json'
 import ruSettings from '@/locales/ru/settings.json'
+import ruNotifications from '@/locales/ru/notifications.json'
 import enCommon from '@/locales/en/common.json'
 import enNav from '@/locales/en/nav.json'
 import enLogin from '@/locales/en/login.json'
@@ -34,6 +35,7 @@ import enAudit from '@/locales/en/audit.json'
 import enLicenses from '@/locales/en/licenses.json'
 import enDashboard from '@/locales/en/dashboard.json'
 import enSettings from '@/locales/en/settings.json'
+import enNotifications from '@/locales/en/notifications.json'
 import hyCommon from '@/locales/hy/common.json'
 import hyNav from '@/locales/hy/nav.json'
 import hyLogin from '@/locales/hy/login.json'
@@ -50,14 +52,15 @@ import hyAudit from '@/locales/hy/audit.json'
 import hyLicenses from '@/locales/hy/licenses.json'
 import hyDashboard from '@/locales/hy/dashboard.json'
 import hySettings from '@/locales/hy/settings.json'
+import hyNotifications from '@/locales/hy/notifications.json'
 
 export const SUPPORTED_LANGS = ['ru', 'en', 'hy'] as const
 export type AppLang = (typeof SUPPORTED_LANGS)[number]
 
 export const resources = {
-  ru: { common: ruCommon, nav: ruNav, login: ruLogin, 'access-pending': ruAccessPending, assets: ruAssets, employees: ruEmployees, 'pending-users': ruPendingUsers, roles: ruRoles, branches: ruBranches, departments: ruDepartments, categories: ruCategories, statuses: ruStatuses, audit: ruAudit, licenses: ruLicenses, dashboard: ruDashboard, settings: ruSettings },
-  en: { common: enCommon, nav: enNav, login: enLogin, 'access-pending': enAccessPending, assets: enAssets, employees: enEmployees, 'pending-users': enPendingUsers, roles: enRoles, branches: enBranches, departments: enDepartments, categories: enCategories, statuses: enStatuses, audit: enAudit, licenses: enLicenses, dashboard: enDashboard, settings: enSettings },
-  hy: { common: hyCommon, nav: hyNav, login: hyLogin, 'access-pending': hyAccessPending, assets: hyAssets, employees: hyEmployees, 'pending-users': hyPendingUsers, roles: hyRoles, branches: hyBranches, departments: hyDepartments, categories: hyCategories, statuses: hyStatuses, audit: hyAudit, licenses: hyLicenses, dashboard: hyDashboard, settings: hySettings },
+  ru: { common: ruCommon, nav: ruNav, login: ruLogin, 'access-pending': ruAccessPending, assets: ruAssets, employees: ruEmployees, 'pending-users': ruPendingUsers, roles: ruRoles, branches: ruBranches, departments: ruDepartments, categories: ruCategories, statuses: ruStatuses, audit: ruAudit, licenses: ruLicenses, dashboard: ruDashboard, settings: ruSettings, notifications: ruNotifications },
+  en: { common: enCommon, nav: enNav, login: enLogin, 'access-pending': enAccessPending, assets: enAssets, employees: enEmployees, 'pending-users': enPendingUsers, roles: enRoles, branches: enBranches, departments: enDepartments, categories: enCategories, statuses: enStatuses, audit: enAudit, licenses: enLicenses, dashboard: enDashboard, settings: enSettings, notifications: enNotifications },
+  hy: { common: hyCommon, nav: hyNav, login: hyLogin, 'access-pending': hyAccessPending, assets: hyAssets, employees: hyEmployees, 'pending-users': hyPendingUsers, roles: hyRoles, branches: hyBranches, departments: hyDepartments, categories: hyCategories, statuses: hyStatuses, audit: hyAudit, licenses: hyLicenses, dashboard: hyDashboard, settings: hySettings, notifications: hyNotifications },
 } as const
 
 void i18n
@@ -68,7 +71,7 @@ void i18n
     fallbackLng: 'ru',
     supportedLngs: SUPPORTED_LANGS as unknown as string[],
     defaultNS: 'common',
-    ns: ['common', 'nav', 'login', 'access-pending', 'assets', 'employees', 'pending-users', 'roles', 'branches', 'departments', 'categories', 'statuses', 'audit', 'licenses', 'dashboard', 'settings'],
+    ns: ['common', 'nav', 'login', 'access-pending', 'assets', 'employees', 'pending-users', 'roles', 'branches', 'departments', 'categories', 'statuses', 'audit', 'licenses', 'dashboard', 'settings', 'notifications'],
     interpolation: { escapeValue: false },
     detection: {
       order: ['localStorage', 'navigator'],

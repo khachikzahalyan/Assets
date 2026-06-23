@@ -1,0 +1,12 @@
+{
+  "bellTooltip": "Notifications",
+  "title": "Notifications",
+  "subtitle": "Temporary hand-outs to return",
+  "empty": "No assets to return",
+  "emptyHint": "Temporary hand-outs that are due appear here.",
+  "dueSoon": "Return by {{date}}",
+  "overdue": "Overdue — {{date}}",
+  "kindAudit": "Audit",
+  "kindIntern": "Intern",
+  "kindTemp": "Temporary"
+}
