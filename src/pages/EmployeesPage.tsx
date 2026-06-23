@@ -651,7 +651,6 @@ export function EmployeesPage({
       <PageHeader
         icon="users"
         title={t('title')}
-        {...(!loading ? { count: totalCount } : {})}
         actions={
           <div className="flex items-center gap-2">
             {/* Search input — lives in page header per spec */}
