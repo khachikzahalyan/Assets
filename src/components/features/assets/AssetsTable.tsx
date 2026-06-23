@@ -1,26 +1,44 @@
-import { useMemo } from 'react'
+import { useMemo, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Chip, Icon, IconBtn } from '@/components/ui'
 import type { Asset } from '@/domain/asset'
 import type { AssetReferenceData } from '@/domain/asset/AssetRepository'
 import type { ChipColor } from '@/components/ui/chip'
-import { assetTitle, relativeBucket, assigneeKind } from './assetFormat'
+import { Chip, Icon } from '@/components/ui'
+import {
+  deriveDisplayStatus,
+  STATUS_CHIP_COLOR,
+  assetTitle,
+  fmtDate,
+  isTemporaryAssignment,
+  assigneeKind,
+} from './assetFormat'
+import { CATEGORY_COLOR } from './categoryColors'
+import { AssetRow, GRID_COLS } from './AssetRow'
 
 export interface AssetsTableProps {
   rows: Asset[]
   ref: AssetReferenceData
   canMutate: boolean
   onRowClick?: (a: Asset) => void
+  /**
+   * Target minimum row count for the desktop table. Placeholder rows are
+   * rendered to fill the gap so the table footprint stays constant.
+   * Default: 10 (matches PAGE_SIZE in AssetsPage).
+   */
+  minRows?: number
 }
 
-export function AssetsTable({ rows, ref: refData, canMutate, onRowClick }: AssetsTableProps) {
+export function AssetsTable({
+  rows,
+  ref: refData,
+  canMutate,
+  onRowClick,
+  minRows = 10,
+}: AssetsTableProps) {
   const { t } = useTranslation('assets')
 
-  // FIX 6: memoize lookup Maps — rebuilt only when refData reference changes,
-  // not on every pagination render (rows change, ref stable).
-  const { statusMap, branchMap, deptMap, categoryMap, employeeMap } = useMemo(
+  const { branchMap, deptMap, categoryMap, employeeMap } = useMemo(
     () => ({
-      statusMap:   new Map(refData.statuses.map(s => [s.id, s])),
       branchMap:   new Map(refData.branches.map(b => [b.id, b.name])),
       deptMap:     new Map(refData.departments.map(d => [d.id, d.name])),
       categoryMap: new Map(refData.categories.map(c => [c.id, c])),
@@ -29,188 +47,276 @@ export function AssetsTable({ rows, ref: refData, canMutate, onRowClick }: Asset
     [refData],
   )
 
-  function resolveAssignee(a: Asset): string {
+  // ── Placeholder rows for fixed table height (desktop only) ──────────────────
+  // Fills the gap between real rows and minRows so the card footprint stays constant.
+  const placeholderCount = Math.max(0, minRows - rows.length)
+
+  // ── Responsive: show mobile cards only when viewport is < 768px ─────────────
+  // Using state + matchMedia so the layout is correct on first paint and updates
+  // on resize. jsdom does not implement matchMedia — guard with typeof check so
+  // isMobile stays false in tests, preventing duplicate text nodes.
+  const [isMobile, setIsMobile] = useState<boolean>(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false
+    return window.matchMedia('(max-width: 767px)').matches
+  })
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return
+    const mq = window.matchMedia('(max-width: 767px)')
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
+
+  // AssigneeCell translated labels
+  const onShelf    = t('assignee.warehouse')
+  const onShelfSub = t('assignee.waiting')
+  const deptLabel  = t('qa.department')
+  const branchLabel = t('qa.branch')
+  const tempLabel  = t('assignee.temp')
+  const kindAuditLabel = t('assignee.kindAudit')
+  const kindInternLabel = t('assignee.kindIntern')
+
+  // ── Mobile card list helpers ────────────────────────────────────────────────
+  /**
+   * Derives a one-line assignee display name for the mobile card row.
+   * Mirrors the prototype §5 assignee logic: audit/intern kinds show the role
+   * label (amber); regular employees show lastName firstName; departments,
+   * branches, and warehouse show their respective names.
+   */
+  function mobileAssigneeName(a: Asset): { name: string; isAuditOrIntern: boolean } {
     const kind = assigneeKind(a)
-    if (kind === 'warehouse') return t('assignee.warehouse')
-    if (kind === 'none') return t('assignee.none')
-    if (kind === 'employee' && a.assignment?.employeeId) {
-      const emp = employeeMap.get(a.assignment.employeeId)
-      if (emp) {
-        const parts = [emp.lastName, emp.firstName].filter(Boolean)
-        return parts.join(' ') || t('assignee.none')
+
+    if (kind === 'employee') {
+      const emp = a.assignment?.employeeId ? employeeMap.get(a.assignment.employeeId) : undefined
+      const tempKind = a.assignment?.tempKind
+      if (tempKind === 'audit' || tempKind === 'intern') {
+        const label = tempKind === 'audit' ? kindAuditLabel : kindInternLabel
+        return { name: label, isAuditOrIntern: true }
       }
+      const name = emp
+        ? [emp.lastName, emp.firstName].filter(Boolean).join(' ') || '—'
+        : '—'
+      const isTemp = isTemporaryAssignment(a)
+      return { name: isTemp ? (name === '—' ? tempLabel : name) : name, isAuditOrIntern: false }
     }
-    if (kind === 'department' && a.assignment?.departmentId) {
-      return deptMap.get(a.assignment.departmentId) ?? t('assignee.none')
-    }
-    if (kind === 'branch' && a.assignment?.branchId) {
-      return branchMap.get(a.assignment.branchId) ?? t('assignee.none')
-    }
-    return t('assignee.none')
-  }
 
-  function assigneeIcon(a: Asset): string | null {
-    const kind = assigneeKind(a)
-    if (kind === 'warehouse') return 'inbox'
-    if (kind === 'none') return null
-    if (kind === 'employee') return 'user'
-    if (kind === 'department') return 'network'
-    if (kind === 'branch') return 'building'
-    return null
-  }
+    if (kind === 'temporary') {
+      const tempKind = a.assignment?.tempKind
+      const label = tempKind === 'audit' ? kindAuditLabel
+        : tempKind === 'intern' ? kindInternLabel : tempLabel
+      return { name: label, isAuditOrIntern: true }
+    }
 
-  // FIX 2: translate a RelTimeBucket using i18n keys
-  function formatRelTime(iso: string): string {
-    const bucket = relativeBucket(iso)
-    if (bucket.unit === 'now') return t('relTime.now')
-    const keyMap = { min: 'relTime.minAgo', hour: 'relTime.hourAgo', day: 'relTime.dayAgo' } as const
-    return t(keyMap[bucket.unit], { n: bucket.n })
+    if (kind === 'department') {
+      const name = a.assignment?.departmentId ? deptMap.get(a.assignment.departmentId) ?? '—' : '—'
+      return { name, isAuditOrIntern: false }
+    }
+
+    if (kind === 'branch') {
+      const name = a.assignment?.branchId ? branchMap.get(a.assignment.branchId) ?? '—' : '—'
+      return { name, isAuditOrIntern: false }
+    }
+
+    // warehouse / none
+    return { name: onShelf, isAuditOrIntern: false }
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-sm border-collapse">
-        <thead>
-          <tr className="border-b border-[#2A2F36]">
-            <th
-              scope="col"
-              className="py-2.5 px-4 text-left text-[11px] font-semibold uppercase tracking-[0.05em] text-[#64748B] whitespace-nowrap"
+    <>
+    {/* ── Mobile card list (< 768px) — conditionally rendered via matchMedia ── */}
+    {isMobile && <div className="flex flex-col flex-1 min-h-0 overflow-y-auto">
+      {rows.map(a => {
+        const cat = categoryMap.get(a.categoryId)
+        const categoryName = cat?.name ?? ''
+        const group = cat?.group
+        const title = assetTitle(a, categoryName, group)
+        const displayStatus = deriveDisplayStatus(a, refData.statuses)
+        const statusColor: ChipColor =
+          STATUS_CHIP_COLOR[displayStatus.id] ??
+          (displayStatus.color as ChipColor) ??
+          'gray'
+        const { name: assigneeName, isAuditOrIntern } = mobileAssigneeName(a)
+
+        return (
+          <div
+            key={a.id}
+            role="button"
+            tabIndex={0}
+            onClick={() => onRowClick?.(a)}
+            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onRowClick?.(a) } }}
+            className="flex flex-row items-center gap-3 bg-[#1B1F24] px-[14px] py-[11px] border-b border-white/[0.06] cursor-pointer transition-colors duration-[140ms] min-h-[64px] box-border last:border-b-0 active:bg-[#22272E] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[rgba(249,115,22,0.40)]"
+          >
+            {/* Icon tile — always muted on mobile (prototype §5 spec) */}
+            <span
+              className="w-8 h-8 min-w-[32px] rounded-[8px] bg-white/[0.04] border-[0.5px] border-white/[0.06] inline-flex items-center justify-center flex-shrink-0 text-white/60"
             >
-              {t('cols.asset')}
-            </th>
-            <th
-              scope="col"
-              className="py-2.5 px-4 text-left text-[11px] font-semibold uppercase tracking-[0.05em] text-[#64748B] whitespace-nowrap"
-            >
-              {t('cols.code')}
-            </th>
-            <th
-              scope="col"
-              className="py-2.5 px-4 text-left text-[11px] font-semibold uppercase tracking-[0.05em] text-[#64748B] whitespace-nowrap"
-            >
-              {t('cols.status')}
-            </th>
-            <th
-              scope="col"
-              className="py-2.5 px-4 text-left text-[11px] font-semibold uppercase tracking-[0.05em] text-[#64748B] whitespace-nowrap"
-            >
-              {t('cols.assignee')}
-            </th>
-            <th
-              scope="col"
-              className="py-2.5 px-4 text-left text-[11px] font-semibold uppercase tracking-[0.05em] text-[#64748B] whitespace-nowrap"
-            >
-              {t('cols.branch')}
-            </th>
-            <th
-              scope="col"
-              className="py-2.5 px-4 text-left text-[11px] font-semibold uppercase tracking-[0.05em] text-[#64748B] whitespace-nowrap"
-            >
-              {t('cols.updated')}
-            </th>
-            {canMutate && <th scope="col" className="py-2.5 px-4 w-10" aria-label="" />}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map(a => {
-            const cat = categoryMap.get(a.categoryId)
-            const status = statusMap.get(a.statusId)
-            const branchName = branchMap.get(a.branchId) ?? '—'
-            const title = assetTitle(a)
-            const sub = [cat?.name, a.serial].filter(Boolean).join(' · ')
-            const assigneeText = resolveAssignee(a)
-            const assigneeIconName = assigneeIcon(a)
-            const chipColor = (status?.color ?? 'gray') as ChipColor
+              <Icon name={cat?.lucideIcon ?? 'box'} size={16} />
+            </span>
 
-            return (
-              <tr
-                key={a.id}
-                onClick={() => onRowClick?.(a)}
-                className={[
-                  'border-b border-[#2A2F36] transition-colors duration-100',
-                  onRowClick ? 'cursor-pointer hover:bg-[#22272E]' : '',
-                ].join(' ')}
-              >
-                {/* Asset column */}
-                <td className="py-3 px-4">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <span className="w-8 h-8 rounded-md bg-[#22272E] text-[#94A3B8] inline-flex items-center justify-center flex-shrink-0">
-                      <Icon name={cat?.lucideIcon ?? 'package'} size={16} />
-                    </span>
-                    <div className="min-w-0">
-                      <div className="text-[13px] font-medium text-[#F8FAFC] truncate leading-tight">
-                        {title}
-                      </div>
-                      {sub && (
-                        <div className="text-[11.5px] text-[#64748B] truncate leading-tight mt-0.5">
-                          {sub}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </td>
+            {/* 2-row content column — flex-1 so it fills space between icon and card edge */}
+            <div className="flex-1 min-w-0 flex flex-col gap-[6px]">
+              {/* Row 1: name (flex-1 truncate) + status pill (shrink-0, flush right) */}
+              <div className="flex items-center justify-between gap-2 min-w-0 min-h-[20px]">
+                <span className="text-[14px] font-semibold text-white/95 leading-[18px] whitespace-nowrap overflow-hidden text-ellipsis flex-1 min-w-0">
+                  {title}
+                </span>
+                <span className="shrink-0 inline-flex items-center">
+                  <Chip color={statusColor} dot size="sm">{displayStatus.name}</Chip>
+                </span>
+              </div>
 
-                {/* Inv code column */}
-                <td className="py-3 px-4">
-                  <span className="font-mono text-[12.5px] text-[#94A3B8] tracking-tight">
-                    {a.invCode}
-                  </span>
-                </td>
+              {/* Row 2: assignee (flex-1 truncate) + inv-code badge (shrink-0, flush right — same edge as pill above) */}
+              <div className="flex items-center justify-between gap-2 min-h-[18px] min-w-0">
+                <span
+                  className={[
+                    'text-[12px] leading-[18px] whitespace-nowrap overflow-hidden text-ellipsis flex-1 min-w-0',
+                    isAuditOrIntern ? 'text-[#FCD34D]' : 'text-white/55',
+                  ].join(' ')}
+                >
+                  {assigneeName}
+                </span>
+                <span className="font-['JetBrains_Mono',ui-monospace,monospace] text-[10px] text-[#FB923C] bg-transparent border border-[rgba(249,115,22,0.3)] rounded-[4px] px-[6px] h-[18px] leading-[16px] tracking-[0.02em] shrink-0 whitespace-nowrap inline-flex items-center">
+                  {a.invCode}
+                </span>
+              </div>
+            </div>
+          </div>
+        )
+      })}
+    </div>}
 
-                {/* Status column */}
-                <td className="py-3 px-4">
-                  {status ? (
-                    <Chip color={chipColor} dot>
-                      {status.name}
-                    </Chip>
-                  ) : (
-                    <span className="text-[#64748B] text-xs">{a.statusId}</span>
-                  )}
-                </td>
+    {/* ── Desktop grid table (≥ 768px) — always rendered; hidden via CSS on mobile ── */}
+    {!isMobile && <div role="table" aria-label={t('title')} style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%' }}>
+      {/* Header */}
+      <div
+        role="rowgroup"
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 2,
+          background: '#111315',
+          borderBottom: '1px solid rgba(42,47,54,0.9)',
+          flexShrink: 0,
+        }}
+      >
+        <div
+          role="row"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: GRID_COLS,
+            alignItems: 'center',
+            height: 44,
+          }}
+        >
+          {/* Asset col header */}
+          <div
+            role="columnheader"
+            className="flex items-center gap-2 text-[12px] uppercase tracking-[0.09em] font-semibold text-[#94A3B8]"
+            style={{ paddingLeft: 20 }}
+          >
+            {t('cols.asset')}
+          </div>
+          <div role="columnheader" className="px-3 text-[12px] uppercase tracking-[0.09em] font-semibold text-[#94A3B8]">
+            {t('cols.branch')}
+          </div>
+          <div role="columnheader" className="px-3 text-[12px] uppercase tracking-[0.09em] font-semibold text-[#94A3B8]">
+            {t('cols.code')}
+          </div>
+          <div role="columnheader" className="px-3 text-[12px] uppercase tracking-[0.09em] font-semibold text-[#94A3B8]">
+            {t('cols.assignee')}
+          </div>
+          <div role="columnheader" className="px-3 text-[12px] uppercase tracking-[0.09em] font-semibold text-[#94A3B8]">
+            {t('cols.status')}
+          </div>
+          <div role="columnheader" className="px-3 text-[12px] uppercase tracking-[0.09em] font-semibold text-[#94A3B8]">
+            {t('cols.updated')}
+          </div>
+          <div role="columnheader" className="px-3" aria-label="" />
+        </div>
+      </div>
 
-                {/* Assignee column */}
-                <td className="py-3 px-4">
-                  <div className="flex items-center gap-1.5 text-[12.5px] text-[#94A3B8]">
-                    {assigneeIconName && (
-                      <Icon name={assigneeIconName} size={13} className="text-[#64748B] flex-shrink-0" />
-                    )}
-                    <span>{assigneeText}</span>
-                  </div>
-                </td>
+      {/* Body */}
+      <div role="rowgroup" style={{ display: 'flex', flexDirection: 'column', flex: '1 1 0', minHeight: 0 }}>
+        {rows.map(a => {
+          const cat = categoryMap.get(a.categoryId)
+          const categoryName = cat?.name ?? ''
+          const group = cat?.group
+          const title = assetTitle(a, categoryName, group)
 
-                {/* Branch column */}
-                <td className="py-3 px-4">
-                  <span className="text-[12.5px] text-[#94A3B8]">{branchName}</span>
-                </td>
+          const displayStatus = deriveDisplayStatus(a, refData.statuses)
+          const statusName = displayStatus.name
+          const statusColor: ChipColor =
+            STATUS_CHIP_COLOR[displayStatus.id] ??
+            (displayStatus.color as ChipColor) ??
+            'gray'
 
-                {/* Updated column */}
-                <td className="py-3 px-4">
-                  <span className="text-[12px] text-[#64748B]">
-                    {formatRelTime(a.updatedAt)}
-                  </span>
-                </td>
+          const branchName = branchMap.get(a.branchId) ?? '—'
+          const isMainBranch = a.branchId === 'br_main'
+          const catColor = CATEGORY_COLOR[a.categoryId] ?? null
+          const formattedTime = fmtDate(a.updatedAt)
 
-                {/* Edit affordance — FIX 1: title via t('actions.edit') */}
-                {canMutate && (
-                  <td
-                    className="py-3 px-4"
-                    onClick={ev => ev.stopPropagation()}
-                  >
-                    <IconBtn
-                      icon="settings"
-                      size="sm"
-                      title={t('actions.edit')}
-                      onClick={() => {
-                        console.info('[AssetsTable] edit stub for', a.id)
-                      }}
-                    />
-                  </td>
-                )}
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
-    </div>
+          return (
+            <AssetRow
+              key={a.id}
+              asset={a}
+              title={title}
+              categoryName={categoryName}
+              categoryIcon={cat?.lucideIcon ?? 'box'}
+              catColor={catColor}
+              statusName={statusName}
+              statusColor={statusColor}
+              branchName={branchName}
+              isMainBranch={isMainBranch}
+              employeeMap={employeeMap}
+              deptMap={deptMap}
+              branchMap={branchMap}
+              onShelf={onShelf}
+              onShelfSub={onShelfSub}
+              deptLabel={deptLabel}
+              branchLabel={branchLabel}
+              tempLabel={tempLabel}
+              kindAuditLabel={kindAuditLabel}
+              kindInternLabel={kindInternLabel}
+              formattedTime={formattedTime}
+              canMutate={canMutate}
+              onRowClick={onRowClick ?? (() => {})}
+            />
+          )
+        })}
+
+        {/* Placeholder rows — desktop only (max-md:hidden) — maintain fixed table height.
+            MUST NOT have role="row" so getAllByRole('row') counts stay correct.
+            aria-hidden, pointer-events:none, no hover, no focus. */}
+        {Array.from({ length: placeholderCount }).map((_, i) => (
+          <div
+            key={`__ph_${i}`}
+            aria-hidden="true"
+            data-testid="asset-table-placeholder"
+            className="max-md:hidden"
+            style={{
+              position: 'relative',
+              flex: '1 1 0',
+              minHeight: 58,
+              borderTop: '1px solid rgba(42,47,54,0.35)',
+              pointerEvents: 'none',
+            }}
+          >
+            {/* Faint dashed center line — signals intentional empty slot */}
+            <div
+              style={{
+                position: 'absolute',
+                left: 20,
+                right: 20,
+                top: '50%',
+                height: 1,
+                borderTop: '1px dashed rgba(42,47,54,0.5)',
+                transform: 'translateY(-50%)',
+              }}
+            />
+          </div>
+        ))}
+      </div>
+    </div>}
+    </>
   )
 }
