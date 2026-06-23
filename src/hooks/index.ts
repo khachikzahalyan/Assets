@@ -2,3 +2,4 @@
 export * from './useAssets'
 export * from './useAuditLogs'
 export * from './useDashboard'
+export * from './useHoldNotifications'
