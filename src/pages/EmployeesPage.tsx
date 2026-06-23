@@ -180,8 +180,13 @@ export function EmployeesPage({
     e.departmentId ? (deptMap.get(e.departmentId) ?? '') : '', [deptMap])
   const assetCountOf = useCallback((id: string) => assetCounts[id] ?? 0, [assetCounts])
 
-  // Derive head office branch id — first branch is head office
-  const headOfficeBranchId = branches[0]?.id ?? null
+  // Derive head office branch id — match the seeded head-office branch
+  // explicitly (br_main / «Головной офис»); never rely on list order.
+  const headOfficeBranchId =
+    branches.find(b => b.id === 'br_main')?.id ??
+    branches.find(b => b.name === 'Головной офис')?.id ??
+    branches[0]?.id ??
+    null
 
   // ── Load / reload ─────────────────────────────────────────────────────────
   const reload = useCallback(async () => {
@@ -652,17 +657,18 @@ export function EmployeesPage({
       <ListPageShell
         header={
           <>
-            {/* Single row: KindTabs (left) + search + add button (right) */}
-            <div className="flex items-center justify-between gap-3 flex-wrap">
+            {/* Single row: KindTabs (left) + search + add button (right).
+                On mobile: KindTabs on first row (scroll-strip); search+add on same row full-width. */}
+            <div className="flex items-center justify-between gap-3 flex-wrap max-md:flex-col max-md:items-stretch max-md:gap-2">
               <EmployeeKindTabs
                 selected={kind}
                 onSelect={v => { setKind(v as 'all' | 'staff'); setPage(1) }}
                 counts={kindCounts}
               />
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 max-md:w-full">
                 {/* Search input */}
                 <div
-                  className="flex items-center gap-2 bg-[#111315] rounded-xl px-3 py-1.5 ring-1 ring-[#2A2F36]"
+                  className="flex items-center gap-2 bg-[#111315] rounded-xl px-3 py-1.5 ring-1 ring-[#2A2F36] max-md:flex-1"
                   style={{ width: 220 }}
                 >
                   <Icon name="search" size={13} className="text-[#64748B] shrink-0" />
