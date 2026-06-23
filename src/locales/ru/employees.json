@@ -115,6 +115,19 @@
     "search": "Поиск…",
     "notFound": "Не найдено"
   },
+  "transfer": {
+    "action": "Передать",
+    "cancel": "Отмена",
+    "confirm": "Передать",
+    "confirmTitle": "Передать {{count}} → {{dest}}?",
+    "deselectAll": "Снять все",
+    "nSelected": "Выбрано: {{count}}",
+    "selectAll": "Выбрать все",
+    "selectDone": "Готово",
+    "selectMode": "Выбрать",
+    "toastDone": "Передано: {{count}}",
+    "toastFailed": "Не удалось передать"
+  },
   "picker": {
     "title": "Привязать активы →",
     "intro": "Выберите категорию активов, которую хотите выдать сотруднику.",

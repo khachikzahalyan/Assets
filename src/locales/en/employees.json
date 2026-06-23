@@ -105,6 +105,19 @@
     "search": "Search…",
     "notFound": "Not found"
   },
+  "transfer": {
+    "action": "Transfer",
+    "cancel": "Cancel",
+    "confirm": "Transfer",
+    "confirmTitle": "Transfer {{count}} → {{dest}}?",
+    "deselectAll": "Clear all",
+    "nSelected": "Selected: {{count}}",
+    "selectAll": "Select all",
+    "selectDone": "Done",
+    "selectMode": "Select",
+    "toastDone": "Transferred: {{count}}",
+    "toastFailed": "Transfer failed"
+  },
   "picker": {
     "title": "Link assets →",
     "intro": "Select the asset category you want to issue to the employee.",

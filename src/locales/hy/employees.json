@@ -9,6 +9,19 @@
     "search": "Որոնում…",
     "warehouse": "Պահեստ"
   },
+  "transfer": {
+    "action": "Փոխանցել",
+    "cancel": "Չեղարկել",
+    "confirm": "Փոխանցել",
+    "confirmTitle": "Փոխանցե՞լ {{count}} → {{dest}}",
+    "deselectAll": "Մաքրել ընտրությունը",
+    "nSelected": "Ընտրված է՝ {{count}}",
+    "selectAll": "Ընտրել բոլորը",
+    "selectDone": "Պատրաստ է",
+    "selectMode": "Ընտրել",
+    "toastDone": "Փոխանցվեց՝ {{count}}",
+    "toastFailed": "Չհաջողվեց փոխանցել"
+  },
   "detail": {
     "acts": "Ստորագրված ակտեր",
     "assets": "Կցված ակտիվներ",
