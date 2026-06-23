@@ -7,7 +7,7 @@ const temp = (expiresAt: string | null): AssetAssignment => ({
 })
 
 describe('temporaryHoldStatus', () => {
-  const now = new Date('2026-06-23T12:00:00Z')
+  const now = new Date(2026, 5, 23, 12, 0, 0) // local 2026-06-23 noon — timezone-stable
 
   it('returns null when assignment is not temporary', () => {
     expect(temporaryHoldStatus({ mode: 'employee', employeeId: 'e1' }, now)).toBeNull()
