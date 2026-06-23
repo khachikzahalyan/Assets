@@ -113,7 +113,14 @@
     "department": "Отдел…",
     "branch": "Филиал…",
     "search": "Поиск…",
-    "notFound": "Не найдено"
+    "notFound": "Не найдено",
+    "temporary": "Временно",
+    "kindAudit": "Аудит",
+    "kindIntern": "Стажёр",
+    "returnDate": "Вернуть до",
+    "returnDatePlaceholder": "— выберите дату —",
+    "tempLabel": "{{kind}} · до {{date}}",
+    "tempConfirm": "Подтвердить"
   },
   "transfer": {
     "action": "Передать",

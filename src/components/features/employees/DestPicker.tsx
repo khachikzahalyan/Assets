@@ -8,6 +8,7 @@ import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react
 import ReactDOM from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@/components/ui'
+import { DatePicker } from '@/components/features/assets/create/DatePicker'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -16,6 +17,7 @@ export type Destination =
   | { kind: 'employee'; id: string; label: string }
   | { kind: 'department'; id: string; label: string }
   | { kind: 'branch'; id: string; label: string }
+  | { kind: 'temporary'; tempKind: 'audit' | 'intern'; expiresAt: string; label: string }
 
 export interface DestPickerProps {
   value: Destination
@@ -29,7 +31,7 @@ export interface DestPickerProps {
 
 // ── Internal types ────────────────────────────────────────────────────────────
 
-type SubKind = 'employee' | 'department' | 'branch'
+type SubKind = 'employee' | 'department' | 'branch' | 'temporary'
 
 interface PopoverPos {
   top?: number
@@ -62,6 +64,11 @@ const KIND_ACCENT = {
     iconCls: 'bg-teal-50 text-teal-700',
     chipCls: 'bg-teal-50 ring-teal-200 text-teal-700 hover:bg-teal-100',
   },
+  temporary: {
+    icon: 'timer',
+    iconCls: 'bg-rose-500/15 text-rose-300',
+    chipCls: 'bg-rose-500/10 ring-rose-500/30 text-rose-300 hover:bg-rose-500/15',
+  },
 } as const
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -80,6 +87,14 @@ export function DestPicker({
   const [sub, setSub] = useState<SubKind | null>(null)
   const [query, setQuery] = useState('')
   const [pos, setPos] = useState<PopoverPos | null>(null)
+
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const toISO = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+  const todayISO = toISO(new Date())
+  const defaultExpiry = (() => { const d = new Date(); d.setDate(d.getDate() + 7); return toISO(d) })()
+
+  const [tempKind, setTempKind] = useState<'audit' | 'intern' | ''>('')
+  const [returnDate, setReturnDate] = useState(defaultExpiry)
 
   const wrapRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
@@ -116,10 +131,12 @@ export function DestPicker({
       setSub(null)
       setQuery('')
       setPos(null)
+      setTempKind('')
+      setReturnDate(defaultExpiry)
       return
     }
     updatePos()
-  }, [open, updatePos])
+  }, [open, updatePos, defaultExpiry])
 
   useEffect(() => {
     if (!open) return
@@ -196,6 +213,13 @@ export function DestPicker({
       sub: 'branch' as SubKind,
       iconCls: KIND_ACCENT.branch.iconCls,
       icon: KIND_ACCENT.branch.icon,
+    },
+    {
+      kind: 'temporary' as const,
+      label: t('dest.temporary'),
+      sub: 'temporary' as SubKind,
+      iconCls: KIND_ACCENT.temporary.iconCls,
+      icon: KIND_ACCENT.temporary.icon,
     },
   ]
 
@@ -275,87 +299,154 @@ export function DestPicker({
               </div>
             ) : (
               <div>
-                {/* Sub-picker header: back + search */}
-                <div className="flex items-center gap-1 px-1 mb-1.5">
-                  <button
-                    type="button"
-                    aria-label="Назад"
-                    onClick={() => {
-                      setSub(null)
-                      setQuery('')
-                    }}
-                    className="p-1 rounded-md text-[#64748B] hover:text-[#CBD5E1] hover:bg-[#22272E] transition-colors"
-                  >
-                    <Icon name="arrow-left" size={12} />
-                  </button>
-                  <div className="ams-destpicker-search flex-1 flex items-center gap-1.5 bg-[#111315] rounded-lg px-2 py-1">
-                    <Icon name="search" size={11} className="text-[#64748B] shrink-0" />
-                    <input
-                      type="text"
-                      value={query}
-                      onChange={(e) => setQuery(e.target.value)}
-                      placeholder={t('dest.search')}
-                      aria-label={t('dest.search')}
-                      autoFocus
-                      className="ams-destpicker-search-input flex-1 text-[14px] bg-transparent border-none outline-none placeholder:text-[#64748B] text-[#F8FAFC] min-w-0"
+                {/* Employee / department / branch search sub-panels */}
+                {sub !== 'temporary' && (
+                  <>
+                    {/* Sub-picker header: back + search */}
+                    <div className="flex items-center gap-1 px-1 mb-1.5">
+                      <button
+                        type="button"
+                        aria-label="Назад"
+                        onClick={() => {
+                          setSub(null)
+                          setQuery('')
+                        }}
+                        className="p-1 rounded-md text-[#64748B] hover:text-[#CBD5E1] hover:bg-[#22272E] transition-colors"
+                      >
+                        <Icon name="arrow-left" size={12} />
+                      </button>
+                      <div className="ams-destpicker-search flex-1 flex items-center gap-1.5 bg-[#111315] rounded-lg px-2 py-1">
+                        <Icon name="search" size={11} className="text-[#64748B] shrink-0" />
+                        <input
+                          type="text"
+                          value={query}
+                          onChange={(e) => setQuery(e.target.value)}
+                          placeholder={t('dest.search')}
+                          aria-label={t('dest.search')}
+                          autoFocus
+                          className="ams-destpicker-search-input flex-1 text-[14px] bg-transparent border-none outline-none placeholder:text-[#64748B] text-[#F8FAFC] min-w-0"
+                        />
+                      </div>
+                    </div>
+                    <div className="max-h-[160px] overflow-y-auto space-y-0.5">
+                      {sub === 'employee' &&
+                        filteredList(activeEmps).map((e) => (
+                          <button
+                            key={e.id}
+                            type="button"
+                            onClick={() => commit({ kind: 'employee', id: e.id, label: e.name })}
+                            className="w-full text-left px-2.5 py-2 rounded-xl text-[14px] font-medium text-[#F8FAFC] hover:bg-[#111315] transition-colors duration-100 flex items-center gap-2 truncate"
+                          >
+                            <span
+                              className={`inline-flex items-center justify-center w-[18px] h-[18px] rounded-[4px] shrink-0 ${SUB_ICON.employee.iconCls}`}
+                            >
+                              <Icon name={SUB_ICON.employee.icon} size={11} />
+                            </span>
+                            <span className="truncate">{e.name}</span>
+                          </button>
+                        ))}
+                      {sub === 'department' &&
+                        filteredList(departments).map((d) => (
+                          <button
+                            key={d.id}
+                            type="button"
+                            onClick={() =>
+                              commit({ kind: 'department', id: d.id, label: d.name })
+                            }
+                            className="w-full text-left px-2.5 py-2 rounded-xl text-[14px] font-medium text-[#F8FAFC] hover:bg-[#111315] transition-colors duration-100 flex items-center gap-2 truncate"
+                          >
+                            <span
+                              className={`inline-flex items-center justify-center w-[18px] h-[18px] rounded-[4px] shrink-0 ${SUB_ICON.department.iconCls}`}
+                            >
+                              <Icon name={SUB_ICON.department.icon} size={11} />
+                            </span>
+                            <span className="truncate">{d.name}</span>
+                          </button>
+                        ))}
+                      {sub === 'branch' &&
+                        filteredList(branches).map((b) => (
+                          <button
+                            key={b.id}
+                            type="button"
+                            onClick={() => commit({ kind: 'branch', id: b.id, label: b.name })}
+                            className="w-full text-left px-2.5 py-2 rounded-xl text-[14px] font-medium text-[#F8FAFC] hover:bg-[#111315] transition-colors duration-100 flex items-center gap-2 truncate"
+                          >
+                            <span
+                              className={`inline-flex items-center justify-center w-[18px] h-[18px] rounded-[4px] shrink-0 ${SUB_ICON.branch.iconCls}`}
+                            >
+                              <Icon name={SUB_ICON.branch.icon} size={11} />
+                            </span>
+                            <span className="truncate">{b.name}</span>
+                          </button>
+                        ))}
+                      {sub === 'employee' && filteredList(activeEmps).length === 0 && emptyState}
+                      {sub === 'department' && filteredList(departments).length === 0 && emptyState}
+                      {sub === 'branch' && filteredList(branches).length === 0 && emptyState}
+                    </div>
+                  </>
+                )}
+
+                {/* Temporary sub-panel */}
+                {sub === 'temporary' && (
+                  <div className="px-1.5 pb-1">
+                    <div className="flex items-center gap-1 px-0.5 mb-2">
+                      <button
+                        type="button"
+                        aria-label="Назад"
+                        onClick={() => { setSub(null); setTempKind('') }}
+                        className="p-1 rounded-md text-[#64748B] hover:text-[#CBD5E1] hover:bg-[#22272E] transition-colors"
+                      >
+                        <Icon name="arrow-left" size={12} />
+                      </button>
+                      <span className="text-[12px] uppercase tracking-[0.06em] font-semibold text-[#94A3B8]">
+                        {t('dest.temporary')}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1 h-9 bg-[#111315] border border-[#2A2F36] rounded-lg overflow-hidden mb-2">
+                      {(['audit', 'intern'] as const).map((k, i) => (
+                        <button
+                          key={k}
+                          type="button"
+                          onClick={() => setTempKind(k)}
+                          aria-pressed={tempKind === k}
+                          className={`flex-1 h-full text-[13px] font-medium transition-colors ${i > 0 ? 'border-l border-[#2A2F36]' : ''}
+                            ${tempKind === k ? 'bg-rose-500/80 text-white' : 'text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-[#22272E]'}`}
+                        >
+                          {k === 'audit' ? t('dest.kindAudit') : t('dest.kindIntern')}
+                        </button>
+                      ))}
+                    </div>
+                    <label className="block text-[12px] uppercase tracking-[0.06em] font-semibold text-[#94A3B8] mb-1">
+                      {t('dest.returnDate')}
+                    </label>
+                    <DatePicker
+                      value={returnDate}
+                      onChange={(v) => { if (v && v < todayISO) return; setReturnDate(v) }}
+                      min={todayISO}
+                      placeholder={t('dest.returnDatePlaceholder')}
                     />
+                    <button
+                      type="button"
+                      disabled={!tempKind || !returnDate || returnDate < todayISO}
+                      onClick={() => {
+                        if (!tempKind) return
+                        const dd = returnDate.split('-')
+                        const short = `${dd[2]}.${dd[1]}`
+                        const kindLabel = tempKind === 'audit' ? t('dest.kindAudit') : t('dest.kindIntern')
+                        commit({
+                          kind: 'temporary',
+                          tempKind,
+                          expiresAt: returnDate,
+                          label: t('dest.tempLabel', { kind: kindLabel, date: short }),
+                        })
+                      }}
+                      className="mt-3 w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-[14px] bg-rose-500/80 text-white hover:bg-rose-500 disabled:opacity-35 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <Icon name="check" size={13} />
+                      {t('dest.tempConfirm')}
+                    </button>
                   </div>
-                </div>
-                <div className="max-h-[160px] overflow-y-auto space-y-0.5">
-                  {sub === 'employee' &&
-                    filteredList(activeEmps).map((e) => (
-                      <button
-                        key={e.id}
-                        type="button"
-                        onClick={() => commit({ kind: 'employee', id: e.id, label: e.name })}
-                        className="w-full text-left px-2.5 py-2 rounded-xl text-[14px] font-medium text-[#F8FAFC] hover:bg-[#111315] transition-colors duration-100 flex items-center gap-2 truncate"
-                      >
-                        <span
-                          className={`inline-flex items-center justify-center w-[18px] h-[18px] rounded-[4px] shrink-0 ${SUB_ICON.employee.iconCls}`}
-                        >
-                          <Icon name={SUB_ICON.employee.icon} size={11} />
-                        </span>
-                        <span className="truncate">{e.name}</span>
-                      </button>
-                    ))}
-                  {sub === 'department' &&
-                    filteredList(departments).map((d) => (
-                      <button
-                        key={d.id}
-                        type="button"
-                        onClick={() =>
-                          commit({ kind: 'department', id: d.id, label: d.name })
-                        }
-                        className="w-full text-left px-2.5 py-2 rounded-xl text-[14px] font-medium text-[#F8FAFC] hover:bg-[#111315] transition-colors duration-100 flex items-center gap-2 truncate"
-                      >
-                        <span
-                          className={`inline-flex items-center justify-center w-[18px] h-[18px] rounded-[4px] shrink-0 ${SUB_ICON.department.iconCls}`}
-                        >
-                          <Icon name={SUB_ICON.department.icon} size={11} />
-                        </span>
-                        <span className="truncate">{d.name}</span>
-                      </button>
-                    ))}
-                  {sub === 'branch' &&
-                    filteredList(branches).map((b) => (
-                      <button
-                        key={b.id}
-                        type="button"
-                        onClick={() => commit({ kind: 'branch', id: b.id, label: b.name })}
-                        className="w-full text-left px-2.5 py-2 rounded-xl text-[14px] font-medium text-[#F8FAFC] hover:bg-[#111315] transition-colors duration-100 flex items-center gap-2 truncate"
-                      >
-                        <span
-                          className={`inline-flex items-center justify-center w-[18px] h-[18px] rounded-[4px] shrink-0 ${SUB_ICON.branch.iconCls}`}
-                        >
-                          <Icon name={SUB_ICON.branch.icon} size={11} />
-                        </span>
-                        <span className="truncate">{b.name}</span>
-                      </button>
-                    ))}
-                  {sub === 'employee' && filteredList(activeEmps).length === 0 && emptyState}
-                  {sub === 'department' && filteredList(departments).length === 0 && emptyState}
-                  {sub === 'branch' && filteredList(branches).length === 0 && emptyState}
-                </div>
+                )}
               </div>
             )}
           </div>,
