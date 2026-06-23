@@ -43,29 +43,58 @@ describe('DestPicker temporary', () => {
     }
   })
 
-  it('confirm button is not disabled for a past return date (no floor)', () => {
+  it('selects a PAST return date and commits an expiresAt in the past (floor removed)', () => {
     const { onChange } = setup()
-    // open popover, navigate to temporary sub-panel
+
+    // Arrange — open popover and navigate to the temporary sub-panel
     fireEvent.click(screen.getByRole('button', { name: 'Склад' }))
     fireEvent.click(screen.getByText('Временно'))
-
-    // The date input must NOT have a min attribute (floor removed)
-    const dateInput = document.getElementById('dest-return-date') as HTMLInputElement | null
-    // DatePicker may render a hidden native input or a custom trigger —
-    // assert no min attribute is present if the native input is found
-    if (dateInput) {
-      expect(dateInput.getAttribute('min')).toBeNull()
-    }
-
-    // Pick a kind (Аудит) — default returnDate is +7 days (future), confirm must be enabled
+    // Pick a kind so the confirm button becomes enabled
     fireEvent.click(screen.getByRole('button', { name: 'Аудит' }))
+
+    // Act — open the DatePicker calendar.
+    // The trigger is a <button id="dest-return-date"> (DatePicker renders it this way).
+    const trigger = document.getElementById('dest-return-date') as HTMLButtonElement
+    expect(trigger).not.toBeNull()
+    fireEvent.click(trigger)
+
+    // The DatePicker renders its calendar into a portal attached to document.body
+    // (data-dp-portal="true"). Query within that portal so we don't accidentally
+    // target the DestPicker's own «Назад» back-arrow (same translated text).
+    const calPortal = document.querySelector('[data-dp-portal]') as HTMLElement
+    expect(calPortal).not.toBeNull()
+
+    // Navigate back two months so every in-month day cell is guaranteed to be
+    // in the past regardless of today's day-of-month.
+    const calBackBtn = calPortal.querySelector('[aria-label="Назад"]') as HTMLButtonElement
+    expect(calBackBtn).not.toBeNull()
+    fireEvent.click(calBackBtn)
+    fireEvent.click(calBackBtn)
+
+    // Click day "15" within the calendar portal.
+    // Day 15 is always an in-month cell (never a prev/next overflow row).
+    const dayButtons = Array.from(calPortal.querySelectorAll('button')).filter(
+      (b) => b.textContent?.trim() === '15',
+    )
+    expect(dayButtons.length).toBeGreaterThan(0)
+    fireEvent.click(dayButtons[dayButtons.length - 1]!)
+
+    // Confirm — button must not be disabled with a selected date and kind
     const confirmBtn = screen.getByText('Подтвердить').closest('button') as HTMLButtonElement
     expect(confirmBtn).not.toBeDisabled()
-
-    // Confirm fires onChange even when date is present (no past-date guard)
     fireEvent.click(confirmBtn)
+
+    // Assert — onChange called once with a temporary destination dated in the past
     expect(onChange).toHaveBeenCalledTimes(1)
     const arg = onChange.mock.calls[0]?.[0] as Destination
     expect(arg.kind).toBe('temporary')
+    if (arg.kind === 'temporary') {
+      const todayISO = (() => {
+        const d = new Date()
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+      })()
+      // The committed expiresAt must be strictly before today
+      expect(arg.expiresAt < todayISO).toBe(true)
+    }
   })
 })
