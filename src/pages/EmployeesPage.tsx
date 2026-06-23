@@ -652,13 +652,18 @@ export function EmployeesPage({
       <ListPageShell
         header={
           <>
-            {/* Page header — search + add button, right-aligned, no title/icon */}
+            {/* Single row: KindTabs (left) + search + add button (right) */}
             <div className="flex items-center justify-between gap-3 flex-wrap">
-              <div className="ml-auto flex items-center gap-2">
+              <EmployeeKindTabs
+                selected={kind}
+                onSelect={v => { setKind(v as 'all' | 'staff'); setPage(1) }}
+                counts={kindCounts}
+              />
+              <div className="flex items-center gap-2">
                 {/* Search input */}
                 <div
                   className="flex items-center gap-2 bg-[#111315] rounded-xl px-3 py-1.5 ring-1 ring-[#2A2F36]"
-                  style={{ minWidth: '18%', maxWidth: '34%', width: 220 }}
+                  style={{ width: 220 }}
                 >
                   <Icon name="search" size={13} className="text-[#64748B] shrink-0" />
                   <input
@@ -687,15 +692,6 @@ export function EmployeesPage({
                   </Btn>
                 )}
               </div>
-            </div>
-
-            {/* KindTabs — shown between header and filter bar */}
-            <div className="px-0">
-              <EmployeeKindTabs
-                selected={kind}
-                onSelect={v => { setKind(v as 'all' | 'staff'); setPage(1) }}
-                counts={kindCounts}
-              />
             </div>
           </>
         }
