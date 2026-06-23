@@ -120,7 +120,8 @@
     "returnDate": "Вернуть до",
     "returnDatePlaceholder": "— выберите дату —",
     "tempLabel": "{{kind}} · до {{date}}",
-    "tempConfirm": "Подтвердить"
+    "tempConfirm": "Подтвердить",
+    "back": "Назад"
   },
   "transfer": {
     "action": "Передать",

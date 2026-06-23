@@ -71,6 +71,13 @@ const KIND_ACCENT = {
   },
 } as const
 
+// ── Date helpers (module scope — stable across renders) ───────────────────────
+
+const pad = (n: number) => String(n).padStart(2, '0')
+const toISO = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+const todayISODate = () => toISO(new Date())
+const plusDaysISO = (days: number) => { const d = new Date(); d.setDate(d.getDate() + days); return toISO(d) }
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function DestPicker({
@@ -88,13 +95,9 @@ export function DestPicker({
   const [query, setQuery] = useState('')
   const [pos, setPos] = useState<PopoverPos | null>(null)
 
-  const pad = (n: number) => String(n).padStart(2, '0')
-  const toISO = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
-  const todayISO = toISO(new Date())
-  const defaultExpiry = (() => { const d = new Date(); d.setDate(d.getDate() + 7); return toISO(d) })()
-
-  const [tempKind, setTempKind] = useState<'audit' | 'intern' | ''>('')
-  const [returnDate, setReturnDate] = useState(defaultExpiry)
+  const [tempKind, setTempKind] = useState<'audit' | 'intern' | null>(null)
+  const todayISO = todayISODate()
+  const [returnDate, setReturnDate] = useState(() => plusDaysISO(7))
 
   const wrapRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
@@ -131,12 +134,12 @@ export function DestPicker({
       setSub(null)
       setQuery('')
       setPos(null)
-      setTempKind('')
-      setReturnDate(defaultExpiry)
+      setTempKind(null)
+      setReturnDate(plusDaysISO(7))
       return
     }
     updatePos()
-  }, [open, updatePos, defaultExpiry])
+  }, [open, updatePos])
 
   useEffect(() => {
     if (!open) return
@@ -306,7 +309,7 @@ export function DestPicker({
                     <div className="flex items-center gap-1 px-1 mb-1.5">
                       <button
                         type="button"
-                        aria-label="Назад"
+                        aria-label={t('dest.back')}
                         onClick={() => {
                           setSub(null)
                           setQuery('')
@@ -392,8 +395,8 @@ export function DestPicker({
                     <div className="flex items-center gap-1 px-0.5 mb-2">
                       <button
                         type="button"
-                        aria-label="Назад"
-                        onClick={() => { setSub(null); setTempKind('') }}
+                        aria-label={t('dest.back')}
+                        onClick={() => { setSub(null); setTempKind(null); setReturnDate(plusDaysISO(7)) }}
                         className="p-1 rounded-md text-[#64748B] hover:text-[#CBD5E1] hover:bg-[#22272E] transition-colors"
                       >
                         <Icon name="arrow-left" size={12} />
@@ -416,10 +419,11 @@ export function DestPicker({
                         </button>
                       ))}
                     </div>
-                    <label className="block text-[12px] uppercase tracking-[0.06em] font-semibold text-[#94A3B8] mb-1">
+                    <label htmlFor="dest-return-date" className="block text-[12px] uppercase tracking-[0.06em] font-semibold text-[#94A3B8] mb-1">
                       {t('dest.returnDate')}
                     </label>
                     <DatePicker
+                      id="dest-return-date"
                       value={returnDate}
                       onChange={(v) => { if (v && v < todayISO) return; setReturnDate(v) }}
                       min={todayISO}
