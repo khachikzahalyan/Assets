@@ -99,6 +99,7 @@ import {
   Fan,
   Plug,
   BatteryMedium,
+  Bell,
   Mail,
   CalendarPlus,
   Link2,
@@ -225,6 +226,7 @@ const REGISTRY: Record<string, LucideIcon> = {
   info: Info,
   square: Square,
   'list-checks': ListChecks,
+  bell: Bell,
 }
 
 export interface IconProps {
