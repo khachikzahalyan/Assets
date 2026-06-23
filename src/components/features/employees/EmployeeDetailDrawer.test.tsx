@@ -53,6 +53,14 @@ const LINKED_ASSETS: DrawerLinkedAsset[] = [
     cat: 'Монитор',
     transferredAt: '2025-05-10T08:00:00Z',
   },
+  {
+    id: 'asset_3',
+    icon: 'smartphone',
+    title: 'iPhone 14',
+    invCode: 'PHONE/007',
+    cat: 'Телефон',
+    transferredAt: '2025-04-20T09:00:00Z',
+  },
 ]
 
 // ── Render helpers ─────────────────────────────────────────────────────────────
@@ -62,6 +70,7 @@ function renderDrawer(overrides: Partial<EmployeeDetailDrawerProps> = {}) {
   const onArchive = overrides.onArchive ?? vi.fn()
   const onRestore = overrides.onRestore ?? vi.fn()
   const onLinkAssets = overrides.onLinkAssets ?? vi.fn()
+  const onTransferAssets = overrides.onTransferAssets ?? vi.fn()
 
   render(
     <I18nextProvider i18n={i18n}>
@@ -75,11 +84,15 @@ function renderDrawer(overrides: Partial<EmployeeDetailDrawerProps> = {}) {
         onArchive={onArchive}
         onRestore={onRestore}
         onLinkAssets={onLinkAssets}
+        employees={overrides.employees ?? [{ id: 'e2', name: 'Борис Сидоров', status: 'active' }]}
+        departments={overrides.departments ?? [{ id: 'dep_it', name: 'ИТ' }]}
+        branches={overrides.branches ?? [{ id: 'br_2', name: 'Филиал 2' }]}
+        onTransferAssets={onTransferAssets}
       />
     </I18nextProvider>,
   )
 
-  return { onClose, onArchive, onRestore, onLinkAssets }
+  return { onClose, onArchive, onRestore, onLinkAssets, onTransferAssets }
 }
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
@@ -119,6 +132,10 @@ describe('EmployeeDetailDrawer — basic rendering', () => {
           onArchive={vi.fn()}
           onRestore={vi.fn()}
           onLinkAssets={vi.fn()}
+          employees={[]}
+          departments={[]}
+          branches={[]}
+          onTransferAssets={vi.fn()}
         />
       </I18nextProvider>,
     )
@@ -176,7 +193,7 @@ describe('EmployeeDetailDrawer — linked assets', () => {
 
   it('shows the count of linked assets', () => {
     renderDrawer({ linkedAssets: LINKED_ASSETS })
-    expect(screen.getByText('2')).toBeInTheDocument()
+    expect(screen.getByText('3')).toBeInTheDocument()
   })
 })
 
@@ -203,5 +220,90 @@ describe('EmployeeDetailDrawer — callbacks', () => {
     const { onClose } = renderDrawer()
     fireEvent.click(screen.getByRole('button', { name: /Закрыть/i }))
     expect(onClose).toHaveBeenCalledTimes(1)
+  })
+})
+
+// ── Transfer / multi-select tests ─────────────────────────────────────────────
+
+describe('EmployeeDetailDrawer — multi-select transfer flow', () => {
+  it('1. no checkboxes before entering select mode', () => {
+    renderDrawer({ linkedAssets: LINKED_ASSETS })
+    // The asset rows should not be present (they are plain <li>s) — no aria-pressed
+    expect(document.querySelectorAll('[aria-pressed]')).toHaveLength(0)
+  })
+
+  it('2. clicking Выбрать enters select mode — rows get aria-pressed', () => {
+    renderDrawer({ linkedAssets: LINKED_ASSETS })
+    fireEvent.click(screen.getByRole('button', { name: /Выбрать/i }))
+    // Each asset row should now have aria-pressed
+    const pressedEls = document.querySelectorAll('[aria-pressed]')
+    expect(pressedEls.length).toBe(3)
+  })
+
+  it('3. Выбрать все selects all rows; count shows 3', () => {
+    renderDrawer({ linkedAssets: LINKED_ASSETS })
+    fireEvent.click(screen.getByRole('button', { name: /Выбрать/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Выбрать все/i }))
+    expect(screen.getByText(/Выбрано: 3/)).toBeInTheDocument()
+  })
+
+  it('4. with ≥1 selected, transfer bar shows DestPicker chip (Склад) and Передать button', () => {
+    renderDrawer({ linkedAssets: LINKED_ASSETS })
+    fireEvent.click(screen.getByRole('button', { name: /Выбрать/i }))
+    // Select first asset by clicking first aria-pressed element
+    const rows = Array.from(document.querySelectorAll('[aria-pressed]'))
+    fireEvent.click(rows[0] as Element)
+    // Transfer bar should appear
+    expect(screen.getByText(/Склад/)).toBeInTheDocument()
+    // Передать button
+    expect(screen.getByRole('button', { name: /^Передать$/i })).toBeInTheDocument()
+  })
+
+  it('5. clicking Передать shows confirm; confirming calls onTransferAssets once with all 3 ids and {kind:warehouse}', () => {
+    const { onTransferAssets } = renderDrawer({ linkedAssets: LINKED_ASSETS })
+    fireEvent.click(screen.getByRole('button', { name: /Выбрать/i }))
+    // Select all
+    fireEvent.click(screen.getByRole('button', { name: /Выбрать все/i }))
+    // Click transfer action
+    fireEvent.click(screen.getByRole('button', { name: /^Передать$/i }))
+    // Confirm title should appear
+    expect(screen.getByText(/Передать 3 → Склад/i)).toBeInTheDocument()
+    // Click the confirm button (last one in the list — the one inside confirm row)
+    const confirmBtn = screen.getAllByRole('button', { name: /^Передать$/i })
+    fireEvent.click(confirmBtn[confirmBtn.length - 1] as HTMLElement)
+    expect(onTransferAssets).toHaveBeenCalledTimes(1)
+    expect(onTransferAssets).toHaveBeenCalledWith(
+      expect.arrayContaining(['asset_1', 'asset_2', 'asset_3']),
+      { kind: 'warehouse' },
+    )
+  })
+
+  it('6. after confirming, select mode exits — no aria-pressed elements, no transfer bar', () => {
+    const { onTransferAssets } = renderDrawer({ linkedAssets: LINKED_ASSETS })
+    fireEvent.click(screen.getByRole('button', { name: /Выбрать/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Выбрать все/i }))
+    fireEvent.click(screen.getByRole('button', { name: /^Передать$/i }))
+    // click confirm
+    const confirmBtns = screen.getAllByRole('button', { name: /^Передать$/i })
+    fireEvent.click(confirmBtns[confirmBtns.length - 1] as HTMLElement)
+    expect(onTransferAssets).toHaveBeenCalledTimes(1)
+    // select mode should be gone
+    expect(document.querySelectorAll('[aria-pressed]')).toHaveLength(0)
+    // transfer bar gone — no "Выбрано:" text
+    expect(screen.queryByText(/Выбрано:/)).toBeNull()
+  })
+
+  it('7. clicking Готово in select mode exits without calling onTransferAssets', () => {
+    const { onTransferAssets } = renderDrawer({ linkedAssets: LINKED_ASSETS })
+    fireEvent.click(screen.getByRole('button', { name: /Выбрать/i }))
+    // Select one asset
+    const rows = Array.from(document.querySelectorAll('[aria-pressed]'))
+    fireEvent.click(rows[0] as Element)
+    // Now toggle button says "Готово"
+    fireEvent.click(screen.getByRole('button', { name: /Готово/i }))
+    // onTransferAssets NOT called
+    expect(onTransferAssets).not.toHaveBeenCalled()
+    // no aria-pressed elements remain
+    expect(document.querySelectorAll('[aria-pressed]')).toHaveLength(0)
   })
 })

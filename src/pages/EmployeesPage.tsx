@@ -755,6 +755,12 @@ export function EmployeesPage({
         onArchive={id => { void handleArchive(id) }}
         onRestore={id => { handleRestore(id) }}
         onLinkAssets={id => { void handleLinkAssets(id) }}
+        employees={handoverEmployees}
+        departments={departments}
+        branches={branches}
+        onTransferAssets={(_assetIds, _destination) => {
+          // TODO(Task 3): wire persistence — call transfer repository and refresh
+        }}
       />
 
       <HandoverModal
