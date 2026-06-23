@@ -2,7 +2,32 @@
 
 **Date:** 2026-06-23
 **Branch:** `feat/employees-prototype-parity`
-**Status:** Approved-by-owner (defaults), pending user confirmation on flagged decisions.
+**Status:** REVISED 2026-06-23 after codebase discovery — backend already exists; this is now UI-only.
+
+## ⚠️ Revision note — backend already exists
+
+The original design proposed adding a `department` assignment mode + a new `transfer()` to
+`AssignmentRepository`. **That is no longer needed.** The codebase already has the full transfer
+machinery at the asset-cache layer (added by the in-flight assets/licenses parity work, present as
+untracked/modified files in the tree):
+
+- `src/domain/asset/transferRules.ts` → `buildTransferPatch(target, employeeDeptId)` — a pure helper
+  that derives `{ toStatusId, assignment, branchId, deptId }` for **all five modes**
+  (warehouse / employee / branch / department / temporary). Exported from `@/domain/asset`. Tested (6/6).
+- `AssetRepository.changeStatus(id, toStatusId, actor, { assignment, comment })` — atomic
+  status + assignment + audit, in **both** inMemory and firestore adapters.
+- `AssetRepository.bulkChangeAssignment(ids, assignment, actor, comment?)` — multi-asset transfer to
+  one target; loops `changeStatus(id, 'st_assigned', …)` so each asset gets its own audit entry. Both
+  adapters. (Note: hard-codes `st_assigned`, so **warehouse return is done via `changeStatus(id,
+  'st_warehouse', actor, { assignment: null, comment })`** directly, not via `bulkChangeAssignment`.)
+- `AssetAssignment.mode` already includes `'department'`; the linked-asset list keys off
+  `asset.assignment` (the asset cache), which `changeStatus` updates.
+
+Therefore: **no change to `AssignmentRepository`, `ASSIGNMENT_MODES`, the `assignments` collection, or
+`firestore.rules`.** The `assets` write path is already covered by the existing
+`allow write: if isSuperAdmin() || isAssetAdmin()` rule on `/assets`. This feature is **UI + page wiring
+only**, reusing the existing tested backend. (Original §"Backend" and the per-task backend tasks are
+superseded; kept below for historical context only.)
 
 ## Goal
 
