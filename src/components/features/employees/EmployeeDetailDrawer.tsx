@@ -229,7 +229,7 @@ export function EmployeeDetailDrawer({
     }
   }
 
-  const destLabel = dest.kind === 'warehouse' ? t('dest.warehouse') : (dest as { label: string }).label
+  const destLabel = dest.kind === 'warehouse' ? t('dest.warehouse') : dest.label
 
   return (
     <Drawer open={open} onClose={onClose} ariaLabel={`${emp.firstName} ${emp.lastName}`}>
