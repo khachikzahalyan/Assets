@@ -75,7 +75,6 @@ const KIND_ACCENT = {
 
 const pad = (n: number) => String(n).padStart(2, '0')
 const toISO = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
-const todayISODate = () => toISO(new Date())
 const plusDaysISO = (days: number) => { const d = new Date(); d.setDate(d.getDate() + days); return toISO(d) }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -96,7 +95,6 @@ export function DestPicker({
   const [pos, setPos] = useState<PopoverPos | null>(null)
 
   const [tempKind, setTempKind] = useState<'audit' | 'intern' | null>(null)
-  const todayISO = todayISODate()
   const [returnDate, setReturnDate] = useState(() => plusDaysISO(7))
 
   const wrapRef = useRef<HTMLDivElement>(null)
@@ -425,13 +423,12 @@ export function DestPicker({
                     <DatePicker
                       id="dest-return-date"
                       value={returnDate}
-                      onChange={(v) => { if (v && v < todayISO) return; setReturnDate(v) }}
-                      min={todayISO}
+                      onChange={(v) => setReturnDate(v)}
                       placeholder={t('dest.returnDatePlaceholder')}
                     />
                     <button
                       type="button"
-                      disabled={!tempKind || !returnDate || returnDate < todayISO}
+                      disabled={!tempKind || !returnDate}
                       onClick={() => {
                         if (!tempKind) return
                         const dd = returnDate.split('-')
