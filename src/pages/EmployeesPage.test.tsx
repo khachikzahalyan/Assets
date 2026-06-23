@@ -7,8 +7,10 @@ import i18n from '@/lib/i18n'
 import { AuthContext } from '@/contexts/AuthContext'
 import { ToastProvider } from '@/contexts/ToastContext'
 import { EmployeesPage } from './EmployeesPage'
-import { InMemoryEmployeeRepository } from '@/infra/repositories'
+import { InMemoryEmployeeRepository, InMemoryAssetRepository } from '@/infra/repositories'
 import type { Employee } from '@/domain/employee'
+import type { Asset, AssetReferenceData } from '@/domain/asset'
+import { createInMemoryAuditStore, inMemoryAuditContext } from '@/lib/audit'
 
 // Mock Firebase so EmployeesPage's lazy defaultRepo doesn't crash
 vi.mock('@/lib/firebase', () => ({
@@ -62,19 +64,63 @@ function emp(over: Partial<Employee> = {}): Employee {
   }
 }
 
+const REF: AssetReferenceData = {
+  statuses: [
+    { id: 'st_warehouse', name: 'На складе', color: 'gray' },
+    { id: 'st_assigned', name: 'Выдано', color: 'green' },
+  ],
+  branches: [{ id: 'br_main', name: 'Головной офис' }],
+  departments: [{ id: 'dept_1', name: 'IT' }],
+  categories: [{ id: 'cat_1', name: 'Ноутбук', lucideIcon: 'laptop', group: 'devices' as const }],
+  employees: [],
+}
+
+function makeAsset(over: Partial<Asset> = {}): Asset {
+  return {
+    id: 'asset_1',
+    categoryId: 'cat_1',
+    brand: 'Dell',
+    model: 'XPS',
+    invCode: 'LT/001',
+    serial: 'SN-001',
+    statusId: 'st_assigned',
+    assignment: { mode: 'employee', employeeId: 'uid_1' },
+    branchId: 'br_main',
+    deptId: null,
+    updatedAt: '2026-01-01T00:00:00.000Z',
+    ...over,
+  }
+}
+
+function makeAssetRepo(assets: Asset[]) {
+  const store = createInMemoryAuditStore()
+  return new InMemoryAssetRepository([...assets], REF, inMemoryAuditContext(store))
+}
+
 function renderPage(
   employees: Employee[],
   role: 'super_admin' | 'asset_admin' = 'asset_admin',
   assetCounts: Record<string, number> = {},
+  overrides: {
+    assetRepository?: InstanceType<typeof InMemoryAssetRepository>
+  } = {},
 ) {
   const repo = new InMemoryEmployeeRepository(employees)
-  const refLoader = async () => ({ branches: [], departments: [] })
+  const refLoader = async () => ({ branches: [{ id: 'br_main', name: 'Головной офис' }], departments: [{ id: 'dept_1', name: 'IT' }] })
+  const extraProps = overrides.assetRepository
+    ? { assetRepository: overrides.assetRepository }
+    : {}
   render(
     <I18nextProvider i18n={i18n}>
       <AuthContext.Provider value={authCtx(role)}>
         <ToastProvider>
           <MemoryRouter>
-            <EmployeesPage repository={repo} loadRefData={refLoader} assetCounts={assetCounts} />
+            <EmployeesPage
+              repository={repo}
+              loadRefData={refLoader}
+              assetCounts={assetCounts}
+              {...extraProps}
+            />
           </MemoryRouter>
         </ToastProvider>
       </AuthContext.Provider>
@@ -148,5 +194,236 @@ describe('EmployeesPage', () => {
     await screen.findByText('Иван Петров')
     expect(screen.getByRole('button', { name: /Все/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Сотрудники/i })).toBeInTheDocument()
+  })
+
+  // ── Transfer tests (Task 3) ────────────────────────────────────────────────
+
+  it('warehouse return: transfers asset to warehouse via changeStatus', async () => {
+    const user = userEvent.setup()
+    const asset = makeAsset()
+    const assetRepo = makeAssetRepo([asset])
+    const employee = emp({ id: 'uid_1' })
+    renderPage([employee], 'asset_admin', { uid_1: 1 }, { assetRepository: assetRepo })
+
+    // Open detail drawer by clicking the employee row
+    const row = await screen.findByText('Иван Петров')
+    await user.click(row)
+
+    // Wait for drawer to open and show assets
+    await waitFor(() => {
+      expect(screen.getAllByText('Иван Петров').length).toBeGreaterThanOrEqual(1)
+    })
+
+    // Click "Выбрать" to enter select mode
+    const selectBtn = await screen.findByRole('button', { name: /Выбрать/i })
+    await user.click(selectBtn)
+
+    // Select the asset (click on the asset row)
+    const assetTitle = await screen.findByText('Dell XPS')
+    await user.click(assetTitle)
+
+    // Dest defaults to Склад — click "Передать" button (transfer.action)
+    const transferBtn = await screen.findByRole('button', { name: /^Передать$/i })
+    await user.click(transferBtn)
+
+    // Click confirm
+    const confirmBtn = await screen.findByRole('button', { name: /^Передать$/i })
+    await user.click(confirmBtn)
+
+    // Wait for toast
+    await waitFor(() => {
+      expect(screen.getByText(/Передано/i)).toBeInTheDocument()
+    })
+
+    // Assert asset state in repo
+    const assets = await assetRepo.listAssets({ statusId: 'all' })
+    expect(assets[0]!.statusId).toBe('st_warehouse')
+    expect(assets[0]!.assignment).toBeNull()
+  })
+
+  it('employee → employee transfer: asset ends up assigned to target employee', async () => {
+    const user = userEvent.setup()
+    const asset = makeAsset()
+    const assetRepo = makeAssetRepo([asset])
+    const emp1 = emp({ id: 'uid_1', firstName: 'Иван', lastName: 'Петров' })
+    const emp2: Employee = {
+      id: 'uid_2', firstName: 'Мария', lastName: 'Сидорова', email: 'm@x.com', phone: null,
+      position: null, branchId: null, departmentId: 'dept_1', status: 'active', terminatedAt: null,
+      createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z',
+    }
+    renderPage([emp1, emp2], 'asset_admin', { uid_1: 1 }, { assetRepository: assetRepo })
+
+    // Open detail drawer for emp1
+    const row = await screen.findByText('Иван Петров')
+    await user.click(row)
+
+    // Wait for select button
+    const selectBtn = await screen.findByRole('button', { name: /Выбрать/i })
+    await user.click(selectBtn)
+
+    // Select asset
+    const assetTitle = await screen.findByText('Dell XPS')
+    await user.click(assetTitle)
+
+    // Open DestPicker — click the chip showing "Склад"
+    const destChip = await screen.findByRole('button', { name: /Склад/i })
+    await user.click(destChip)
+
+    // Click "Сотрудник..." option — use the DestPicker top-level option text
+    const empOption = await screen.findByRole('button', { name: /^Сотрудник…$/i })
+    await user.click(empOption)
+
+    // Pick Мария Сидорова from the sub-list
+    const mariaSidorova = await screen.findByRole('button', { name: /Мария Сидорова/i })
+    await user.click(mariaSidorova)
+
+    // Click "Передать"
+    const transferBtn = await screen.findByRole('button', { name: /^Передать$/i })
+    await user.click(transferBtn)
+
+    // Click confirm
+    const confirmBtn = await screen.findByRole('button', { name: /^Передать$/i })
+    await user.click(confirmBtn)
+
+    // Wait for toast
+    await waitFor(() => {
+      expect(screen.getByText(/Передано/i)).toBeInTheDocument()
+    })
+
+    // Assert asset state
+    const assets = await assetRepo.listAssets({ statusId: 'all' })
+    expect(assets[0]!.statusId).toBe('st_assigned')
+    expect(assets[0]!.assignment?.mode).toBe('employee')
+    expect(assets[0]!.assignment?.employeeId).toBe('uid_2')
+  })
+
+  it('department transfer: asset ends up assigned to department', async () => {
+    const user = userEvent.setup()
+    const asset = makeAsset()
+    const assetRepo = makeAssetRepo([asset])
+    const employee = emp({ id: 'uid_1' })
+    renderPage([employee], 'asset_admin', { uid_1: 1 }, { assetRepository: assetRepo })
+
+    // Open detail drawer
+    const row = await screen.findByText('Иван Петров')
+    await user.click(row)
+
+    // Enter select mode
+    const selectBtn = await screen.findByRole('button', { name: /Выбрать/i })
+    await user.click(selectBtn)
+
+    // Select asset
+    const assetTitle = await screen.findByText('Dell XPS')
+    await user.click(assetTitle)
+
+    // Open DestPicker
+    const destChip = await screen.findByRole('button', { name: /Склад/i })
+    await user.click(destChip)
+
+    // Click "Отдел..." option
+    const deptOption = await screen.findByRole('button', { name: /^Отдел…$/i })
+    await user.click(deptOption)
+
+    // Pick the IT department
+    const itDept = await screen.findByRole('button', { name: /IT/i })
+    await user.click(itDept)
+
+    // Click "Передать"
+    const transferBtn = await screen.findByRole('button', { name: /^Передать$/i })
+    await user.click(transferBtn)
+
+    // Confirm
+    const confirmBtn = await screen.findByRole('button', { name: /^Передать$/i })
+    await user.click(confirmBtn)
+
+    // Wait for toast
+    await waitFor(() => {
+      expect(screen.getByText(/Передано/i)).toBeInTheDocument()
+    })
+
+    // Assert asset state
+    const assets = await assetRepo.listAssets({ statusId: 'all' })
+    expect(assets[0]!.statusId).toBe('st_assigned')
+    expect(assets[0]!.assignment?.mode).toBe('department')
+    expect((assets[0]!.assignment as { departmentId?: string })?.departmentId).toBe('dept_1')
+  })
+
+  it('handover redirect: redirected asset ends up assigned to target employee via changeStatus', async () => {
+    const user = userEvent.setup()
+    const asset = makeAsset()
+    const assetRepo = makeAssetRepo([asset])
+    const emp1 = emp({ id: 'uid_1', firstName: 'Иван', lastName: 'Петров' })
+    const emp2: Employee = {
+      id: 'uid_2', firstName: 'Мария', lastName: 'Сидорова', email: 'm@x.com', phone: null,
+      position: null, branchId: null, departmentId: null, status: 'active', terminatedAt: null,
+      createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z',
+    }
+
+    // No assetCounts prop — let it load from assetRepo
+    const repo = new InMemoryEmployeeRepository([emp1, emp2])
+    const refLoader = async () => ({ branches: [{ id: 'br_main', name: 'Головной офис' }], departments: [] })
+
+    render(
+      <I18nextProvider i18n={i18n}>
+        <AuthContext.Provider value={authCtx('asset_admin')}>
+          <ToastProvider>
+            <MemoryRouter>
+              <EmployeesPage
+                repository={repo}
+                loadRefData={refLoader}
+                assetRepository={assetRepo}
+              />
+            </MemoryRouter>
+          </ToastProvider>
+        </AuthContext.Provider>
+      </I18nextProvider>,
+    )
+
+    // Open detail drawer for emp1
+    const row = await screen.findByText('Иван Петров')
+    await user.click(row)
+
+    // Click "Сдача техники" (handover) footer button — triggers handleArchive
+    const handoverBtn = await screen.findByRole('button', { name: /Сдача техники/i })
+    await user.click(handoverBtn)
+
+    // HandoverModal opens — Step 1: mark the asset as received
+    await waitFor(() => {
+      expect(screen.getByRole('dialog')).toBeInTheDocument()
+    })
+
+    // Click the asset row to mark received
+    const handoverRow = await screen.findByRole('button', { name: /Отметить как принят.*Dell XPS/i })
+    await user.click(handoverRow)
+
+    // Click "Далее" to go to step 2
+    const nextBtn = await screen.findByRole('button', { name: /Далее/i })
+    await user.click(nextBtn)
+
+    // Step 2: change destination from Склад to Мария Сидорова
+    // The DestPicker chip in step 2 shows "Склад"
+    const destChip = await screen.findByRole('button', { name: /Склад/i })
+    await user.click(destChip)
+
+    const empOption = await screen.findByRole('button', { name: /^Сотрудник…$/i })
+    await user.click(empOption)
+
+    const mariaSidorova = await screen.findByRole('button', { name: /Мария Сидорова/i })
+    await user.click(mariaSidorova)
+
+    // Click "Завершить приёмку"
+    const finishBtn = await screen.findByRole('button', { name: /Завершить приёмку/i })
+    await user.click(finishBtn)
+
+    // Wait for the handover toast
+    await waitFor(() => {
+      expect(screen.getByText(/Техника принята/i)).toBeInTheDocument()
+    })
+
+    // Assert: asset is now assigned to uid_2, NOT left with uid_1
+    const assets = await assetRepo.listAssets({ statusId: 'all' })
+    expect(assets[0]!.statusId).toBe('st_assigned')
+    expect(assets[0]!.assignment?.mode).toBe('employee')
+    expect(assets[0]!.assignment?.employeeId).toBe('uid_2')
   })
 })

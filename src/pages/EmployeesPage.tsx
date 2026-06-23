@@ -19,8 +19,10 @@ import {
 import type { EmployeeFormSubmit } from '@/components/features/employees/EmployeeFormModal'
 import type { DrawerLinkedAsset, HandoverAsset, PickerStockRow } from '@/components/features/employees'
 import type { Employee, EmployeeListQuery, EmployeeRepository, SortValue } from '@/domain/employee'
-import type { AssetRepository, RefRow, CategoryRow } from '@/domain/asset'
+import type { AssetRepository, AssetWriteRepository, RefRow, CategoryRow } from '@/domain/asset'
 import type { AssignmentRepository } from '@/domain/assignment'
+import { buildTransferPatch, type TransferTarget } from '@/domain/asset'
+import type { Destination } from '@/components/features/employees/DestPicker'
 import { FirestoreEmployeeRepository, FirestoreAssetRepository, FirestoreAssignmentRepository } from '@/infra/repositories'
 import { db } from '@/lib/firebase'
 
@@ -33,6 +35,9 @@ const DEFAULT_QUERY: Required<EmployeeListQuery> = {
   search: '',
   sort: 'updated_desc',
 }
+
+/** Combined read+write shape used internally — both adapters implement this. */
+type AssetRepo = AssetRepository & Pick<AssetWriteRepository, 'changeStatus'>
 
 export interface EmployeesPageProps {
   repository?: EmployeeRepository
@@ -105,12 +110,13 @@ export function EmployeesPage({
   )
   const repo = repository ?? defaultRepo
 
-  const defaultAssetRepo = useMemo<AssetRepository>(
+  const defaultAssetRepo = useMemo<AssetRepo>(
     () => new FirestoreAssetRepository(db()),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   )
-  const assetRepo = assetRepository ?? defaultAssetRepo
+  // Cast is safe: both FirestoreAssetRepository and InMemoryAssetRepository implement changeStatus.
+  const assetRepo: AssetRepo = (assetRepository as AssetRepo | undefined) ?? defaultAssetRepo
 
   const defaultAsnRepo = useMemo<AssignmentRepository>(
     () => new FirestoreAssignmentRepository(db()),
@@ -439,16 +445,28 @@ export function EmployeesPage({
     }
   }
 
-  async function handleHandoverConfirm(rows: { id: string; received: boolean; destination: { kind: string } }[]) {
+  async function handleHandoverConfirm(rows: { id: string; received: boolean; destination: Destination }[]) {
     if (!handoverTarget) return
     try {
       for (const r of rows) {
-        if (r.received && r.destination.kind === 'warehouse') {
-          // Return to warehouse — the only MVP-persisted destination
+        if (!r.received) continue
+        if (r.destination.kind === 'warehouse') {
+          // Return to warehouse
           await asnRepo.returnAsset(r.id, actor)
+        } else {
+          // Redirected destinations — persist via changeStatus + buildTransferPatch
+          const empDeptId = r.destination.kind === 'employee'
+            ? (employees.find(e => e.id === (r.destination as { id: string }).id)?.departmentId ?? null)
+            : null
+          const target: TransferTarget =
+            r.destination.kind === 'employee'
+              ? { mode: 'employee', employeeId: (r.destination as { id: string }).id }
+              : r.destination.kind === 'department'
+                ? { mode: 'department', departmentId: (r.destination as { id: string }).id }
+                : { mode: 'branch', branchId: (r.destination as { id: string }).id }
+          const patch = buildTransferPatch(target, empDeptId)
+          await assetRepo.changeStatus(r.id, patch.toStatusId, actor, { assignment: patch.assignment })
         }
-        // Redirected destinations (employee/department/branch) are out of MVP persistence scope.
-        // The prototype shows these routes but they are no-ops in production (matching spec §Handover).
       }
       await repo.setStatus(handoverTarget.id, 'terminated', actor)
       showToast(t('toast.handover'))
@@ -456,6 +474,36 @@ export function EmployeesPage({
       await reload()
     } catch {
       showToast(t('validation.saveFailed'))
+    }
+  }
+
+  async function handleTransferAssets(assetIds: string[], dest: Destination) {
+    try {
+      const empDeptId = dest.kind === 'employee'
+        ? (employees.find(e => e.id === (dest as { id: string }).id)?.departmentId ?? null)
+        : null
+      for (const id of assetIds) {
+        if (dest.kind === 'warehouse') {
+          await assetRepo.changeStatus(id, 'st_warehouse', actor, { assignment: null })
+        } else {
+          const target: TransferTarget =
+            dest.kind === 'employee'
+              ? { mode: 'employee', employeeId: (dest as { id: string }).id }
+              : dest.kind === 'department'
+                ? { mode: 'department', departmentId: (dest as { id: string }).id }
+                : { mode: 'branch', branchId: (dest as { id: string }).id }
+          const patch = buildTransferPatch(target, empDeptId)
+          await assetRepo.changeStatus(id, patch.toStatusId, actor, { assignment: patch.assignment })
+        }
+      }
+      showToast(t('transfer.toastDone', { count: assetIds.length }))
+      if (detailId) await handleOpenDetail(detailId)
+      if (!assetCountsProp) {
+        const counts = await defaultLoadAssetCounts()
+        setAssetCounts(counts)
+      }
+    } catch {
+      showToast(t('transfer.toastFailed'))
     }
   }
 
@@ -758,9 +806,7 @@ export function EmployeesPage({
         employees={handoverEmployees}
         departments={departments}
         branches={branches}
-        onTransferAssets={(_assetIds, _destination) => {
-          // TODO(Task 3): wire persistence — call transfer repository and refresh
-        }}
+        onTransferAssets={(ids, d) => { void handleTransferAssets(ids, d) }}
       />
 
       <HandoverModal
