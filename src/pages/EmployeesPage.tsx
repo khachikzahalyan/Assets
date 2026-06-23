@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
 import {
-  PageHeader, Btn, Icon, EmptyState, LoadingState, ErrorState,
+  Btn, Icon, EmptyState, LoadingState, ErrorState,
+  ListCard, ListPageShell,
 } from '@/components/ui'
 import {
   EmployeesFilterBar,
@@ -647,91 +648,90 @@ export function EmployeesPage({
   }
 
   return (
-    <div className="w-full h-full flex flex-col min-h-0 gap-2">
-      <PageHeader
-        icon="users"
-        title={t('title')}
-        actions={
-          <div className="flex items-center gap-2">
-            {/* Search input — lives in page header per spec */}
-            <div className="flex items-center gap-2 bg-[#111315] rounded-xl px-3 py-1.5 ring-1 ring-[#2A2F36] w-[220px]">
-              <Icon name="search" size={13} className="text-[#64748B] shrink-0" />
-              <input
-                type="text"
-                value={search}
-                onChange={e => { setSearch(e.target.value); setPage(1) }}
-                placeholder={t('filter.search')}
-                aria-label={t('filter.search')}
-                className="flex-1 text-[14px] bg-transparent border-none outline-none placeholder:text-[#64748B] text-[#F8FAFC] min-w-0"
-              />
-              {search && (
-                <button
-                  type="button"
-                  onClick={() => { setSearch(''); setPage(1) }}
-                  className="text-[#64748B] hover:text-[#94A3B8] transition-colors"
-                  aria-label={t('filter.reset')}
+    <>
+      <ListPageShell
+        header={
+          <>
+            {/* Page header — search + add button, right-aligned, no title/icon */}
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div className="ml-auto flex items-center gap-2">
+                {/* Search input */}
+                <div
+                  className="flex items-center gap-2 bg-[#111315] rounded-xl px-3 py-1.5 ring-1 ring-[#2A2F36]"
+                  style={{ minWidth: '18%', maxWidth: '34%', width: 220 }}
                 >
-                  <Icon name="x" size={11} />
-                </button>
-              )}
+                  <Icon name="search" size={13} className="text-[#64748B] shrink-0" />
+                  <input
+                    type="text"
+                    value={search}
+                    onChange={e => { setSearch(e.target.value); setPage(1) }}
+                    placeholder={t('filter.search')}
+                    aria-label={t('filter.search')}
+                    className="flex-1 text-[14px] bg-transparent border-none outline-none placeholder:text-[#64748B] text-[#F8FAFC] min-w-0"
+                  />
+                  {search && (
+                    <button
+                      type="button"
+                      onClick={() => { setSearch(''); setPage(1) }}
+                      className="text-[#64748B] hover:text-[#94A3B8] transition-colors"
+                      aria-label={t('filter.reset')}
+                    >
+                      <Icon name="x" size={11} />
+                    </button>
+                  )}
+                </div>
+                {canMutate && (
+                  <Btn variant="primary" size="md" onClick={handleCreate}>
+                    <Icon name="user-plus" size={14} />
+                    {t('addButton')}
+                  </Btn>
+                )}
+              </div>
             </div>
-            {canMutate && (
-              <Btn variant="primary" size="md" onClick={handleCreate}>
-                <Icon name="user-plus" size={14} />
-                {t('addButton')}
-              </Btn>
-            )}
-          </div>
+
+            {/* KindTabs — shown between header and filter bar */}
+            <div className="px-0">
+              <EmployeeKindTabs
+                selected={kind}
+                onSelect={v => { setKind(v as 'all' | 'staff'); setPage(1) }}
+                counts={kindCounts}
+              />
+            </div>
+          </>
         }
-      />
-
-      {/* KindTabs — shown between header and filter bar */}
-      <div className="px-0">
-        <EmployeeKindTabs
-          selected={kind}
-          onSelect={v => { setKind(v as 'all' | 'staff'); setPage(1) }}
-          counts={kindCounts}
-        />
-      </div>
-
-      {/* Three-zone card: filter (shrink-0) / table (flex-1) / pagination (shrink-0) */}
-      <div className="bg-[#1B1F24] rounded-lg border border-[#2A2F36] shadow-sm shadow-black/30 flex flex-col flex-1 min-h-0">
-        {/* Zone 1: Filter bar */}
-        <div className="flex-shrink-0">
-          <EmployeesFilterBar
-            query={query}
-            onChange={patch => {
-              handleQueryChange(patch)
-              // If filter bar resets search (via reset button)
-              if ('search' in patch && patch.search === '') setSearch('')
-            }}
-            branches={branches}
-            departments={departments}
-            headOfficeBranchId={headOfficeBranchId}
-          />
-          {!loading && hasActiveFilters && sorted.length === 0 && (
-            <div className="px-4 pb-2">
-              <button
-                type="button"
-                onClick={resetFilters}
-                className="text-[13px] text-[#F97316] hover:underline"
-              >
-                {t('filter.reset')}
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Zone 2: Table region (fills remaining height) */}
-        <div className="flex-1 min-h-0 overflow-hidden">
+      >
+        <ListCard
+          toolbar={
+            <>
+              <EmployeesFilterBar
+                query={query}
+                onChange={patch => {
+                  handleQueryChange(patch)
+                  // If filter bar resets search (via reset button)
+                  if ('search' in patch && patch.search === '') setSearch('')
+                }}
+                branches={branches}
+                departments={departments}
+                headOfficeBranchId={headOfficeBranchId}
+              />
+              {!loading && hasActiveFilters && sorted.length === 0 && (
+                <div className="px-4 pb-2">
+                  <button
+                    type="button"
+                    onClick={resetFilters}
+                    className="text-[13px] text-[#F97316] hover:underline"
+                  >
+                    {t('filter.reset')}
+                  </button>
+                </div>
+              )}
+            </>
+          }
+          pagination={renderPagination()}
+        >
           {renderTableRegion()}
-        </div>
-
-        {/* Zone 3: Pagination (always rendered) */}
-        <div className="flex-shrink-0">
-          {renderPagination()}
-        </div>
-      </div>
+        </ListCard>
+      </ListPageShell>
 
       {/* ── Modals / Drawers ── */}
 
@@ -780,6 +780,6 @@ export function EmployeesPage({
         onConfirm={() => { void handleConfirmRestore() }}
         onClose={() => setRestoreTarget(null)}
       />
-    </div>
+    </>
   )
 }
