@@ -46,7 +46,7 @@ export interface EmployeeDetailDrawerProps {
   employees: { id: string; name: string; status: string }[]
   departments: { id: string; name: string }[]
   branches: { id: string; name: string }[]
-  onTransferAssets: (assetIds: string[], destination: Destination) => void
+  onTransferAssets: (assetIds: string[], destination: Destination) => void | Promise<void>
 }
 
 // ── Local helpers ─────────────────────────────────────────────────────────────
@@ -181,6 +181,7 @@ export function EmployeeDetailDrawer({
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [dest, setDest] = useState<Destination>({ kind: 'warehouse' })
   const [confirming, setConfirming] = useState(false)
+  const [pending, setPending] = useState(false)
 
   // Reset all transfer state when the drawer closes or a new employee opens
   useEffect(() => {
@@ -188,6 +189,7 @@ export function EmployeeDetailDrawer({
     setSelected(new Set())
     setDest({ kind: 'warehouse' })
     setConfirming(false)
+    setPending(false)
   }, [emp?.id, open])
 
   if (!open || !emp) return null
@@ -217,9 +219,14 @@ export function EmployeeDetailDrawer({
     setDest({ kind: 'warehouse' })
   }
 
-  function runTransfer() {
-    onTransferAssets([...selected], dest)
-    exitSelect()
+  async function runTransfer() {
+    setPending(true)
+    try {
+      await onTransferAssets([...selected], dest)
+    } finally {
+      setPending(false)
+      exitSelect()
+    }
   }
 
   const destLabel = dest.kind === 'warehouse' ? t('dest.warehouse') : (dest as { label: string }).label
@@ -470,7 +477,7 @@ export function EmployeeDetailDrawer({
                 branches={branches}
                 forceDropUp
               />
-              <Btn variant="primary" size="sm" onClick={() => setConfirming(true)}>
+              <Btn variant="primary" size="sm" onClick={() => setConfirming(true)} disabled={pending}>
                 <Icon name="arrow-right-left" size={13} />
                 {t('transfer.action')}
               </Btn>
@@ -480,10 +487,10 @@ export function EmployeeDetailDrawer({
               <span className="text-[14px] text-[#F8FAFC] flex-1 min-w-0">
                 {t('transfer.confirmTitle', { count: selected.size, dest: destLabel })}
               </span>
-              <Btn variant="ghost" size="sm" onClick={() => setConfirming(false)}>
+              <Btn variant="ghost" size="sm" onClick={() => setConfirming(false)} disabled={pending}>
                 {t('transfer.cancel')}
               </Btn>
-              <Btn variant="primary" size="sm" onClick={runTransfer}>
+              <Btn variant="primary" size="sm" onClick={() => { void runTransfer() }} disabled={pending}>
                 <Icon name="check" size={13} />
                 {t('transfer.confirm')}
               </Btn>

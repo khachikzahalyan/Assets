@@ -116,7 +116,8 @@
     "selectDone": "Done",
     "selectMode": "Select",
     "toastDone": "Transferred: {{count}}",
-    "toastFailed": "Transfer failed"
+    "toastFailed": "Transfer failed",
+    "toastPartial": "Transferred {{ok}} of {{total}}, {{failed}} failed"
   },
   "picker": {
     "title": "Link assets →",

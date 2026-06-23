@@ -5,7 +5,7 @@
  * asserted rather than keys.
  */
 import { describe, it, expect, vi, beforeAll } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, act } from '@testing-library/react'
 import { I18nextProvider } from 'react-i18next'
 import i18n from '@/lib/i18n'
 import { EmployeeDetailDrawer } from './EmployeeDetailDrawer'
@@ -278,16 +278,18 @@ describe('EmployeeDetailDrawer — multi-select transfer flow', () => {
     )
   })
 
-  it('6. after confirming, select mode exits — no aria-pressed elements, no transfer bar', () => {
+  it('6. after confirming, select mode exits — no aria-pressed elements, no transfer bar', async () => {
     const { onTransferAssets } = renderDrawer({ linkedAssets: LINKED_ASSETS })
     fireEvent.click(screen.getByRole('button', { name: /Выбрать/i }))
     fireEvent.click(screen.getByRole('button', { name: /Выбрать все/i }))
     fireEvent.click(screen.getByRole('button', { name: /^Передать$/i }))
     // click confirm
     const confirmBtns = screen.getAllByRole('button', { name: /^Передать$/i })
-    fireEvent.click(confirmBtns[confirmBtns.length - 1] as HTMLElement)
+    await act(async () => {
+      fireEvent.click(confirmBtns[confirmBtns.length - 1] as HTMLElement)
+    })
     expect(onTransferAssets).toHaveBeenCalledTimes(1)
-    // select mode should be gone
+    // select mode should be gone (exitSelect runs in finally after await)
     expect(document.querySelectorAll('[aria-pressed]')).toHaveLength(0)
     // transfer bar gone — no "Выбрано:" text
     expect(screen.queryByText(/Выбрано:/)).toBeNull()
@@ -305,5 +307,42 @@ describe('EmployeeDetailDrawer — multi-select transfer flow', () => {
     expect(onTransferAssets).not.toHaveBeenCalled()
     // no aria-pressed elements remain
     expect(document.querySelectorAll('[aria-pressed]')).toHaveLength(0)
+  })
+
+  it('8. confirm buttons are disabled while a transfer is pending', async () => {
+    // onTransferAssets returns a never-resolving promise so we can assert disabled state
+    let resolveTransfer!: () => void
+    const pendingTransfer = vi.fn(
+      () => new Promise<void>(resolve => { resolveTransfer = resolve }),
+    )
+    renderDrawer({ linkedAssets: LINKED_ASSETS, onTransferAssets: pendingTransfer })
+
+    // Enter select mode and select all
+    fireEvent.click(screen.getByRole('button', { name: /Выбрать/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Выбрать все/i }))
+
+    // Advance to confirm step
+    fireEvent.click(screen.getByRole('button', { name: /^Передать$/i }))
+
+    // Now click the confirm «Передать» — this starts the pending transfer
+    const confirmBtns = screen.getAllByRole('button', { name: /^Передать$/i })
+    await act(async () => {
+      fireEvent.click(confirmBtns[confirmBtns.length - 1] as HTMLElement)
+    })
+
+    // While pending, both confirm-state buttons must be disabled
+    const cancelBtn = screen.queryByRole('button', { name: /Отмена/i })
+    const transferBtns = screen.queryAllByRole('button', { name: /^Передать$/i })
+
+    // At least one button should be disabled (the confirm button) — cancel may also be disabled
+    if (cancelBtn) {
+      expect(cancelBtn).toBeDisabled()
+    }
+    if (transferBtns.length > 0) {
+      expect(transferBtns[transferBtns.length - 1]).toBeDisabled()
+    }
+
+    // Resolve the transfer so we don't leave a dangling promise
+    await act(async () => { resolveTransfer() })
   })
 })

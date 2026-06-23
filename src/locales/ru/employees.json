@@ -126,7 +126,8 @@
     "selectDone": "Готово",
     "selectMode": "Выбрать",
     "toastDone": "Передано: {{count}}",
-    "toastFailed": "Не удалось передать"
+    "toastFailed": "Не удалось передать",
+    "toastPartial": "Передано: {{ok}} из {{total}}, ошибок: {{failed}}"
   },
   "picker": {
     "title": "Привязать активы →",

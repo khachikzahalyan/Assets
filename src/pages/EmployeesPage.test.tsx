@@ -348,6 +348,78 @@ describe('EmployeesPage', () => {
     expect((assets[0]!.assignment as { departmentId?: string })?.departmentId).toBe('dept_1')
   })
 
+  it('partial transfer failure: shows toastPartial when some assets fail', async () => {
+    const user = userEvent.setup()
+    // Two assets assigned to emp1
+    const asset1 = makeAsset({ id: 'asset_1', invCode: 'LT/001' })
+    const asset2 = makeAsset({ id: 'asset_2', invCode: 'LT/002', serial: 'SN-002' })
+    const baseRepo = makeAssetRepo([asset1, asset2])
+
+    // Build a repo that throws changeStatus for asset_2
+    let callCount = 0
+    const partialRepo = {
+      ...baseRepo,
+      listAssetsForEmployee: baseRepo.listAssetsForEmployee.bind(baseRepo),
+      listAssets: baseRepo.listAssets.bind(baseRepo),
+      loadReferenceData: baseRepo.loadReferenceData.bind(baseRepo),
+      loadSelfServiceRefData: baseRepo.loadSelfServiceRefData.bind(baseRepo),
+      changeStatus: async (id: string, ...rest: unknown[]) => {
+        callCount++
+        if (id === 'asset_2') throw new Error('simulated failure')
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return baseRepo.changeStatus(id, ...(rest as [any, any, any]))
+      },
+    } as unknown as typeof baseRepo
+
+    const employee = emp({ id: 'uid_1' })
+    const repo = new InMemoryEmployeeRepository([employee])
+    const refLoader = async () => ({ branches: [{ id: 'br_main', name: 'Головной офис' }], departments: [] })
+
+    render(
+      <I18nextProvider i18n={i18n}>
+        <AuthContext.Provider value={authCtx('asset_admin')}>
+          <ToastProvider>
+            <MemoryRouter>
+              <EmployeesPage
+                repository={repo}
+                loadRefData={refLoader}
+                assetCounts={{ uid_1: 2 }}
+                assetRepository={partialRepo}
+              />
+            </MemoryRouter>
+          </ToastProvider>
+        </AuthContext.Provider>
+      </I18nextProvider>,
+    )
+
+    // Open detail drawer
+    const row = await screen.findByText('Иван Петров')
+    await user.click(row)
+
+    // Enter select mode
+    const selectBtn = await screen.findByRole('button', { name: /Выбрать/i })
+    await user.click(selectBtn)
+
+    // Select all (both assets)
+    const selectAllBtn = await screen.findByRole('button', { name: /Выбрать все/i })
+    await user.click(selectAllBtn)
+
+    // Click transfer action
+    const transferBtn = await screen.findByRole('button', { name: /^Передать$/i })
+    await user.click(transferBtn)
+
+    // Click confirm
+    const confirmBtn = await screen.findByRole('button', { name: /^Передать$/i })
+    await user.click(confirmBtn)
+
+    // Expect partial toast — "Передано: 1 из 2, ошибок: 1"
+    await waitFor(() => {
+      expect(screen.getByText(/Передано: 1 из 2/i)).toBeInTheDocument()
+    })
+    // Ensure both ids were attempted
+    expect(callCount).toBe(2)
+  })
+
   it('handover redirect: redirected asset ends up assigned to target employee via changeStatus', async () => {
     const user = userEvent.setup()
     const asset = makeAsset()

@@ -19,7 +19,7 @@ import {
 import type { EmployeeFormSubmit } from '@/components/features/employees/EmployeeFormModal'
 import type { DrawerLinkedAsset, HandoverAsset, PickerStockRow } from '@/components/features/employees'
 import type { Employee, EmployeeListQuery, EmployeeRepository, SortValue } from '@/domain/employee'
-import type { AssetRepository, AssetWriteRepository, RefRow, CategoryRow } from '@/domain/asset'
+import type { AssetRepository, AssetWriteRepository, RefRow, CategoryRow, TransferPatch } from '@/domain/asset'
 import type { AssignmentRepository } from '@/domain/assignment'
 import { buildTransferPatch, type TransferTarget } from '@/domain/asset'
 import type { Destination } from '@/components/features/employees/DestPicker'
@@ -27,6 +27,25 @@ import { FirestoreEmployeeRepository, FirestoreAssetRepository, FirestoreAssignm
 import { db } from '@/lib/firebase'
 
 const PAGE_SIZE = 10
+
+/**
+ * Map a DestPicker Destination to the asset-cache transfer patch.
+ * Pure helper — no hooks, no side effects.
+ */
+function destToPatch(dest: Destination, employees: Employee[]): TransferPatch {
+  if (dest.kind === 'warehouse') return buildTransferPatch({ mode: 'warehouse' })
+  const empDeptId =
+    dest.kind === 'employee'
+      ? (employees.find(e => e.id === dest.id)?.departmentId ?? null)
+      : null
+  const target: TransferTarget =
+    dest.kind === 'employee'
+      ? { mode: 'employee', employeeId: dest.id }
+      : dest.kind === 'department'
+        ? { mode: 'department', departmentId: dest.id }
+        : { mode: 'branch', branchId: dest.id }
+  return buildTransferPatch(target, empDeptId)
+}
 
 const DEFAULT_QUERY: Required<EmployeeListQuery> = {
   status: 'active',
@@ -36,12 +55,10 @@ const DEFAULT_QUERY: Required<EmployeeListQuery> = {
   sort: 'updated_desc',
 }
 
-/** Combined read+write shape used internally — both adapters implement this. */
-type AssetRepo = AssetRepository & Pick<AssetWriteRepository, 'changeStatus'>
-
 export interface EmployeesPageProps {
   repository?: EmployeeRepository
-  assetRepository?: AssetRepository
+  /** Must implement changeStatus — both FirestoreAssetRepository and InMemoryAssetRepository do. */
+  assetRepository?: AssetRepository & Pick<AssetWriteRepository, 'changeStatus'>
   assignmentRepository?: AssignmentRepository
   loadRefData?: () => Promise<{ branches: RefRow[]; departments: RefRow[] }>
   /** Optional: pre-loaded asset counts map. If omitted, the page loads assets via FirestoreAssetRepository. */
@@ -110,13 +127,12 @@ export function EmployeesPage({
   )
   const repo = repository ?? defaultRepo
 
-  const defaultAssetRepo = useMemo<AssetRepo>(
+  const defaultAssetRepo = useMemo(
     () => new FirestoreAssetRepository(db()),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   )
-  // Cast is safe: both FirestoreAssetRepository and InMemoryAssetRepository implement changeStatus.
-  const assetRepo: AssetRepo = (assetRepository as AssetRepo | undefined) ?? defaultAssetRepo
+  const assetRepo = assetRepository ?? defaultAssetRepo
 
   const defaultAsnRepo = useMemo<AssignmentRepository>(
     () => new FirestoreAssignmentRepository(db()),
@@ -454,17 +470,8 @@ export function EmployeesPage({
           // Return to warehouse
           await asnRepo.returnAsset(r.id, actor)
         } else {
-          // Redirected destinations — persist via changeStatus + buildTransferPatch
-          const empDeptId = r.destination.kind === 'employee'
-            ? (employees.find(e => e.id === (r.destination as { id: string }).id)?.departmentId ?? null)
-            : null
-          const target: TransferTarget =
-            r.destination.kind === 'employee'
-              ? { mode: 'employee', employeeId: (r.destination as { id: string }).id }
-              : r.destination.kind === 'department'
-                ? { mode: 'department', departmentId: (r.destination as { id: string }).id }
-                : { mode: 'branch', branchId: (r.destination as { id: string }).id }
-          const patch = buildTransferPatch(target, empDeptId)
+          // Redirected destinations — persist via changeStatus + destToPatch
+          const patch = destToPatch(r.destination, employees)
           await assetRepo.changeStatus(r.id, patch.toStatusId, actor, { assignment: patch.assignment })
         }
       }
@@ -478,32 +485,31 @@ export function EmployeesPage({
   }
 
   async function handleTransferAssets(assetIds: string[], dest: Destination) {
-    try {
-      const empDeptId = dest.kind === 'employee'
-        ? (employees.find(e => e.id === (dest as { id: string }).id)?.departmentId ?? null)
-        : null
-      for (const id of assetIds) {
-        if (dest.kind === 'warehouse') {
-          await assetRepo.changeStatus(id, 'st_warehouse', actor, { assignment: null })
-        } else {
-          const target: TransferTarget =
-            dest.kind === 'employee'
-              ? { mode: 'employee', employeeId: (dest as { id: string }).id }
-              : dest.kind === 'department'
-                ? { mode: 'department', departmentId: (dest as { id: string }).id }
-                : { mode: 'branch', branchId: (dest as { id: string }).id }
-          const patch = buildTransferPatch(target, empDeptId)
-          await assetRepo.changeStatus(id, patch.toStatusId, actor, { assignment: patch.assignment })
-        }
+    const patch = destToPatch(dest, employees)
+    let okCount = 0
+    let failCount = 0
+    for (const id of assetIds) {
+      try {
+        await assetRepo.changeStatus(id, patch.toStatusId, actor, { assignment: patch.assignment })
+        okCount++
+      } catch {
+        failCount++
       }
-      showToast(t('transfer.toastDone', { count: assetIds.length }))
+    }
+    const total = assetIds.length
+    if (failCount === 0) {
+      showToast(t('transfer.toastDone', { count: okCount }))
+    } else if (okCount === 0) {
+      showToast(t('transfer.toastFailed'))
+    } else {
+      showToast(t('transfer.toastPartial', { ok: okCount, total, failed: failCount }))
+    }
+    if (okCount > 0) {
       if (detailId) await handleOpenDetail(detailId)
       if (!assetCountsProp) {
         const counts = await defaultLoadAssetCounts()
         setAssetCounts(counts)
       }
-    } catch {
-      showToast(t('transfer.toastFailed'))
     }
   }
 
@@ -806,7 +812,7 @@ export function EmployeesPage({
         employees={handoverEmployees}
         departments={departments}
         branches={branches}
-        onTransferAssets={(ids, d) => { void handleTransferAssets(ids, d) }}
+        onTransferAssets={handleTransferAssets}
       />
 
       <HandoverModal

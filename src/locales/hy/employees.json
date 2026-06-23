@@ -20,7 +20,8 @@
     "selectDone": "Պատրաստ է",
     "selectMode": "Ընտրել",
     "toastDone": "Փոխանցվեց՝ {{count}}",
-    "toastFailed": "Չհաջողվեց փոխանցել"
+    "toastFailed": "Չհաջողվեց փոխանցել",
+    "toastPartial": "Փոխանցվեց {{ok}}-ը {{total}}-ից, {{failed}} ձախողվեց"
   },
   "detail": {
     "acts": "Ստորագրված ակտեր",
