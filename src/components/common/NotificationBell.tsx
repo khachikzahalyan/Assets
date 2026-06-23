@@ -24,18 +24,13 @@ function formatShort(iso: string): string {
   return d && m ? `${d}.${m}` : iso
 }
 
-function useKindLabel() {
+export function NotificationBell({ repository, onSelect }: NotificationBellProps) {
   const { t } = useTranslation('notifications')
-  return (k: HoldNotification['tempKind']): string => {
+  const kindLabel = (k: HoldNotification['tempKind']): string => {
     if (k === 'audit') return t('kindAudit')
     if (k === 'intern') return t('kindIntern')
     return t('kindTemp')
   }
-}
-
-export function NotificationBell({ repository, onSelect }: NotificationBellProps) {
-  const { t } = useTranslation('notifications')
-  const kindLabel = useKindLabel()
   const [open, setOpen] = useState(false)
   const [pos, setPos] = useState<Pos | null>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
@@ -48,7 +43,7 @@ export function NotificationBell({ repository, onSelect }: NotificationBellProps
     [],
   )
   const repo = repository ?? defaultRepo
-  const { notifications, count, reload } = useHoldNotifications(repo)
+  const { notifications, count, error, reload } = useHoldNotifications(repo)
 
   const updatePos = useCallback(() => {
     if (!triggerRef.current) return
@@ -87,11 +82,9 @@ export function NotificationBell({ repository, onSelect }: NotificationBellProps
   }, [open, updatePos])
 
   const toggle = () => {
-    setOpen(o => {
-      const next = !o
-      if (next) reload()
-      return next
-    })
+    const next = !open
+    setOpen(next)
+    if (next) reload()
   }
 
   return (
@@ -131,7 +124,11 @@ export function NotificationBell({ repository, onSelect }: NotificationBellProps
             <div className="text-[13px] font-semibold text-[#F8FAFC]">{t('title')}</div>
             <div className="text-[11px] text-[#64748B]">{t('subtitle')}</div>
           </div>
-          {notifications.length === 0 ? (
+          {error ? (
+            <div className="px-3.5 py-3 text-[12.5px] text-rose-400">
+              {t('loadError')}
+            </div>
+          ) : notifications.length === 0 ? (
             <div className="flex flex-col items-center gap-1.5 px-4 py-8 text-center">
               <Icon name="check-check" size={20} className="text-[#64748B]" />
               <div className="text-[13px] text-[#94A3B8]">{t('empty')}</div>

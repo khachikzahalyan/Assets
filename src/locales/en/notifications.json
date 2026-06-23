@@ -8,5 +8,6 @@
   "overdue": "Overdue — {{date}}",
   "kindAudit": "Audit",
   "kindIntern": "Intern",
-  "kindTemp": "Temporary"
+  "kindTemp": "Temporary",
+  "loadError": "Couldn't load notifications"
 }

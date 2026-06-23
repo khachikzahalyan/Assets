@@ -8,5 +8,6 @@
   "overdue": "Просрочено — {{date}}",
   "kindAudit": "Аудит",
   "kindIntern": "Стажёр",
-  "kindTemp": "Временно"
+  "kindTemp": "Временно",
+  "loadError": "Не удалось загрузить уведомления"
 }

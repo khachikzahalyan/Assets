@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import type { AssetRepository } from '@/domain/asset/AssetRepository'
 import type { AssetListQuery } from '@/domain/asset'
 import { buildHoldNotifications, type HoldNotification } from '@/domain/asset'
@@ -48,6 +48,6 @@ export function useHoldNotifications(repository: AssetRepository): UseHoldNotifi
     return () => { active = false }
   }, [repository, tick])
 
-  const count = useMemo(() => notifications.length, [notifications])
+  const count = notifications.length
   return { notifications, count, loading, error, reload }
 }
