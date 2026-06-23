@@ -1,9 +1,12 @@
 import { type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '@/contexts/AuthContext'
 import { Icon } from '@/components/ui/icon'
 import { Breadcrumbs } from './Breadcrumbs'
 import { LanguageToggle } from './LanguageToggle'
 import { ProfileMenu } from './ProfileMenu'
+import { NotificationBell } from './NotificationBell'
 
 export interface TopBarProps {
   breadcrumbs: string[]
@@ -13,6 +16,9 @@ export interface TopBarProps {
 
 export function TopBar({ breadcrumbs, customContent, onOpenSidebar }: TopBarProps) {
   const { t } = useTranslation('common')
+  const { role } = useAuth()
+  const navigate = useNavigate()
+  const canManageReturns = role === 'super_admin' || role === 'asset_admin'
 
   return (
     <div className="app-shell-topbar flex items-center gap-3 px-4 lg:px-6">
@@ -31,8 +37,11 @@ export function TopBar({ breadcrumbs, customContent, onOpenSidebar }: TopBarProp
         {customContent != null ? customContent : <Breadcrumbs items={breadcrumbs} />}
       </div>
 
-      {/* Right cluster: language toggle + profile */}
+      {/* Right cluster: bell (admins) + language toggle + profile */}
       <div className="flex items-center gap-2">
+        {canManageReturns && (
+          <NotificationBell onSelect={(assetId) => navigate(`/assets/${assetId}`)} />
+        )}
         <LanguageToggle />
         <ProfileMenu />
       </div>
