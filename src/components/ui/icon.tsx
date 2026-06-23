@@ -109,8 +109,6 @@ import {
   AlertTriangle,
   Info,
   Square,
-  Zap,
-  Boxes,
   ListChecks,
   type LucideIcon,
 } from 'lucide-react'
@@ -226,8 +224,6 @@ const REGISTRY: Record<string, LucideIcon> = {
   'alert-triangle': AlertTriangle,
   info: Info,
   square: Square,
-  zap: Zap,
-  boxes: Boxes,
   'list-checks': ListChecks,
 }
 
