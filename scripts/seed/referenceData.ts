@@ -289,3 +289,97 @@ export function buildAllCategorySeed(): CategorySeed[] {
     return { ...c, prefix: p, ...flags }
   })
 }
+
+// === Parts catalog (replaceable-component SKUs) ===========================
+// Mirrors Warehouse/prototypes/_shared/mock-data.js SKUS_INITIAL (the canonical
+// catalog the "Добавить запчасть" modal renders). Generated programmatically from
+// the same variant arrays as the prototype so ids/labels match exactly.
+//
+// Catalog shape (53 SKUs):
+//   · psu, cooler  — 1 SKU each, no variant, lowStockThreshold 5.
+//   · ssd/hdd/nvme — 9 storage variants each (27), lowStockThreshold 3.
+//   · ram          — 8 capacity variants × 3 DDR generations (24), lowStockThreshold 3.
+//   · gpu          — NOT seeded; users create GPU SKUs dynamically via the UI.
+//
+// onHand/broken are DERIVED snapshots the app recomputes from part_movements on every
+// load, so a 0 seed is safe. The doc carries ONLY the keys whitelisted by
+// firestore.rules `match /parts/{id}` keys().hasOnly([...]); no seed-sentinel field is
+// added (it would violate that rule's form). Idempotency is via the seeder's
+// create-if-absent path (existing SKUs are skipped, preserving createdAt/createdBy).
+export interface PartSeed {
+  id: string
+  name: string
+  category: 'psu' | 'cooler' | 'ssd' | 'hdd' | 'nvme' | 'ram'
+  variantId?: string
+  variantLabel?: string
+  ddr?: string
+  unit: string
+  onHand: number
+  broken: number
+  lowStockThreshold: number
+}
+
+const STORAGE_VARIANTS: { id: string; label: string }[] = [
+  { id: '64gb',  label: '64 ГБ'  },
+  { id: '128gb', label: '128 ГБ' },
+  { id: '256gb', label: '256 ГБ' },
+  { id: '512gb', label: '512 ГБ' },
+  { id: '1tb',   label: '1 ТБ'   },
+  { id: '2tb',   label: '2 ТБ'   },
+  { id: '3tb',   label: '3 ТБ'   },
+  { id: '4tb',   label: '4 ТБ'   },
+  { id: '5tb',   label: '5 ТБ'   },
+]
+
+const RAM_VARIANTS: { id: string; label: string }[] = [
+  { id: '4gb',   label: '4 ГБ'   },
+  { id: '8gb',   label: '8 ГБ'   },
+  { id: '16gb',  label: '16 ГБ'  },
+  { id: '20gb',  label: '20 ГБ'  },
+  { id: '32gb',  label: '32 ГБ'  },
+  { id: '40gb',  label: '40 ГБ'  },
+  { id: '64gb',  label: '64 ГБ'  },
+  { id: '128gb', label: '128 ГБ' },
+]
+
+const STORAGE_NAME: Record<'ssd' | 'hdd' | 'nvme', string> = {
+  ssd:  'SSD',
+  hdd:  'HDD',
+  nvme: 'M.2 / NVMe',
+}
+
+/** Build the 53-SKU parts catalog (gpu intentionally excluded). */
+export function buildPartSeed(): PartSeed[] {
+  const rows: PartSeed[] = [
+    { id: 'sku_psu',    name: 'Блок питания', category: 'psu',    unit: 'шт', onHand: 0, broken: 0, lowStockThreshold: 5 },
+    { id: 'sku_cooler', name: 'Кулер',        category: 'cooler', unit: 'шт', onHand: 0, broken: 0, lowStockThreshold: 5 },
+  ]
+  for (const cat of ['ssd', 'hdd', 'nvme'] as const) {
+    for (const v of STORAGE_VARIANTS) {
+      rows.push({
+        id: `sku_${cat}_${v.id}`,
+        name: STORAGE_NAME[cat],
+        category: cat,
+        variantId: v.id,
+        variantLabel: v.label,
+        unit: 'шт', onHand: 0, broken: 0, lowStockThreshold: 3,
+      })
+    }
+  }
+  for (const ddr of ['DDR3', 'DDR4', 'DDR5'] as const) {
+    for (const v of RAM_VARIANTS) {
+      rows.push({
+        id: `sku_ram_${v.id}_${ddr.toLowerCase()}`,
+        name: 'ОЗУ',
+        category: 'ram',
+        variantId: v.id,
+        variantLabel: v.label,
+        ddr,
+        unit: 'шт', onHand: 0, broken: 0, lowStockThreshold: 3,
+      })
+    }
+  }
+  return rows
+}
+
+export const PART_SEED: PartSeed[] = buildPartSeed()

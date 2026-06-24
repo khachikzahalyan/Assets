@@ -2,7 +2,9 @@ import { describe, it, expect } from 'vitest'
 import {
   STATUS_SEED, BRANCH_SEED, DEPARTMENT_SEED,
   CORE_CATEGORY_SEED, ALL_CATEGORY_SOURCE, buildAllCategorySeed,
+  PART_SEED,
 } from './referenceData'
+import type { Part } from '../../src/domain/part/types'
 import { buildSeedDocs } from './buildSeed'
 import type { AssetStatus } from '../../src/domain/asset_status'
 import type { Category } from '../../src/domain/category'
@@ -76,6 +78,62 @@ describe('categories', () => {
   })
 })
 
+describe('parts catalog (PART_SEED)', () => {
+  it('has exactly 53 SKUs (2 + 27 storage + 24 ram), gpu excluded', () => {
+    expect(PART_SEED).toHaveLength(53)
+    expect(PART_SEED.filter(p => p.category === 'psu')).toHaveLength(1)
+    expect(PART_SEED.filter(p => p.category === 'cooler')).toHaveLength(1)
+    expect(PART_SEED.filter(p => p.category === 'ssd')).toHaveLength(9)
+    expect(PART_SEED.filter(p => p.category === 'hdd')).toHaveLength(9)
+    expect(PART_SEED.filter(p => p.category === 'nvme')).toHaveLength(9)
+    expect(PART_SEED.filter(p => p.category === 'ram')).toHaveLength(24)
+    // gpu is created dynamically in the app, never seeded
+    expect(PART_SEED.some(p => (p.category as string) === 'gpu')).toBe(false)
+  })
+  it('all SKUs have unique ids and start at onHand=0 broken=0 unit="шт"', () => {
+    const ids = PART_SEED.map(p => p.id)
+    expect(new Set(ids).size).toBe(ids.length)
+    expect(PART_SEED.every(p => p.onHand === 0 && p.broken === 0 && p.unit === 'шт')).toBe(true)
+  })
+  it('psu/cooler carry no variant/ddr and lowStockThreshold 5', () => {
+    const psu = PART_SEED.find(p => p.id === 'sku_psu')!
+    const cooler = PART_SEED.find(p => p.id === 'sku_cooler')!
+    expect(psu).toMatchObject({ name: 'Блок питания', category: 'psu', lowStockThreshold: 5 })
+    expect(cooler).toMatchObject({ name: 'Кулер', category: 'cooler', lowStockThreshold: 5 })
+    for (const p of [psu, cooler]) {
+      expect(p.variantId).toBeUndefined()
+      expect(p.variantLabel).toBeUndefined()
+      expect(p.ddr).toBeUndefined()
+    }
+  })
+  it('storage SKUs use sku_{cat}_{variantId} ids, correct names, lowStockThreshold 3, no ddr', () => {
+    const expectName: Record<string, string> = { ssd: 'SSD', hdd: 'HDD', nvme: 'M.2 / NVMe' }
+    for (const cat of ['ssd', 'hdd', 'nvme'] as const) {
+      const rows = PART_SEED.filter(p => p.category === cat)
+      expect(rows.map(p => p.variantId)).toEqual(
+        ['64gb', '128gb', '256gb', '512gb', '1tb', '2tb', '3tb', '4tb', '5tb'])
+      expect(rows.find(p => p.variantId === '1tb')!.variantLabel).toBe('1 ТБ')
+      expect(rows.every(p => p.id === `sku_${cat}_${p.variantId}`)).toBe(true)
+      expect(rows.every(p => p.name === expectName[cat])).toBe(true)
+      expect(rows.every(p => p.lowStockThreshold === 3)).toBe(true)
+      expect(rows.every(p => p.ddr === undefined)).toBe(true)
+    }
+  })
+  it('ram SKUs: 8 variants × 3 DDR, id sku_ram_{variantId}_{ddr}, ddr present, name ОЗУ', () => {
+    const ram = PART_SEED.filter(p => p.category === 'ram')
+    expect(ram).toHaveLength(24)
+    expect(ram.every(p => p.name === 'ОЗУ' && p.lowStockThreshold === 3)).toBe(true)
+    expect(ram.every(p => p.ddr === 'DDR3' || p.ddr === 'DDR4' || p.ddr === 'DDR5')).toBe(true)
+    expect(ram.find(p => p.id === 'sku_ram_16gb_ddr4')).toMatchObject({
+      variantId: '16gb', variantLabel: '16 ГБ', ddr: 'DDR4',
+    })
+    expect(ram.every(p => p.id === `sku_ram_${p.variantId}_${p.ddr!.toLowerCase()}`)).toBe(true)
+  })
+  it('ddr field is present ONLY on ram SKUs', () => {
+    expect(PART_SEED.filter(p => p.ddr !== undefined).every(p => p.category === 'ram')).toBe(true)
+  })
+})
+
 describe('buildSeedDocs', () => {
   it('emits statuses + branches + departments + core categories + settings by default', () => {
     const docs = buildSeedDocs({ nowIso: '2026-06-20T00:00:00.000Z' })
@@ -87,6 +145,49 @@ describe('buildSeedDocs', () => {
     expect(cols.categories).toBe(CORE_CATEGORY_SEED.length) // core count
     // settings/auth always emitted
     expect(docs.some(d => d.collection === 'settings' && d.id === 'auth')).toBe(true)
+  })
+  it('emits 53 parts docs whose keys obey the firestore.rules whitelist', () => {
+    const docs = buildSeedDocs({ nowIso: '2026-06-20T00:00:00.000Z' })
+    const parts = docs.filter(d => d.collection === 'parts')
+    expect(parts).toHaveLength(53)
+    // firestore.rules parts/{id} keys().hasOnly([...]) — no key outside this set.
+    const allowed = new Set([
+      'name', 'category', 'unit', 'onHand', 'broken', 'lowStockThreshold',
+      'variantId', 'variantLabel', 'ddr',
+      'createdAt', 'updatedAt', 'createdBy', 'updatedBy',
+    ])
+    for (const p of parts) {
+      for (const k of Object.keys(p.data)) expect(allowed.has(k)).toBe(true)
+      // required-by-rules fields present and well-typed
+      const d = p.data as Record<string, unknown>
+      expect(typeof d.name).toBe('string')
+      expect((d.name as string).length).toBeGreaterThan(0)
+      expect(['psu', 'cooler', 'ssd', 'hdd', 'nvme', 'ram']).toContain(d.category)
+      expect(typeof d.onHand).toBe('number')
+      expect(typeof d.broken).toBe('number')
+      expect(typeof d.lowStockThreshold).toBe('number')
+      expect(d.createdBy).toBe('system')
+      expect(d.updatedBy).toBe('system')
+    }
+  })
+  it('parts/sku_ram_16gb_ddr4 round-trips into the Part domain shape', () => {
+    const docs = buildSeedDocs({ nowIso: '2026-06-20T00:00:00.000Z' })
+    const doc = docs.find(d => d.collection === 'parts' && d.id === 'sku_ram_16gb_ddr4')!
+    const part = { id: doc.id, ...(doc.data as object) } as unknown as Part
+    expect(part.category).toBe('ram')
+    expect(part.variantId).toBe('16gb')
+    expect(part.ddr).toBe('DDR4')
+    expect(part.onHand).toBe(0)
+  })
+  it('psu/cooler parts docs omit variantId/variantLabel/ddr keys entirely', () => {
+    const docs = buildSeedDocs({ nowIso: '2026-06-20T00:00:00.000Z' })
+    for (const id of ['sku_psu', 'sku_cooler']) {
+      const doc = docs.find(d => d.collection === 'parts' && d.id === id)!
+      const keys = Object.keys(doc.data)
+      expect(keys).not.toContain('variantId')
+      expect(keys).not.toContain('variantLabel')
+      expect(keys).not.toContain('ddr')
+    }
   })
   it('settings/auth carries the provided allowed domains', () => {
     const docs = buildSeedDocs({ nowIso: 'x', allowedEmailDomains: ['acme.example'] })

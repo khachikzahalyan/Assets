@@ -11,7 +11,7 @@ import { I18nextProvider } from 'react-i18next'
 import i18n from '@/lib/i18n'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { AppShell } from './AppShell'
-import { DashboardPage } from '@/pages/DashboardPage'
+import { DashboardPage } from '@/pages/dashboard/DashboardPage'
 import { StubPage } from '@/pages/StubPage'
 import { PHASE_STUB_ROUTES } from '@/config'
 

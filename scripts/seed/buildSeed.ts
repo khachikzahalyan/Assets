@@ -10,7 +10,7 @@
 // strings emitted here into Admin SDK Timestamps before writing).
 import {
   STATUS_SEED, BRANCH_SEED, DEPARTMENT_SEED, CORE_CATEGORY_SEED,
-  buildAllCategorySeed, type CategorySeed,
+  buildAllCategorySeed, PART_SEED, type CategorySeed,
 } from './referenceData'
 
 export interface SeedDoc { collection: string; id: string; data: Record<string, unknown> }
@@ -50,6 +50,21 @@ export function buildSeedDocs(opts: BuildSeedOptions): SeedDoc[] {
       hasSpecs: c.hasSpecs, hasOemLicense: c.hasOemLicense,
       requiresSerial: c.requiresSerial, hasTypeField: c.hasTypeField,
       lucideIcon: c.lucideIcon, ...stamp } })
+  }
+
+  // Parts catalog (replaceable-component SKUs). Doc carries ONLY the keys the
+  // firestore.rules parts/{id} keys().hasOnly([...]) whitelist allows; optional
+  // variantId/variantLabel/ddr are included only when present (psu/cooler omit them).
+  for (const p of PART_SEED) {
+    const data: Record<string, unknown> = {
+      name: p.name, category: p.category, unit: p.unit,
+      onHand: p.onHand, broken: p.broken, lowStockThreshold: p.lowStockThreshold,
+      ...stamp,
+    }
+    if (p.variantId !== undefined) data.variantId = p.variantId
+    if (p.variantLabel !== undefined) data.variantLabel = p.variantLabel
+    if (p.ddr !== undefined) data.ddr = p.ddr
+    docs.push({ collection: 'parts', id: p.id, data })
   }
 
   docs.push({ collection: 'settings', id: 'auth', data: {

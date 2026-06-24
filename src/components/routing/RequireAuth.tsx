@@ -1,7 +1,7 @@
 import { Navigate, Outlet } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { AppLoader } from '@/components/ui/AppLoader'
-import { AccessPendingPage } from '@/pages/AccessPendingPage'
+import { AccessPendingPage } from '@/pages/auth/AccessPendingPage'
 
 /**
  * Layout route guard — wraps the shell tree.
