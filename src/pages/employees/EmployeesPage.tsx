@@ -1,10 +1,11 @@
 import { useMemo, useState, useCallback, useEffect, useRef } from 'react'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
 import {
   Btn, Icon, EmptyState, ErrorState,
-  ListCard, ListPageShell, TableSkeleton,
+  ListCard, ListPageShell, TableSkeleton, CardListSkeleton,
 } from '@/components/ui'
 import {
   EmployeesFilterBar,
@@ -173,6 +174,7 @@ export function EmployeesPage({
   )
 
   const canMutate = role === 'super_admin' || role === 'asset_admin'
+  const isMobile = useIsMobile()
 
   // ── Query / filter state ──────────────────────────────────────────────────
   const [query, setQuery]             = useState<EmployeeListQuery>({ ...DEFAULT_QUERY })
@@ -629,7 +631,7 @@ export function EmployeesPage({
 
   function renderPagination() {
     return (
-      <div className="flex items-center justify-between px-5 py-2 border-t border-border">
+      <div className="flex items-center justify-between px-5 py-2 border-t border-border bg-bg">
         <span className="text-[14px] text-text-tertiary tabular-nums">
           {t('pagination.showing', { from, to, total: totalCount })}
         </span>
@@ -685,7 +687,25 @@ export function EmployeesPage({
   }
 
   function renderTableRegion() {
-    if (loading) return <TableSkeleton rows={PAGE_SIZE} columns={8} firstColWide lastColAction gridTemplate="minmax(180px,1.6fr) minmax(120px,0.9fr) minmax(140px,1.2fr) minmax(110px,0.85fr) minmax(160px,1.4fr) minmax(80px,0.6fr) minmax(100px,0.9fr) 56px" />
+    if (loading) return isMobile
+      ? <CardListSkeleton rows={PAGE_SIZE} variant="employee" />
+      : <TableSkeleton
+          rows={PAGE_SIZE}
+          columns={8}
+          firstColWide
+          lastColAction
+          gridTemplate="minmax(180px,1.6fr) minmax(120px,0.9fr) minmax(140px,1.2fr) minmax(110px,0.85fr) minmax(160px,1.4fr) minmax(80px,0.6fr) minmax(100px,0.9fr) 56px"
+          headers={[
+            t('table.employee'),
+            t('table.branch'),
+            t('table.position'),
+            t('table.phone'),
+            t('table.gmail'),
+            t('table.assets'),
+            t('table.status'),
+            '',
+          ]}
+        />
     if (error)   return <ErrorState onRetry={reload} />
     if (sorted.length === 0) {
       return (

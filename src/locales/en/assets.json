@@ -2,6 +2,134 @@
   "actions": {
     "edit": "Edit"
   },
+  "detail": {
+    "added": "Added",
+    "hero": {
+      "writeOff": "Write off",
+      "showInList": "Show in list"
+    },
+    "tabs": {
+      "specs": "Tech specs",
+      "history": "History",
+      "docs": "Documents"
+    },
+    "specs": {
+      "title": "Tech specs",
+      "copy": "Copy",
+      "copied": "Copied",
+      "empty": "No specifications",
+      "cooling": "Cooling",
+      "psu": "PSU",
+      "psuPlural": "PSUs",
+      "battery": "Battery",
+      "factoryCooling": "Factory",
+      "factoryPsu": "Factory",
+      "factoryBattery": "Factory"
+    },
+    "parts": {
+      "note": "Components are managed in the Parts section"
+    },
+    "license": {
+      "none": "No license attached",
+      "builtIn": "Built into BIOS",
+      "oemKey": "OEM",
+      "oem": "OEM",
+      "retail": "Retail",
+      "title": "License",
+      "add": "Add license",
+      "attachTitle": "Attach license",
+      "attach": "Attach",
+      "attachFailed": "Could not attach license. Please try again.",
+      "cancel": "Cancel",
+      "copy": "Copy",
+      "copied": "Copied",
+      "copyFailed": "Could not retrieve key",
+      "keyAbsent": "Key not set"
+    },
+    "location": {
+      "title": "Location",
+      "branch": "Branch",
+      "dept": "Department"
+    },
+    "history": {
+      "title": "History",
+      "created": "Created",
+      "added": "added",
+      "noRecords": "No records",
+      "noOther": "No other records"
+    },
+    "docs": {
+      "actName": "Act {{n}}",
+      "empty": "No acceptance acts yet",
+      "notice": "Upload will appear once storage is configured",
+      "open": "Open",
+      "soon": "Coming soon",
+      "upload": "Upload act"
+    },
+    "repair": {
+      "title": "Repair",
+      "sendToRepair": "Send to repair",
+      "returnFromRepair": "Return from repair",
+      "inRepair": "Asset is currently in repair",
+      "reasonLabel": "Reason for repair",
+      "reasonPlaceholder": "e.g. won't start, keyboard needs replacing…",
+      "severityLabel": "Urgency",
+      "severityLow": "Low",
+      "severityMedium": "Medium",
+      "severityHigh": "High",
+      "confirm": "Confirm",
+      "cancel": "Cancel"
+    },
+    "writeOff": {
+      "title": "Write off asset?",
+      "reasonLabel": "Write-off reason",
+      "reasonPlaceholder": "e.g. failed after drop, repair not cost-effective",
+      "confirm": "Write off",
+      "cancel": "Cancel"
+    },
+    "assignment": {
+      "active": "Active",
+      "title": "Assignment",
+      "transfer": "Transfer",
+      "warehouse": "Warehouse"
+    },
+    "transfer": {
+      "title": "Transfer to",
+      "modeWarehouse": "Warehouse",
+      "modeEmployee": "Employee",
+      "modeBranch": "Branch",
+      "modeDepartment": "Department",
+      "modeTemporary": "Temporary",
+      "bannerWarehouseLabel": "Return to warehouse",
+      "bannerWarehouseHint": "Asset will be marked as ready to issue",
+      "bannerEmployeeLabel": "Assign to employee",
+      "bannerEmployeeHint": "Select an employee from the list below",
+      "bannerBranchLabel": "Transfer to branch",
+      "bannerBranchHint": "Asset will be assigned to the selected branch",
+      "bannerDepartmentLabel": "Transfer to department",
+      "bannerDepartmentHint": "Asset will be assigned to the selected department",
+      "bannerTemporaryLabel": "Temporary transfer",
+      "bannerTemporaryHint": "Set the role and return date",
+      "warehouseHint": "Asset will be marked as «On shelf, ready to issue»",
+      "employeeLabel": "Employee",
+      "employeePlaceholder": "— select employee —",
+      "branchLabel": "Branch",
+      "branchPlaceholder": "— select branch —",
+      "departmentLabel": "Department",
+      "departmentPlaceholder": "— select department —",
+      "kindLabel": "Role",
+      "kindPlaceholder": "— select —",
+      "kindAudit": "Auditor",
+      "kindIntern": "Intern",
+      "returnDateLabel": "Return by",
+      "returnDatePlaceholder": "— pick a date —",
+      "workModeLabel": "Work mode",
+      "workModeOffice": "Primary",
+      "workModeRemote": "Remote",
+      "commit": "Transfer",
+      "cancel": "Cancel"
+    }
+  },
   "assign": {
     "action": "Assign",
     "actScan": "Act-of-acceptance scan",

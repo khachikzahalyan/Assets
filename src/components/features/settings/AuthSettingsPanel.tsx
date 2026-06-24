@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import type { TFunction } from 'i18next'
 import { useAuth } from '@/contexts/AuthContext'
 import {
-  SectionCard, Btn, Icon, Field, Input, LoadingState, ErrorState,
+  SectionCard, Btn, Icon, Field, Input, ErrorState, MODAL_SHEET,
 } from '@/components/ui'
 import {
   normalizeDomain, isValidDomain,
@@ -28,16 +28,17 @@ function DialogShell({ onBackdropClick, children, labelledBy }: DialogShellProps
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 max-md:items-end"
       onClick={onBackdropClick}
       role="dialog"
       aria-modal="true"
       aria-labelledby={labelledBy}
     >
       <div
-        className="w-[440px] max-w-[90vw] rounded-lg border border-border bg-surface p-5"
+        className={`w-[440px] max-w-[90vw] rounded-lg border border-border bg-surface p-5 ${MODAL_SHEET}`}
         onClick={e => e.stopPropagation()}
       >
+        <div className="max-md:block hidden mx-auto h-1 w-9 rounded-full bg-white/20 mb-3" />
         {children}
       </div>
     </div>
@@ -244,7 +245,46 @@ export function AuthSettingsPanel({ repository }: AuthSettingsPanelProps) {
   if (loading) {
     return (
       <SectionCard title={t('auth.title')} icon="shield-check">
-        <LoadingState rows={3} />
+        <div className="space-y-5" aria-hidden="true">
+          {/* Subtitle — REAL static text */}
+          <p className="text-[13px] text-text-subtle">{t('auth.subtitle')}</p>
+          {/* Domain list rows — shimmer (DB: the actual saved domains) */}
+          <div className="space-y-1.5">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="flex items-center justify-between px-3 py-2 rounded-lg border border-border bg-bg min-h-[36px]">
+                <div className="h-[13px] rounded anim-skeleton" style={{ width: `${40 + i * 12}%` }} />
+                <div className="w-6 h-6 rounded anim-skeleton flex-shrink-0" />
+              </div>
+            ))}
+          </div>
+          {/* Add-domain row — REAL label + shimmer input + REAL disabled button */}
+          <div className="space-y-1.5">
+            <label className="block text-[11px] uppercase tracking-[0.06em] font-semibold text-text-subtle">
+              {t('auth.addLabel')}
+            </label>
+            <div className="flex gap-2">
+              <div className="flex-1 h-9 rounded-lg anim-skeleton" />
+              <button
+                type="button"
+                disabled
+                className="inline-flex items-center gap-1.5 h-9 px-3 rounded-lg text-[13px] font-medium border bg-surface-2 border-border text-text-tertiary opacity-50 cursor-default flex-shrink-0"
+              >
+                <Icon name="plus" size={13} />
+                {t('auth.addBtn')}
+              </button>
+            </div>
+          </div>
+          {/* Save button — REAL disabled */}
+          <div className="flex justify-end pt-2 border-t border-border">
+            <button
+              type="button"
+              disabled
+              className="inline-flex items-center h-9 px-4 rounded-lg text-[13px] font-semibold bg-accent text-white opacity-50 cursor-default"
+            >
+              {t('auth.saveBtn')}
+            </button>
+          </div>
+        </div>
       </SectionCard>
     )
   }

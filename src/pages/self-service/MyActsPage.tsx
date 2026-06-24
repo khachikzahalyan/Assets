@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
-  PageHeader, SectionCard, Btn, Icon, LoadingState, ErrorState, EmptyState,
+  PageHeader, SectionCard, Btn, Icon, ErrorState, EmptyState,
 } from '@/components/ui'
 import { useAuth } from '@/contexts/AuthContext'
 import type { Assignment, AssignmentRepository } from '@/domain/assignment'
@@ -57,9 +57,33 @@ export function MyActsPage({ repository }: MyActsPageProps) {
 
   if (loading) {
     return (
-      <div className="space-y-5">
-        <PageHeader icon="file-text" title="…" />
-        <LoadingState rows={5} />
+      <div className="space-y-5" aria-busy="true">
+        <PageHeader icon="file-text" title={t('self.myActs')} />
+        <div className="bg-surface border border-border rounded-xl overflow-hidden">
+          <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-border">
+            <Icon name="file-text" size={15} className="text-text-subtle flex-shrink-0 w-7 h-7 flex items-center justify-center" />
+            <span className="text-[12px] uppercase tracking-[0.09em] font-semibold text-text-tertiary">
+              {t('self.myActs')}
+            </span>
+          </div>
+          <div className="p-5 space-y-2">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-3 min-h-[44px]">
+                {/* assetId stub — DB data */}
+                <div className="h-[12px] w-[96px] rounded anim-skeleton flex-shrink-0" />
+                {/* view-scan button — REAL disabled label */}
+                <button
+                  type="button"
+                  disabled
+                  className="inline-flex items-center gap-1.5 h-[32px] px-3 rounded-lg text-[12.5px] font-medium border bg-surface-2 border-border text-text-tertiary opacity-50 cursor-default flex-shrink-0"
+                >
+                  <Icon name="arrow-right-left" size={13} />
+                  {t('detail.viewScan')}
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     )
   }

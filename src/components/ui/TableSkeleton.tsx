@@ -28,6 +28,13 @@ export interface TableSkeletonProps {
    * column present in AssetsTable and EmployeesTable. Default false.
    */
   lastColAction?: boolean
+  /**
+   * When provided, renders real column-header text in the header band instead
+   * of shimmer bars. The array must have exactly `columns` entries (pass an
+   * empty string `''` for the action column). When omitted, the original
+   * shimmer-bar header is rendered.
+   */
+  headers?: string[]
 }
 
 /** Width percentages for the header shimmer bars — varies per column for realism. */
@@ -48,6 +55,7 @@ export function TableSkeleton({
   firstColWide = false,
   gridTemplate,
   lastColAction = false,
+  headers,
 }: TableSkeletonProps) {
   const effectiveGrid = gridTemplate ?? `repeat(${columns}, minmax(0, 1fr))`
 
@@ -74,10 +82,29 @@ export function TableSkeleton({
       >
         {Array.from({ length: columns }).map((_, colIdx) => {
           const isLast = lastColAction && colIdx === columns - 1
+          const pl = colIdx === 0 ? 20 : 12
+          if (headers) {
+            // Real header text — static i18n label, no shimmer
+            const label = headers[colIdx] ?? ''
+            return (
+              <div
+                key={colIdx}
+                style={{ paddingLeft: pl, paddingRight: 12 }}
+                className={
+                  label
+                    ? 'text-[12px] uppercase tracking-[0.09em] font-semibold text-text-tertiary truncate overflow-hidden'
+                    : ''
+                }
+              >
+                {label}
+              </div>
+            )
+          }
+          // Legacy shimmer header (no headers prop)
           return (
             <div
               key={colIdx}
-              style={{ paddingLeft: colIdx === 0 ? 20 : 12, paddingRight: 12 }}
+              style={{ paddingLeft: pl, paddingRight: 12 }}
             >
               {!isLast && (
                 <div

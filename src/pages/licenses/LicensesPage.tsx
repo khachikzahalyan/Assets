@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
-import { PageHeader, Btn, Icon, LoadingState, ErrorState } from '@/components/ui'
+import { PageHeader, Btn, Icon, ErrorState } from '@/components/ui'
 import {
   WindowsKeysSection,
   SubscriptionsSection,
@@ -390,7 +390,36 @@ export function LicensesPage({
       {/* Tab body */}
       {activeTab === 'keys' && (
         <>
-          {wLoading && <LoadingState rows={5} />}
+          {wLoading && (
+            /*
+             * Keys-tab skeleton — mirrors WindowsKeysSection table rows.
+             * Each row is ROW_H=56px with icon-box, name/meta, status chip, and action stub.
+             * Wrapped in a SectionCard-shaped container (bg-surface, border, rounded-xl).
+             */
+            <div className="bg-surface border border-border rounded-xl overflow-hidden" aria-hidden="true">
+              {/* Card header — REAL icon + REAL title */}
+              <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-border">
+                <Icon name="key-round" size={15} className="text-text-subtle flex-shrink-0 w-7 h-7 flex items-center justify-center" />
+                <span className="text-[12px] uppercase tracking-[0.09em] font-semibold text-text-tertiary">
+                  {t('keys.sectionTitle')}
+                </span>
+              </div>
+              {/* Table rows — shimmer (DB: license name + meta + status) */}
+              <div className="divide-y divide-border">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-3 px-5 py-0" style={{ minHeight: 56 }}>
+                    <div className="w-8 h-8 rounded-lg anim-skeleton flex-shrink-0" />
+                    <div className="flex-1 min-w-0 space-y-2">
+                      <div className="h-[13px] rounded anim-skeleton" style={{ width: `${48 + (i % 3) * 12}%` }} />
+                      <div className="h-[10px] rounded anim-skeleton" style={{ width: `${32 + (i % 4) * 8}%` }} />
+                    </div>
+                    <div className="h-[20px] w-[64px] rounded-md anim-skeleton flex-shrink-0" />
+                    <div className="h-[28px] w-[28px] rounded-md anim-skeleton flex-shrink-0" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           {wError && <ErrorState onRetry={loadWorkstation} />}
           {!wLoading && !wError && (
             <WindowsKeysSection
@@ -411,7 +440,45 @@ export function LicensesPage({
 
       {activeTab === 'subs' && (
         <>
-          {subsLoading && <LoadingState rows={4} />}
+          {subsLoading && (
+            /*
+             * Subs-tab skeleton — mirrors SubscriptionsSection:
+             * SectionCard header + grid-cols-1 md:grid-cols-2 xl:grid-cols-3 of SubscriptionCard stubs.
+             * Each SubscriptionCard is a bordered card with title, meta rows, and assignee chips.
+             */
+            <div className="bg-surface border border-border rounded-xl overflow-hidden" aria-hidden="true">
+              {/* Card header — REAL icon + REAL title */}
+              <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-border">
+                <Icon name="boxes" size={15} className="text-text-subtle flex-shrink-0 w-7 h-7 flex items-center justify-center" />
+                <span className="text-[12px] uppercase tracking-[0.09em] font-semibold text-text-tertiary">
+                  {t('subs.sectionTitle')}
+                </span>
+              </div>
+              {/* Sub-card grid — shimmer (DB: subscription name + meta + assignees) */}
+              <div className="p-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="bg-bg border border-border rounded-xl p-4 space-y-3">
+                      {/* Card title row */}
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-md anim-skeleton flex-shrink-0" />
+                        <div className="h-[14px] flex-1 rounded anim-skeleton" style={{ maxWidth: '65%' }} />
+                      </div>
+                      {/* Meta rows */}
+                      <div className="h-[11px] w-[50%] rounded anim-skeleton" />
+                      <div className="h-[11px] w-[40%] rounded anim-skeleton" />
+                      {/* Assignee chips */}
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {Array.from({ length: 2 }).map((__, j) => (
+                          <div key={j} className="h-[22px] w-[72px] rounded-full anim-skeleton" />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
           {subsError && <ErrorState onRetry={loadSubs} />}
           {!subsLoading && !subsError && (
             <SubscriptionsSection

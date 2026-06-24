@@ -148,6 +148,15 @@
     "willLink": "Will link",
     "cancelConfirm": "Yes, cancel"
   },
+  "table": {
+    "employee": "Employee",
+    "branch": "Branch",
+    "position": "Position",
+    "phone": "Phone",
+    "gmail": "Gmail",
+    "assets": "Assets",
+    "status": "Status"
+  },
   "title": "Employees",
   "toast": {
     "created": "Employee added",

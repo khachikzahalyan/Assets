@@ -1,8 +1,9 @@
-﻿import { useMemo, useState, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+﻿import { useMemo, useState, useCallback, useEffect } from 'react'
+import { useIsMobile } from '@/hooks/useIsMobile'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
-import { ListCard, ListPageShell, EmptyState, ErrorState, Btn, Icon, TableSkeleton } from '@/components/ui'
+import { ListCard, ListPageShell, EmptyState, ErrorState, Btn, Icon, TableSkeleton, CardListSkeleton } from '@/components/ui'
 import { AssetsToolbar, AssetsFilterBar, AssetsTable } from '@/components/features/assets'
 import { PaginationBar } from '@/components/features/assets/PaginationBar'
 import { useAssets } from '@/hooks'
@@ -43,10 +44,13 @@ export function AssetsPage({ repository }: AssetsPageProps) {
   const repo = repository ?? defaultRepo
 
   const canMutate = role === 'super_admin' || role === 'asset_admin'
+  const isMobile = useIsMobile()
 
+  const [searchParams, setSearchParams] = useSearchParams()
   const [query, setQuery] = useState<AssetListQuery>({ ...DEFAULT_QUERY })
   const [page, setPage] = useState(1)
   const [showTemp, setShowTemp] = useState(false)
+  const [focusId, setFocusId] = useState<string | null>(null)
 
   const handleQueryChange = useCallback((patch: Partial<AssetListQuery>) => {
     setQuery(prev => ({ ...prev, ...patch }))
@@ -113,6 +117,43 @@ export function AssetsPage({ repository }: AssetsPageProps) {
     () => allGroupsAssets.filter(a => isTemporaryAssignment(a)).length,
     [allGroupsAssets],
   )
+
+  // ── Focus-from-URL effect ────────────────────────────────────────────────────
+  // Runs when the URL has ?focus=<id> AND ref + allGroupsAssets are loaded.
+  // Determines the asset's group, resets filters to make it visible, sets focusId,
+  // then clears the URL param so a refresh doesn't re-trigger.
+  const rawFocusParam = searchParams.get('focus')
+  useEffect(() => {
+    if (!rawFocusParam) return
+    if (loading || !ref) return
+
+    const targetAsset = allGroupsAssets.find(a => a.id === rawFocusParam)
+    if (targetAsset) {
+      const catGroupMap = new Map(ref.categories.map(c => [c.id, c.group]))
+      const assetGroup = catGroupMap.get(targetAsset.categoryId)
+      const groupValue: AssetListQuery['group'] =
+        assetGroup === 'devices' || assetGroup === 'network' || assetGroup === 'furniture'
+          ? assetGroup
+          : 'all'
+      setQuery({ ...DEFAULT_QUERY, group: groupValue })
+      setShowTemp(false)
+      setPage(1)
+      setFocusId(rawFocusParam)
+    }
+    // Clear the URL param so a page refresh doesn't re-trigger
+    setSearchParams({}, { replace: true })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rawFocusParam, loading, ref])
+
+  // ── Pagination jump to the focused row ──────────────────────────────────────
+  // After displayed list settles, jump to the page that contains the focused asset.
+  useEffect(() => {
+    if (!focusId) return
+    const idx = displayed.findIndex(a => a.id === focusId)
+    if (idx < 0) return
+    const targetPage = Math.floor(idx / PAGE_SIZE) + 1
+    setPage(prev => (prev !== targetPage ? targetPage : prev))
+  }, [focusId, displayed])
 
   // Paginate the displayed list
   const totalCount = displayed.length
@@ -181,7 +222,24 @@ export function AssetsPage({ repository }: AssetsPageProps) {
   }, [displayed, ref, t])
 
   function renderTableRegion() {
-    if (loading) return <TableSkeleton rows={PAGE_SIZE} columns={7} firstColWide lastColAction gridTemplate="minmax(240px,2.4fr) minmax(130px,1fr) minmax(100px,0.85fr) minmax(150px,1.2fr) minmax(110px,1fr) minmax(100px,0.9fr) 56px" />
+    if (loading) return isMobile
+      ? <CardListSkeleton rows={PAGE_SIZE} variant="asset" />
+      : <TableSkeleton
+          rows={PAGE_SIZE}
+          columns={7}
+          firstColWide
+          lastColAction
+          gridTemplate="minmax(240px,2.4fr) minmax(130px,1fr) minmax(100px,0.85fr) minmax(150px,1.2fr) minmax(110px,1fr) minmax(100px,0.9fr) 56px"
+          headers={[
+            t('cols.asset', { ns: 'assets' }),
+            t('cols.branch', { ns: 'assets' }),
+            t('cols.code', { ns: 'assets' }),
+            t('cols.assignee', { ns: 'assets' }),
+            t('cols.status', { ns: 'assets' }),
+            t('cols.updated', { ns: 'assets' }),
+            '',
+          ]}
+        />
     if (error) return <ErrorState onRetry={reload} />
     if (displayed.length === 0) {
       return (
@@ -207,6 +265,7 @@ export function AssetsPage({ repository }: AssetsPageProps) {
         canMutate={canMutate}
         onRowClick={(a) => navigate(`/assets/${a.id}`)}
         minRows={PAGE_SIZE}
+        focusId={focusId ?? undefined}
       />
     )
   }
@@ -250,8 +309,12 @@ export function AssetsPage({ repository }: AssetsPageProps) {
                 onReset={handleReset}
               />
             ) : (
-              <div className="h-[40px] px-5 py-2">
-                <div className="h-8 rounded-lg anim-skeleton w-full" />
+              /* Filter-bar skeleton — same padding as real AssetsFilterBar (px-5 py-2 = 48px total) */
+              <div className="flex items-center gap-2 px-5 py-2 max-md:px-3">
+                <div className="h-8 w-[108px] rounded-lg anim-skeleton flex-shrink-0" />
+                <div className="h-8 w-[108px] rounded-lg anim-skeleton flex-shrink-0" />
+                <div className="h-8 w-[72px] rounded-lg anim-skeleton flex-shrink-0" />
+                <div className="h-8 w-[80px] rounded-lg anim-skeleton flex-shrink-0" />
               </div>
             )}
 

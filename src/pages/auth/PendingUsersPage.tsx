@@ -3,8 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
 import { cn } from '@/lib/utils'
 import {
-  PageHeader, SectionCard, Btn, Icon, EmptyState, LoadingState, ErrorState, Field, Select,
-  LIST_ROW_SEPARATOR_FULL,
+  PageHeader, SectionCard, Btn, Icon, EmptyState, ErrorState, Field, Select,
+  LIST_ROW_SEPARATOR_FULL, MODAL_SHEET,
 } from '@/components/ui'
 import type { PendingUser, UserRepository, AssignRoleInput } from '@/domain/user'
 import type { Role } from '@/config/roles'
@@ -78,7 +78,7 @@ function AssignDialog({ pendingUser, onClose, onAssigned, repo, actor }: AssignD
     /* Backdrop */
     <div
       role="presentation"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm max-md:items-end"
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
       {/* Dialog panel */}
@@ -86,8 +86,9 @@ function AssignDialog({ pendingUser, onClose, onAssigned, repo, actor }: AssignD
         role="dialog"
         aria-modal="true"
         aria-labelledby="assign-dialog-title"
-        className="w-full max-w-md bg-surface border border-border rounded-xl shadow-2xl p-6 space-y-5 mx-4"
+        className={`w-full max-w-md bg-surface border border-border rounded-xl shadow-2xl p-6 space-y-5 mx-4 max-md:mx-0 ${MODAL_SHEET}`}
       >
+        <div className="max-md:block hidden mx-auto h-1 w-9 rounded-full bg-white/20 mb-3 -mt-3" />
         <header className="flex items-center justify-between gap-3">
           <h2 id="assign-dialog-title" className="text-[15px] font-bold text-text-primary">
             {t('dialog.title')}
@@ -269,7 +270,52 @@ export function PendingUsersPage({ repository }: PendingUsersPageProps) {
   }
 
   function renderBody() {
-    if (loading) return <LoadingState rows={6} />
+    if (loading) {
+      /*
+       * Pending-users skeleton — mirrors the real table:
+       * thead: user / email / signed-in / action — ~38px header
+       * tbody rows: py-3 px-3 — avatar+name | email | date | button — ~48px per row
+       */
+      return (
+        <div aria-hidden="true">
+          {/* Table header — REAL column labels */}
+          <div className="flex items-center gap-3 border-b border-border py-2.5 px-3">
+            {(
+              [
+                { label: t('col.user'),     widthPct: '35%' },
+                { label: t('col.email'),    widthPct: '30%' },
+                { label: t('col.signedIn'), widthPct: '20%' },
+                { label: '',                widthPct: '10%' },
+              ] as const
+            ).map(({ label, widthPct }, i) => (
+              <div
+                key={i}
+                className="text-[11px] uppercase tracking-[0.06em] font-semibold text-text-subtle"
+                style={{ width: widthPct, flexShrink: 0 }}
+              >
+                {label}
+              </div>
+            ))}
+          </div>
+          {/* Table rows — shimmer (DB: user name + email + sign-in date) */}
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-3 py-3 px-3 border-b border-border last:border-b-0">
+              {/* User col: avatar + name */}
+              <div className="flex items-center gap-2 flex-1" style={{ flexBasis: '35%', minWidth: 0 }}>
+                <div className="w-7 h-7 rounded-full anim-skeleton flex-shrink-0" />
+                <div className="h-[13px] rounded anim-skeleton flex-1" style={{ maxWidth: '70%' }} />
+              </div>
+              {/* Email col */}
+              <div className="h-[13px] rounded anim-skeleton flex-1" style={{ flexBasis: '30%', maxWidth: '30%' }} />
+              {/* Signed-in col */}
+              <div className="h-[13px] rounded anim-skeleton flex-1" style={{ flexBasis: '20%', maxWidth: '20%' }} />
+              {/* Action col */}
+              <div className="h-[28px] w-[72px] rounded-lg anim-skeleton flex-shrink-0" />
+            </div>
+          ))}
+        </div>
+      )
+    }
     if (error)   return <ErrorState onRetry={load} />
     if (pendingUsers.length === 0) {
       return (

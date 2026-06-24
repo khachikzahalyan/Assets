@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
-import { PageHeader, LoadingState, ErrorState } from '@/components/ui'
+import { PageHeader, ErrorState, Icon } from '@/components/ui'
 import {
   KpiTile,
   StatusBreakdown,
@@ -36,9 +36,57 @@ export function DashboardPage({ repo }: DashboardPageProps) {
 
   if (loading) {
     return (
-      <div className="space-y-5">
+      <div className="space-y-5" aria-busy="true">
         <PageHeader icon="layout-dashboard" title={t('title')} />
-        <LoadingState rows={6} />
+        {/* KPI tile row — REAL icon + REAL label, shimmer value */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {(
+            [
+              { labelKey: 'kpi.totalAssets',  icon: 'package' },
+              { labelKey: 'kpi.currentlyOut', icon: 'arrow-right-left' },
+              { labelKey: 'kpi.licenses',     icon: 'key-round' },
+              { labelKey: 'kpi.employees',    icon: 'users' },
+            ] as const
+          ).map(({ labelKey, icon }) => (
+            <div key={labelKey} className="bg-surface border border-border rounded-xl p-5 flex flex-col gap-3">
+              <Icon name={icon} size={18} className="text-text-subtle flex-shrink-0 w-9 h-9 flex items-center justify-center" />
+              <div className="space-y-2">
+                <span className="block text-[12px] uppercase tracking-[0.07em] font-semibold text-text-subtle">
+                  {t(labelKey)}
+                </span>
+                <div className="h-[22px] w-[40%] rounded anim-skeleton" />
+              </div>
+            </div>
+          ))}
+        </div>
+        {/* Detail panels — REAL panel titles, shimmer body rows */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {(
+            [
+              { titleKey: 'status.title',   icon: 'circle-dot' },
+              { titleKey: 'groups.title',   icon: 'tags' },
+              { titleKey: 'branches.title', icon: 'building' },
+              { titleKey: 'recentActivity', icon: 'arrow-right-left' },
+            ] as const
+          ).map(({ titleKey, icon }) => (
+            <div key={titleKey} className="bg-surface border border-border rounded-xl overflow-hidden">
+              <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-border">
+                <Icon name={icon} size={15} className="text-text-subtle flex-shrink-0 w-7 h-7 flex items-center justify-center" />
+                <span className="text-[12px] uppercase tracking-[0.09em] font-semibold text-text-tertiary">
+                  {t(titleKey)}
+                </span>
+              </div>
+              <div className="p-5 space-y-3">
+                {Array.from({ length: 4 }).map((__, j) => (
+                  <div key={j} className="flex items-center gap-3">
+                    <div className="h-[12px] flex-1 rounded anim-skeleton" style={{ maxWidth: `${55 + j * 8}%` }} />
+                    <div className="h-[12px] w-[48px] rounded anim-skeleton flex-shrink-0" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     )
   }

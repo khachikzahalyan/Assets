@@ -130,8 +130,8 @@ describe('PartsPage', () => {
     })
     // Act
     const { container } = renderPage()
-    // Assert — skeleton element rendered (not the tab strip or stat tiles)
-    expect(screen.queryByText('tabs.warehouse')).not.toBeInTheDocument()
+    // Assert — skeleton renders real tab labels and shimmer bars (per skeleton-static-text refactor)
+    expect(screen.getByText('tabs.warehouse')).toBeInTheDocument()
     expect(container.querySelector('.anim-skeleton')).toBeInTheDocument()
   })
 

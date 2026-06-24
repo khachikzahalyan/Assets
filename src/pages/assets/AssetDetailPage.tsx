@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
-  PageHeader, LoadingState, ErrorState, EmptyState,
+  PageHeader, ErrorState, EmptyState, Icon,
 } from '@/components/ui'
 import { DetailHero } from '@/components/features/assets/detail/DetailHero'
 import { DetailTabs, type TabId } from '@/components/features/assets/detail/DetailTabs'
@@ -168,7 +168,13 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
 
   const historyEvents = useMemo(() => {
     if (!ref) return []
-    return auditLogs.map(log => auditToHistoryEvent(log, ref, { currentUid: user.id }))
+    // Asset history shows only the asset's OWN lifecycle/transfer records.
+    // Parts/component events (Запчасти — `upgrade_added`, `part_installed`,
+    // `part_removed`, …) belong to the Parts module, not the asset timeline,
+    // so any upgrade/part_* action is excluded here.
+    return auditLogs
+      .filter(log => log.action !== 'upgrade_added' && !log.action.startsWith('part'))
+      .map(log => auditToHistoryEvent(log, ref, { currentUid: user.id }))
   }, [auditLogs, ref, user.id])
 
   const canRepair  = role === 'super_admin' || role === 'tech_admin'
@@ -321,9 +327,114 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
   // ---- Render states ----
   if (loading) {
     return (
-      <div className="space-y-5">
-        <PageHeader icon="package" title="…" />
-        <LoadingState rows={5} />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start" aria-hidden="true">
+        {/* LEFT column */}
+        <div className="lg:col-span-2 space-y-0">
+          {/* Hero card */}
+          <div className="bg-surface rounded-t-2xl border border-b-0 border-border overflow-hidden">
+            <div className="h-1 w-full anim-skeleton opacity-50" />
+            <div className="p-5 sm:p-6">
+              <div className="flex items-start gap-4 max-md:flex-wrap">
+                <div className="w-12 h-12 rounded-xl anim-skeleton flex-shrink-0" />
+                <div className="flex-1 min-w-0 space-y-2">
+                  <div className="h-[18px] w-[55%] rounded anim-skeleton" />
+                  <div className="flex items-center gap-2">
+                    <div className="h-[20px] w-[88px] rounded-md anim-skeleton" />
+                    <div className="h-[20px] w-[72px] rounded-md anim-skeleton" />
+                  </div>
+                </div>
+                <div className="h-[22px] w-[80px] rounded-md anim-skeleton flex-shrink-0 max-md:mt-1" />
+              </div>
+            </div>
+          </div>
+
+          {/* Tab strip — REAL tab labels (static i18n), non-interactive during loading */}
+          <div className="bg-surface border-x border-border px-5 flex items-center gap-1 h-[44px]">
+            {(['detail.tabs.specs', 'detail.tabs.history', 'detail.tabs.docs'] as const).map((key, i) => (
+              <span
+                key={key}
+                className={`flex items-center gap-1.5 px-3 py-3 text-[13.5px] font-medium flex-shrink-0 ${
+                  i === 0 ? 'text-accent-light' : 'text-text-subtle'
+                }`}
+              >
+                <Icon name={i === 0 ? 'cpu' : i === 1 ? 'history' : 'file-text'} size={14} />
+                {t(key)}
+              </span>
+            ))}
+          </div>
+
+          {/* Tab panel body */}
+          <div className="bg-surface rounded-b-2xl border-x border-b border-border px-5 sm:px-6 py-5">
+            {/* Card header: REAL icon + REAL title + REAL disabled copy button */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2.5">
+                <Icon name="cpu" size={18} className="text-violet-400 flex-shrink-0" />
+                <span className="text-[12px] uppercase tracking-[0.09em] font-semibold text-text-tertiary">
+                  {t('detail.specs.title')}
+                </span>
+              </div>
+              <button
+                type="button"
+                disabled
+                className="inline-flex items-center gap-1.5 h-[32px] px-3 rounded-lg text-[12.5px] font-medium border bg-surface-2 border-border text-text-tertiary opacity-50 cursor-default flex-shrink-0"
+                aria-label={t('detail.specs.copy')}
+              >
+                <Icon name="copy" size={13} />
+                {t('detail.specs.copy')}
+              </button>
+            </div>
+
+            {/* Spec tiles — shimmer (category-dependent, DB) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-bg border border-border">
+                  <div className="w-9 h-9 rounded-lg anim-skeleton flex-shrink-0" />
+                  <div className="flex-1 min-w-0 space-y-1.5">
+                    <div className="h-[9px] w-[42%] rounded anim-skeleton" />
+                    <div className="h-[12px] w-[68%] rounded anim-skeleton" />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="border-t border-border my-4" />
+
+            {/* License block — shimmer (DB: license name + key) */}
+            <div className="flex items-center gap-3.5 p-4 rounded-xl bg-bg border border-border">
+              <div className="w-11 h-11 rounded-lg anim-skeleton flex-shrink-0" />
+              <div className="flex-1 min-w-0 space-y-2">
+                <div className="h-[14px] w-[46%] rounded anim-skeleton" />
+                <div className="h-[12px] w-[62%] rounded anim-skeleton" />
+              </div>
+              <div className="h-8 w-[96px] rounded-lg anim-skeleton flex-shrink-0" />
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT column — 3 sidebar cards with REAL titles */}
+        <div className="space-y-4">
+          {(
+            [
+              { titleKey: 'detail.assignment.title', icon: 'user-check' },
+              { titleKey: 'detail.location.title',   icon: 'map-pin' },
+              { titleKey: 'detail.repair.title',     icon: 'wrench' },
+            ] as const
+          ).map(({ titleKey, icon }) => (
+            <div key={titleKey} className="bg-surface border border-border rounded-xl overflow-hidden">
+              <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-border">
+                <Icon name={icon} size={15} className="text-text-subtle flex-shrink-0" />
+                <span className="text-[12px] uppercase tracking-[0.09em] font-semibold text-text-tertiary">
+                  {t(titleKey)}
+                </span>
+              </div>
+              <div className="p-5 space-y-3">
+                {Array.from({ length: 3 }).map((__, r) => (
+                  <div key={r} className="h-[13px] rounded anim-skeleton" style={{ width: `${65 - r * 10}%` }} />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     )
   }
@@ -347,10 +458,15 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
   }
 
   if (!statusRow) {
+    // Status row resolves from ref data — if ref is somehow absent, show a slim skeleton
     return (
-      <div className="space-y-5">
+      <div className="space-y-5" aria-hidden="true">
         <PageHeader icon="package" title={asset.invCode} />
-        <LoadingState rows={3} />
+        <div className="bg-surface border border-border rounded-xl p-5 space-y-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="h-[13px] rounded anim-skeleton" style={{ width: `${60 - i * 8}%` }} />
+          ))}
+        </div>
       </div>
     )
   }
@@ -438,7 +554,7 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
         {/* ---------------------------------------------------------------- */}
         {/* RIGHT column — assignment + location + repair                    */}
         {/* ---------------------------------------------------------------- */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           {/* Assignment card */}
           {ref && (
             <AssignmentCard

@@ -90,5 +90,34 @@
     "desc": "Add the first license"
   },
   "error": "Failed to load licenses. Try again.",
-  "pagination": { "range": "{{from}}–{{to}} / {{total}}" }
+  "pagination": { "range": "{{from}}–{{to}} / {{total}}" },
+  "keys": {
+    "activate": "Activate",
+    "activatedToast": "Key activated on «{{name}}»",
+    "colAction": "Action",
+    "colAsset": "Asset",
+    "colKey": "Product key",
+    "colStatus": "Status",
+    "colVersion": "Version",
+    "emptyDesc": "No keys found for the selected filter.",
+    "emptyTitle": "No keys",
+    "freedOn": "Freed {{date}}",
+    "searchPlaceholder": "Search by asset or inv. code…",
+    "sectionTitle": "Windows Keys",
+    "statusFree": "Free",
+    "statusInUse": "In use"
+  },
+  "subs": {
+    "details": "Details",
+    "emptyDesc": "Add the first subscription using the «Add license» button.",
+    "emptyTitle": "No subscriptions",
+    "employees": "Employees",
+    "sectionTitle": "Subscriptions & Software",
+    "expiresInDays": "Expires in {{days}} days",
+    "expiryDate": "Expires",
+    "notAssigned": "not assigned",
+    "purchaseDate": "Purchased",
+    "seats": "Seats",
+    "seatsProgress": "{{used}} / {{total}}"
+  }
 }
