@@ -27,7 +27,8 @@
       "factoryBattery": "Factory"
     },
     "parts": {
-      "note": "Components are managed in the Parts section"
+      "note": "Components are managed in the Parts section",
+      "openParts": "Open Parts"
     },
     "license": {
       "none": "No license attached",

@@ -159,6 +159,12 @@
     "component": "Բաղադրիչ",
     "notTracked": "չի հետևվում բնութագրերում"
   },
+  "detail": {
+    "parts": {
+      "note": "Components are managed in the Parts section",
+      "openParts": "Open Parts"
+    }
+  },
   "validation": {
     "brandModelRequired": "Լրացրեք «Ապրանքանիշ» և «Մոդել»",
     "invRequired": "Լրացրեք «Գույքագրման կոդ»",

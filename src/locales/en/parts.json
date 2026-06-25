@@ -1,6 +1,7 @@
 {
   "actions": {
     "add": "Add part",
+    "back": "Back",
     "dismiss": "Dismiss",
     "install": "Install",
     "logService": "Log service",

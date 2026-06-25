@@ -2,6 +2,7 @@
   "_todo": "hy translations are Armenian equivalents — schedule native Armenian review",
   "actions": {
     "add": "Ավելացնել մաս",
+    "back": "Հետ",
     "dismiss": "Փակել",
     "install": "Տեղadрел",
     "logService": "Гранcel Сервиs",
