@@ -157,19 +157,23 @@ export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepo
   }
 
   private async fetchReferenceData(): Promise<AssetReferenceData> {
-    const [statuses, branches, departments, categories, employees] = await Promise.all([
+    const empMap = (d: Record<string, unknown>) => ({
+      firstName: (d.firstName as string | null) ?? null,
+      lastName: (d.lastName as string | null) ?? null,
+      email: (d.email as string | null) ?? null,
+      departmentId: (d.departmentId as string | null) ?? null,
+      position: (d.position as string | null) ?? null,
+    })
+    const [statuses, branches, departments, categories, activeEmps, formerEmps] = await Promise.all([
       this.readCol<StatusRow>('asset_statuses', d => ({ name: String(d.name ?? ''), color: String(d.color ?? 'gray') })),
       this.readCol<RefRow>('branches', d => ({ name: String(d.name ?? '') })),
       this.readCol<RefRow>('departments', d => ({ name: String(d.name ?? '') })),
       this.readCol<CategoryRow>('categories', mapCategory),
-      this.readCol<EmployeeRow>('employees', d => ({
-        firstName: (d.firstName as string | null) ?? null,
-        lastName: (d.lastName as string | null) ?? null,
-        email: (d.email as string | null) ?? null,
-        departmentId: (d.departmentId as string | null) ?? null,
-        position: (d.position as string | null) ?? null,
-      })),
+      this.readCol<EmployeeRow>('employees', empMap),
+      this.readCol<EmployeeRow>('former_employees', empMap),
     ])
+    const seen = new Set(activeEmps.map(e => e.id))
+    const employees = [...activeEmps, ...formerEmps.filter(e => !seen.has(e.id))]
     return { statuses, branches, departments, categories, employees }
   }
 
