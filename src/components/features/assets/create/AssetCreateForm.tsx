@@ -250,18 +250,31 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
       return
     }
 
-    const branchId = qa.picked === 'branch' && qa.assignment?.branchId
-      ? qa.assignment.branchId
+    // Coerce an INCOMPLETE quick-assignment to warehouse: if a recipient mode was
+    // picked but no concrete recipient was actually chosen (employee/branch/dept/temp
+    // without its id/kind), default the asset to On-Shelf at the Head Office instead of
+    // persisting an assignment that resolves to nobody («Выдано в никуда»).
+    const a = qa.assignment
+    const validAssignment =
+      !a ? null
+      : a.mode === 'employee'   ? (a.employeeId ? a : null)
+      : a.mode === 'branch'     ? (a.branchId ? a : null)
+      : a.mode === 'department' ? (a.departmentId ? a : null)
+      : a.mode === 'temporary'  ? (a.tempKind ? a : null)
+      : null
+
+    const branchId = validAssignment?.mode === 'branch' && validAssignment.branchId
+      ? validAssignment.branchId
       : headBranchId
-    const deptId = qa.picked === 'department' && qa.assignment?.departmentId
-      ? qa.assignment.departmentId
+    const deptId = validAssignment?.mode === 'department' && validAssignment.departmentId
+      ? validAssignment.departmentId
       : null
 
     const input: CreateAssetInput = {
       ...baseInput(),
       invCode: invCode.trim(),
       serial: caps.requiresSerial ? (serial.trim() || null) : null,
-      assignment: qa.assignment,
+      assignment: validAssignment,
       branchId,
       deptId,
     }
