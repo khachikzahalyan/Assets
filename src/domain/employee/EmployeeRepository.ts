@@ -1,4 +1,4 @@
-import type { Employee, EmployeeStatus, EmployeeListQuery } from './types'
+import type { Employee, EmployeeListQuery } from './types'
 import type { Actor } from '@/domain/asset'
 import type { AuditedResult } from '@/domain/audit'
 
@@ -41,11 +41,16 @@ export interface UpdateEmployeeInput {
 
 export interface EmployeeRepository {
   listEmployees(query?: EmployeeListQuery): Promise<Employee[]>
+  /** Read the archive set (former_employees). */
+  listFormerEmployees(query?: EmployeeListQuery): Promise<Employee[]>
   getEmployee(id: string): Promise<Employee | null>
   /** Case-insensitive uniqueness check. */
   isEmailTaken(email: string, exceptId?: string): Promise<boolean>
   createEmployee(input: CreateEmployeeInput, actor: Actor): Promise<AuditedResult<Employee>>
   updateEmployee(id: string, patch: UpdateEmployeeInput, actor: Actor): Promise<AuditedResult<Employee>>
-  /** Terminate (stamps terminatedAt) or reactivate (clears it). */
-  setStatus(id: string, status: EmployeeStatus, actor: Actor): Promise<AuditedResult<Employee>>
+  /** Move active → former (terminate). Atomic. Audits 'terminated'.
+   *  Throws EmployeeArchiveError on self-archive or last-super-admin. */
+  archiveEmployee(id: string, actor: Actor): Promise<AuditedResult<Employee>>
+  /** Move former → active (reactivate). Atomic. Audits 'reactivated'. */
+  restoreEmployee(id: string, actor: Actor): Promise<AuditedResult<Employee>>
 }
