@@ -43,6 +43,10 @@
     "sortAssetsDesc": "Most assets",
     "reset": "Reset"
   },
+  "guard": {
+    "last-super-admin": "You cannot archive the last super admin",
+    "self-archive": "You cannot archive your own record"
+  },
   "form": {
     "branch": "Branch",
     "cancel": "Cancel",
