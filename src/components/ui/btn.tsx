@@ -19,7 +19,7 @@ export function Btn({
   ...rest
 }: BtnProps) {
   const variants = {
-    primary:   'bg-accent text-white shadow-sm shadow-accent/20 hover:bg-accent-hover hover:shadow-md ring-1 ring-accent-dark/20 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(249,115,22,0.40)]',
+    primary:   'bg-accent text-white shadow-sm hover:bg-accent-hover hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(249,115,22,0.40)]',
     secondary: 'bg-surface border border-border hover:border-border-strong hover:bg-surface-2 text-text-primary shadow-sm disabled:opacity-50 disabled:cursor-not-allowed',
     ghost:     'text-text-secondary hover:bg-surface-2 hover:text-text-primary disabled:opacity-50 disabled:cursor-not-allowed',
     danger:    'bg-surface border border-rose-800/60 text-[#FDA4AF] hover:bg-rose-950/40 hover:border-rose-700/60 shadow-sm disabled:opacity-50',
@@ -35,7 +35,7 @@ export function Btn({
       disabled={disabled}
       onClick={onClick}
       title={title}
-      className={`inline-flex items-center justify-center rounded-lg font-medium tracking-tight transition-all duration-150 ${sizes[size]} ${variants[variant]} ${className}`}
+      className={`inline-flex items-center justify-center rounded-lg font-medium tracking-tight transition-all duration-150 outline-none focus:outline-none ${sizes[size]} ${variants[variant]} ${className}`}
       {...rest}
     >
       {children}

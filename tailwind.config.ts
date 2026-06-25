@@ -10,34 +10,40 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // Colors use rgb(var(--rgb-*) / <alpha-value>) so Tailwind opacity
+        // modifiers (border-border/60, ring-accent/15, …) resolve to a translucent
+        // TOKEN colour. A bare `var(--color-*)` hex cannot carry an alpha channel in
+        // Tailwind v3 → the utility becomes invalid CSS and the browser falls back to
+        // the default blue ring / gray-200 border. The hex --color-* vars remain for
+        // direct use inside index.css.
         // ── Surfaces ──
-        bg: 'var(--color-bg)',
-        surface: 'var(--color-surface)',
-        'surface-2': 'var(--color-surface-2)',
-        'surface-raised': 'var(--color-surface-raised)',
-        'surface-sunken': 'var(--color-surface-sunken)',
+        bg: 'rgb(var(--rgb-bg) / <alpha-value>)',
+        surface: 'rgb(var(--rgb-surface) / <alpha-value>)',
+        'surface-2': 'rgb(var(--rgb-surface-2) / <alpha-value>)',
+        'surface-raised': 'rgb(var(--rgb-surface-raised) / <alpha-value>)',
+        'surface-sunken': 'rgb(var(--rgb-surface-sunken) / <alpha-value>)',
         // ── Borders ──
-        border: 'var(--color-border)',
-        'border-strong': 'var(--color-border-strong)',
+        border: 'rgb(var(--rgb-border) / <alpha-value>)',
+        'border-strong': 'rgb(var(--rgb-border-strong) / <alpha-value>)',
         // ── Text ──
-        text: 'var(--color-text)',
-        'text-primary': 'var(--color-text-primary)',
-        'text-secondary': 'var(--color-text-secondary)',
-        'text-tertiary': 'var(--color-text-tertiary)',
-        'text-muted': 'var(--color-text-muted)',
-        'text-subtle': 'var(--color-text-subtle)',
-        'text-mono': 'var(--color-text-mono)',
+        text: 'rgb(var(--rgb-text) / <alpha-value>)',
+        'text-primary': 'rgb(var(--rgb-text-primary) / <alpha-value>)',
+        'text-secondary': 'rgb(var(--rgb-text-secondary) / <alpha-value>)',
+        'text-tertiary': 'rgb(var(--rgb-text-tertiary) / <alpha-value>)',
+        'text-muted': 'rgb(var(--rgb-text-muted) / <alpha-value>)',
+        'text-subtle': 'rgb(var(--rgb-text-subtle) / <alpha-value>)',
+        'text-mono': 'rgb(var(--rgb-text-mono) / <alpha-value>)',
         // ── Accent (orange) ──
-        accent: 'var(--color-accent)',
-        'accent-hover': 'var(--color-accent-hover)',
-        'accent-light': 'var(--color-accent-light)',
-        'accent-dark': 'var(--color-accent-dark)',
+        accent: 'rgb(var(--rgb-accent) / <alpha-value>)',
+        'accent-hover': 'rgb(var(--rgb-accent-hover) / <alpha-value>)',
+        'accent-light': 'rgb(var(--rgb-accent-light) / <alpha-value>)',
+        'accent-dark': 'rgb(var(--rgb-accent-dark) / <alpha-value>)',
         'accent-soft': 'var(--color-accent-soft)',
         // ── Status ──
-        success: 'var(--color-success)',
-        warning: 'var(--color-warning)',
-        error: 'var(--color-error)',
-        info: 'var(--color-info)',
+        success: 'rgb(var(--rgb-success) / <alpha-value>)',
+        warning: 'rgb(var(--rgb-warning) / <alpha-value>)',
+        error: 'rgb(var(--rgb-error) / <alpha-value>)',
+        info: 'rgb(var(--rgb-info) / <alpha-value>)',
       },
       fontFamily: {
         sans: ['Inter', ...fontFamily.sans],

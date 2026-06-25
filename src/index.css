@@ -78,6 +78,32 @@
   --color-error:   #EF4444;
   --color-info:    #38BDF8;
 
+  /* ── RGB CHANNELS — power Tailwind <alpha-value> so `border-border/60`,
+        `ring-accent/15`, etc. resolve to translucent TOKEN colors instead of
+        falling back to Tailwind's default blue ring / gray-200 border. ── */
+  --rgb-bg:             17 19 21;
+  --rgb-surface:        27 31 36;
+  --rgb-surface-2:      34 39 46;
+  --rgb-surface-raised: 27 31 36;
+  --rgb-surface-sunken: 14 16 19;
+  --rgb-border:         42 47 54;
+  --rgb-border-strong:  58 64 70;
+  --rgb-text:           248 250 252;
+  --rgb-text-primary:   248 250 252;
+  --rgb-text-secondary: 203 213 225;
+  --rgb-text-tertiary:  148 163 184;
+  --rgb-text-muted:     148 163 184;
+  --rgb-text-subtle:    100 116 139;
+  --rgb-text-mono:      251 146 60;
+  --rgb-accent:         249 115 22;
+  --rgb-accent-hover:   234 88 12;
+  --rgb-accent-light:   251 146 60;
+  --rgb-accent-dark:    194 65 12;
+  --rgb-success:        16 185 129;
+  --rgb-warning:        245 158 11;
+  --rgb-error:          239 68 68;
+  --rgb-info:           56 189 248;
+
   /* ── ASSET-DETAIL — surface-soft ── */
   --color-surface-card:  var(--color-surface-2);
   --color-surface-hover: var(--color-surface-2);
@@ -295,6 +321,15 @@ select:-webkit-autofill {
 }
 .anim-loader-glow {
   animation: amsLoaderGlow 2s ease-in-out infinite;
+}
+
+/* Breathing brand-mark pulse for the app loader: opacity 1 → 0.3 → 1 */
+@keyframes amsLogoPulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.3; }
+}
+.anim-logo-pulse {
+  animation: amsLogoPulse 1.3s ease-in-out infinite;
 }
 
 @keyframes contentEnter {
@@ -597,9 +632,11 @@ select:-webkit-autofill {
     width: 100% !important;
   }
 
-  /* ── Edge-to-edge override for pages (e.g. assets card list) ── */
+  /* ── Edge-to-edge override for pages (e.g. assets card list): zero side
+     padding so the list bleeds to the screen edges, but keep a 12px top gap
+     + safe-area bottom. No negative-margin coupling needed. ── */
   .app-shell-content-flush {
-    padding: 0 !important;
+    padding: 12px 0 calc(12px + env(safe-area-inset-bottom, 0px)) !important;
   }
 
   /* ── Sidebar drawer: max 85vw so it never covers full screen ── */
