@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
 import { ROLES } from '@/config'
+import { RoleIcon } from '@/components/ui/RoleIcon'
 import { Avatar } from '@/components/ui/avatar'
 import { Icon } from '@/components/ui/icon'
 import { Chip } from '@/components/ui/chip'
@@ -39,7 +40,10 @@ export function ProfileMenu() {
         <Avatar user={user} size="sm" />
         <span className="ams-profile-name-text hidden sm:flex flex-col items-start leading-tight">
           <span className="text-[12px] font-semibold text-text-primary truncate max-w-[120px]">{user.name}</span>
-          <span className="text-[10px] text-text-subtle">{t(`roles.${role}`, { ns: 'nav' })}</span>
+          <span className="inline-flex items-center gap-0.5 text-[10px] text-text-subtle">
+              <RoleIcon role={role} size={14} />
+              {t(`roles.${role}`, { ns: 'nav' })}
+            </span>
         </span>
         <Icon name="chevron-down" size={12} className="text-text-subtle" />
       </button>
@@ -58,7 +62,10 @@ export function ProfileMenu() {
               <div className="text-[13px] font-semibold text-text-primary truncate">{user.name}</div>
               <div className="text-[11px] text-text-subtle truncate">{user.email}</div>
               <div className="mt-1">
-                <Chip color="indigo" size="sm" dot>{t(`roles.${role}`, { ns: 'nav' })}</Chip>
+                <Chip color="indigo" size="sm" dot>
+                    <RoleIcon role={role} size={16} />
+                    {t(`roles.${role}`, { ns: 'nav' })}
+                  </Chip>
               </div>
             </div>
           </div>
@@ -111,7 +118,10 @@ export function ProfileMenu() {
                     onClick={() => { setRole(r.id); setOpen(false) }}
                     className={`w-full flex items-center justify-between gap-2 px-3.5 py-1.5 text-left transition-colors ${isActiveRole ? 'bg-accent text-white' : 'hover:bg-surface text-text-secondary'}`}
                   >
-                    <span className="text-[12px] font-medium">{t(`roles.${r.id}`, { ns: 'nav' })}</span>
+                    <span className="inline-flex items-center gap-1 text-[12px] font-medium">
+                      <RoleIcon role={r.id} size={16} />
+                      {t(`roles.${r.id}`, { ns: 'nav' })}
+                    </span>
                     <span className={`text-[10px] font-mono ${isActiveRole ? 'text-white/80' : 'text-text-subtle'}`}>{r.short}</span>
                   </button>
                 )

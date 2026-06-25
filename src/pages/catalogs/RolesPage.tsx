@@ -4,12 +4,14 @@ import { useAuth } from '@/contexts/AuthContext'
 import { cn } from '@/lib/utils'
 import {
   PageHeader, SectionCard, Btn, Icon, EmptyState, LoadingState, ErrorState, Field, Select, Input, Chip,
-  DIALOG_BACKDROP, LIST_ROW_SEPARATOR_FULL,
+  CardListSkeleton,
+  DIALOG_BACKDROP, LIST_ROW_SEPARATOR_FULL, MODAL_SHEET,
 } from '@/components/ui'
 import type { User, UserRepository, AssignRoleInput, UserListQuery } from '@/domain/user'
 import { RoleLockoutError } from '@/domain/user'
 import type { Role } from '@/config/roles'
 import { ROLE_IDS } from '@/config/roles'
+import { RoleIcon } from '@/components/ui/RoleIcon'
 import { createDefaultUserRepository } from '@/infra/repositories'
 
 export interface RolesPageProps { repository?: UserRepository }
@@ -68,8 +70,9 @@ function ChangeRoleDialog({ target, isSelf, onClose, onChanged, repo, actor }: C
     >
       <div
         role="dialog" aria-modal="true" aria-labelledby="change-role-title"
-        className="w-full max-w-md bg-surface border border-border rounded-xl max-md:rounded-b-none max-md:rounded-t-[18px] max-md:max-h-[85vh] max-md:overflow-y-auto shadow-2xl p-6 space-y-5 mx-4 max-md:mx-0"
+        className={`w-full max-w-md bg-surface border border-border rounded-xl max-md:rounded-b-none max-md:rounded-t-[18px] max-md:max-h-[85vh] max-md:overflow-y-auto shadow-2xl p-6 space-y-5 mx-4 max-md:mx-0 ${MODAL_SHEET}`}
       >
+        <div className="max-md:block hidden mx-auto h-1 w-9 rounded-full bg-white/20 mb-3 -mt-3" />
         <header className="flex items-center justify-between gap-3">
           <h2 id="change-role-title" className="text-[15px] font-bold text-text-primary">{t('dialog.title')}</h2>
           <button type="button" aria-label={t('actions.close', { ns: 'common' })} onClick={onClose}
@@ -221,7 +224,7 @@ export function RolesPage({ repository }: RolesPageProps) {
   function roleLabel(r: Role | null): string { return r ? tNav(`roles.${r}`) : t('role.none') }
 
   function renderBody() {
-    if (loading) return <LoadingState rows={6} />
+    if (loading) return isMobile ? <CardListSkeleton rows={6} variant="catalog" /> : <LoadingState rows={6} />
     if (error) return <ErrorState onRetry={load} />
     if (filtered.length === 0) return <EmptyState icon="shield-check" title={t('empty.title')} description={t('empty.desc')} />
     if (isMobile) {
@@ -243,7 +246,7 @@ export function RolesPage({ repository }: RolesPageProps) {
                     </div>
                     <div className="text-[12px] text-text-subtle truncate">{u.email}</div>
                     <div className="flex items-center gap-2 pt-0.5 flex-wrap">
-                      <Chip color="gray">{roleLabel(u.role)}</Chip>
+                      <Chip color="gray"><RoleIcon role={u.role} size={16} className="shrink-0 mr-0.5" />{roleLabel(u.role)}</Chip>
                       <span className="text-[12px] text-text-tertiary">{t(`status.${u.status}`)}</span>
                     </div>
                   </div>
@@ -289,7 +292,12 @@ export function RolesPage({ repository }: RolesPageProps) {
                     </span>
                   </td>
                   <td className="py-3 px-3 text-[13px] text-text-tertiary">{u.email}</td>
-                  <td className="py-3 px-3 text-[13px] text-text-primary">{roleLabel(u.role)}</td>
+                  <td className="py-3 px-3 text-[13px] text-text-primary">
+                    <span className="inline-flex items-center gap-1">
+                      <RoleIcon role={u.role} size={18} className="shrink-0" />
+                      {roleLabel(u.role)}
+                    </span>
+                  </td>
                   <td className="py-3 px-3 text-[13px] text-text-tertiary">{t(`status.${u.status}`)}</td>
                   <td className="py-3 px-3 text-right">
                     <Btn size="sm" variant="secondary" onClick={() => setDialogUser(u)}>
