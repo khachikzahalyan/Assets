@@ -109,6 +109,8 @@ export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepo
   // FIX 4: instance-level cache so loadReferenceData() is fetched at most once
   // per repository instance, regardless of how many callers (listAssets group filter
   // + useAssets hook) call it concurrently.
+  // The cache is cleared on rejection so a transient failure (e.g. permission-denied
+  // on former_employees before rules are deployed) doesn't permanently poison the cache.
   private refCache: Promise<AssetReferenceData> | null = null
 
   async listAssets(query: AssetListQuery): Promise<Asset[]> {
@@ -135,7 +137,15 @@ export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepo
   }
 
   async loadReferenceData(): Promise<AssetReferenceData> {
-    if (!this.refCache) this.refCache = this.fetchReferenceData()
+    if (!this.refCache) {
+      // Clear the cache on rejection so a transient error (e.g. permission-denied
+      // on former_employees before rules are deployed) doesn't permanently poison
+      // the in-memory cache and make all subsequent calls fail without hitting Firebase.
+      this.refCache = this.fetchReferenceData().catch((err) => {
+        this.refCache = null
+        throw err
+      })
+    }
     return this.refCache
   }
 
@@ -164,13 +174,18 @@ export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepo
       departmentId: (d.departmentId as string | null) ?? null,
       position: (d.position as string | null) ?? null,
     })
+    // former_employees is read fail-soft: if the collection is undeployable/unreachable
+    // (e.g. Firestore rules not yet deployed to live), it degrades to an empty list
+    // rather than rejecting the entire Promise.all and bricking every page.
+    // Core ref data (statuses, branches, departments, categories, active employees)
+    // remain strict — those must succeed for the app to function.
     const [statuses, branches, departments, categories, activeEmps, formerEmps] = await Promise.all([
       this.readCol<StatusRow>('asset_statuses', d => ({ name: String(d.name ?? ''), color: String(d.color ?? 'gray') })),
       this.readCol<RefRow>('branches', d => ({ name: String(d.name ?? '') })),
       this.readCol<RefRow>('departments', d => ({ name: String(d.name ?? '') })),
       this.readCol<CategoryRow>('categories', mapCategory),
       this.readCol<EmployeeRow>('employees', empMap),
-      this.readCol<EmployeeRow>('former_employees', empMap),
+      this.readCol<EmployeeRow>('former_employees', empMap).catch(() => [] as EmployeeRow[]),
     ])
     const seen = new Set(activeEmps.map(e => e.id))
     const employees = [...activeEmps, ...formerEmps.filter(e => !seen.has(e.id))]
