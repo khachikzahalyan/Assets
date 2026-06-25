@@ -42,8 +42,10 @@ import {
   assetFamilyOf,
   currentPartsForSkuCategory,
   isServiceOnly,
+  synthesizeInstalledSlots,
   DESKTOP_CATEGORY_IDS,
 } from '@/domain/part/partStock'
+import type { AssetSpecs } from '@/domain/asset/types'
 import { SERVER_CATEGORY_IDS, LAPTOP_CATEGORY_IDS } from '@/domain/asset/categoryCapabilities'
 
 // ---- Collection names -------------------------------------------------------
@@ -183,7 +185,15 @@ export class FirestorePartRepository implements PartRepository, PartWriteReposit
         kind,
         name,
         user,
-        upgradeCurrent: toUpgradeSlots(data['upgradeCurrent']),
+        // Prefer the asset's explicit upgradeCurrent (mutated by install/uninstall).
+        // When empty (asset created via the Assets form, which only stores
+        // currentSpecs), synthesize the slots from currentSpecs + factory defaults
+        // so the «Установлено» tab shows what was created in the Assets section.
+        upgradeCurrent: (() => {
+          const explicit = toUpgradeSlots(data['upgradeCurrent'])
+          if (explicit.length > 0) return explicit
+          return synthesizeInstalledSlots(categoryId, (data['currentSpecs'] as AssetSpecs | null | undefined) ?? null)
+        })(),
       })
     }
 

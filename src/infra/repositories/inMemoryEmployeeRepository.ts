@@ -1,7 +1,9 @@
 import type {
   Employee, EmployeeStatus, EmployeeListQuery,
   EmployeeRepository, CreateEmployeeInput, UpdateEmployeeInput,
+  LastSuperAdminCheck,
 } from '@/domain/employee'
+import { EmployeeArchiveError } from '@/domain/employee'
 import type { Actor } from '@/domain/asset'
 import { withAudit, type AuditContext, createInMemoryAuditStore, inMemoryAuditContext } from '@/lib/audit'
 
@@ -14,6 +16,7 @@ export class InMemoryEmployeeRepository implements EmployeeRepository {
   constructor(
     private readonly employees: Employee[],
     private readonly audit: AuditContext = inMemoryAuditContext(createInMemoryAuditStore()),
+    private readonly lastSuperAdminCheck?: LastSuperAdminCheck,
   ) {}
 
   async listEmployees(query: EmployeeListQuery = {}): Promise<Employee[]> {
@@ -94,6 +97,12 @@ export class InMemoryEmployeeRepository implements EmployeeRepository {
     const idx = this.employees.findIndex(e => e.id === id)
     if (idx < 0) throw new Error(`Employee not found: ${id}`)
     const before = this.employees[idx]!
+    if (status === 'terminated') {
+      if (id === actor.uid) throw new EmployeeArchiveError('self-archive')
+      if (this.lastSuperAdminCheck && await this.lastSuperAdminCheck(id)) {
+        throw new EmployeeArchiveError('last-super-admin')
+      }
+    }
     const now = new Date().toISOString()
     const next: Employee = {
       ...before,

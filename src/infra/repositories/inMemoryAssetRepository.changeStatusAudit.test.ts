@@ -116,6 +116,106 @@ describe('changeStatus audit shape — with assignment (transfer)', () => {
   })
 })
 
+describe('changeStatus branchId/deptId persistence — transfer invariants', () => {
+  it('branch transfer: asset.branchId updated to target branch, no mismatch', async () => {
+    const { repo } = makeRepo()
+    const { value: asset } = await repo.createAsset(
+      { ...BASE_INPUT, invCode: '450/branch-1', serial: 'SN-B1', branchId: 'br_gyumri' },
+      ACTOR,
+    )
+    expect(asset.branchId).toBe('br_gyumri')
+
+    await repo.changeStatus(asset.id, 'st_assigned', ACTOR, {
+      assignment: { mode: 'branch', branchId: 'br_main' },
+      branchId: 'br_main',
+      deptId: null,
+    })
+
+    const updated = await repo.getAsset(asset.id)
+    expect(updated).not.toBeNull()
+    // assignment and branchId must agree — the bug was these diverging
+    expect(updated!.assignment).toEqual({ mode: 'branch', branchId: 'br_main' })
+    expect(updated!.branchId).toBe('br_main')
+    expect(updated!.deptId).toBeNull()
+  })
+
+  it('employee transfer: branchId set to HQ (br_main), assignment.employeeId preserved', async () => {
+    const { repo } = makeRepo()
+    const { value: asset } = await repo.createAsset(
+      { ...BASE_INPUT, invCode: '450/emp-1', serial: 'SN-E1', branchId: 'br_gyumri' },
+      ACTOR,
+    )
+
+    await repo.changeStatus(asset.id, 'st_assigned', ACTOR, {
+      assignment: { mode: 'employee', employeeId: 'emp_42' },
+      branchId: 'br_main',
+      deptId: 'dept_it',
+    })
+
+    const updated = await repo.getAsset(asset.id)
+    expect(updated!.branchId).toBe('br_main')
+    expect(updated!.deptId).toBe('dept_it')
+    expect(updated!.assignment).toEqual({ mode: 'employee', employeeId: 'emp_42' })
+  })
+
+  it('department transfer: branchId set to HQ, deptId set to departmentId', async () => {
+    const { repo } = makeRepo()
+    const { value: asset } = await repo.createAsset(
+      { ...BASE_INPUT, invCode: '450/dept-1', serial: 'SN-D1', branchId: 'br_gyumri' },
+      ACTOR,
+    )
+
+    await repo.changeStatus(asset.id, 'st_assigned', ACTOR, {
+      assignment: { mode: 'department', departmentId: 'dept_finance' },
+      branchId: 'br_main',
+      deptId: 'dept_finance',
+    })
+
+    const updated = await repo.getAsset(asset.id)
+    expect(updated!.branchId).toBe('br_main')
+    expect(updated!.deptId).toBe('dept_finance')
+  })
+
+  it('branchId/deptId left unchanged when opts do not include them (repair path)', async () => {
+    const { repo } = makeRepo()
+    const { value: asset } = await repo.createAsset(
+      { ...BASE_INPUT, invCode: '450/repair-1', serial: 'SN-R1', branchId: 'br_gyumri', deptId: 'dept_sales' },
+      ACTOR,
+    )
+
+    await repo.changeStatus(asset.id, 'st_repair', ACTOR, { comment: 'broken' })
+
+    const updated = await repo.getAsset(asset.id)
+    // repair does not relocate — original branch/dept must be preserved
+    expect(updated!.branchId).toBe('br_gyumri')
+    expect(updated!.deptId).toBe('dept_sales')
+  })
+
+  it('bulkChangeAssignment branch mode: all assets get updated branchId', async () => {
+    const { repo } = makeRepo()
+    const { value: a1 } = await repo.createAsset(
+      { ...BASE_INPUT, invCode: '450/bulk-1', serial: 'SN-BK1', branchId: 'br_gyumri' },
+      ACTOR,
+    )
+    const { value: a2 } = await repo.createAsset(
+      { ...BASE_INPUT, invCode: '450/bulk-2', serial: 'SN-BK2', branchId: 'br_gyumri' },
+      ACTOR,
+    )
+
+    await repo.bulkChangeAssignment(
+      [a1.id, a2.id],
+      { mode: 'branch', branchId: 'br_main' },
+      ACTOR,
+    )
+
+    const u1 = await repo.getAsset(a1.id)
+    const u2 = await repo.getAsset(a2.id)
+    expect(u1!.branchId).toBe('br_main')
+    expect(u1!.assignment).toEqual({ mode: 'branch', branchId: 'br_main' })
+    expect(u2!.branchId).toBe('br_main')
+  })
+})
+
 describe('changeStatus audit shape — WITHOUT assignment (repair / return / no-opts)', () => {
   it('repair: after is exactly { statusId } — NO assignment key present', async () => {
     const { repo } = makeRepo()

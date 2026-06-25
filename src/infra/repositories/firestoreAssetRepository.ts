@@ -13,6 +13,7 @@ import type {
 } from '@/domain/asset'
 import type { UpgradeComponent, UpgradeEvent } from '@/domain/asset'
 import { deriveCreateStatus, isSpecTracked, SPEC_KEY } from '@/domain/asset'
+import { HEAD_OFFICE_BRANCH_ID } from '@/domain/asset/transferRules'
 import { firestoreAuditContext, withAudit } from '@/lib/audit'
 import type { AuditedResult, AuditLog } from '@/domain/audit'
 import type { WorkstationLicenseRepository } from '@/domain/license'
@@ -309,6 +310,8 @@ export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepo
     const ref = doc(this.db, 'assets', id)
     const patch: Record<string, unknown> = { statusId: toStatusId, updatedBy: actor.uid, updatedAt: serverTimestamp() }
     if (opts && 'assignment' in opts) patch.assignment = opts.assignment ?? null
+    if (opts?.branchId !== undefined) patch.branchId = opts.branchId
+    if (opts?.deptId !== undefined) patch.deptId = opts.deptId
     const hasAssignment = !!opts && 'assignment' in opts
     const auditBefore: Record<string, unknown> = {
       statusId: before.statusId,
@@ -365,6 +368,15 @@ export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepo
     actor: Actor,
     comment?: string,
   ): Promise<{ assetId: string; auditId: string }[]> {
+    // Derive branch/dept from the assignment so bulk handovers keep branchId consistent.
+    // Employee mode: deptId cannot be resolved inside the repo (no employee lookup here),
+    // so we leave it undefined — existing deptId is preserved rather than forcibly cleared.
+    const bulkBranchId = assignment.mode === 'branch' ? (assignment.branchId ?? HEAD_OFFICE_BRANCH_ID) : HEAD_OFFICE_BRANCH_ID
+    const bulkDeptId: string | null | undefined =
+      assignment.mode === 'department' ? assignment.departmentId
+      : assignment.mode === 'employee' ? undefined   // preserve existing
+      : null
+
     // Bounded concurrency: each changeStatus runs its own runTransaction (2 reads + 1
     // audited write). Firing all N at once can saturate the browser's HTTP/2 limit and
     // trigger spurious RESOURCE_EXHAUSTED at large batch sizes. Process in chunks of 5.
@@ -374,7 +386,12 @@ export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepo
       const slice = ids.slice(i, i + CHUNK)
       const part = await Promise.all(
         slice.map(async (id) => {
-          const r = await this.changeStatus(id, 'st_assigned', actor, { assignment, ...(comment !== undefined ? { comment } : {}) })
+          const r = await this.changeStatus(id, 'st_assigned', actor, {
+            assignment,
+            branchId: bulkBranchId,
+            ...(bulkDeptId !== undefined ? { deptId: bulkDeptId } : {}),
+            ...(comment !== undefined ? { comment } : {}),
+          })
           return { assetId: id, auditId: r.auditId }
         }),
       )

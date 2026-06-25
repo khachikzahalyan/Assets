@@ -26,7 +26,7 @@ export class InMemoryUserRepository implements UserRepository {
   }
 
   /** Count active super_admins, optionally excluding one uid (the one being changed). */
-  private countSuperAdmins(exceptUid?: string): number {
+  async countSuperAdmins(exceptUid?: string): Promise<number> {
     return this.users.filter(u =>
       u.role === 'super_admin' && u.status === 'active' && u.id !== exceptUid,
     ).length
@@ -42,7 +42,7 @@ export class InMemoryUserRepository implements UserRepository {
     if (isDemotingASuper) {
       if (input.uid === actor.uid) throw new RoleLockoutError('self-demotion')
       // would this drop active super_admins to zero?
-      if (this.countSuperAdmins(input.uid) === 0) throw new RoleLockoutError('last-super-admin')
+      if ((await this.countSuperAdmins(input.uid)) === 0) throw new RoleLockoutError('last-super-admin')
     }
 
     const next: User = { ...before, role: input.role, status: 'active' }

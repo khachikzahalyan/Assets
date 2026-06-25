@@ -58,8 +58,8 @@ export class FirestoreUserRepository implements UserRepository {
       .sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''))
   }
 
-  /** Count active super_admins (server read), excluding one uid. */
-  private async countSuperAdmins(exceptUid: string): Promise<number> {
+  /** Count active super_admins (server read), optionally excluding one uid. */
+  async countSuperAdmins(exceptUid?: string): Promise<number> {
     const snap = await getDocs(fsQuery(
       collection(this.db, 'users'),
       where('role', '==', 'super_admin'),

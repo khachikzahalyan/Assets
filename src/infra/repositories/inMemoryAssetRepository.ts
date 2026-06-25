@@ -8,6 +8,7 @@ import {
   type ChangeStatusOpts, type Actor, type AssetStatusId, type AssetSpecs,
   type AssetAssignment, type UpgradeComponent, type UpgradeEvent,
 } from '@/domain/asset'
+import { HEAD_OFFICE_BRANCH_ID } from '@/domain/asset/transferRules'
 import { withAudit, type AuditContext, createInMemoryAuditStore, inMemoryAuditContext } from '@/lib/audit'
 import type { AuditLog } from '@/domain/audit'
 import type { WorkstationLicenseRepository } from '@/domain/license'
@@ -244,6 +245,8 @@ export class InMemoryAssetRepository implements AssetRepository, AssetWriteRepos
       ...before,
       statusId: toStatusId,
       assignment: opts && 'assignment' in opts ? (opts.assignment ?? null) : before.assignment,
+      ...(opts?.branchId !== undefined ? { branchId: opts.branchId } : {}),
+      ...(opts?.deptId !== undefined ? { deptId: opts.deptId } : {}),
       updatedAt: new Date().toISOString(),
     }
     const hasAssignment = !!opts && 'assignment' in opts
@@ -324,9 +327,20 @@ export class InMemoryAssetRepository implements AssetRepository, AssetWriteRepos
     actor: Actor,
     comment?: string,
   ): Promise<{ assetId: string; auditId: string }[]> {
+    // Derive branch/dept from the assignment (mirrors firestoreAssetRepository).
+    const bulkBranchId = assignment.mode === 'branch' ? (assignment.branchId ?? HEAD_OFFICE_BRANCH_ID) : HEAD_OFFICE_BRANCH_ID
+    const bulkDeptId: string | null | undefined =
+      assignment.mode === 'department' ? assignment.departmentId
+      : assignment.mode === 'employee' ? undefined   // preserve existing
+      : null
     const results = await Promise.all(
       ids.map(async (id) => {
-        const r = await this.changeStatus(id, 'st_assigned', actor, { assignment, ...(comment !== undefined ? { comment } : {}) })
+        const r = await this.changeStatus(id, 'st_assigned', actor, {
+          assignment,
+          branchId: bulkBranchId,
+          ...(bulkDeptId !== undefined ? { deptId: bulkDeptId } : {}),
+          ...(comment !== undefined ? { comment } : {}),
+        })
         return { assetId: id, auditId: r.auditId }
       }),
     )

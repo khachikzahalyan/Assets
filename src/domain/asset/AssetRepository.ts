@@ -89,6 +89,8 @@ export interface UpdateAssetInput {
 export interface ChangeStatusOpts {
   comment?: string
   assignment?: AssetAssignment | null
+  branchId?: string
+  deptId?: string | null
 }
 
 export interface AssetWriteRepository {
