@@ -236,6 +236,7 @@ export function WarehouseTab({
   /* ──────────────────────── MOBILE LAYOUT ──────────────────────── */
   if (isMobile) {
     return (
+      /* flex-col gap-3; right panel (renderRightPanel) gets min-h-[360px] per §11 spec */
       <div className="flex flex-col gap-3">
         <CategoryChipStrip
           skusByCategory={skusByCategory}
@@ -243,7 +244,10 @@ export function WarehouseTab({
           onSelect={handleCatSelect}
           stockMap={stockMap}
         />
-        {renderRightPanel()}
+        {/* Wrapper gives the right/history panel its mobile minimum height */}
+        <div className="min-h-[360px]">
+          {renderRightPanel()}
+        </div>
       </div>
     )
   }

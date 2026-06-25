@@ -51,16 +51,18 @@ export function DeviceGridCard({ asset, selected, hasBroken = false, onSelect }:
     >
       {/* top row: family icon + status dot + component count */}
       <div className="flex items-start justify-between gap-1">
-        {/* family icon square */}
+        {/* family icon square — 36px desktop, 28px mobile per §11 spec */}
         <span
-          className={`w-9 h-9 rounded-lg ${cfg.iconBg} ${cfg.iconText} inline-flex items-center justify-center flex-shrink-0`}
+          className={`w-9 h-9 rounded-lg ${cfg.iconBg} ${cfg.iconText} inline-flex items-center justify-center flex-shrink-0 max-md:w-7 max-md:h-7`}
         >
-          <Icon name={cfg.iconName} size={16} />
+          {/* icon svg: 16px desktop → 13px mobile */}
+          <Icon name={cfg.iconName} size={16} className="max-md:!w-[13px] max-md:!h-[13px]" />
         </span>
         {/* status dot + component counter */}
         <div className="flex items-center gap-1 pt-0.5 flex-shrink-0">
           <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${dotColor}`} />
-          <span className="text-[13px] text-text-subtle tabular-nums whitespace-nowrap">
+          {/* component count: 13px desktop, 11.5px mobile */}
+          <span className="text-[13px] text-text-subtle tabular-nums whitespace-nowrap max-md:text-[11.5px]">
             {totalComponents}&nbsp;{t('devices.compShort', 'комп.')}
           </span>
           {isService && (
@@ -71,15 +73,15 @@ export function DeviceGridCard({ asset, selected, hasBroken = false, onSelect }:
           )}
         </div>
       </div>
-      {/* name + subtitle */}
-      <div className="mt-2 min-w-0">
+      {/* name + subtitle — name: 15px desktop, 12px mobile; inv-code: 13px desktop, 11.5px mobile */}
+      <div className="mt-2 min-w-0 max-md:mt-1">
         <div
-          className="text-[15px] font-medium text-text-primary leading-tight truncate"
+          className="text-[15px] font-medium text-text-primary leading-tight truncate max-md:text-[12px]"
           title={asset.name}
         >
           {asset.name}
         </div>
-        <div className="text-[13px] text-text-subtle mt-0.5 truncate">
+        <div className="text-[13px] text-text-subtle mt-0.5 truncate max-md:text-[11.5px]">
           {asset.id}&nbsp;·&nbsp;{catLabel}
         </div>
       </div>

@@ -14,6 +14,12 @@ export interface DevicesTabProps {
   onService: (asset: PartsAsset) => void
   /** Optional per-asset movement history for the inner «История» tab */
   movements?: PartMovement[]
+  /**
+   * When provided (from /parts?assetId=<firestoreId>), pre-select and
+   * pre-fill the search for the matching asset on mount.
+   * Matched against PartsAsset.assetId (Firestore doc ID).
+   */
+  initialAssetId?: string | null
 }
 
 
@@ -44,13 +50,27 @@ export function DevicesTab({
   onUninstall,
   onService: _onService,
   movements = [],
+  initialAssetId,
 }: DevicesTabProps) {
   const { t } = useTranslation('parts')
 
-  const [selectedId, setSelectedId] = useState<string | null>(
-    partsAssets.length > 0 ? (partsAssets[0]?.id ?? null) : null,
-  )
-  const [search, setSearch] = useState('')
+  // If an initialAssetId is provided, pre-select the matching PartsAsset by its
+  // Firestore document ID. Falls back to the first asset when no match exists.
+  const resolvedInitialId = useMemo(() => {
+    if (initialAssetId) {
+      const match = partsAssets.find(a => a.assetId === initialAssetId)
+      if (match) return match.id
+    }
+    return partsAssets.length > 0 ? (partsAssets[0]?.id ?? null) : null
+  }, [initialAssetId, partsAssets])
+
+  const [selectedId, setSelectedId] = useState<string | null>(resolvedInitialId)
+  const [search, setSearch] = useState(() => {
+    // If an initialAssetId was provided but could not be matched yet (data may not
+    // be loaded), start with empty search so the list is fully visible.
+    // The selection above handles the focus when the asset IS found.
+    return ''
+  })
   const [family, setFamily] = useState<FamilyFilter>('all')
   const [mobileDetailId, setMobileDetailId] = useState<string | null>(null)
 
@@ -99,7 +119,8 @@ export function DevicesTab({
   }
 
   return (
-    <div className="flex flex-col gap-2.5">
+    /* Mobile: overflow visible so content scrolls with the page (PartsPage handles scroll) */
+    <div className="flex flex-col gap-2.5 max-md:overflow-visible">
 
       {/* ── Main layout: lg 12-col grid ── */}
       <div className="lg:grid lg:grid-cols-12 lg:gap-4 flex flex-col gap-4">
@@ -146,14 +167,14 @@ export function DevicesTab({
             />
           </div>
 
-          {/* 2-col device card grid */}
+          {/* 2-col device card grid — gap 8px desktop, 6px mobile per §11 spec */}
           {filtered.length === 0 ? (
             <div className="px-3 py-6 text-[14px] text-text-subtle text-center">
               {t('devices.emptyFiltered')}
             </div>
           ) : (
             <div
-              className="flex-1 overflow-y-auto min-h-0"
+              className="flex-1 overflow-y-auto min-h-0 max-md:overflow-visible max-md:flex-none"
               style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px', alignContent: 'start' }}
             >
               {filtered.map(a => (

@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Icon, ErrorState } from '@/components/ui'
 import {
   StatTile,
@@ -39,6 +39,12 @@ export interface PartsPageProps {
 export function PartsPage({ repository }: PartsPageProps = {}) {
   const { t } = useTranslation('parts')
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+
+  // URL-driven focus: /parts?tab=devices&assetId=<id>
+  // Read once on mount — stable values used only as initializers below.
+  const urlTab = searchParams.get('tab')
+  const urlAssetId = searchParams.get('assetId')
 
   // Composition root: stable default repo; test callers inject their own.
   const defaultRepo = useMemo(
@@ -51,7 +57,9 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
 
   const { ref, loading, error, reload, installPart, uninstallPart, recordService, createGpu } = useParts(repo)
 
-  const [activeTab, setActiveTab] = useState<ActiveTab>('warehouse')
+  const [activeTab, setActiveTab] = useState<ActiveTab>(
+    urlTab === 'devices' ? 'devices' : 'warehouse',
+  )
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== 'undefined' ? window.matchMedia('(max-width: 767px)').matches : false,
   )
@@ -482,6 +490,7 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
             isMobile={isMobile}
             onUninstall={handleUninstall}
             onService={setServiceAsset}
+            initialAssetId={urlAssetId}
           />
         )}
       </div>
@@ -501,7 +510,7 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
         sku={uninstallTarget.sku}
         asset={uninstallTarget.asset}
         slot={uninstallTarget.slot}
-        stock={uninstallStock}
+        {...(uninstallStock !== undefined ? { stock: uninstallStock } : {})}
         onConfirm={handleUninstallConfirm}
       />
 

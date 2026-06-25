@@ -21,8 +21,8 @@ type DisplayType = 'receive' | 'install' | 'uninstall' | 'move'
 
 function resolveDisplayType(mv: PartMovement): DisplayType {
   const t = mv.type
-  if (t === 'in' || t === 'receive') return 'receive'
-  if (t === 'out' || t === 'install') return 'install'
+  if (t === 'receive') return 'receive'
+  if (t === 'install') return 'install'
   if (t === 'uninstall') return 'uninstall'
   if ((mv as any).displayType === 'move') return 'move'
   return 'receive'
@@ -351,7 +351,7 @@ export function HistoryPanel({
                 })()
 
                 /* Subline: asset invcode + name OR «Со склада» — prototype lines 3961-3974 */
-                const assetCode = (mv as any).assetId ?? mv.assetInvCode ?? null
+                const assetCode = mv.assetInvCode ?? (mv as any).assetId ?? null
                 const assetName = (mv as any).assetName ?? null
                 const subline = assetCode ? (
                   <>

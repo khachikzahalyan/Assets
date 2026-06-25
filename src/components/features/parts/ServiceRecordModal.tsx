@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Icon, MobileSheet } from '@/components/ui'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import type { PartsAsset } from '@/domain/part/types'
 
 export interface ServiceRecordModalProps {
@@ -44,6 +45,7 @@ const SERVICE_ACTORS = [
  */
 export function ServiceRecordModal({ open, onClose, asset, onConfirm }: ServiceRecordModalProps) {
   const { t } = useTranslation('parts')
+  const isMobile = useIsMobile()
   const [kindId, setKindId] = useState<ServiceKindId | ''>('')
   const [actor, setActor] = useState<string>(SERVICE_ACTORS[0])
   const [note, setNote] = useState('')
@@ -204,20 +206,24 @@ export function ServiceRecordModal({ open, onClose, asset, onConfirm }: ServiceR
 
   return (
     <>
-      <div className="md:block hidden fixed inset-0 z-[80]">
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" onClick={handleClose} />
-        <div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-surface border border-border rounded-2xl shadow-2xl"
-          role="dialog"
-          aria-modal="true"
-          aria-label={t('serviceModal.title')}
-        >
-          {content}
+      {!isMobile && (
+        <div className="fixed inset-0 z-[80]">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" onClick={handleClose} />
+          <div
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-surface border border-border rounded-2xl shadow-2xl"
+            role="dialog"
+            aria-modal="true"
+            aria-label={t('serviceModal.title')}
+          >
+            {content}
+          </div>
         </div>
-      </div>
-      <MobileSheet open={open} onClose={handleClose} title={t('serviceModal.title')}>
-        {content}
-      </MobileSheet>
+      )}
+      {isMobile && (
+        <MobileSheet open={open} onClose={handleClose} title={t('serviceModal.title')}>
+          {content}
+        </MobileSheet>
+      )}
     </>
   )
 }

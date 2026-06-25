@@ -87,6 +87,16 @@ export const installedRowVisual = (cat: string): { icon: string; tint: Tint } =>
   tint: INSTALLED_TINT[cat] ?? TINT_FALLBACK,
 })
 
+/* ── Canonical variant order (ascending capacity) ───────────────────────── */
+export const STORAGE_VARIANT_ORDER = ['64gb', '128gb', '256gb', '512gb', '1tb', '2tb', '3tb', '4tb', '5tb']
+export const RAM_VARIANT_ORDER = ['4gb', '8gb', '16gb', '20gb', '32gb', '40gb', '64gb', '128gb']
+/** Rank a SKU within its category by capacity (ascending). Unknown → last. */
+export function variantRank(categoryId: string, variantId: string | null | undefined): number {
+  const order = categoryId === 'ram' ? RAM_VARIANT_ORDER : STORAGE_VARIANT_ORDER
+  const i = variantId ? order.indexOf(variantId) : -1
+  return i === -1 ? 999 : i
+}
+
 /* Canonical installed-row sort order: psu → battery → cooler → ram → storage → gpu */
 export const COMPONENT_ORDER: Record<string, number> = {
   psu: 0, battery: 1, cooler: 2, ram: 3, ssd: 4, nvme: 4, hdd: 4, gpu: 5,

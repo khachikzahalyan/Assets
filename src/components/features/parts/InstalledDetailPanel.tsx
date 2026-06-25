@@ -8,8 +8,6 @@ import {
   fmtPartsDate,
   plural,
   PART_CAT_BY_ID,
-  categoryIcon,
-  TINT_FALLBACK,
 } from './partsTokens'
 
 /* ── helpers ─────────────────────────────────────────────────────────────── */
@@ -373,23 +371,27 @@ function HistoryBody({ movements, parts, t }: HistoryBodyProps) {
               ? ((rowSku.name || '') + (rowSku.variantLabel ? ' ' + rowSku.variantLabel : ''))
               : (mv.skuId || '—')
 
-        /* Category icon plaque — mirrors prototype lines 4373-4378 */
-        const catMeta = rowSku ? PART_CAT_BY_ID[rowSku.category] : null
-        const catIconName = catMeta ? categoryIcon(catMeta.id) : null
+        /* Category icon plaque — sized to match the «Установлено» rows
+           (coloured w-9 h-9 plaque via installedRowVisual). */
+        const rowVisual = rowSku ? installedRowVisual(rowSku.category) : null
+        const catLabel = rowSku ? (PART_CAT_BY_ID[rowSku.category]?.label ?? '') : ''
 
         return (
           <li
             key={mv.id || i}
-            className="flex items-center gap-3 px-5 py-2.5 hover:bg-[#111315]/60 transition-colors"
+            className="flex items-center gap-3 px-5 py-3 hover:bg-[#111315]/60 transition-colors"
           >
             <span className={`w-2 h-2 rounded-full flex-shrink-0 ${dotColor}`} />
-            <div className="flex items-center gap-1.5 min-w-0 flex-1">
-              {catIconName && (
-                <span className="w-6 h-6 rounded bg-surface-2 text-text-tertiary inline-flex items-center justify-center flex-shrink-0">
-                  <Icon name={catIconName} size={11} />
-                </span>
-              )}
-              <span className="text-[14px] text-text-secondary truncate">{skuLabel}</span>
+            <span
+              className={`w-9 h-9 rounded-lg inline-flex items-center justify-center flex-shrink-0 ${
+                rowVisual ? `${rowVisual.tint.iconBg} ${rowVisual.tint.iconText}` : 'bg-surface-2 text-text-tertiary'
+              }`}
+            >
+              <Icon name={rowVisual?.icon ?? 'package'} size={15} />
+            </span>
+            <div className="flex-1 min-w-0">
+              <div className="text-[15px] font-semibold truncate text-text-primary">{skuLabel}</div>
+              {catLabel && <div className="text-[13px] text-text-subtle mt-0.5">{catLabel}</div>}
             </div>
             <div className="flex-shrink-0">{actionChip}</div>
             <div className="text-[13px] font-medium text-text-tertiary tabular-nums whitespace-nowrap flex-shrink-0">

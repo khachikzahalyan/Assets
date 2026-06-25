@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Btn, Icon, MobileSheet } from '@/components/ui'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import type { Part, PartsAsset, UpgradeSlot } from '@/domain/part/types'
 import type { UninstallInput } from '@/domain/part/PartRepository'
 import { isServiceOnly } from '@/domain/part/partStock'
@@ -24,8 +25,9 @@ export interface UninstallModalProps {
  *
  * Prototype parity: flow card with FROM→TO strip, disposal radios as full-width rows.
  */
-export function UninstallModal({ open, onClose, sku, asset, slot, stock, onConfirm }: UninstallModalProps) {
+export function UninstallModal({ open, onClose, sku, asset, slot: _slot, stock, onConfirm }: UninstallModalProps) {
   const { t } = useTranslation('parts')
+  const isMobile = useIsMobile()
   const [broken, setBroken] = useState(false)
   const [note, setNote] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -249,20 +251,24 @@ export function UninstallModal({ open, onClose, sku, asset, slot, stock, onConfi
 
   return (
     <>
-      <div className="md:block hidden fixed inset-0 z-[80]">
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" onClick={handleClose} />
-        <div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-surface border border-border rounded-2xl shadow-2xl"
-          role="dialog"
-          aria-modal="true"
-          aria-label={t('uninstallModal.title')}
-        >
-          {content}
+      {!isMobile && (
+        <div className="fixed inset-0 z-[80]">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" onClick={handleClose} />
+          <div
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-surface border border-border rounded-2xl shadow-2xl"
+            role="dialog"
+            aria-modal="true"
+            aria-label={t('uninstallModal.title')}
+          >
+            {content}
+          </div>
         </div>
-      </div>
-      <MobileSheet open={open} onClose={handleClose} title={t('uninstallModal.title')}>
-        {content}
-      </MobileSheet>
+      )}
+      {isMobile && (
+        <MobileSheet open={open} onClose={handleClose} title={t('uninstallModal.title')}>
+          {content}
+        </MobileSheet>
+      )}
     </>
   )
 }

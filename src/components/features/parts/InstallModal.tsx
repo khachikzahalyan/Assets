@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Btn, Icon, MobileSheet } from '@/components/ui'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import type { Part, PartsAsset } from '@/domain/part/types'
 import type { InstallInput } from '@/domain/part/PartRepository'
 import {
@@ -44,6 +45,7 @@ type ActionMode = 'install' | 'replace' | 'add'
  */
 export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: InstallModalProps) {
   const { t } = useTranslation('parts')
+  const isMobile = useIsMobile()
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null)
   const [actionMode, setActionMode] = useState<ActionMode>('install')
   const [replaceIdx, setReplaceIdx] = useState<number | null>(null)
@@ -406,20 +408,24 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
 
   return (
     <>
-      <div className="md:block hidden fixed inset-0 z-[80]">
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" onClick={handleClose} />
-        <div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-surface border border-border rounded-2xl shadow-2xl"
-          role="dialog"
-          aria-modal="true"
-          aria-label={t('installModal.title')}
-        >
-          {content}
+      {!isMobile && (
+        <div className="fixed inset-0 z-[80]">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" onClick={handleClose} />
+          <div
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-surface border border-border rounded-2xl shadow-2xl"
+            role="dialog"
+            aria-modal="true"
+            aria-label={t('installModal.title')}
+          >
+            {content}
+          </div>
         </div>
-      </div>
-      <MobileSheet open={open} onClose={handleClose} title={t('installModal.title')}>
-        {content}
-      </MobileSheet>
+      )}
+      {isMobile && (
+        <MobileSheet open={open} onClose={handleClose} title={t('installModal.title')}>
+          {content}
+        </MobileSheet>
+      )}
     </>
   )
 }
