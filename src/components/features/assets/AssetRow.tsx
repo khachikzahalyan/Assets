@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Chip, Icon, IconBtn } from '@/components/ui'
 import type { Asset, EmployeeRow } from '@/domain/asset'
@@ -5,7 +6,7 @@ import type { ChipColor } from '@/components/ui/chip'
 import { AssigneeCell } from './AssigneeCell'
 
 export const GRID_COLS =
-  'minmax(240px,2.4fr) minmax(130px,1fr) minmax(100px,0.85fr) minmax(150px,1.2fr) minmax(110px,1fr) minmax(100px,0.9fr) 56px'
+  'minmax(240px,2.4fr) minmax(130px,1fr) minmax(100px,0.85fr) minmax(150px,1.2fr) minmax(110px,1fr) 56px'
 
 export interface AssetRowProps {
   asset: Asset
@@ -30,11 +31,11 @@ export interface AssetRowProps {
   tempLabel: string
   kindAuditLabel: string
   kindInternLabel: string
-  /** Absolute date string from fmtDate(asset.updatedAt). */
-  formattedTime: string
   canMutate: boolean
   onRowClick: (asset: Asset) => void
   onEditClick?: (asset: Asset) => void
+  /** When true, row scrolls into view and briefly highlights for ~2.5s. */
+  isFocused?: boolean
 }
 
 export function AssetRow({
@@ -57,12 +58,22 @@ export function AssetRow({
   tempLabel,
   kindAuditLabel,
   kindInternLabel,
-  formattedTime,
   canMutate,
   onRowClick,
   onEditClick,
+  isFocused,
 }: AssetRowProps) {
   const { t } = useTranslation('assets')
+  const rowRef = useRef<HTMLDivElement>(null)
+  const [highlight, setHighlight] = useState(false)
+
+  useEffect(() => {
+    if (!isFocused) return
+    rowRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    setHighlight(true)
+    const timer = setTimeout(() => setHighlight(false), 2500)
+    return () => clearTimeout(timer)
+  }, [isFocused])
 
   const isRemote = asset.assignment?.workMode === 'remote'
   const subBase = categoryName || asset.brand || '—'
@@ -77,13 +88,17 @@ export function AssetRow({
 
   return (
     <div
+      ref={rowRef}
       role="row"
       tabIndex={0}
       onClick={() => onRowClick(asset)}
       onKeyDown={handleKeyDown}
       className={[
-        'cursor-pointer border-t border-border transition-colors duration-150 group',
-        'hover:bg-[rgba(249,115,22,0.08)]',
+        'cursor-pointer border-t border-border group',
+        'transition-[background-color,box-shadow] duration-500',
+        highlight
+          ? 'bg-[rgba(249,115,22,0.05)] ring-2 ring-inset ring-[rgba(249,115,22,0.45)]'
+          : 'hover:bg-[rgba(249,115,22,0.08)]',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[rgba(249,115,22,0.40)]',
       ].join(' ')}
       style={{
@@ -161,14 +176,7 @@ export function AssetRow({
         <Chip color={statusColor} dot>{statusName}</Chip>
       </div>
 
-      {/* Cell 6: Updated */}
-      <div role="cell" className="py-3 px-3">
-        <span className="text-[14.5px] text-text-secondary tabular-nums whitespace-nowrap">
-          {formattedTime}
-        </span>
-      </div>
-
-      {/* Cell 7: Actions */}
+      {/* Cell 6: Actions */}
       <div
         role="cell"
         className="py-3 flex items-center justify-end"

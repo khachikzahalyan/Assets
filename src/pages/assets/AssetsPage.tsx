@@ -226,17 +226,16 @@ export function AssetsPage({ repository }: AssetsPageProps) {
       ? <CardListSkeleton rows={PAGE_SIZE} variant="asset" />
       : <TableSkeleton
           rows={PAGE_SIZE}
-          columns={7}
+          columns={6}
           firstColWide
           lastColAction
-          gridTemplate="minmax(240px,2.4fr) minmax(130px,1fr) minmax(100px,0.85fr) minmax(150px,1.2fr) minmax(110px,1fr) minmax(100px,0.9fr) 56px"
+          gridTemplate="minmax(240px,2.4fr) minmax(130px,1fr) minmax(100px,0.85fr) minmax(150px,1.2fr) minmax(110px,1fr) 56px"
           headers={[
             t('cols.asset', { ns: 'assets' }),
             t('cols.branch', { ns: 'assets' }),
             t('cols.code', { ns: 'assets' }),
             t('cols.assignee', { ns: 'assets' }),
             t('cols.status', { ns: 'assets' }),
-            t('cols.updated', { ns: 'assets' }),
             '',
           ]}
         />
@@ -265,7 +264,7 @@ export function AssetsPage({ repository }: AssetsPageProps) {
         canMutate={canMutate}
         onRowClick={(a) => navigate(`/assets/${a.id}`)}
         minRows={PAGE_SIZE}
-        focusId={focusId ?? undefined}
+        {...(focusId ? { focusId } : {})}
       />
     )
   }

@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useState } from 'react'
+import { useMemo, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { Asset } from '@/domain/asset'
 import type { AssetReferenceData } from '@/domain/asset/AssetRepository'
@@ -8,12 +8,101 @@ import {
   deriveDisplayStatus,
   STATUS_CHIP_COLOR,
   assetTitle,
-  fmtDate,
   isTemporaryAssignment,
   assigneeKind,
 } from './assetFormat'
 import { CATEGORY_COLOR } from './categoryColors'
 import { AssetRow, GRID_COLS } from './AssetRow'
+
+// ── Mobile card with highlight + scroll support ──────────────────────────────
+
+interface MobileCardProps {
+  a: Asset
+  title: string
+  displayStatus: { id: string; name: string; color?: string }
+  statusColor: ChipColor
+  assigneeName: string
+  isAuditOrIntern: boolean
+  cat: { name: string; lucideIcon?: string } | undefined
+  isFocused: boolean
+  onRowClick?: (a: Asset) => void
+}
+
+function MobileCard({
+  a,
+  title,
+  displayStatus,
+  statusColor,
+  assigneeName,
+  isAuditOrIntern,
+  cat,
+  isFocused,
+  onRowClick,
+}: MobileCardProps) {
+  const rowRef = useRef<HTMLDivElement>(null)
+  const [highlight, setHighlight] = useState(false)
+
+  useEffect(() => {
+    if (!isFocused) return
+    rowRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    setHighlight(true)
+    const timer = setTimeout(() => setHighlight(false), 2500)
+    return () => clearTimeout(timer)
+  }, [isFocused])
+
+  return (
+    <div
+      ref={rowRef}
+      role="button"
+      tabIndex={0}
+      onClick={() => onRowClick?.(a)}
+      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onRowClick?.(a) } }}
+      className={[
+        'flex flex-row items-center gap-3 px-[14px] py-[8px] border-b border-white/[0.06] cursor-pointer min-h-[54px] box-border last:border-b-0 active:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[rgba(249,115,22,0.40)]',
+        'transition-[background-color,box-shadow] duration-500',
+        highlight
+          ? 'bg-[rgba(249,115,22,0.05)] ring-2 ring-inset ring-[rgba(249,115,22,0.45)]'
+          : 'bg-surface',
+      ].join(' ')}
+    >
+      {/* Icon tile — always muted on mobile (prototype §5 spec) */}
+      <span
+        className="w-8 h-8 min-w-[32px] rounded-[8px] bg-white/[0.04] border-[0.5px] border-white/[0.06] inline-flex items-center justify-center flex-shrink-0 text-white/60"
+      >
+        <Icon name={cat?.lucideIcon ?? 'box'} size={16} />
+      </span>
+
+      {/* Content column — prototype §5 row layout: status pill sits on the name's
+          line, inv-code on the assignee's line; right items flush-right (same edge).
+          Compact rhythm so all 10 page rows fit the mobile viewport. */}
+      <div className="flex-1 min-w-0 flex flex-col gap-[3px]">
+        {/* Row 1: name (fills, truncates) + status pill (right) */}
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="flex-1 min-w-0 text-[14px] font-semibold text-white/95 leading-[18px] truncate">
+            {title}
+          </span>
+          <Chip color={statusColor} dot size="sm">{displayStatus.name}</Chip>
+        </div>
+        {/* Row 2: assignee (fills, truncates) + inv-code badge (right) */}
+        <div className="flex items-center gap-2 min-w-0">
+          <span
+            className={[
+              'flex-1 min-w-0 text-[12px] leading-[16px] truncate',
+              isAuditOrIntern ? 'text-[#FCD34D]' : 'text-white/55',
+            ].join(' ')}
+          >
+            {assigneeName}
+          </span>
+          <span className="shrink-0 font-['JetBrains_Mono',ui-monospace,monospace] text-[10px] text-accent-light border border-[rgba(249,115,22,0.3)] rounded-[4px] px-[6px] h-[18px] leading-[16px] tracking-[0.02em] inline-flex items-center whitespace-nowrap">
+            {a.invCode}
+          </span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── AssetsTable ──────────────────────────────────────────────────────────────
 
 export interface AssetsTableProps {
   rows: Asset[]
@@ -26,6 +115,8 @@ export interface AssetsTableProps {
    * Default: 10 (matches PAGE_SIZE in AssetsPage).
    */
   minRows?: number
+  /** Asset id that should be scrolled into view and briefly highlighted. */
+  focusId?: string
 }
 
 export function AssetsTable({
@@ -34,6 +125,7 @@ export function AssetsTable({
   canMutate,
   onRowClick,
   minRows = 10,
+  focusId,
 }: AssetsTableProps) {
   const { t } = useTranslation('assets')
 
@@ -138,49 +230,18 @@ export function AssetsTable({
         const { name: assigneeName, isAuditOrIntern } = mobileAssigneeName(a)
 
         return (
-          <div
+          <MobileCard
             key={a.id}
-            role="button"
-            tabIndex={0}
-            onClick={() => onRowClick?.(a)}
-            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onRowClick?.(a) } }}
-            className="flex flex-row items-center gap-3 bg-surface px-[14px] py-[11px] border-b border-white/[0.06] cursor-pointer transition-colors duration-[140ms] min-h-[64px] box-border last:border-b-0 active:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[rgba(249,115,22,0.40)]"
-          >
-            {/* Icon tile — always muted on mobile (prototype §5 spec) */}
-            <span
-              className="w-8 h-8 min-w-[32px] rounded-[8px] bg-white/[0.04] border-[0.5px] border-white/[0.06] inline-flex items-center justify-center flex-shrink-0 text-white/60"
-            >
-              <Icon name={cat?.lucideIcon ?? 'box'} size={16} />
-            </span>
-
-            {/* 2-row content column — flex-1 so it fills space between icon and card edge */}
-            <div className="flex-1 min-w-0 flex flex-col gap-[6px]">
-              {/* Row 1: name (flex-1 truncate) + status pill (shrink-0, flush right) */}
-              <div className="flex items-center justify-between gap-2 min-w-0 min-h-[20px]">
-                <span className="text-[14px] font-semibold text-white/95 leading-[18px] whitespace-nowrap overflow-hidden text-ellipsis flex-1 min-w-0">
-                  {title}
-                </span>
-                <span className="shrink-0 inline-flex items-center">
-                  <Chip color={statusColor} dot size="sm">{displayStatus.name}</Chip>
-                </span>
-              </div>
-
-              {/* Row 2: assignee (flex-1 truncate) + inv-code badge (shrink-0, flush right — same edge as pill above) */}
-              <div className="flex items-center justify-between gap-2 min-h-[18px] min-w-0">
-                <span
-                  className={[
-                    'text-[12px] leading-[18px] whitespace-nowrap overflow-hidden text-ellipsis flex-1 min-w-0',
-                    isAuditOrIntern ? 'text-[#FCD34D]' : 'text-white/55',
-                  ].join(' ')}
-                >
-                  {assigneeName}
-                </span>
-                <span className="font-['JetBrains_Mono',ui-monospace,monospace] text-[10px] text-accent-light bg-transparent border border-[rgba(249,115,22,0.3)] rounded-[4px] px-[6px] h-[18px] leading-[16px] tracking-[0.02em] shrink-0 whitespace-nowrap inline-flex items-center">
-                  {a.invCode}
-                </span>
-              </div>
-            </div>
-          </div>
+            a={a}
+            title={title}
+            displayStatus={displayStatus}
+            statusColor={statusColor}
+            assigneeName={assigneeName}
+            isAuditOrIntern={isAuditOrIntern}
+            cat={cat}
+            isFocused={focusId === a.id}
+            {...(onRowClick !== undefined ? { onRowClick } : {})}
+          />
         )
       })}
     </div>}
@@ -228,9 +289,6 @@ export function AssetsTable({
           <div role="columnheader" className="px-3 text-[12px] uppercase tracking-[0.09em] font-semibold text-text-tertiary">
             {t('cols.status')}
           </div>
-          <div role="columnheader" className="px-3 text-[12px] uppercase tracking-[0.09em] font-semibold text-text-tertiary">
-            {t('cols.updated')}
-          </div>
           <div role="columnheader" className="px-3" aria-label="" />
         </div>
       </div>
@@ -253,7 +311,6 @@ export function AssetsTable({
           const branchName = branchMap.get(a.branchId) ?? '—'
           const isMainBranch = a.branchId === 'br_main'
           const catColor = CATEGORY_COLOR[a.categoryId] ?? null
-          const formattedTime = fmtDate(a.updatedAt)
 
           return (
             <AssetRow
@@ -277,9 +334,9 @@ export function AssetsTable({
               tempLabel={tempLabel}
               kindAuditLabel={kindAuditLabel}
               kindInternLabel={kindInternLabel}
-              formattedTime={formattedTime}
               canMutate={canMutate}
               onRowClick={onRowClick ?? (() => {})}
+              isFocused={focusId === a.id}
             />
           )
         })}

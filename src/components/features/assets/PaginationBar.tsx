@@ -57,8 +57,8 @@ export function PaginationBar({ page, pageSize, total, onPage }: PaginationBarPr
     <div
       aria-label={ariaRange}
       className={[
-        // Desktop base styles
-        'flex items-center justify-between px-5 py-2 border-t border-border',
+        // Desktop base styles — bg-bg (#111315) matches the table header bar
+        'flex items-center justify-between px-5 py-2 bg-bg',
         // Mobile overrides (§15 of mobile.css, translated to Tailwind).
         // The bar is already pinned as flex-shrink-0 Zone 3 in ListCard — no
         // sticky needed. We only need the visual treatment + safe-area padding.
