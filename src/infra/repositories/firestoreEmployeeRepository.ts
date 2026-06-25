@@ -6,7 +6,9 @@ import type { Actor } from '@/domain/asset'
 import type {
   Employee, EmployeeStatus, EmployeeListQuery,
   EmployeeRepository, CreateEmployeeInput, UpdateEmployeeInput,
+  LastSuperAdminCheck,
 } from '@/domain/employee'
+import { EmployeeArchiveError } from '@/domain/employee'
 import { firestoreAuditContext, withAudit } from '@/lib/audit'
 import type { AuditedResult } from '@/domain/audit'
 
@@ -40,13 +42,27 @@ function fullName(e: { firstName: string; lastName: string }): string {
 }
 
 export class FirestoreEmployeeRepository implements EmployeeRepository {
-  constructor(private readonly db: Firestore) {}
+  constructor(private readonly db: Firestore, private readonly lastSuperAdminCheck?: LastSuperAdminCheck) {}
   private get audit() { return firestoreAuditContext(this.db) }
 
   async listEmployees(query: EmployeeListQuery = {}): Promise<Employee[]> {
     const snap = await getDocs(collection(this.db, 'employees'))
     let rows = snap.docs.map(d => toEmployee(d.id, d.data() as Record<string, unknown>))
     if (query.status && query.status !== 'all') rows = rows.filter(e => e.status === query.status)
+    if (query.branchId && query.branchId !== 'all') rows = rows.filter(e => e.branchId === query.branchId)
+    if (query.departmentId && query.departmentId !== 'all') rows = rows.filter(e => e.departmentId === query.departmentId)
+    const search = (query.search ?? '').trim().toLowerCase()
+    if (search) {
+      rows = rows.filter(e =>
+        [fullName(e), e.email, e.position].filter(Boolean).join(' ').toLowerCase().includes(search),
+      )
+    }
+    return rows.sort((a, b) => fullName(a).localeCompare(fullName(b), 'ru'))
+  }
+
+  async listFormerEmployees(query: EmployeeListQuery = {}): Promise<Employee[]> {
+    const snap = await getDocs(collection(this.db, 'former_employees'))
+    let rows = snap.docs.map(d => toEmployee(d.id, d.data() as Record<string, unknown>))
     if (query.branchId && query.branchId !== 'all') rows = rows.filter(e => e.branchId === query.branchId)
     if (query.departmentId && query.departmentId !== 'all') rows = rows.filter(e => e.departmentId === query.departmentId)
     const search = (query.search ?? '').trim().toLowerCase()
@@ -116,26 +132,68 @@ export class FirestoreEmployeeRepository implements EmployeeRepository {
     return { value: next, auditId: r.auditId }
   }
 
-  async setStatus(id: string, status: EmployeeStatus, actor: Actor): Promise<AuditedResult<Employee>> {
+  async archiveEmployee(id: string, actor: Actor): Promise<AuditedResult<Employee>> {
     const before = await this.getEmployee(id)
     if (!before) throw new Error(`Employee not found: ${id}`)
-    const ref = doc(this.db, 'employees', id)
-    const patch: Record<string, unknown> = {
-      status,
-      terminatedAt: status === 'terminated' ? serverTimestamp() : null,
+    if (id === actor.uid) throw new EmployeeArchiveError('self-archive')
+    if (this.lastSuperAdminCheck && await this.lastSuperAdminCheck(id)) {
+      throw new EmployeeArchiveError('last-super-admin')
+    }
+    const oldRef = doc(this.db, 'employees', id)
+    const newRef = doc(this.db, 'former_employees', id)
+    const archived: Record<string, unknown> = {
+      firstName: before.firstName, lastName: before.lastName, email: before.email,
+      phone: before.phone, position: before.position,
+      branchId: before.branchId, departmentId: before.departmentId,
+      status: 'terminated',
+      terminatedAt: serverTimestamp(), terminatedBy: actor.uid,
+      createdAt: before.createdAt,
       updatedBy: actor.uid, updatedAt: serverTimestamp(),
     }
     const r = await withAudit(this.audit,
       {
-        entityType: 'employee', entityId: id, action: status === 'terminated' ? 'terminated' : 'reactivated',
+        entityType: 'employee', entityId: id, action: 'terminated',
         actorUid: actor.uid, actorRole: actor.role,
-        before: { status: before.status }, after: { status },
+        before: { status: before.status }, after: { status: 'terminated' },
       },
-      async (txn) => { (txn as unknown as Transaction).set(ref, patch, { merge: true }); return { value: undefined as unknown as void } },
+      async (txn) => {
+        const t = txn as unknown as Transaction
+        t.set(newRef, archived)
+        t.delete(oldRef)
+        return { value: undefined as unknown as void }
+      },
     )
-    const next = await this.getEmployee(id)
-    if (!next) throw new Error('Employee status change succeeded but readback failed')
-    return { value: next, auditId: r.auditId }
+    return { value: { ...before, status: 'terminated', terminatedAt: new Date().toISOString() }, auditId: r.auditId }
+  }
+
+  async restoreEmployee(id: string, actor: Actor): Promise<AuditedResult<Employee>> {
+    const snap = await getDoc(doc(this.db, 'former_employees', id))
+    if (!snap.exists()) throw new Error(`Former employee not found: ${id}`)
+    const before = toEmployee(snap.id, snap.data() as Record<string, unknown>)
+    const oldRef = doc(this.db, 'former_employees', id)
+    const newRef = doc(this.db, 'employees', id)
+    const restored: Record<string, unknown> = {
+      firstName: before.firstName, lastName: before.lastName, email: before.email,
+      phone: before.phone, position: before.position,
+      branchId: before.branchId, departmentId: before.departmentId,
+      status: 'active', terminatedAt: null,
+      createdAt: before.createdAt,
+      updatedBy: actor.uid, updatedAt: serverTimestamp(),
+    }
+    const r = await withAudit(this.audit,
+      {
+        entityType: 'employee', entityId: id, action: 'reactivated',
+        actorUid: actor.uid, actorRole: actor.role,
+        before: { status: 'terminated' }, after: { status: 'active' },
+      },
+      async (txn) => {
+        const t = txn as unknown as Transaction
+        t.set(newRef, restored)
+        t.delete(oldRef)
+        return { value: undefined as unknown as void }
+      },
+    )
+    return { value: { ...before, status: 'active', terminatedAt: null }, auditId: r.auditId }
   }
 }
 
