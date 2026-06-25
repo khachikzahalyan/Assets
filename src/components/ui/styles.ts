@@ -20,7 +20,15 @@ export const DIALOG_BACKDROP =
  * 4 usages: ActivateKeyModal, AddSubscriptionModal, KeyDetailsModal, ManageAssigneesModal.
  */
 export const DIALOG_BACKDROP_BLUR =
-  'fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4'
+  'fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 max-md:items-end max-md:p-0'
+
+/**
+ * Mobile bottom-sheet panel classes — slide up from bottom on ≤767px.
+ * Apply to the modal panel div alongside desktop sizing classes.
+ * Pair with DIALOG_BACKDROP or DIALOG_BACKDROP_BLUR (both already have max-md:items-end).
+ */
+export const MODAL_SHEET =
+  'max-md:w-full max-md:max-w-full max-md:rounded-t-[18px] max-md:rounded-b-none max-md:max-h-[90vh] max-md:overflow-y-auto max-md:[animation:amsSheetIn_0.22s_ease-out]'
 
 /**
  * Absolute inner backdrop for portal-based modals (EmployeeModalShell, HandoverModal, Drawer).

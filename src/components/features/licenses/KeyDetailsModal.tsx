@@ -5,7 +5,7 @@
 import { useState, useEffect, useRef } from 'react'
 import ReactDOM from 'react-dom'
 import { useTranslation } from 'react-i18next'
-import { IconBtn, Icon, DIALOG_BACKDROP_BLUR } from '@/components/ui'
+import { IconBtn, Icon, DIALOG_BACKDROP_BLUR, MODAL_SHEET } from '@/components/ui'
 import { formatLicenseDate } from './formatLicenseDate'
 import type { AuditLog } from '@/domain/audit'
 
@@ -126,12 +126,14 @@ export function KeyDetailsModal({
       onMouseDown={e => { if (e.target === e.currentTarget) onClose() }}
     >
       <div
-        className="relative w-full max-w-md bg-surface rounded-xl shadow-2xl shadow-black/60 border border-border overflow-hidden flex flex-col max-h-[90vh]"
+        className={`relative w-full max-w-md bg-surface rounded-xl shadow-2xl shadow-black/60 border border-border overflow-hidden flex flex-col max-h-[90vh] ${MODAL_SHEET}`}
         style={{ animation: 'modalPop 200ms cubic-bezier(.22,1,.36,1) both' }}
         role="dialog"
         aria-modal="true"
         aria-labelledby={TITLE_ID}
       >
+        {/* Pull-handle — mobile only */}
+        <div className="max-md:block hidden mx-auto h-1 w-9 rounded-full bg-white/20 mb-3 mt-2" />
         {/* Header */}
         <header className="flex items-center justify-between px-5 py-4 border-b border-border flex-shrink-0">
           <div className="flex items-center gap-2.5">

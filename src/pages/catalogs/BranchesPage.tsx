@@ -1,7 +1,8 @@
 import { useMemo, useState, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
-import { PageHeader, SectionCard, Btn, Icon, Chip, EmptyState, LoadingState, ErrorState } from '@/components/ui'
+import { PageHeader, SectionCard, Btn, Icon, Chip, EmptyState, LoadingState, ErrorState, CardListSkeleton } from '@/components/ui'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import { CatalogTable, ConfirmDeleteDialog, type CatalogColumn } from '@/components/features/catalogs'
 import { BranchFormDialog, type BranchFormValues } from '@/components/features/branches'
 import type { Branch, BranchListQuery, BranchRepository } from '@/domain/branch'
@@ -23,6 +24,7 @@ export function BranchesPage({ repository }: BranchesPageProps) {
   )
   const repo = repository ?? defaultRepo
   const canMutate = role === 'super_admin' || role === 'asset_admin'
+  const isMobile = useIsMobile()
 
   const [query] = useState<BranchListQuery>({ type: 'all', search: '' })
   const [page, setPage]   = useState(1)
@@ -86,7 +88,7 @@ export function BranchesPage({ repository }: BranchesPageProps) {
   }
 
   function body() {
-    if (loading) return <LoadingState rows={6} />
+    if (loading) return isMobile ? <CardListSkeleton rows={6} variant="catalog" /> : <LoadingState rows={6} />
     if (error) return <ErrorState onRetry={load} />
     if (rows.length === 0) return <EmptyState icon="building" title={t('empty.title')} description={t('empty.desc')} />
     return (

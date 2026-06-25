@@ -1,6 +1,7 @@
 import { useMemo, useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { PageHeader, SectionCard, Btn, Icon, EmptyState, LoadingState, ErrorState } from '@/components/ui'
+import { PageHeader, SectionCard, Btn, Icon, EmptyState, LoadingState, ErrorState, CardListSkeleton } from '@/components/ui'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import { AuditFilterBar, AuditTable } from '@/components/features/audit'
 import { useAuditLogs } from '@/hooks'
 import type { AuditLogQuery } from '@/domain/audit'
@@ -29,6 +30,7 @@ export function AuditPage({ repository }: AuditPageProps) {
     [],
   )
   const repo = repository ?? defaultRepo
+  const isMobile = useIsMobile()
 
   const [query, setQuery] = useState<AuditLogQuery>({ ...DEFAULT_QUERY })
 
@@ -40,7 +42,7 @@ export function AuditPage({ repository }: AuditPageProps) {
     useAuditLogs(repo, query)
 
   function renderBody() {
-    if (loading) return <LoadingState rows={8} />
+    if (loading) return isMobile ? <CardListSkeleton rows={8} variant="audit" /> : <LoadingState rows={8} />
     if (error) return <ErrorState onRetry={reload} />
     if (rows.length === 0) {
       return (

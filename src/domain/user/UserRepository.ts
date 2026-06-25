@@ -56,4 +56,6 @@ export interface UserRepository {
    * would drop the super_admin count to zero.
    */
   assignRole(input: AssignRoleInput, actor: Actor): Promise<AuditedResult<User>>
+  /** Count ACTIVE super_admins, optionally excluding one uid. Used by lockout guards. */
+  countSuperAdmins(exceptUid?: string): Promise<number>
 }

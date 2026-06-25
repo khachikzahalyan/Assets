@@ -86,7 +86,7 @@ export function AppShell({ children }: AppShellProps) {
               customContent={topbarNode ?? undefined}
               onOpenSidebar={() => setSidebarOpen(true)}
             />
-            <div className="app-shell-content">{children}</div>
+            <div className={`app-shell-content${currentRoute === 'assets' ? ' app-shell-content-flush' : ''}`}>{children}</div>
           </main>
         </div>
       </div>

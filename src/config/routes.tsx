@@ -4,7 +4,7 @@ import {
   DashboardPage, StubPage, LoginPage, AssetsPage, AssetCreatePage, AssetDetailPage,
   EmployeesPage, EmployeeCreatePage, EmployeeDetailPage, MyAssetsPage, MyActsPage, ProfilePage,
   PendingUsersPage, BranchesPage, DepartmentsPage, CategoriesPage, SettingsPage, StatusesPage,
-  AuditPage, LicensesPage, RolesPage, PartsPage,
+  AuditPage, LicensesPage, RolesPage, PartsPage, PartsReceivePage,
 } from '@/pages'
 import { RequireAuth, RoleGate } from '@/components/routing'
 import { PHASE_STUB_ROUTES } from './nav'
@@ -131,6 +131,9 @@ export function AppRoutes() {
           } />
           <Route path="/parts" element={
             <RoleGate roles={routeRoles('parts')}><PartsPage /></RoleGate>
+          } />
+          <Route path="/parts/new" element={
+            <RoleGate roles={routeRoles('parts')}><PartsReceivePage /></RoleGate>
           } />
 
           {PHASE_STUB_ROUTES.map((id) => (

@@ -25,6 +25,7 @@
     "seed:emulator": "cross-env FIRESTORE_EMULATOR_HOST=localhost:8080 GOOGLE_CLOUD_PROJECT=demo-ams tsx scripts/seed.ts",
     "grant:super-admin": "tsx scripts/grant-super-admin.ts",
     "backfill:category-caps": "tsx scripts/backfill-category-caps.ts",
+    "clear:assets": "tsx scripts/clearAssets.ts",
     "typecheck:scripts": "tsc --noEmit -p tsconfig.scripts.json"
   },
   "dependencies": {

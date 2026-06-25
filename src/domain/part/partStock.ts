@@ -14,6 +14,7 @@
 // taxonomy can never drift between the asset module and the parts module.
 
 import { LAPTOP_CATEGORY_IDS, SERVER_CATEGORY_IDS } from '@/domain/asset/categoryCapabilities'
+import type { AssetSpecs } from '@/domain/asset/types'
 import type { PartCategory, PartStock, UpgradeSlot } from './types'
 
 export type AssetFamily = 'laptop' | 'desktop' | 'server' | null
@@ -201,4 +202,45 @@ export function currentPartsForSkuCategory(
     out.push({ idx: i, slot: s, isEmpty: !s.spec || s.spec === '' })
   }
   return out
+}
+
+/**
+ * Synthesize the installed-component slots for an asset from its create-form
+ * specs (`currentSpecs`: ram / ssd / gpu) plus factory defaults (cooler, and
+ * psu for desktop/server or battery for laptop).
+ *
+ * Used by the Parts «Установлено» tab so a device that was created in the
+ * Assets section — and therefore has `currentSpecs` but no explicit
+ * `upgradeCurrent` array yet — still shows its real components (RAM, storage,
+ * GPU + factory cooler/PSU) exactly like the asset-detail Tech-Specs tiles.
+ *
+ * Mirrors the prototype's baselineUpgradesFor (factory config by family) but
+ * uses the asset's ACTUAL entered specs instead of mock values. Returns [] for
+ * non-upgradeable categories. Factory slots carry `spec: ''` (rendered as
+ * «Заводской» / «Конфиг.»); spec'd slots carry the entered value.
+ */
+export function synthesizeInstalledSlots(
+  categoryId: string,
+  specs: AssetSpecs | null | undefined,
+): UpgradeSlot[] {
+  const family = assetFamilyOf(categoryId)
+  if (family === null) return []
+
+  const slots: UpgradeSlot[] = []
+  // PSU — desktop/server only (factory); laptops carry a battery instead.
+  if (family === 'desktop' || family === 'server') {
+    slots.push({ kind: 'psu', spec: '' })
+  }
+  // RAM — from the entered create-form spec.
+  if (specs?.ram) slots.push({ kind: 'ram', spec: specs.ram })
+  // Storage — the create form captures a single drive in `ssd`.
+  if (specs?.ssd) slots.push({ kind: 'storage', spec: specs.ssd, storageType: 'SSD' })
+  // GPU — from the entered create-form spec.
+  if (specs?.gpu) slots.push({ kind: 'gpu', spec: specs.gpu })
+  // Cooler — factory default for every computer-class family.
+  slots.push({ kind: 'cooler', spec: '' })
+  // Battery — laptops only (factory).
+  if (family === 'laptop') slots.push({ kind: 'battery', spec: '' })
+
+  return slots
 }

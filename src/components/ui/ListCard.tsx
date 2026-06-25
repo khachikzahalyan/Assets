@@ -93,7 +93,7 @@ export function ListPageShell({ header, children, className, flushMobile = false
     <div
       className={[
         'w-full h-full flex flex-col min-h-0 gap-2',
-        flushMobile ? 'max-md:gap-0 max-md:-mx-3 max-md:-mt-3' : '',
+        flushMobile ? 'max-md:gap-0' : '',
         className ?? '',
       ]
         .filter(Boolean)

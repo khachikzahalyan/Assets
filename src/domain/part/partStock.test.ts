@@ -13,6 +13,7 @@ import {
   currentPartsForSkuCategory,
   isServiceOnly,
   assetFamilyOf,
+  synthesizeInstalledSlots,
 } from './partStock'
 import type { UpgradeSlot } from './types'
 
@@ -472,5 +473,46 @@ describe('currentPartsForSkuCategory', () => {
     ]
     const result = currentPartsForSkuCategory(slots, 'hdd', 'server')
     expect(result[0]!.isEmpty).toBe(true)
+  })
+})
+
+describe('synthesizeInstalledSlots', () => {
+  it('returns [] for a non-upgradeable category', () => {
+    expect(synthesizeInstalledSlots('cat_monitor', { ram: '8 ГБ' })).toEqual([])
+  })
+
+  it('desktop: psu + ram + storage(SSD) + gpu + cooler from currentSpecs', () => {
+    const slots = synthesizeInstalledSlots('cat_desktop', {
+      cpu: 'Intel Core i3 8 Gen',
+      ram: '12 ГБ DDR4',
+      ssd: '512 ГБ',
+      gpu: 'Встроенная',
+    })
+    const kinds = slots.map(s => s.kind)
+    expect(kinds).toContain('psu')
+    expect(kinds).toContain('cooler')
+    expect(slots.find(s => s.kind === 'ram')?.spec).toBe('12 ГБ DDR4')
+    const storage = slots.find(s => s.kind === 'storage')
+    expect(storage?.spec).toBe('512 ГБ')
+    expect(storage?.storageType).toBe('SSD')
+    expect(slots.find(s => s.kind === 'gpu')?.spec).toBe('Встроенная')
+    // desktop has no battery
+    expect(kinds).not.toContain('battery')
+  })
+
+  it('laptop: battery + cooler, no psu', () => {
+    const kinds = synthesizeInstalledSlots('cat_laptop', { ram: '8 ГБ' }).map(s => s.kind)
+    expect(kinds).toContain('battery')
+    expect(kinds).toContain('cooler')
+    expect(kinds).not.toContain('psu')
+  })
+
+  it('omits spec slots when currentSpecs is empty (factory cooler/psu still present)', () => {
+    const slots = synthesizeInstalledSlots('cat_desktop', null)
+    const kinds = slots.map(s => s.kind)
+    expect(kinds).toEqual(expect.arrayContaining(['psu', 'cooler']))
+    expect(kinds).not.toContain('ram')
+    expect(kinds).not.toContain('storage')
+    expect(kinds).not.toContain('gpu')
   })
 })

@@ -1,7 +1,8 @@
 import { useMemo, useState, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
-import { PageHeader, SectionCard, Btn, Icon, EmptyState, LoadingState, ErrorState } from '@/components/ui'
+import { PageHeader, SectionCard, Btn, Icon, EmptyState, LoadingState, ErrorState, CardListSkeleton } from '@/components/ui'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import { CatalogTable, ConfirmDeleteDialog, type CatalogColumn } from '@/components/features/catalogs'
 import { DepartmentFormDialog, type DepartmentFormValues } from '@/components/features/departments'
 import type { Department, DepartmentRepository } from '@/domain/department'
@@ -23,6 +24,7 @@ export function DepartmentsPage({ repository }: DepartmentsPageProps) {
   )
   const repo = repository ?? defaultRepo
   const canMutate = role === 'super_admin'
+  const isMobile = useIsMobile()
 
   const [page, setPage]   = useState(1)
   const [rows, setRows]   = useState<Department[]>([])
@@ -83,7 +85,7 @@ export function DepartmentsPage({ repository }: DepartmentsPageProps) {
   }
 
   function body() {
-    if (loading) return <LoadingState rows={6} />
+    if (loading) return isMobile ? <CardListSkeleton rows={6} variant="catalog" /> : <LoadingState rows={6} />
     if (error) return <ErrorState onRetry={load} />
     if (rows.length === 0) return <EmptyState icon="network" title={t('empty.title')} description={t('empty.desc')} />
     return (

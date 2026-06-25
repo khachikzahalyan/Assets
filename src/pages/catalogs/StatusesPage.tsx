@@ -1,7 +1,8 @@
 import { useMemo, useState, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
-import { PageHeader, SectionCard, Btn, Icon, Chip, EmptyState, LoadingState, ErrorState } from '@/components/ui'
+import { PageHeader, SectionCard, Btn, Icon, Chip, EmptyState, LoadingState, ErrorState, CardListSkeleton } from '@/components/ui'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import { CatalogTable, ConfirmDeleteDialog, type CatalogColumn } from '@/components/features/catalogs'
 import { AssetStatusFormDialog, type AssetStatusFormValues } from '@/components/features/statuses'
 import type { AssetStatus, AssetStatusRepository } from '@/domain/asset_status'
@@ -23,6 +24,7 @@ export function StatusesPage({ repository }: StatusesPageProps) {
   )
   const repo = repository ?? defaultRepo
   const canMutate = role === 'super_admin'
+  const isMobile = useIsMobile()
 
   const [page, setPage]       = useState(1)
   const [rows, setRows]       = useState<AssetStatus[]>([])
@@ -125,7 +127,7 @@ export function StatusesPage({ repository }: StatusesPageProps) {
   }
 
   function body() {
-    if (loading) return <LoadingState rows={6} />
+    if (loading) return isMobile ? <CardListSkeleton rows={6} variant="catalog" /> : <LoadingState rows={6} />
     if (error)   return <ErrorState onRetry={load} />
     if (rows.length === 0) return (
       <EmptyState icon="circle-dot" title={t('empty.title')} description={t('empty.desc')} />
