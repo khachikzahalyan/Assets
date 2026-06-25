@@ -48,7 +48,7 @@ export function RepairCard({
   // ---------------------------------------------------------------------------
 
   return (
-    <SectionCard title={t('detail.repair.title')} icon="wrench">
+    <SectionCard title={t('detail.repair.title')} icon="wrench" iconTone="orange">
       {isInRepair ? (
         // State: in-repair alert + return button
         <div className="space-y-3">
@@ -83,12 +83,12 @@ export function RepairCard({
         </button>
       ) : (
         // State: form open
-        <div className="space-y-3 anim-fade-slide-in">
+        <div className="space-y-2 anim-fade-slide-in">
           {/* Reason textarea */}
           <div>
             <label
               htmlFor="repair-reason"
-              className="block text-[12px] text-text-tertiary uppercase tracking-widest mb-2"
+              className="block text-[12px] text-text-tertiary uppercase tracking-widest mb-1.5"
             >
               {t('detail.repair.reasonLabel')}
             </label>
@@ -98,7 +98,7 @@ export function RepairCard({
                 value={reason}
                 onChange={e => setReason(e.target.value.slice(0, 300))}
                 autoFocus
-                rows={3}
+                rows={2}
                 placeholder={t('detail.repair.reasonPlaceholder')}
                 className="w-full text-[14px] bg-surface-2 border border-border rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500/30 transition-all resize-none placeholder:text-text-subtle text-text-primary"
               />
@@ -110,7 +110,7 @@ export function RepairCard({
 
           {/* Severity (visual-only, optional) */}
           <div>
-            <p className="text-[12px] text-text-tertiary uppercase tracking-widest mb-2">
+            <p className="text-[12px] text-text-tertiary uppercase tracking-widest mb-1.5">
               {t('detail.repair.severityLabel')}
             </p>
             <div className="grid grid-cols-3 gap-1.5">

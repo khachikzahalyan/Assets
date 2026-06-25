@@ -16,7 +16,7 @@ export function LocationCard({ asset, refData }: LocationCardProps) {
     : undefined
 
   return (
-    <SectionCard title={t('detail.location.title')} icon="map-pin">
+    <SectionCard title={t('detail.location.title')} icon="map-pin" iconTone="green">
       <div className="space-y-3">
         <div className="flex items-center gap-2">
           <Icon name="building-2" size={14} className="text-lime-400" />

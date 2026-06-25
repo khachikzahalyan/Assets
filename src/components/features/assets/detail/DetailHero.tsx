@@ -27,7 +27,7 @@ export function DetailHero({
   const catColor = CATEGORY_COLOR[asset.categoryId] ?? null
 
   return (
-    <div className="bg-surface rounded-2xl border border-border overflow-hidden anim-fade-slide-in">
+    <div className="bg-surface rounded-t-2xl border border-border overflow-hidden anim-fade-slide-in">
       <div className="h-1 w-full bg-gradient-to-r from-accent to-accent-light" />
       <div className="p-5 sm:p-6">
         <div className="flex items-start gap-4 max-md:flex-wrap">

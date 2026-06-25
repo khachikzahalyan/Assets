@@ -20,6 +20,7 @@ export function HistoryCard({ events }: HistoryCardProps) {
     <SectionCard
       title={t('detail.history.title')}
       icon="history"
+      iconTone="cyan"
       action={
         <span className="text-[13px] font-medium text-text-tertiary tabular-nums">
           {n} {pluralRecords(n)}

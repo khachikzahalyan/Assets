@@ -36,7 +36,7 @@ export function DetailTabs({ active, onChange, showSpecs, showDocs, addedDate }:
   return (
     <div
       role="tablist"
-      className="border-t border-border px-5 sm:px-6 flex items-center gap-1 max-md:flex-nowrap max-md:overflow-x-auto max-md:gap-0 max-md:px-3 no-scrollbar max-md:scroll-fade-x"
+      className="px-5 sm:px-6 flex items-center gap-1 max-md:flex-nowrap max-md:overflow-x-auto max-md:gap-0 max-md:px-3 no-scrollbar max-md:scroll-fade-x"
     >
       {visibleTabs.map(tab => {
         const isActive = active === tab.id

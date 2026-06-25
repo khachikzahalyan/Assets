@@ -401,8 +401,8 @@ describe('AssetDetailPage', () => {
     await seed('asset_admin', { cpu: 'Intel i7', ram: '8 ГБ' })
     await waitFor(() => screen.getByText(/450\/1/))
 
-    // Act: click «Скопировать» button
-    const copyBtn = screen.getByRole('button', { name: /Скопировать/i })
+    // Act: click «Копировать» button
+    const copyBtn = screen.getByRole('button', { name: /Копировать/i })
     fireEvent.click(copyBtn)
 
     // Assert: clipboard was called with lines in spec order.

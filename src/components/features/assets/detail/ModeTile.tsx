@@ -8,35 +8,28 @@ interface ModeTileProps {
 }
 
 export function ModeTile({ icon, label, selected, onClick }: ModeTileProps) {
+  // Round icon style — prototype detail «КОМУ ПЕРЕДАТЬ» (compact to avoid page scroll).
   return (
     <button
       type="button"
       onClick={onClick}
-      className="group relative flex flex-col items-center gap-2 py-2 rounded-xl transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+      aria-pressed={selected}
+      className="group flex flex-col items-center gap-1.5 py-1 rounded-xl transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
     >
       <div
-        className={`mode-tile-icon relative w-11 h-11 rounded-full flex items-center justify-center transition-all duration-150
+        className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-150
           ${selected
-            ? 'bg-accent shadow-[0_4px_14px_rgba(249,115,22,0.35)] ring-2 ring-accent/40 ring-offset-2 ring-offset-surface'
-            : 'bg-surface-2 border border-border group-hover:border-accent/40'
-          }`}
+            ? 'bg-accent ring-2 ring-accent/40 ring-offset-2 ring-offset-surface shadow-[0_4px_14px_rgba(249,115,22,0.35)]'
+            : 'bg-surface-2 border border-border group-hover:border-accent/40'}`}
       >
         <Icon
           name={icon}
-          size={17}
-          className={`transition-colors duration-150 ${
-            selected
-              ? 'text-white'
-              : 'text-text-tertiary group-hover:text-accent-light'
-          }`}
+          size={20}
+          className={`transition-colors duration-150 ${selected ? 'text-white' : 'text-text-tertiary group-hover:text-accent-light'}`}
         />
       </div>
       <span
-        className={`mode-tile-label text-[12.5px] leading-tight text-center transition-colors duration-150
-          ${selected
-            ? 'text-text-primary font-semibold'
-            : 'text-text-tertiary group-hover:text-text-primary'
-          }`}
+        className={`text-[12px] leading-tight text-center transition-colors duration-150 ${selected ? 'text-text-primary font-semibold' : 'text-text-tertiary group-hover:text-text-primary'}`}
       >
         {label}
       </span>

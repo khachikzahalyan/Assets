@@ -145,9 +145,9 @@ describe('AssetDetailPage — TransferPanel flow', () => {
     const branchTile = await screen.findByRole('button', { name: 'Филиал' })
     fireEvent.click(branchTile)
 
-    // Act: select branch from the Select dropdown
-    const selectEl = await screen.findByRole('combobox')
-    fireEvent.change(selectEl, { target: { value: 'br_2' } })
+    // Act: open the SearchSelect and pick the branch
+    fireEvent.click(await screen.findByRole('combobox'))
+    fireEvent.click(await screen.findByRole('option', { name: 'Филиал 2' }))
 
     // Act: click the commit «Передать» button (the one in TransferPanel footer)
     await waitFor(() => {
@@ -188,9 +188,9 @@ describe('AssetDetailPage — TransferPanel flow', () => {
     const empTile = await screen.findByRole('button', { name: 'Сотрудник' })
     fireEvent.click(empTile)
 
-    // Act: select the employee
-    const selectEl = await screen.findByRole('combobox')
-    fireEvent.change(selectEl, { target: { value: 'e_1' } })
+    // Act: open the SearchSelect and pick the employee
+    fireEvent.click(await screen.findByRole('combobox'))
+    fireEvent.click(await screen.findByRole('option', { name: 'Иван Петров' }))
 
     // Act: commit
     const allTransferBtns = screen.getAllByRole('button', { name: /Передать/i })
@@ -257,9 +257,9 @@ describe('AssetDetailPage — TransferPanel flow', () => {
     const deptTile = await screen.findByRole('button', { name: 'Отдел' })
     fireEvent.click(deptTile)
 
-    // Act: select the department
-    const selectEl = await screen.findByRole('combobox')
-    fireEvent.change(selectEl, { target: { value: 'dept_1' } })
+    // Act: open the SearchSelect and pick the department
+    fireEvent.click(await screen.findByRole('combobox'))
+    fireEvent.click(await screen.findByRole('option', { name: 'ИТ-отдел' }))
 
     // Act: commit
     const allTransferBtns = screen.getAllByRole('button', { name: /Передать/i })

@@ -137,6 +137,7 @@ export function AssignmentCard({
     <SectionCard
       title={t('detail.assignment.title')}
       icon="user-check"
+      iconTone="blue"
       action={
         !transferOpen && canAssign ? (
           <Btn

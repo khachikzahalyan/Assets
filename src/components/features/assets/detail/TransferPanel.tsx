@@ -4,8 +4,9 @@ import type { Asset, AssetReferenceData } from '@/domain/asset'
 import type { CategoryCapabilities } from '@/components/features/assets/create/CategoryPicker'
 import type { TransferPatch, TransferTarget } from '@/domain/asset/transferRules'
 import { buildTransferPatch } from '@/domain/asset/transferRules'
-import { Icon, Btn, Select } from '@/components/ui'
+import { Icon, Select } from '@/components/ui'
 import { DatePicker } from '@/components/features/assets/create/DatePicker'
+import { SearchSelect } from '@/components/features/assets/create/SearchSelect'
 import { ModeTile } from './ModeTile'
 
 // ---------------------------------------------------------------------------
@@ -25,39 +26,6 @@ const TRANSFER_MODES: TransferMode[] = [
   { id: 'department', icon: 'layout-list',  labelKey: 'detail.transfer.modeDepartment'  },
   { id: 'temporary',  icon: 'timer',        labelKey: 'detail.transfer.modeTemporary'   },
 ]
-
-// Per-mode context banner config (dark-adapted from prototype)
-interface BannerConfig {
-  icon: string
-  labelKey: string
-  hintKey: string
-  softBg: string
-  softText: string
-  ring: string
-}
-
-const MODE_CONTEXT_BANNER: Record<string, BannerConfig> = {
-  warehouse:  {
-    icon: 'warehouse',   labelKey: 'detail.transfer.bannerWarehouseLabel',  hintKey: 'detail.transfer.bannerWarehouseHint',
-    softBg: 'bg-surface-2',     softText: 'text-text-tertiary',  ring: 'ring-border',
-  },
-  employee:   {
-    icon: 'user-round',  labelKey: 'detail.transfer.bannerEmployeeLabel',   hintKey: 'detail.transfer.bannerEmployeeHint',
-    softBg: 'bg-violet-500/10', softText: 'text-violet-300', ring: 'ring-violet-500/30',
-  },
-  branch:     {
-    icon: 'git-branch',  labelKey: 'detail.transfer.bannerBranchLabel',     hintKey: 'detail.transfer.bannerBranchHint',
-    softBg: 'bg-accent/10',  softText: 'text-accent-light',  ring: 'ring-accent/30',
-  },
-  department: {
-    icon: 'layout-list', labelKey: 'detail.transfer.bannerDepartmentLabel', hintKey: 'detail.transfer.bannerDepartmentHint',
-    softBg: 'bg-amber-500/10',  softText: 'text-amber-300',  ring: 'ring-amber-500/30',
-  },
-  temporary:  {
-    icon: 'timer',       labelKey: 'detail.transfer.bannerTemporaryLabel',  hintKey: 'detail.transfer.bannerTemporaryHint',
-    softBg: 'bg-rose-500/10',   softText: 'text-rose-300',   ring: 'ring-rose-500/30',
-  },
-}
 
 // ---------------------------------------------------------------------------
 // Inline mode-specific form (key={mode} causes remount on change → animation)
@@ -90,35 +58,23 @@ function TransferModeForm({
   workMode, setWorkMode,
 }: ModeFormProps) {
   const { t } = useTranslation('assets')
-  const banner = MODE_CONTEXT_BANNER[mode]
 
   return (
     <div className="anim-mode-in space-y-2">
-      {/* Context banner */}
-      {banner && (
-        <div className={`flex items-start gap-2.5 px-3 py-2 rounded-xl ${banner.softBg} ring-1 ${banner.ring} mt-3`}>
-          <Icon name={banner.icon} size={14} className={`${banner.softText} mt-0.5 shrink-0`} />
-          <div className="flex flex-col min-w-0">
-            <span className={`text-[13px] font-semibold ${banner.softText}`}>{t(banner.labelKey)}</span>
-            <span className={`text-[12.5px] ${banner.softText} opacity-80`}>{t(banner.hintKey)}</span>
-          </div>
-        </div>
-      )}
-
-      {mode === 'warehouse' && (
-        <p className="text-[13px] text-sky-300 px-1">{t('detail.transfer.warehouseHint')}</p>
-      )}
 
       {mode === 'employee' && (
-        <div className="mt-3 space-y-3">
+        <div className="mt-2 space-y-2">
           <div>
             <label className="block text-[12px] uppercase tracking-[0.06em] font-semibold text-text-tertiary mb-1">
               {t('detail.transfer.employeeLabel')}
             </label>
-            <Select
+            <SearchSelect
               value={employeeId}
               onChange={setEmployeeId}
               placeholder={t('detail.transfer.employeePlaceholder')}
+              searchPlaceholder={t('placeholders.recipientSearch')}
+              ariaLabel={t('detail.transfer.employeeLabel')}
+              title={t('detail.transfer.employeeLabel')}
               options={refData.employees.map(e => ({
                 value: e.id,
                 label: [e.firstName, e.lastName].filter(Boolean).join(' '),
@@ -152,35 +108,41 @@ function TransferModeForm({
       )}
 
       {mode === 'branch' && (
-        <div className="mt-3">
+        <div className="mt-2">
           <label className="block text-[12px] uppercase tracking-[0.06em] font-semibold text-text-tertiary mb-1">
             {t('detail.transfer.branchLabel')}
           </label>
-          <Select
+          <SearchSelect
             value={branchId}
             onChange={setBranchId}
             placeholder={t('detail.transfer.branchPlaceholder')}
+            searchPlaceholder={t('placeholders.recipientSearch')}
+            ariaLabel={t('detail.transfer.branchLabel')}
+            title={t('detail.transfer.branchLabel')}
             options={refData.branches.map(b => ({ value: b.id, label: b.name }))}
           />
         </div>
       )}
 
       {mode === 'department' && (
-        <div className="mt-3">
+        <div className="mt-2">
           <label className="block text-[12px] uppercase tracking-[0.06em] font-semibold text-text-tertiary mb-1">
             {t('detail.transfer.departmentLabel')}
           </label>
-          <Select
+          <SearchSelect
             value={departmentId}
             onChange={setDepartmentId}
             placeholder={t('detail.transfer.departmentPlaceholder')}
+            searchPlaceholder={t('placeholders.recipientSearch')}
+            ariaLabel={t('detail.transfer.departmentLabel')}
+            title={t('detail.transfer.departmentLabel')}
             options={refData.departments.map(d => ({ value: d.id, label: d.name }))}
           />
         </div>
       )}
 
       {mode === 'temporary' && (
-        <div className="mt-3 space-y-3">
+        <div className="mt-2 space-y-2">
           <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="block text-[12px] uppercase tracking-[0.06em] font-semibold text-text-tertiary mb-1">
@@ -317,9 +279,9 @@ export function TransferPanel({ asset: _asset, refData, caps, busy, onCommit, on
   }
 
   return (
-    <div className="mt-3 border-t border-border pt-3 anim-fade-slide-in">
+    <div className="mt-2 border-t border-border pt-2 anim-fade-slide-in">
       {/* Divider header */}
-      <div className="flex items-center gap-3 mb-3">
+      <div className="flex items-center gap-3 mb-2">
         <div className="flex-1 h-px bg-surface-2" />
         <span className="text-[12px] text-text-tertiary uppercase tracking-widest whitespace-nowrap">
           {t('detail.transfer.title')}
@@ -328,7 +290,7 @@ export function TransferPanel({ asset: _asset, refData, caps, busy, onCommit, on
       </div>
 
       {/* Mode tiles row */}
-      <div className="grid grid-cols-5 gap-2 max-md:grid-cols-3">
+      <div className="grid grid-cols-5 gap-1.5 max-md:grid-cols-3">
         {TRANSFER_MODES.map(m => (
           <ModeTile
             key={m.id}
@@ -357,20 +319,20 @@ export function TransferPanel({ asset: _asset, refData, caps, busy, onCommit, on
       )}
 
       {/* Footer: Cancel + Commit */}
-      <div className="mt-4 flex gap-2 pt-1">
-        <Btn
-          variant="ghost"
-          className="flex-1 py-2.5 border border-border rounded-xl"
+      <div className="mt-3 flex gap-2 pt-1">
+        <button
+          type="button"
           onClick={onCancel}
           disabled={busy}
+          className="flex-1 flex items-center justify-center py-2 rounded-xl text-[14px] font-medium border border-border text-text-primary hover:bg-surface-2 transition-colors disabled:opacity-50"
         >
           {t('detail.transfer.cancel')}
-        </Btn>
+        </button>
         <button
           type="button"
           onClick={handleCommit}
           disabled={!isValid || busy}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[14px] bg-accent text-white hover:bg-accent-hover disabled:opacity-35 disabled:cursor-not-allowed transition-all shadow-sm"
+          className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-[14px] bg-accent text-white hover:bg-accent-hover disabled:opacity-35 disabled:cursor-not-allowed transition-all shadow-sm"
         >
           {busy
             ? <Icon name="loader-circle" size={14} className="animate-spin" />

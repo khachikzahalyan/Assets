@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { Asset } from '@/domain/asset'
 import type { WorkstationLicense } from '@/domain/license'
-import { SectionCard, Btn } from '@/components/ui'
+import { SectionCard, Icon } from '@/components/ui'
 import { buildSpecsLines, buildSpecsCopyText } from './detailFormat'
 import { SpecTile } from './SpecTile'
 import { LicenseBlock } from './LicenseBlock'
@@ -21,6 +21,8 @@ interface TechSpecsCardProps {
   // detach lives in the Licenses module, not the asset card
   licensePool?: { id: string; name: string; vendor: string | null }[]
   licenseBusy?: boolean
+  /** When provided, renders the «Открыть Запчасти →» button in the parts footer row. */
+  onOpenParts?: () => void
 }
 
 export function TechSpecsCard({
@@ -33,6 +35,7 @@ export function TechSpecsCard({
   onAttachLicense,
   licensePool,
   licenseBusy = false,
+  onOpenParts,
 }: TechSpecsCardProps) {
   const { t } = useTranslation('assets')
   const [copied, setCopied] = useState(false)
@@ -48,9 +51,19 @@ export function TechSpecsCard({
   }
 
   const copyBtn = lines.length > 0 && copyEnabled ? (
-    <Btn variant="ghost" size="sm" onClick={handleCopy}>
+    <button
+      type="button"
+      onClick={handleCopy}
+      aria-label={copied ? t('detail.specs.copied') : t('detail.specs.copy')}
+      className={`flex-shrink-0 inline-flex items-center gap-1.5 h-8 max-md:h-11 px-3 rounded-lg text-[12.5px] font-medium border transition-colors ${
+        copied
+          ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400'
+          : 'bg-surface-2 border-border text-text-tertiary hover:text-text-primary hover:border-border-strong'
+      }`}
+    >
+      <Icon name={copied ? 'check' : 'copy'} size={13} />
       {copied ? t('detail.specs.copied') : t('detail.specs.copy')}
-    </Btn>
+    </button>
   ) : undefined
 
   // Whether the license section should be rendered at all.
@@ -62,7 +75,7 @@ export function TechSpecsCard({
   const showEmptyPlaceholder = lines.length === 0 && licenses.length === 0 && !hasAttachAffordance && !hasOemLicenseCap
 
   return (
-    <SectionCard title={t('detail.specs.title')} icon="cpu" action={copyBtn}>
+    <SectionCard title={t('detail.specs.title')} icon="cpu" iconTone="violet" action={copyBtn}>
       {showEmptyPlaceholder ? (
         <p className="text-[13px] text-text-subtle italic">{t('detail.specs.empty')}</p>
       ) : (
@@ -99,7 +112,22 @@ export function TechSpecsCard({
         </>
       )}
       {partsNote && (
-        <p className="mt-4 text-[12px] text-text-subtle">{t('detail.parts.note')}</p>
+        <div className="mt-5 pt-3 border-t border-dashed border-border flex items-center justify-between gap-3 flex-wrap">
+          <span className="inline-flex items-center gap-1.5 text-[13px] text-text-tertiary">
+            <Icon name="info" size={12} className="text-text-subtle" />
+            {t('detail.parts.note')}
+          </span>
+          {onOpenParts && (
+            <button
+              type="button"
+              onClick={onOpenParts}
+              className="inline-flex items-center justify-center gap-1.5 h-8 px-3.5 rounded-xl text-[14px] font-semibold text-accent-light bg-accent/10 ring-1 ring-inset ring-accent/30 hover:bg-accent/20 transition-colors"
+            >
+              {t('detail.parts.openParts')}
+              <Icon name="arrow-right" size={13} />
+            </button>
+          )}
+        </div>
       )}
     </SectionCard>
   )

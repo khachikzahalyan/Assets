@@ -158,6 +158,12 @@ export function LicenseBlock({
                 {copyError && (
                   <p className="mt-0.5 text-[11px] text-[#FDA4AF]">{t('detail.license.copyFailed')}</p>
                 )}
+                {/* Probing the key — shimmer bar matched to the real key width
+                    (≈29 mono chars · tracking-wider) and the key line's height, so
+                    the block doesn't grow/jump when the key resolves. */}
+                {!copyError && hasKey === null && revealedKey === null && (
+                  <div aria-hidden="true" className="mt-0.5 h-[16px] w-[256px] max-w-full rounded anim-skeleton" />
+                )}
                 {!copyError && revealedKey !== null && (
                   <p className="mt-0.5 text-[13.5px] font-mono text-text-secondary tracking-wider truncate select-all">{revealedKey}</p>
                 )}
@@ -167,6 +173,11 @@ export function LicenseBlock({
               </div>
             )}
           </div>
+
+          {/* Copy button skeleton — while the key probe is in flight */}
+          {!isOem && canCopy && hasKey === null && (
+            <div aria-hidden="true" className="flex-shrink-0 h-8 max-md:h-11 w-[92px] rounded-lg anim-skeleton" />
+          )}
 
           {/* Copy button — super_admin OR tech_admin, non-OEM, key confirmed present */}
           {!isOem && canCopy && hasKey === true && (

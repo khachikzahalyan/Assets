@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
   PageHeader, ErrorState, EmptyState, Icon,
@@ -70,6 +70,7 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
   const { t } = useTranslation('assets')
   const { user, role } = useAuth()
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
 
   const actor = useMemo(() => ({ uid: user.id, role }), [user.id, role])
 
@@ -195,7 +196,7 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
         asset.id,
         patch.toStatusId,
         actor,
-        { assignment: patch.assignment ?? null },
+        { assignment: patch.assignment ?? null, branchId: patch.branchId, deptId: patch.deptId },
       )
       setTransferOpen(false)
       await load()
@@ -529,6 +530,7 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
                     onAttachLicense={onAttachLicense}
                     licensePool={licensePool}
                     licenseBusy={busy}
+                    onOpenParts={() => navigate(`/parts?tab=devices&assetId=${asset.id}`)}
                   />
                 ) : (
                   <p className="text-[13px] text-text-subtle italic">{t('detail.specs.empty')}</p>
