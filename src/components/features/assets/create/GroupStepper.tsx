@@ -70,7 +70,7 @@ export function GroupStepper({ requiresSerial, quantity, setQuantity, rows, setR
   }
 
   return (
-    <div className="rounded-xl ring-1 ring-border/70 bg-bg/60 p-3.5 space-y-2.5 anim-fade-slide-in">
+    <div className="rounded-xl ring-1 ring-[#2A2F36]/70 bg-[#111315]/60 p-3.5 space-y-2.5 anim-fade-slide-in">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="text-[14px] font-semibold text-text-primary flex items-center gap-1.5 tracking-tight">
           <Icon name="copy-plus" size={13} className="text-text-subtle" />Партия активов
@@ -96,7 +96,7 @@ export function GroupStepper({ requiresSerial, quantity, setQuantity, rows, setR
       {rows.length > 0 && (
         <div className="space-y-1.5">
           {rows.map((r, i) => (
-            <div key={r.invCode} className="flex items-center gap-2 bg-surface ring-1 ring-border/70 rounded-lg px-2.5 py-1.5">
+            <div key={r.invCode} className="flex items-center gap-2 bg-surface ring-1 ring-[#2A2F36]/70 rounded-lg px-2.5 py-1.5">
               <span className="w-5 h-5 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-[12px] font-bold flex items-center justify-center tabular-nums shrink-0">{i + 1}</span>
               <span className="font-mono text-[14px] text-text-primary tracking-tight truncate" title={r.invCode}>{r.invCode}</span>
               {requiresSerial && (
@@ -120,9 +120,9 @@ export function GroupStepper({ requiresSerial, quantity, setQuantity, rows, setR
           <span className="text-[14px] font-medium text-emerald-300">Все {total} {pluralAssets(total)} добавлены — нажмите «Создать»</span>
         </div>
       ) : (
-        <div key={done} className="bg-surface ring-1 ring-border/70 rounded-lg p-2.5 space-y-2">
+        <div key={done} className="bg-surface ring-1 ring-[#2A2F36]/70 rounded-lg p-2.5 space-y-2">
           <div className="flex items-center gap-2 text-[14px] font-semibold text-text-primary tracking-tight">
-            <span className="w-5 h-5 rounded bg-[rgba(249,115,22,0.12)] border border-[#F4CFB8]/80 text-accent-hover text-[12px] font-bold flex items-center justify-center tabular-nums shrink-0">{done + 1}</span>Текущая запись
+            <span className="w-5 h-5 rounded bg-[rgba(249,115,22,0.12)] border border-[#F97316]/50 text-accent-hover text-[12px] font-bold flex items-center justify-center tabular-nums shrink-0">{done + 1}</span>Текущая запись
           </div>
           <div className={`grid gap-2 ${requiresSerial ? 'grid-cols-2 max-md:grid-cols-1' : 'grid-cols-1'}`}>
             <Field label="Инвентарный код" required {...(invDup ? { hint: 'Этот код уже добавлен в партию' } : {})}>

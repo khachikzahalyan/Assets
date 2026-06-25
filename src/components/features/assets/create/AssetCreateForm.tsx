@@ -36,12 +36,6 @@ const EMPTY_SPECS: AssetSpecs = { cpu: '', ram: '', ssd: '', gpu: 'Встрое�
 export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatch, submitting, error, onCancel, licenseRepository }: AssetCreateFormProps) {
   const { t } = useTranslation('assets')
 
-  function handleBack() {
-    if (onCancel) { onCancel(); return }
-    // Fallback for contexts without a Router (e.g. standalone embeds)
-    window.location.href = '/assets'
-  }
-
   const [subMode, setSubMode] = useState<SubMode>('single')
 
   // Identity
@@ -62,7 +56,7 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
   })
 
   // OEM license — B3: card toggle mode
-  const [licenseMode, setLicenseMode] = useState<'oem_digital' | 'manual'>('oem_digital')
+  const [licenseMode, setLicenseMode] = useState<'oem_digital' | 'manual'>('manual')
   const [oemRawKey, setOemRawKey] = useState('')
   const [oemPickId, setOemPickId] = useState('')
   const [oemPool, setOemPool] = useState<{ id: string; name: string; vendor: string | null }[]>([])
@@ -90,7 +84,7 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
     setBrand(''); setModel(''); setTypeField(''); setInvCode(''); setSerial('')
     setSpecs({ ...EMPTY_SPECS })
     setOemRawKey(''); setOemPickId(''); setOemPool([])
-    setLicenseMode('oem_digital')
+    setLicenseMode('manual')
     setRows([])
     setQa({ picked: 'warehouse', assignment: null })
   }
@@ -181,7 +175,10 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
   // B6: default is warehouse, so recipientPicked is always satisfied
 
   // When OEM-capable category is in manual-key mode (no pool pick), require a complete key.
+  // Group mode never carries a license (oemLicense is set to null for each batch row),
+  // so skip the key validation entirely when isGroup is true.
   const manualKeyValid =
+    isGroup ||
     !showOemKey ||
     licenseMode !== 'manual' ||
     Boolean(oemPickId) ||
@@ -195,7 +192,9 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
       ? identityMissing[0]!
       : groupIncomplete
         ? t('groupMode.incomplete', { total: Math.max(2, quantity), done: rows.length, noun: pluralAssets(Math.max(2, quantity)) })
-        : null
+        : !manualKeyValid
+            ? t('validation.licenseKeyRequired')
+            : null
 
   // ---- Build inputs ---------------------------------------------------------
   function buildSpecs(): AssetSpecs | null {
@@ -271,29 +270,22 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
 
   // ---- Render ---------------------------------------------------------------
   return (
-    <div className="bg-surface/70 rounded-2xl ring-1 ring-border/50 overflow-hidden max-w-full">
-      {/* B1: In-card header row with back+title on left, toggle+X on right */}
-      <div className="flex items-center justify-between max-md:px-3 max-md:pt-2.5 max-md:pb-2.5 px-6 pt-5 pb-4 border-b border-border/60 gap-2 overflow-hidden">
+    <div className="bg-surface rounded-2xl ring-1 ring-[#2A2F36]/50 overflow-hidden w-full max-w-[1600px] mx-auto">
+      {/* B1: In-card header row with AMS pill+title on left, toggle+X on right */}
+      <div className="flex items-center justify-between max-md:px-3 max-md:pt-2.5 max-md:pb-2.5 px-5 py-3 border-b border-[#2A2F36]/60 gap-2 overflow-hidden">
         <div className="flex items-center gap-2 min-w-0 flex-1">
-          {/* Back-to-list button — navigates to /assets */}
-          <button
-            type="button"
-            onClick={handleBack}
-            aria-label={t('form.backToList')}
-            className="w-8 h-8 shrink-0 flex items-center justify-center rounded-lg text-text-subtle hover:text-text-primary hover:bg-border transition-colors"
-          >
-            <Icon name="chevron-left" size={16} />
-          </button>
+          {/* AMS pill badge */}
+          <span className="inline-flex items-center bg-[#F97316]/15 text-accent text-[11px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-md ring-1 ring-[#F97316]/30 shrink-0">AMS</span>
           <div className="min-w-0">
-            <h2 className="text-[17px] font-semibold text-text-primary leading-tight truncate">
+            <h2 className="text-[15px] font-semibold text-text-primary leading-tight truncate">
               {isGroup ? t('form.createTitleGroup') : t('form.createTitle')}
             </h2>
-            <p className="max-md:hidden text-[14.5px] text-text-secondary mt-0.5">{t('form.subtitle')}</p>
+            <p className="text-[13px] text-text-subtle mt-0.5 truncate">{t('form.subtitleCat', { cat: selectedCategory?.name ?? '—' })}</p>
           </div>
         </div>
         <div className="flex items-center gap-1.5 flex-shrink-0">
           {/* Sub-mode toggle — desktop: text+icon; mobile: icon-only 28×28 */}
-          <div className="inline-flex bg-surface-2/80 rounded-xl ring-1 ring-border/60 p-0.5 gap-0.5" role="group" aria-label="Режим регистрации">
+          <div className="inline-flex bg-[#22272E]/80 rounded-xl ring-1 ring-[#2A2F36]/60 p-0.5 gap-0.5" role="group" aria-label="Режим регистрации">
             {(['single', 'group'] as const).map(m => {
               const active = subMode === m
               return (
@@ -303,7 +295,7 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
                   aria-pressed={active}
                   onClick={() => handleSubMode(m)}
                   className={`max-md:w-7 max-md:h-7 max-md:px-0 max-md:justify-center px-3 py-1.5 text-[14px] font-semibold rounded-lg transition-all duration-150 flex items-center gap-1.5
-                    ${active ? 'bg-surface text-accent-hover shadow-sm ring-1 ring-[#F4CFB8]' : 'text-text-primary hover:text-text-primary'}`}
+                    ${active ? 'bg-surface text-accent-hover shadow-sm ring-1 ring-[#F97316]/40' : 'text-text-primary hover:text-text-primary'}`}
                 >
                   <Icon name={m === 'single' ? 'file-plus-2' : 'copy-plus'} size={12} />
                   <span className="max-md:hidden">{t(m === 'single' ? 'groupMode.single' : 'groupMode.group')}</span>
@@ -328,18 +320,16 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
       {/* MOBILE: add bottom padding to clear fixed save bar (~64px bar + safe-area) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 max-md:pb-[calc(72px+env(safe-area-inset-bottom,0px))]">
         {/* LEFT column — borderless section matching prototype .ams-sec-asset */}
-        <section className="max-md:px-[14px] px-6 py-5 lg:border-r lg:border-border/80 max-w-full overflow-x-hidden">
+        <section className="max-md:px-[14px] px-6 py-5 lg:border-r lg:border-[#2A2F36]/80 max-w-full overflow-x-hidden">
           <div className="space-y-4">
             <GroupTabs categories={refData.categories} selected={group} onSelect={handleGroupTab} />
 
-            <Field label={t('form.category')} required>
-              <CategoryPicker
-                categories={refData.categories}
-                value={categoryId}
-                onChange={handleCategoryChange}
-                group={group}
-              />
-            </Field>
+            <CategoryPicker
+              categories={refData.categories}
+              value={categoryId}
+              onChange={handleCategoryChange}
+              group={group}
+            />
 
             {caps && (
               <div className="space-y-4 anim-fade-slide-in">
@@ -418,12 +408,12 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
           )}
 
           {/* Quick Assignment section — borderless titled section */}
-          <section className={`max-md:px-[14px] px-6 py-5${caps?.hasSpecs ? ' border-t border-border/80' : ''}`}>
+          <section className={`max-md:px-[14px] px-6 py-5${caps?.hasSpecs ? ' border-t border-[#2A2F36]/80' : ''}`}>
             <div className="text-[13px] font-semibold text-text-tertiary tracking-[0.06em] uppercase mb-4">
               {t('qa.title')}
             </div>
             {isGroup ? (
-              <div className="bg-bg/60 border border-border/70 rounded-lg px-3.5 py-2.5 text-[14px] text-text-primary flex items-center gap-2">
+              <div className="bg-[#111315]/60 border border-[#2A2F36]/70 rounded-lg px-3.5 py-2.5 text-[14px] text-text-primary flex items-center gap-2">
                 <Icon name="lock" size={13} className="text-text-subtle shrink-0" />
                 <span>{t('groupMode.batchHint')}</span>
               </div>
@@ -449,7 +439,7 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
         max-md:fixed max-md:bottom-0 max-md:left-0 max-md:right-0 max-md:z-50
         max-md:pb-[env(safe-area-inset-bottom,0px)]
         px-6 max-md:px-3 py-4 max-md:py-0
-        border-t border-border/80 bg-surface
+        border-t border-[#2A2F36]/80 bg-surface
         flex items-center justify-between gap-3
         max-md:flex-col max-md:items-stretch max-md:gap-0
       ">
@@ -470,7 +460,7 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
           <button
             type="button"
             onClick={onCancel}
-            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 max-md:flex-1 max-md:py-2.5 max-md:px-3 max-md:min-h-[44px] text-[15px] max-md:text-[14px] font-medium text-text-primary hover:text-text-primary bg-bg/50 border border-border/60 rounded-xl transition-all duration-150"
+            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 max-md:flex-1 max-md:py-2.5 max-md:px-3 max-md:min-h-[44px] text-[15px] max-md:text-[14px] font-medium text-text-primary hover:text-text-primary bg-[#111315]/50 border border-[#2A2F36]/60 rounded-xl transition-all duration-150"
           >
             <Icon name="x" size={14} />
             {t('form.cancel')}

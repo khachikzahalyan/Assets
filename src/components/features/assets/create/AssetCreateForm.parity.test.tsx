@@ -56,7 +56,7 @@ describe('AssetCreateForm parity', () => {
     const tabs = screen.getAllByRole('tab')
     const names = tabs.map(t => t.textContent || '')
     expect(names.some(n => n.includes('Устройства') && !n.includes('Сетевые'))).toBe(true)
-    expect(names.some(n => n.includes('Сетевые устройства'))).toBe(true)
+    expect(names.some(n => n.includes('Сетевые уст.'))).toBe(true)
     expect(names.some(n => n.includes('Мебель'))).toBe(true)
     expect(tabs).toHaveLength(3)
   })
@@ -69,6 +69,8 @@ describe('AssetCreateForm parity', () => {
     fireEvent.change(screen.getByPlaceholderText(/ProLiant/i), { target: { value: 'XPS 15' } })
     fireEvent.change(screen.getByPlaceholderText(/460\/00007/), { target: { value: '450/77' } })
     fireEvent.change(screen.getByPlaceholderText(/SN-…|SN-/), { target: { value: 'SN-77' } })
+    // Switch to digital OEM mode (no key required) so the save button is enabled
+    fireEvent.click(screen.getByRole('button', { name: /Цифровая/i }))
     fireEvent.click(screen.getByRole('button', { name: /Склад/i }))
 
     const saveBtn = screen.getByRole('button', { name: /Создать актив|Сохранить/i })
@@ -96,6 +98,8 @@ describe('AssetCreateForm parity', () => {
     fireEvent.change(screen.getByPlaceholderText(/ProLiant/i), { target: { value: 'XPS' } })
     fireEvent.change(screen.getByPlaceholderText(/460\/00007/), { target: { value: '450/78' } })
     fireEvent.change(screen.getByPlaceholderText(/SN-…|SN-/), { target: { value: 'SN-78' } })
+    // Switch to digital OEM mode (no key required) so the save button is enabled
+    fireEvent.click(screen.getByRole('button', { name: /Цифровая/i }))
     fireEvent.click(screen.getByRole('button', { name: /^Б\/У$/i }))
     fireEvent.click(screen.getByRole('button', { name: /Склад/i }))
 
@@ -172,7 +176,7 @@ describe('AssetCreateForm parity', () => {
     setup()
     // Auto-select sets group to 'devices'. Switch to network tab first so
     // the CategoryPicker shows network categories before choosing 'Маршрутизатор'.
-    fireEvent.click(screen.getByRole('tab', { name: /Сетевые устройства/i }))
+    fireEvent.click(screen.getByRole('tab', { name: /Сетевые уст\./i }))
     await chooseCategory('Маршрутизатор')
     await waitFor(() => screen.getByPlaceholderText(/HPE/i))
     expect(screen.getByRole('button', { name: /Склад/i })).toBeTruthy()

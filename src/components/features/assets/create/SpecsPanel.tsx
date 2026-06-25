@@ -69,7 +69,7 @@ export function SpecsPanel({ specs, onChange, isServer }: SpecsPanelProps) {
         <span id="asset-spec-ram-label" className="text-[16px] font-medium text-text-tertiary pt-2 max-md:pt-0 max-md:text-[13px] max-md:font-semibold max-md:tracking-[0.06em] max-md:uppercase flex items-center gap-1.5">
           ОЗУ
           {ramSlotCount > 1 && (
-            <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-[rgba(249,115,22,0.12)] border border-accent/30 text-accent text-[11px] font-semibold tabular-nums">
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-[rgba(249,115,22,0.12)] border border-[#F97316]/30 text-accent text-[11px] font-semibold tabular-nums">
               {ramSlotCount} {pluralModule(ramSlotCount)}
             </span>
           )}
@@ -82,7 +82,7 @@ export function SpecsPanel({ specs, onChange, isServer }: SpecsPanelProps) {
         <span id="asset-spec-ssd-label" className="text-[16px] font-medium text-text-tertiary pt-2 max-md:pt-0 max-md:text-[13px] max-md:font-semibold max-md:tracking-[0.06em] max-md:uppercase flex items-center gap-1.5">
           Накопитель
           {storageSlotCount > 1 && (
-            <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-[rgba(249,115,22,0.12)] border border-accent/30 text-accent text-[11px] font-semibold tabular-nums">
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-[rgba(249,115,22,0.12)] border border-[#F97316]/30 text-accent text-[11px] font-semibold tabular-nums">
               {storageSlotCount} {pluralDisk(storageSlotCount)}
             </span>
           )}

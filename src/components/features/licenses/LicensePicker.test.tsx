@@ -5,7 +5,7 @@
  *  1. formatOemKey – uppercase + 5-5-5-5-5 grouping.
  *  2. emptyLicensePickerValue – returns correct defaults.
  *  3. Renders both mode cards when showDigital=true.
- *  4. Clicking the 'Ручной ввод' card switches mode to 'manual' and reveals
+ *  4. Clicking the 'Ключ' card switches mode to 'manual' and reveals
  *     the product-key field.
  *  5. Typing into the visible SpecCombobox calls onChange with rawKey (formatted)
  *     and pickId = ''.
@@ -86,6 +86,15 @@ describe('formatOemKey', () => {
   it("returns uppercase single group for short input", () => {
     expect(formatOemKey('abcd1')).toBe('ABCD1')
   })
+
+  it("hard-caps at 25 alphanumeric chars (5 groups of 5) — ignores overflow", () => {
+    // 35 chars of input → only the first 25 are kept, grouped 5-5-5-5-5
+    expect(formatOemKey('ASKJDNAKSLNDKLASNDLKASKLDAKSLDNKALSD'))
+      .toBe('ASKJD-NAKSL-NDKLA-SNDLK-ASKLD')
+    // already-dashed overflow is likewise truncated to 5 groups
+    expect(formatOemKey('ASKJD-NAKSL-NDKLA-SNDLK-ASKLD-AKSLD-NKALS-D'))
+      .toBe('ASKJD-NAKSL-NDKLA-SNDLK-ASKLD')
+  })
 })
 
 describe('emptyLicensePickerValue', () => {
@@ -113,7 +122,7 @@ describe('LicensePicker component', () => {
 
     // Assert — both buttons are present
     expect(screen.getByRole('button', { name: /Цифровая/i })).toBeTruthy()
-    expect(screen.getByRole('button', { name: /Ручной ввод/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /Ключ/i })).toBeTruthy()
   })
 
   it("hides the digital card when showDigital=false and makes manual card full-width", () => {
@@ -126,17 +135,17 @@ describe('LicensePicker component', () => {
 
     // Assert
     expect(screen.queryByRole('button', { name: /Цифровая/i })).toBeNull()
-    expect(screen.getByRole('button', { name: /Ручной ввод/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /Ключ/i })).toBeTruthy()
   })
 
-  it("clicking 'Ручной ввод' card calls onChange with licenseMode='manual'", () => {
+  it("clicking 'Ключ' card calls onChange with licenseMode='manual'", () => {
     // Arrange
     const onChange = vi.fn()
     const value: LicensePickerValue = { licenseMode: 'oem_digital', rawKey: '', pickId: '' }
     renderPicker(value, onChange)
 
     // Act
-    fireEvent.click(screen.getByRole('button', { name: /Ручной ввод/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Ключ/i }))
 
     // Assert
     expect(onChange).toHaveBeenCalledTimes(1)

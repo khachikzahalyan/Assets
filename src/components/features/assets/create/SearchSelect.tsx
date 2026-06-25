@@ -3,23 +3,24 @@ import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@/components/ui'
 import { MobileSheet } from '@/components/ui/MobileSheet'
-import type { CategoryRow } from '@/domain/asset'
 
-// The capability taxonomy + derivation now live in the pure domain layer
-// (src/domain/asset/categoryCapabilities.ts). Re-exported here under the historic
-// names so existing import sites (AssetCreateForm, AssetDetailPage) stay stable.
-export {
-  resolveCategoryCapabilities as categoryCapabilities,
-  type CategoryCapabilities,
-} from '@/domain/asset'
-
-export interface CategoryPickerProps {
-  categories: CategoryRow[]
+export interface SearchSelectOption {
   value: string
-  onChange: (categoryId: string) => void
-  /** When set, restricts options to a single group (group-tab filter). */
-  group?: 'devices' | 'network' | 'furniture' | null
-  /** Disables the trigger (e.g. edit mode where category is locked). */
+  label: string
+  icon?: string
+}
+
+export interface SearchSelectProps {
+  options: SearchSelectOption[]
+  value: string
+  onChange: (value: string) => void
+  /** Trigger text when nothing selected */
+  placeholder?: string
+  /** Search input placeholder */
+  searchPlaceholder?: string
+  ariaLabel?: string
+  /** MobileSheet title */
+  title?: string
   disabled?: boolean
 }
 
@@ -30,10 +31,21 @@ interface PortalPos {
 }
 
 /**
- * Searchable combobox category picker matching the prototype CategoryCombobox.
- * Portal-to-body dropdown with search input, keyboard navigation, and a kbd-hint footer.
+ * Generic reusable searchable combobox.
+ * Mirrors CategoryPicker's dropdown UX exactly — search input, keyboard nav,
+ * orange active row, check on selected, kbd-hint footer + count.
+ * Desktop: portal-to-body dropdown. Mobile (≤767px): MobileSheet.
  */
-export function CategoryPicker({ categories, value, onChange, group, disabled = false }: CategoryPickerProps) {
+export function SearchSelect({
+  options,
+  value,
+  onChange,
+  placeholder,
+  searchPlaceholder,
+  ariaLabel,
+  title,
+  disabled = false,
+}: SearchSelectProps) {
   const { t } = useTranslation('assets')
 
   const [open, setOpen] = useState(false)
@@ -54,25 +66,18 @@ export function CategoryPicker({ categories, value, onChange, group, disabled = 
     return () => mq.removeEventListener('change', handler)
   }, [])
 
-  // Filter categories by group prop
-  const groupCategories = useMemo(() => {
-    if (!group) return categories
-    return categories.filter(c => c.group === group)
-  }, [categories, group])
-
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
-    if (!q) return groupCategories
-    return groupCategories.filter(c => c.name.toLowerCase().includes(q))
-  }, [query, groupCategories])
+    if (!q) return options
+    return options.filter(o => o.label.toLowerCase().includes(q))
+  }, [query, options])
 
-  const selectedCat = categories.find(c => c.id === value) ?? null
+  const selectedOption = options.find(o => o.value === value) ?? null
 
   function updatePos() {
     const el = triggerRef.current
     if (!el) return
     const r = el.getBoundingClientRect()
-    // Clamp left so dropdown never bleeds off-screen on narrow viewports
     const popWidth = Math.max(r.width, 240)
     let left = r.left
     if (left + popWidth > window.innerWidth - 8) left = window.innerWidth - popWidth - 8
@@ -85,16 +90,16 @@ export function CategoryPicker({ categories, value, onChange, group, disabled = 
     if (open) updatePos()
   }, [open])
 
-  // Single consolidated effect for all "open" event listeners — matches SelectMini pattern
+  // Consolidated effect for all open-state event listeners
   useEffect(() => {
     if (!open) return
 
     function onScroll() { updatePos() }
     function onResize() { updatePos() }
     function onMouseDown(e: MouseEvent) {
-      const t = e.target as Node | null
-      const inTrigger = triggerRef.current?.contains(t) ?? false
-      const inPortal = t instanceof Element && t.closest('[data-cb-portal="true"]') !== null
+      const target = e.target as Node | null
+      const inTrigger = triggerRef.current?.contains(target) ?? false
+      const inPortal = target instanceof Element && target.closest('[data-ss-portal="true"]') !== null
       if (!inTrigger && !inPortal) {
         setOpen(false)
         setQuery('')
@@ -119,10 +124,10 @@ export function CategoryPicker({ categories, value, onChange, group, disabled = 
     }
   }, [open])
 
-  // Reset highlight when query/group/open changes
+  // Reset highlight when query or open changes
   useEffect(() => {
     setActiveIdx(0)
-  }, [query, open, group])
+  }, [query, open])
 
   // Scroll active row into view
   useEffect(() => {
@@ -133,8 +138,8 @@ export function CategoryPicker({ categories, value, onChange, group, disabled = 
     }
   }, [activeIdx, open])
 
-  function selectCategory(id: string) {
-    onChange(id)
+  function selectOption(val: string) {
+    onChange(val)
     setOpen(false)
     setQuery('')
   }
@@ -155,7 +160,7 @@ export function CategoryPicker({ categories, value, onChange, group, disabled = 
     } else if (e.key === 'Enter') {
       e.preventDefault()
       const item = filtered[activeIdx]
-      if (item) selectCategory(item.id)
+      if (item) selectOption(item.value)
     } else if (e.key === 'Escape') {
       e.preventDefault()
       setOpen(false)
@@ -164,15 +169,18 @@ export function CategoryPicker({ categories, value, onChange, group, disabled = 
   }
 
   const triggerClass = [
-    'w-full px-0 py-2.5 text-[15px] border-b bg-transparent rounded-none flex items-center gap-2 outline-none shadow-none transition-[border-color,box-shadow] duration-200 text-left',
-    disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
-    open
-      ? 'border-accent shadow-[0_2px_8px_rgba(217,119,87,0.1)]'
-      : 'border-border hover:border-border-strong',
+    'w-full px-3 py-2 text-[15px] border rounded-lg text-left outline-none transition-[background-color,border-color,box-shadow] duration-150 flex items-center justify-between gap-2',
+    disabled
+      ? 'bg-surface border-border opacity-50 cursor-not-allowed'
+      : open
+        ? 'bg-surface border-accent shadow-[0_0_0_3px_rgba(249,115,22,0.15)]'
+        : selectedOption
+          ? 'bg-surface border-border hover:border-border-strong cursor-pointer'
+          : 'bg-surface border-border hover:border-border-strong cursor-pointer',
   ].join(' ')
 
-  /** Shared category list content — used in both portal and MobileSheet */
-  const categoryListContent = (
+  /** Shared list content — used in both portal and MobileSheet */
+  const listContent = (
     <>
       {/* Search input */}
       <div className="px-2 pt-2 pb-1.5 border-b border-border">
@@ -188,7 +196,7 @@ export function CategoryPicker({ categories, value, onChange, group, disabled = 
             value={query}
             onChange={e => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={t('placeholders.categorySearch')}
+            placeholder={searchPlaceholder ?? t('placeholders.categorySearch')}
             className="w-full h-8 pl-7 pr-2 text-[16px] bg-transparent text-text-primary placeholder:text-text-subtle focus:outline-none"
           />
         </div>
@@ -201,18 +209,18 @@ export function CategoryPicker({ categories, value, onChange, group, disabled = 
             {t('placeholders.noResults')}
           </div>
         ) : (
-          filtered.map((c, idx) => {
+          filtered.map((opt, idx) => {
             const isActive = idx === activeIdx
-            const isSelected = c.id === value
+            const isSelected = opt.value === value
             return (
               <button
-                key={c.id}
+                key={opt.value}
                 type="button"
                 role="option"
                 aria-selected={isSelected}
                 data-idx={idx}
                 onMouseEnter={() => setActiveIdx(idx)}
-                onClick={() => selectCategory(c.id)}
+                onClick={() => selectOption(opt.value)}
                 className={[
                   'w-full flex items-center gap-2 px-3 py-2 text-[16px] text-left transition-colors',
                   isActive
@@ -220,13 +228,15 @@ export function CategoryPicker({ categories, value, onChange, group, disabled = 
                     : 'text-text-primary hover:bg-surface-2',
                 ].join(' ')}
               >
-                <div className={[
-                  'w-5 h-5 rounded flex items-center justify-center shrink-0',
-                  isActive ? 'bg-white/20 text-white' : 'bg-surface-2 text-text-tertiary',
-                ].join(' ')}>
-                  <Icon name={c.lucideIcon} size={12} />
-                </div>
-                <span className="truncate flex-1">{c.name}</span>
+                {opt.icon != null && (
+                  <div className={[
+                    'w-5 h-5 rounded flex items-center justify-center shrink-0',
+                    isActive ? 'bg-white/20 text-white' : 'bg-surface-2 text-text-tertiary',
+                  ].join(' ')}>
+                    <Icon name={opt.icon} size={12} />
+                  </div>
+                )}
+                <span className="truncate flex-1">{opt.label}</span>
                 {isSelected && (
                   <Icon
                     name="check"
@@ -240,7 +250,7 @@ export function CategoryPicker({ categories, value, onChange, group, disabled = 
         )}
       </div>
 
-      {/* Footer: kbd hints + count — hidden on mobile sheet */}
+      {/* Footer: kbd hints + count — hidden on mobile */}
       <div className="px-3 py-1.5 border-t border-border text-[12px] text-text-subtle flex items-center gap-3 bg-[#111315]/50">
         <span className="hidden md:flex items-center gap-1">
           <kbd className="px-1 py-0.5 bg-surface border border-border rounded text-[11px] font-mono text-text-primary">↑↓</kbd>
@@ -254,7 +264,7 @@ export function CategoryPicker({ categories, value, onChange, group, disabled = 
           <kbd className="px-1 py-0.5 bg-surface border border-border rounded text-[11px] font-mono text-text-primary">Esc</kbd>
           {' '}закрыть
         </span>
-        <span className="ml-auto tabular-nums">{filtered.length} / {groupCategories.length}</span>
+        <span className="ml-auto tabular-nums">{filtered.length} / {options.length}</span>
       </div>
     </>
   )
@@ -265,44 +275,39 @@ export function CategoryPicker({ categories, value, onChange, group, disabled = 
         ref={triggerRef}
         type="button"
         role="combobox"
-        aria-label={t('form.category')}
+        aria-label={ariaLabel}
         aria-expanded={open}
         aria-haspopup="listbox"
         disabled={disabled}
         onClick={() => { if (!disabled) setOpen(o => !o) }}
         className={triggerClass}
       >
-        {selectedCat ? (
-          <>
-            <div className="w-5 h-5 rounded bg-surface-2 text-text-tertiary flex items-center justify-center shrink-0">
-              <Icon name={selectedCat.lucideIcon} size={12} />
-            </div>
-            <span className="font-medium text-text-primary truncate flex-1">{selectedCat.name}</span>
-          </>
+        {selectedOption ? (
+          <span className="font-medium text-text-primary truncate flex-1">{selectedOption.label}</span>
         ) : (
-          <span className="text-text-subtle flex-1">{t('placeholders.category')}</span>
+          <span className="text-text-subtle flex-1">{placeholder}</span>
         )}
         <Icon
           name="chevron-down"
           size={14}
           className={[
-            'text-text-subtle shrink-0 ml-auto transition-transform duration-150',
-            open ? 'rotate-180' : '',
+            'shrink-0 transition-transform duration-150',
+            open ? 'rotate-180 text-accent' : 'text-text-subtle',
           ].join(' ')}
         />
       </button>
 
       {/* Mobile: bottom sheet */}
       {isMobile && (
-        <MobileSheet open={open} onClose={() => { setOpen(false); setQuery('') }} title={t('form.category')}>
-          {categoryListContent}
+        <MobileSheet open={open} onClose={() => { setOpen(false); setQuery('') }} {...(title !== undefined ? { title } : {})}>
+          {listContent}
         </MobileSheet>
       )}
 
       {/* Desktop: clamped portal dropdown */}
       {!isMobile && open && pos && createPortal(
         <div
-          data-cb-portal="true"
+          data-ss-portal="true"
           style={{
             position: 'fixed',
             top: pos.top,
@@ -312,7 +317,7 @@ export function CategoryPicker({ categories, value, onChange, group, disabled = 
           }}
           className="bg-surface ring-1 ring-[#2A2F36]/80 rounded-xl shadow-lg shadow-slate-900/10 anim-fade-slide-in overflow-hidden"
         >
-          {categoryListContent}
+          {listContent}
         </div>,
         document.body,
       )}

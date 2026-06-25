@@ -107,8 +107,8 @@ describe('AssetCreateForm — free-OEM-pool picker (D7)', () => {
     // cat_laptop is auto-selected on mount (first hasOemLicense category in REF).
     // No chooseCategory needed — the OEM section is already present.
     // Wait for the mode cards to appear.
-    await waitFor(() => expect(screen.getByRole('button', { name: /Ручной ввод/i })).toBeTruthy())
-    fireEvent.click(screen.getByRole('button', { name: /Ручной ввод/i }))
+    await waitFor(() => expect(screen.getByRole('button', { name: /Ключ/i })).toBeTruthy())
+    fireEvent.click(screen.getByRole('button', { name: /Ключ/i }))
 
     // Wait for pool to load and picker to appear
     await waitFor(() =>
@@ -162,9 +162,9 @@ describe('AssetCreateForm — free-OEM-pool picker (D7)', () => {
     // Act — select OEM-capable category
     await chooseCategory('Ноутбук')
 
-    // Switch to Ручной ввод to reveal the key input
-    await waitFor(() => expect(screen.getByRole('button', { name: /Ручной ввод/i })).toBeTruthy())
-    fireEvent.click(screen.getByRole('button', { name: /Ручной ввод/i }))
+    // Switch to Ключ (manual) mode to reveal the key input
+    await waitFor(() => expect(screen.getByRole('button', { name: /Ключ/i })).toBeTruthy())
+    fireEvent.click(screen.getByRole('button', { name: /Ключ/i }))
 
     // Wait for OEM raw-key input to appear
     await waitFor(() =>
@@ -217,9 +217,9 @@ describe('AssetCreateForm — free-OEM-pool picker (D7)', () => {
     // Act — select OEM-capable category
     await chooseCategory('Ноутбук')
 
-    // Switch to Ручной ввод to reveal the pool picker
-    await waitFor(() => expect(screen.getByRole('button', { name: /Ручной ввод/i })).toBeTruthy())
-    fireEvent.click(screen.getByRole('button', { name: /Ручной ввод/i }))
+    // Switch to Ключ (manual) mode to reveal the pool picker
+    await waitFor(() => expect(screen.getByRole('button', { name: /Ключ/i })).toBeTruthy())
+    fireEvent.click(screen.getByRole('button', { name: /Ключ/i }))
 
     // Wait for picker
     await waitFor(() =>
@@ -304,8 +304,8 @@ describe('AssetCreateForm — free-OEM-pool picker (D7)', () => {
 
     // cat_laptop is auto-selected on mount — no chooseCategory needed.
     // Wait for the mode cards to appear (pool load has started).
-    await waitFor(() => expect(screen.getByRole('button', { name: /Ручной ввод/i })).toBeTruthy())
-    fireEvent.click(screen.getByRole('button', { name: /Ручной ввод/i }))
+    await waitFor(() => expect(screen.getByRole('button', { name: /Ключ/i })).toBeTruthy())
+    fireEvent.click(screen.getByRole('button', { name: /Ключ/i }))
 
     // Wait for picker Select to be rendered and pool to load
     await waitFor(() =>

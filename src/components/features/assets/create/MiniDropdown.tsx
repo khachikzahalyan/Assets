@@ -94,7 +94,7 @@ export function MiniDropdown({ value, onChange, options, placeholder = 'Выбе
     ? 'bg-bg border-border opacity-50 cursor-not-allowed'
     : open ? 'bg-surface border-accent shadow-[0_0_0_3px_rgba(249,115,22,0.15)]'
     : selectedLabel ? 'bg-surface border-border hover:border-border-strong'
-    : 'bg-bg border-border hover:border-border-strong hover:bg-surface'
+    : 'bg-surface border-border hover:border-border-strong'
 
   return (
     <div className="relative">

@@ -51,18 +51,18 @@ export function ConditionWarranty({ value, onChange }: ConditionWarrantyProps) {
       <div className="flex items-center justify-between flex-wrap gap-2">
         {/* B4: section header font text-[13px] */}
         <div className="text-[13px] font-semibold text-text-tertiary tracking-[0.06em] uppercase">Состояние и гарантия</div>
-        <div className="inline-flex bg-surface-2/70 rounded-lg p-0.5" role="group" aria-label="Состояние">
+        <div className="inline-flex bg-[#22272E]/70 rounded-lg p-0.5" role="group" aria-label="Состояние">
           <button
             type="button"
             onClick={() => setCondition('new')}
             aria-pressed={value.condition === 'new'}
-            className={`px-3.5 py-1 text-[14px] font-semibold rounded-md transition-all duration-150 ${value.condition === 'new' ? 'bg-accent text-white shadow-sm' : 'text-text-primary hover:bg-surface/70'}`}
+            className={`px-3.5 py-1 text-[14px] font-semibold rounded-md transition-all duration-150 ${value.condition === 'new' ? 'bg-accent text-white shadow-sm' : 'text-text-primary hover:bg-[#1B1F24]/70'}`}
           >Новый</button>
           <button
             type="button"
             onClick={() => setCondition('used')}
             aria-pressed={value.condition === 'used'}
-            className={`px-3.5 py-1 text-[14px] font-semibold rounded-md transition-all duration-150 ${value.condition === 'used' ? 'bg-accent text-white shadow-sm' : 'text-text-primary hover:bg-surface/70'}`}
+            className={`px-3.5 py-1 text-[14px] font-semibold rounded-md transition-all duration-150 ${value.condition === 'used' ? 'bg-accent text-white shadow-sm' : 'text-text-primary hover:bg-[#1B1F24]/70'}`}
           >Б/У</button>
         </div>
       </div>

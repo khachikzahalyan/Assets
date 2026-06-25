@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@/components/ui'
-import { MiniDropdown } from './MiniDropdown'
+import { SearchSelect } from './SearchSelect'
 import type { AssetAssignment, EmployeeRow, StatusRow } from '@/domain/asset'
 import type { RefRow } from '@/domain/asset'
 
@@ -104,7 +104,7 @@ export function QuickAssignment({
               aria-pressed={active}
               className={`group flex flex-col items-center justify-center gap-1.5 py-2.5 px-1.5 rounded-lg border transition-all duration-150 text-[13px] font-semibold tracking-tight
                 ${active
-                  ? 'bg-[rgba(249,115,22,0.12)] border-accent text-[#9A4D33] ring-1 ring-accent/15'
+                  ? 'bg-[rgba(249,115,22,0.12)] border-accent text-text-primary ring-1 ring-[#F97316]/15'
                   : 'bg-surface border-border text-text-primary hover:border-border-strong hover:bg-surface-2'}`}
             >
               <div className={`w-7 h-7 rounded-md flex items-center justify-center transition-colors ${active ? 'bg-accent text-white' : 'bg-surface-2 text-text-primary group-hover:bg-border'}`}>
@@ -117,16 +117,40 @@ export function QuickAssignment({
       </div>
 
       {picked === 'employee' && (
-        <MiniDropdown value={assignment?.employeeId ?? ''} onChange={setEmployee} options={employeeOptions} placeholder={t('qa.pickRecipient')} ariaLabel={t('qa.employee')} />
+        <SearchSelect
+          options={employeeOptions}
+          value={assignment?.employeeId ?? ''}
+          onChange={setEmployee}
+          placeholder={t('qa.pickRecipient')}
+          searchPlaceholder={t('placeholders.recipientSearch')}
+          ariaLabel={t('qa.employee')}
+          title={t('qa.employee')}
+        />
       )}
       {picked === 'department' && (
-        <MiniDropdown value={assignment?.departmentId ?? ''} onChange={setDepartment} options={departmentOptions} placeholder={t('qa.pickRecipient')} ariaLabel={t('qa.department')} />
+        <SearchSelect
+          options={departmentOptions}
+          value={assignment?.departmentId ?? ''}
+          onChange={setDepartment}
+          placeholder={t('qa.pickRecipient')}
+          searchPlaceholder={t('placeholders.recipientSearch')}
+          ariaLabel={t('qa.department')}
+          title={t('qa.department')}
+        />
       )}
       {picked === 'branch' && (
-        <MiniDropdown value={assignment?.branchId ?? ''} onChange={setBranch} options={branchOptions} placeholder={t('qa.pickRecipient')} ariaLabel={t('qa.branch')} />
+        <SearchSelect
+          options={branchOptions}
+          value={assignment?.branchId ?? ''}
+          onChange={setBranch}
+          placeholder={t('qa.pickRecipient')}
+          searchPlaceholder={t('placeholders.recipientSearch')}
+          ariaLabel={t('qa.branch')}
+          title={t('qa.branch')}
+        />
       )}
       {picked === 'warehouse' && (
-        <div className="bg-bg/60 border border-border/70 rounded-lg px-3.5 py-2 text-[14px] text-text-primary flex items-center gap-2 anim-fade-slide-in">
+        <div className="bg-[#111315]/60 border border-[#2A2F36]/70 rounded-lg px-3.5 py-2 text-[14px] text-text-primary flex items-center gap-2 anim-fade-slide-in">
           <Icon name="landmark" size={13} className="text-[#10B981] shrink-0" />
           <span>{t('qa.onShelf')} · <span className="font-medium">{headBranch?.name ?? warehouseName}</span></span>
         </div>
@@ -136,13 +160,13 @@ export function QuickAssignment({
         <div>
           {/* B6: work-mode label font text-[13px] */}
           <div className="text-[13px] uppercase tracking-[0.06em] font-semibold text-text-tertiary mb-1.5">{t('qa.workMode')}</div>
-          <div className="inline-flex bg-surface-2/80 rounded-lg border border-border/80 p-1 w-full gap-1">
+          <div className="inline-flex bg-[#22272E]/80 rounded-lg border border-[#2A2F36]/80 p-1 w-full gap-1">
             <button type="button" onClick={() => setWorkMode('office')} aria-pressed={assignment?.workMode === 'office'}
-              className={`flex-1 px-3 py-1.5 text-[14px] font-semibold rounded-md transition-all duration-150 flex items-center justify-center gap-1.5 ${assignment?.workMode === 'office' ? 'bg-surface text-accent-hover ring-1 ring-[#F4CFB8]' : 'text-text-primary hover:bg-surface/60'}`}>
+              className={`flex-1 px-3 py-1.5 text-[14px] font-semibold rounded-md transition-all duration-150 flex items-center justify-center gap-1.5 ${assignment?.workMode === 'office' ? 'bg-surface text-accent-hover ring-1 ring-[#F97316]/40' : 'text-text-primary hover:bg-[#1B1F24]/60'}`}>
               <Icon name="building-2" size={12} />{t('qa.office')}
             </button>
             <button type="button" onClick={() => setWorkMode('remote')} aria-pressed={assignment?.workMode === 'remote'}
-              className={`flex-1 px-3 py-1.5 text-[14px] font-semibold rounded-md transition-all duration-150 flex items-center justify-center gap-1.5 ${assignment?.workMode === 'remote' ? 'bg-surface text-sky-300 ring-1 ring-sky-500/30' : 'text-text-primary hover:bg-surface/60'}`}>
+              className={`flex-1 px-3 py-1.5 text-[14px] font-semibold rounded-md transition-all duration-150 flex items-center justify-center gap-1.5 ${assignment?.workMode === 'remote' ? 'bg-surface text-sky-300 ring-1 ring-sky-500/30' : 'text-text-primary hover:bg-[#1B1F24]/60'}`}>
               <Icon name="house" size={12} />{t('qa.remote')}
             </button>
           </div>

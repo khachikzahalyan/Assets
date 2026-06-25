@@ -155,7 +155,7 @@ export function DatePicker({ value, onChange, min, max, disabled = false, placeh
           data-dp-portal="true"
           data-ams-dropdown="true"
           style={{ position: 'fixed', top: pos.top, left: pos.left, width: pos.width, zIndex: 1000 }}
-          className="bg-surface ring-1 ring-border/80 rounded-xl shadow-xl shadow-slate-900/40 anim-fade-slide-in overflow-hidden"
+          className="bg-surface ring-1 ring-[#2A2F36]/80 rounded-xl shadow-xl shadow-slate-900/40 anim-fade-slide-in overflow-hidden"
         >
           <div className="flex items-center justify-between px-3 pt-3 pb-2">
             <button
@@ -216,7 +216,7 @@ export function DatePicker({ value, onChange, min, max, disabled = false, placeh
                           ${isSel ? 'bg-accent text-white shadow-sm'
                             : dis ? 'text-border-strong cursor-not-allowed'
                             : isOut ? 'text-[#475569] hover:bg-surface-2 hover:text-text-tertiary'
-                            : isTd ? 'text-accent ring-1 ring-accent/40 hover:bg-[rgba(249,115,22,0.08)]'
+                            : isTd ? 'text-accent ring-1 ring-[#F97316]/40 hover:bg-[rgba(249,115,22,0.08)]'
                             : 'text-text-primary hover:bg-surface-2'}`}
                       >{c.day}</button>
                     )
@@ -246,7 +246,7 @@ export function DatePicker({ value, onChange, min, max, disabled = false, placeh
             )}
           </div>
 
-          <div className="flex items-center justify-between px-3 py-2 border-t border-border bg-bg/40">
+          <div className="flex items-center justify-between px-3 py-2 border-t border-border bg-[#111315]/40">
             <button type="button" onClick={handleClear} className="text-[13px] font-semibold text-text-subtle hover:text-text-primary transition-colors px-2 py-1 rounded">Очистить</button>
             {showPlusYear && (
               <button type="button" onClick={handleOneYear} className="text-[13px] font-semibold text-accent hover:bg-[rgba(249,115,22,0.12)] transition-colors px-2 py-1 rounded">На 1 год</button>
