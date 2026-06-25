@@ -20,11 +20,12 @@ import {
 import type { EmployeeFormSubmit } from '@/components/features/employees/EmployeeFormModal'
 import type { DrawerLinkedAsset, HandoverAsset, PickerStockRow } from '@/components/features/employees'
 import type { Employee, EmployeeListQuery, EmployeeRepository, SortValue } from '@/domain/employee'
+import { EmployeeArchiveError } from '@/domain/employee'
 import type { AssetRepository, AssetWriteRepository, RefRow, CategoryRow, TransferPatch } from '@/domain/asset'
 import type { AssignmentRepository } from '@/domain/assignment'
 import { buildTransferPatch, type TransferTarget } from '@/domain/asset'
 import type { Destination } from '@/components/features/employees/DestPicker'
-import { FirestoreEmployeeRepository, FirestoreAssetRepository, FirestoreAssignmentRepository } from '@/infra/repositories'
+import { FirestoreEmployeeRepository, FirestoreAssetRepository, FirestoreAssignmentRepository, FirestoreUserRepository } from '@/infra/repositories'
 import { db } from '@/lib/firebase'
 
 const PAGE_SIZE = 10
@@ -129,7 +130,10 @@ export function EmployeesPage({
 
   // Lazy default repos — test callers inject their own
   const defaultRepo = useMemo<EmployeeRepository>(
-    () => new FirestoreEmployeeRepository(db()),
+    () => new FirestoreEmployeeRepository(
+      db(),
+      async (targetUid: string) => (await new FirestoreUserRepository(db()).countSuperAdmins(targetUid)) === 0,
+    ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   )
@@ -183,7 +187,10 @@ export function EmployeesPage({
   const [page, setPage]               = useState(1)
 
   // ── Data state ────────────────────────────────────────────────────────────
+  // `employees` = active set, always loaded — feeds pickers (handoverEmployees etc.)
+  // `former`    = terminated set, loaded when status filter is 'terminated' or 'all'
   const [employees, setEmployees]     = useState<Employee[]>([])
+  const [former, setFormer]           = useState<Employee[]>([])
   const [branches, setBranches]       = useState<RefRow[]>([])
   const [departments, setDepts]       = useState<RefRow[]>([])
   const [categories, setCategories]   = useState<CategoryRow[]>([])
@@ -224,12 +231,24 @@ export function EmployeesPage({
     setLoading(true)
     setError(null)
     try {
-      const { sort: _sort, search: _search, ...repoQuery } = query
-      const [emps, ref] = await Promise.all([
-        repo.listEmployees(repoQuery),
+      const { sort: _sort, search: _search, status, ...repoQuery } = query
+      const statusFilter = status ?? 'active'
+
+      // Always fetch active employees (needed for pickers regardless of filter)
+      // Fetch former when filter is 'terminated' or 'all'
+      const activePromise = repo.listEmployees({ ...repoQuery })
+      const formerPromise = (statusFilter === 'terminated' || statusFilter === 'all')
+        ? repo.listFormerEmployees({ ...repoQuery })
+        : Promise.resolve<Employee[]>([])
+
+      const [activeEmps, formerEmps, ref] = await Promise.all([
+        activePromise,
+        formerPromise,
         refLoader(),
       ])
-      setEmployees(emps)
+
+      setEmployees(activeEmps)
+      setFormer(formerEmps)
       setBranches(ref.branches)
       setDepts(ref.departments)
 
@@ -275,12 +294,20 @@ export function EmployeesPage({
 
   // ── Filter pipeline ───────────────────────────────────────────────────────
 
-  // Base: status-filtered employees (for KindTabs counts)
-  const statusFiltered = useMemo(() => {
+  // displaySet: the set shown in the table, determined by which collection(s) were loaded.
+  // - 'active'     → employees (active only)
+  // - 'terminated' → former (terminated only)
+  // - 'all'        → concat of both
+  // This is already pre-filtered at the collection level; no per-row status filter needed.
+  const displaySet = useMemo(() => {
     const s = query.status ?? 'active'
-    if (s === 'all') return employees
-    return employees.filter(e => e.status === s)
-  }, [employees, query.status])
+    if (s === 'terminated') return former
+    if (s === 'all') return [...employees, ...former]
+    return employees
+  }, [employees, former, query.status])
+
+  // Base: status-filtered display set (for KindTabs counts)
+  const statusFiltered = displaySet
 
   // KindTabs counts (staff === all in prod — only one type exists)
   const kindCounts = useMemo(() => ({
@@ -432,6 +459,8 @@ export function EmployeesPage({
   }
 
   async function handleArchive(empId: string) {
+    // Defensive self-guard before any async work
+    if (empId === actor.uid) { showToast(t('guard.self-archive')); return }
     // Close detail drawer first
     setDetailId(null)
     const emp = employees.find(e => e.id === empId)
@@ -441,7 +470,8 @@ export function EmployeesPage({
         await repo.archiveEmployee(empId, actor)
         showToast(t('toast.archived'))
         await reload()
-      } catch {
+      } catch (err) {
+        if (err instanceof EmployeeArchiveError) { showToast(t(`guard.${err.reason}`)); return }
         showToast(t('validation.saveFailed'))
       }
     } else {
@@ -488,7 +518,8 @@ export function EmployeesPage({
       showToast(t('toast.handover'))
       setHandoverTarget(null)
       await reload()
-    } catch {
+    } catch (err) {
+      if (err instanceof EmployeeArchiveError) { showToast(t(`guard.${err.reason}`)); return }
       showToast(t('validation.saveFailed'))
     }
   }
@@ -525,7 +556,7 @@ export function EmployeesPage({
   function handleRestore(empId: string) {
     // Close detail drawer first
     setDetailId(null)
-    const emp = employees.find(e => e.id === empId)
+    const emp = employees.find(e => e.id === empId) ?? former.find(e => e.id === empId)
     if (!emp) return
     setRestoreTarget(emp)
   }
@@ -599,7 +630,10 @@ export function EmployeesPage({
   }
 
   // ── Derived emp shapes for modals ─────────────────────────────────────────
-  const detailEmp = detailId ? (employees.find(e => e.id === detailId) ?? null) : null
+  // Search both active and former sets — the opened drawer may belong to either
+  const detailEmp = detailId
+    ? (employees.find(e => e.id === detailId) ?? former.find(e => e.id === detailId) ?? null)
+    : null
   const detailBranchName     = detailEmp?.branchId ? (branchMap.get(detailEmp.branchId) ?? '—') : '—'
   const detailDeptName       = detailEmp?.departmentId ? (deptMap.get(detailEmp.departmentId) ?? '—') : '—'
 
@@ -840,6 +874,7 @@ export function EmployeesPage({
         departments={departments}
         branches={branches}
         onTransferAssets={handleTransferAssets}
+        currentUserId={user.id}
       />
 
       <HandoverModal
