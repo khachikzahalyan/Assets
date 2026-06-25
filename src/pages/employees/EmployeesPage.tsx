@@ -481,7 +481,7 @@ export function EmployeesPage({
         } else {
           // Redirected destinations — persist via changeStatus + destToPatch
           const patch = destToPatch(r.destination, employees)
-          await assetRepo.changeStatus(r.id, patch.toStatusId, actor, { assignment: patch.assignment })
+          await assetRepo.changeStatus(r.id, patch.toStatusId, actor, { assignment: patch.assignment, branchId: patch.branchId, deptId: patch.deptId })
         }
       }
       await repo.setStatus(handoverTarget.id, 'terminated', actor)
@@ -499,7 +499,7 @@ export function EmployeesPage({
     let failCount = 0
     for (const id of assetIds) {
       try {
-        await assetRepo.changeStatus(id, patch.toStatusId, actor, { assignment: patch.assignment })
+        await assetRepo.changeStatus(id, patch.toStatusId, actor, { assignment: patch.assignment, branchId: patch.branchId, deptId: patch.deptId })
         okCount++
       } catch {
         failCount++

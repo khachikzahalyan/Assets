@@ -10,7 +10,7 @@
 import { useState, useEffect, useRef } from 'react'
 import ReactDOM from 'react-dom'
 import { useTranslation } from 'react-i18next'
-import { Icon, Btn, MODAL_BACKDROP_ABS } from '@/components/ui'
+import { Icon, Btn, MODAL_BACKDROP_ABS, MODAL_SHEET } from '@/components/ui'
 import { useModalA11y } from '@/components/ui/useModalA11y'
 import { employeeInitials, employeeAvatarColor } from './employeeFormat'
 import { DestPicker } from './DestPicker'
@@ -226,7 +226,7 @@ export function HandoverModal({
   )
 
   return ReactDOM.createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 max-md:items-end max-md:p-0">
       <div
         className={MODAL_BACKDROP_ABS}
         onClick={onClose}
@@ -236,9 +236,11 @@ export function HandoverModal({
         tabIndex={-1}
         role="dialog"
         aria-modal="true"
-        className="relative w-full max-w-3xl bg-surface rounded-2xl shadow-2xl shadow-slate-900/20 border border-border/60 anim-modal-pop flex flex-col"
+        className={`relative w-full max-w-3xl bg-surface rounded-2xl shadow-2xl shadow-slate-900/20 border border-border/60 anim-modal-pop flex flex-col ${MODAL_SHEET}`}
         style={{ minHeight: 'min(680px, 92vh)', maxHeight: '92vh' }}
       >
+        {/* Pull-handle — mobile only */}
+        <div className="max-md:block hidden mx-auto h-1 w-9 rounded-full bg-white/20 mb-3 mt-2" />
         {/* Sticky header */}
         <div
           className={`px-5 pt-4 pb-3 border-b border-border flex items-center gap-3 shrink-0 transition-shadow duration-200 ${
