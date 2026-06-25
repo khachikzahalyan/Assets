@@ -594,14 +594,14 @@ describe('EmployeesPage', () => {
     const handoverBtn = await screen.findByRole('button', { name: /Сдача техники/i })
     await user.click(handoverBtn)
 
-    // The guard toast with key 'guard.self-archive' should appear
-    // (key string or translated value — either proves the guard path was taken)
+    // Assert the repo was called on the non-self path (uid_2 !== u_1, so no early-return)
     await waitFor(() => {
-      // The toast may show the key string (guard.self-archive) if the i18n key isn't seeded yet,
-      // or the translated text if it is. We accept either via the archiveEmployee spy being called
-      // and the general saveFailed toast NOT appearing.
       expect(guardRepo.archiveEmployee).toHaveBeenCalledWith('uid_2', expect.objectContaining({ uid: 'u_1' }))
     })
+
+    // Assert the guard toast text actually renders in the DOM — the user MUST see it.
+    // t('guard.self-archive') resolves to «Нельзя списать самого себя» via the real i18n instance.
+    expect(await screen.findByText(/Нельзя списать самого себя/i)).toBeInTheDocument()
   })
 
   it('handover redirect: redirected asset ends up assigned to target employee via changeStatus', async () => {
