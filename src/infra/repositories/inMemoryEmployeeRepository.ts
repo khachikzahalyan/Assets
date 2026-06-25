@@ -1,5 +1,5 @@
 import type {
-  Employee, EmployeeStatus, EmployeeListQuery,
+  Employee, EmployeeListQuery,
   EmployeeRepository, CreateEmployeeInput, UpdateEmployeeInput,
   LastSuperAdminCheck,
 } from '@/domain/employee'
@@ -15,6 +15,7 @@ function fullName(e: { firstName: string; lastName: string }): string {
 export class InMemoryEmployeeRepository implements EmployeeRepository {
   constructor(
     private readonly employees: Employee[],
+    private readonly former: Employee[] = [],
     private readonly audit: AuditContext = inMemoryAuditContext(createInMemoryAuditStore()),
     private readonly lastSuperAdminCheck?: LastSuperAdminCheck,
   ) {}
@@ -23,6 +24,19 @@ export class InMemoryEmployeeRepository implements EmployeeRepository {
     const search = (query.search ?? '').trim().toLowerCase()
     return this.employees.filter(e => {
       if (query.status && query.status !== 'all' && e.status !== query.status) return false
+      if (query.branchId && query.branchId !== 'all' && e.branchId !== query.branchId) return false
+      if (query.departmentId && query.departmentId !== 'all' && e.departmentId !== query.departmentId) return false
+      if (search) {
+        const hay = [fullName(e), e.email, e.position].filter(Boolean).join(' ').toLowerCase()
+        if (!hay.includes(search)) return false
+      }
+      return true
+    })
+  }
+
+  async listFormerEmployees(query: EmployeeListQuery = {}): Promise<Employee[]> {
+    const search = (query.search ?? '').trim().toLowerCase()
+    return this.former.filter(e => {
       if (query.branchId && query.branchId !== 'all' && e.branchId !== query.branchId) return false
       if (query.departmentId && query.departmentId !== 'all' && e.departmentId !== query.departmentId) return false
       if (search) {
@@ -93,30 +107,39 @@ export class InMemoryEmployeeRepository implements EmployeeRepository {
     )
   }
 
-  async setStatus(id: string, status: EmployeeStatus, actor: Actor) {
+  async archiveEmployee(id: string, actor: Actor) {
     const idx = this.employees.findIndex(e => e.id === id)
     if (idx < 0) throw new Error(`Employee not found: ${id}`)
+    if (id === actor.uid) throw new EmployeeArchiveError('self-archive')
+    if (this.lastSuperAdminCheck && await this.lastSuperAdminCheck(id)) {
+      throw new EmployeeArchiveError('last-super-admin')
+    }
     const before = this.employees[idx]!
-    if (status === 'terminated') {
-      if (id === actor.uid) throw new EmployeeArchiveError('self-archive')
-      if (this.lastSuperAdminCheck && await this.lastSuperAdminCheck(id)) {
-        throw new EmployeeArchiveError('last-super-admin')
-      }
-    }
     const now = new Date().toISOString()
-    const next: Employee = {
-      ...before,
-      status,
-      terminatedAt: status === 'terminated' ? now : null,
-      updatedAt: now,
-    }
+    const archived: Employee = { ...before, status: 'terminated', terminatedAt: now, updatedAt: now }
     return withAudit(this.audit,
       {
-        entityType: 'employee', entityId: id, action: status === 'terminated' ? 'terminated' : 'reactivated',
+        entityType: 'employee', entityId: id, action: 'terminated',
         actorUid: actor.uid, actorRole: actor.role,
-        before: { status: before.status }, after: { status },
+        before: { status: before.status }, after: { status: 'terminated' },
       },
-      async () => { this.employees[idx] = next; return { value: next } },
+      async () => { this.employees.splice(idx, 1); this.former.push(archived); return { value: archived } },
+    )
+  }
+
+  async restoreEmployee(id: string, actor: Actor) {
+    const idx = this.former.findIndex(e => e.id === id)
+    if (idx < 0) throw new Error(`Former employee not found: ${id}`)
+    const before = this.former[idx]!
+    const now = new Date().toISOString()
+    const restored: Employee = { ...before, status: 'active', terminatedAt: null, updatedAt: now }
+    return withAudit(this.audit,
+      {
+        entityType: 'employee', entityId: id, action: 'reactivated',
+        actorUid: actor.uid, actorRole: actor.role,
+        before: { status: 'terminated' }, after: { status: 'active' },
+      },
+      async () => { this.former.splice(idx, 1); this.employees.push(restored); return { value: restored } },
     )
   }
 }

@@ -118,7 +118,7 @@ function renderPage({
   const resolvedWRepo  = wRepo  ?? makeWRepo()
   const resolvedSubRepo = subRepo ?? makeSubRepo()
   const aRepo   = new InMemoryAuditLogRepository([])
-  const empRepo = new InMemoryEmployeeRepository(employees, makeAuditCtx())
+  const empRepo = new InMemoryEmployeeRepository(employees, [], makeAuditCtx())
   const assetRepo = new InMemoryAssetRepository(
     [],
     { statuses: [], branches: [], departments: [], categories: [], employees: [] },

@@ -438,7 +438,7 @@ export function EmployeesPage({
     if (!emp) return
     if (assetCountOf(empId) === 0) {
       try {
-        await repo.setStatus(empId, 'terminated', actor)
+        await repo.archiveEmployee(empId, actor)
         showToast(t('toast.archived'))
         await reload()
       } catch {
@@ -484,7 +484,7 @@ export function EmployeesPage({
           await assetRepo.changeStatus(r.id, patch.toStatusId, actor, { assignment: patch.assignment, branchId: patch.branchId, deptId: patch.deptId })
         }
       }
-      await repo.setStatus(handoverTarget.id, 'terminated', actor)
+      await repo.archiveEmployee(handoverTarget.id, actor)
       showToast(t('toast.handover'))
       setHandoverTarget(null)
       await reload()
@@ -533,7 +533,7 @@ export function EmployeesPage({
   async function handleConfirmRestore() {
     if (!restoreTarget) return
     try {
-      await repo.setStatus(restoreTarget.id, 'active', actor)
+      await repo.restoreEmployee(restoreTarget.id, actor)
       showToast(t('toast.restored'))
       setRestoreTarget(null)
       await reload()

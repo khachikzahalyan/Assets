@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { InMemoryEmployeeRepository } from './inMemoryEmployeeRepository'
+import { EmployeeArchiveError } from '@/domain/employee'
 import type { Employee } from '@/domain/employee'
+import type { Actor } from '@/domain/asset'
 import { createInMemoryAuditStore, inMemoryAuditContext } from '@/lib/audit'
 
 const ACTOR = { uid: 'admin_1', role: 'asset_admin' as const }
@@ -13,7 +15,7 @@ describe('InMemoryEmployeeRepository', () => {
   beforeEach(() => {
     emps = []
     store = createInMemoryAuditStore()
-    repo = new InMemoryEmployeeRepository(emps, inMemoryAuditContext(store))
+    repo = new InMemoryEmployeeRepository(emps, [], inMemoryAuditContext(store))
   })
 
   it('createEmployee stores uid-keyed doc + writes 1 created audit', async () => {
@@ -50,28 +52,86 @@ describe('InMemoryEmployeeRepository', () => {
     await expect(repo.updateEmployee('uid_1', { email: 'c@x.com' }, ACTOR)).rejects.toThrow()
   })
 
-  it('setStatus terminated stamps terminatedAt + writes terminated audit; reactivate clears it', async () => {
+  it('archiveEmployee stamps terminatedAt + writes terminated audit; restoreEmployee clears it', async () => {
     await repo.createEmployee({ id: 'uid_1', firstName: 'A', lastName: 'B', email: 'a@x.com' }, ACTOR)
-    const term = await repo.setStatus('uid_1', 'terminated', ACTOR)
+    const term = await repo.archiveEmployee('uid_1', ACTOR)
     expect(term.value.status).toBe('terminated')
     expect(term.value.terminatedAt).not.toBeNull()
     expect(store.logs.filter(l => l.action === 'terminated')).toHaveLength(1)
-    const re = await repo.setStatus('uid_1', 'active', ACTOR)
+    const re = await repo.restoreEmployee('uid_1', ACTOR)
     expect(re.value.terminatedAt).toBeNull()
     expect(store.logs.filter(l => l.action === 'reactivated')).toHaveLength(1)
   })
 
-  it('listEmployees filters by status/branch/search', async () => {
+  it('listEmployees filters by branch/search; archived employees leave the list', async () => {
     await repo.createEmployee({ id: 'uid_1', firstName: 'Иван', lastName: 'Петров', email: 'i@x.com', branchId: 'br_1' }, ACTOR)
     await repo.createEmployee({ id: 'uid_2', firstName: 'Анна', lastName: 'Сидорова', email: 'a@x.com', branchId: 'br_2' }, ACTOR)
-    await repo.setStatus('uid_2', 'terminated', ACTOR)
-    expect(await repo.listEmployees({ status: 'active' })).toHaveLength(1)
-    expect(await repo.listEmployees({ branchId: 'br_2' })).toHaveLength(1)
-    expect(await repo.listEmployees({ search: 'петров' })).toHaveLength(1)
+    // Before archive: both employees visible
     expect(await repo.listEmployees()).toHaveLength(2)
+    expect(await repo.listEmployees({ branchId: 'br_1' })).toHaveLength(1)
+    expect(await repo.listEmployees({ search: 'петров' })).toHaveLength(1)
+    // After archive: uid_2 moves to former
+    await repo.archiveEmployee('uid_2', ACTOR)
+    expect(await repo.listEmployees({ status: 'active' })).toHaveLength(1)
+    expect(await repo.listEmployees()).toHaveLength(1)
+    expect(await repo.listFormerEmployees()).toHaveLength(1)
   })
 
   it('getEmployee returns null for unknown id', async () => {
     expect(await repo.getEmployee('nope')).toBeNull()
+  })
+})
+
+const ARCHIVE_ACTOR: Actor = { uid: 'admin1', role: 'super_admin' }
+function makeEmp(id: string, over: Partial<Employee> = {}): Employee {
+  return {
+    id, firstName: 'Иван', lastName: 'Петров', email: `${id}@x.am`,
+    phone: null, position: null, branchId: null, departmentId: null,
+    status: 'active', terminatedAt: null,
+    createdAt: '2020-01-01T00:00:00.000Z', updatedAt: '2020-01-01T00:00:00.000Z',
+    ...over,
+  }
+}
+
+describe('InMemoryEmployeeRepository archive/restore (move)', () => {
+  it('archive MOVES the doc out of employees into former', async () => {
+    const active = [makeEmp('e1'), makeEmp('e2')]
+    const former: Employee[] = []
+    const repo = new InMemoryEmployeeRepository(active, former)
+    await repo.archiveEmployee('e1', ARCHIVE_ACTOR)
+    expect((await repo.listEmployees()).map(e => e.id)).toEqual(['e2'])
+    const formerList = await repo.listFormerEmployees()
+    expect(formerList.map(e => e.id)).toEqual(['e1'])
+    expect(formerList[0]!.status).toBe('terminated')
+    expect(formerList[0]!.terminatedAt).not.toBeNull()
+    expect(formerList[0]!.createdAt).toBe('2020-01-01T00:00:00.000Z')
+  })
+
+  it('restore MOVES the doc back into employees', async () => {
+    const active: Employee[] = []
+    const former = [makeEmp('e1', { status: 'terminated', terminatedAt: '2021-01-01T00:00:00.000Z' })]
+    const repo = new InMemoryEmployeeRepository(active, former)
+    await repo.restoreEmployee('e1', ARCHIVE_ACTOR)
+    expect((await repo.listEmployees()).map(e => e.id)).toEqual(['e1'])
+    expect(await repo.listFormerEmployees()).toEqual([])
+    expect((await repo.listEmployees())[0]!.status).toBe('active')
+    expect((await repo.listEmployees())[0]!.terminatedAt).toBeNull()
+  })
+
+  it('archiving a DIFFERENT employee works', async () => {
+    const repo = new InMemoryEmployeeRepository([makeEmp('e1'), makeEmp('e2')], [])
+    await repo.archiveEmployee('e2', ARCHIVE_ACTOR)
+    expect((await repo.listEmployees()).map(e => e.id)).toEqual(['e1'])
+  })
+
+  it('rejects self-archive', async () => {
+    const repo = new InMemoryEmployeeRepository([makeEmp('admin1')], [])
+    await expect(repo.archiveEmployee('admin1', ARCHIVE_ACTOR)).rejects.toBeInstanceOf(EmployeeArchiveError)
+    expect((await repo.listEmployees()).map(e => e.id)).toEqual(['admin1'])
+  })
+
+  it('rejects last super_admin via injected check', async () => {
+    const repo = new InMemoryEmployeeRepository([makeEmp('e1')], [], undefined, async () => true)
+    await expect(repo.archiveEmployee('e1', ARCHIVE_ACTOR)).rejects.toBeInstanceOf(EmployeeArchiveError)
   })
 })
