@@ -33,5 +33,9 @@
     "linkFailed": "Could not send the link. Check your email and try again.",
     "emailLinkFailed": "The link is invalid or expired. Please request a new one."
   },
-  "loading": "Verifying sign-in link…"
+  "loading": "Verifying sign-in link…",
+  "hero": {
+    "brand": "Asset Management System",
+    "online": "Online"
+  }
 }

@@ -105,62 +105,259 @@ export function LoginPage() {
 
   return (
     <div
-      className="min-h-screen flex"
+      className="min-h-screen flex max-lg:flex-col"
       style={{ background: '#1C1F26', fontFamily: "'Inter', system-ui, sans-serif" }}
     >
 
+      {/* ── HERO — mobile only ────────────────────────────────────────────────── */}
+      <div
+        className="lg:hidden flex-shrink-0 relative"
+        aria-hidden="true"
+        style={{ height: '300px', background: '#0f111a', overflow: 'hidden' }}
+      >
+        {/* Orange glow — centered */}
+        <div
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%,-50%)',
+            width: '380px',
+            height: '380px',
+            background: 'radial-gradient(circle, rgba(232,105,42,0.22) 0%, rgba(232,105,42,0.06) 40%, transparent 70%)',
+            pointerEvents: 'none',
+          }}
+        />
+        {/* Blue accent — top-right */}
+        <div
+          style={{
+            position: 'absolute',
+            top: '-60px',
+            right: '-60px',
+            width: '260px',
+            height: '260px',
+            background: 'radial-gradient(circle, rgba(56,130,220,0.14) 0%, transparent 70%)',
+            pointerEvents: 'none',
+          }}
+        />
+        {/* Dot grid */}
+        <svg
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            width: '100%',
+            height: '100%',
+            opacity: 0.12,
+          }}
+          aria-hidden="true"
+        >
+          <defs>
+            <pattern id="mdots" width="24" height="24" patternUnits="userSpaceOnUse">
+              <circle cx="1" cy="1" r="1" fill="#4a5a7a" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#mdots)" />
+        </svg>
+        {/* Network SVG — viewBox 393×300, slice */}
+        <svg
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            width: '100%',
+            height: '100%',
+          }}
+          viewBox="0 0 393 300"
+          preserveAspectRatio="xMidYMid slice"
+          aria-hidden="true"
+        >
+          <defs>
+            <filter id="mg-orange">
+              <feGaussianBlur stdDeviation="5" result="b" />
+              <feMerge>
+                <feMergeNode in="b" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+            <filter id="mg-blue">
+              <feGaussianBlur stdDeviation="4" result="b" />
+              <feMerge>
+                <feMergeNode in="b" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+            <radialGradient id="mno" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#E8692A" />
+              <stop offset="100%" stopColor="#c45520" />
+            </radialGradient>
+            <radialGradient id="mnb" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#4a9eff" />
+              <stop offset="100%" stopColor="#2d6fd4" />
+            </radialGradient>
+            <radialGradient id="mnd" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#2e3a55" />
+              <stop offset="100%" stopColor="#1e2840" />
+            </radialGradient>
+          </defs>
+          {/* Orange connection lines */}
+          <g stroke="#E8692A" strokeWidth="0.8" fill="none" opacity="0.22">
+            <line x1="196" y1="150" x2="100" y2="80" />
+            <line x1="196" y1="150" x2="290" y2="85" />
+            <line x1="196" y1="150" x2="300" y2="210" />
+            <line x1="196" y1="150" x2="95" y2="220" />
+            <line x1="196" y1="150" x2="196" y2="55" />
+            <line x1="100" y1="80" x2="44" y2="110" />
+            <line x1="100" y1="80" x2="136" y2="28" />
+            <line x1="290" y1="85" x2="348" y2="50" />
+            <line x1="290" y1="85" x2="355" y2="130" />
+            <line x1="300" y1="210" x2="362" y2="195" />
+            <line x1="95" y1="220" x2="38" y2="255" />
+            <line x1="95" y1="220" x2="50" y2="170" />
+          </g>
+          {/* Blue secondary lines */}
+          <g stroke="#3a82dc" strokeWidth="0.6" fill="none" opacity="0.15">
+            <line x1="44" y1="110" x2="50" y2="170" />
+            <line x1="348" y1="50" x2="355" y2="130" />
+            <line x1="362" y1="195" x2="38" y2="255" />
+          </g>
+          {/* Dim leaf nodes */}
+          <g opacity="0.45">
+            <circle cx="44" cy="110" r="3.5" fill="url(#mnd)" />
+            <circle cx="136" cy="28" r="3.5" fill="url(#mnd)" />
+            <circle cx="348" cy="50" r="3.5" fill="url(#mnd)" />
+            <circle cx="355" cy="130" r="3.5" fill="url(#mnd)" />
+            <circle cx="362" cy="195" r="3.5" fill="url(#mnd)" />
+            <circle cx="38" cy="255" r="3.5" fill="url(#mnd)" />
+            <circle cx="50" cy="170" r="3.5" fill="url(#mnd)" />
+            <circle cx="196" cy="55" r="3.5" fill="url(#mnd)" />
+          </g>
+          {/* Blue intermediate nodes */}
+          <g filter="url(#mg-blue)">
+            <circle cx="100" cy="80" r="5.5" fill="url(#mnb)" opacity="0.85" />
+            <circle cx="290" cy="85" r="5.5" fill="url(#mnb)" opacity="0.85" />
+            <circle cx="300" cy="210" r="5.5" fill="url(#mnb)" opacity="0.85" />
+            <circle cx="95" cy="220" r="5.5" fill="url(#mnb)" opacity="0.85" />
+          </g>
+          {/* Pulse rings on center node (196,150) */}
+          <circle
+            cx="196"
+            cy="150"
+            r="28"
+            fill="none"
+            stroke="#E8692A"
+            strokeWidth="1"
+            style={{
+              opacity: 0,
+              animation: 'pulse-ring 3s ease-in-out infinite',
+              transformBox: 'fill-box',
+              transformOrigin: 'center',
+            }}
+          />
+          <circle
+            cx="196"
+            cy="150"
+            r="42"
+            fill="none"
+            stroke="#E8692A"
+            strokeWidth=".7"
+            style={{
+              opacity: 0,
+              animation: 'pulse-ring 3s ease-in-out .9s infinite',
+              transformBox: 'fill-box',
+              transformOrigin: 'center',
+            }}
+          />
+          {/* Center node */}
+          <g filter="url(#mg-orange)">
+            <circle cx="196" cy="150" r="18" fill="#1a1e2a" stroke="#E8692A" strokeWidth="1.2" opacity="0.9" />
+            <circle cx="196" cy="150" r="9" fill="url(#mno)" />
+            <g
+              transform="translate(191,145)"
+              fill="none"
+              stroke="white"
+              strokeWidth="1"
+              strokeLinejoin="round"
+            >
+              <path d="M5 0.5L0 3l5 2.5 5-2.5L5 0.5z" />
+              <path d="M0 8l5 2.5 5-2.5" />
+              <path d="M0 5.5l5 2.5 5-2.5" />
+            </g>
+          </g>
+        </svg>
+        {/* Scan line — sweeps hero top→bottom via global `scan` keyframe */}
+        <div
+          style={{
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            top: 0,
+            height: '1.5px',
+            background: 'linear-gradient(90deg,transparent,rgba(232,105,42,0.45),transparent)',
+            pointerEvents: 'none',
+            animation: 'scan 5s ease-in-out infinite',
+          }}
+        />
+        {/* AMS label overlay — bottom of hero */}
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            padding: '16px 24px',
+            background: 'linear-gradient(to top,#0f111a 0%,transparent 100%)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div
+              style={{
+                width: '26px',
+                height: '26px',
+                background: '#E8692A',
+                borderRadius: '7px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="white" strokeWidth="2" strokeLinejoin="round" />
+                <path d="M2 17l10 5 10-5" stroke="white" strokeWidth="2" strokeLinejoin="round" />
+                <path d="M2 12l10 5 10-5" stroke="white" strokeWidth="2" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <div>
+              <p style={{ color: '#fff', fontSize: '13px', fontWeight: 700, lineHeight: 1.1 }}>AMS</p>
+              <p style={{ color: '#4a5065', fontSize: '10px', lineHeight: 1.1 }}>{t('hero.brand')}</p>
+            </div>
+            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <div
+                style={{
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  background: '#22c55e',
+                  boxShadow: '0 0 6px #22c55e',
+                }}
+              />
+              <span style={{ color: '#22c55e', fontSize: '10px', fontWeight: 500 }}>{t('hero.online')}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* ── LEFT: Form panel ─────────────────────────────────────────────────── */}
       <div
-        className="w-full lg:w-[44%] relative flex items-center justify-center max-lg:flex-col max-lg:px-5 max-lg:py-10 lg:px-16 lg:py-[60px]"
+        className="w-full lg:w-[44%] relative flex lg:items-center lg:justify-center lg:px-16 lg:py-[60px] max-lg:flex-1 max-lg:flex-col max-lg:px-6 max-lg:pt-12 max-lg:pb-8"
       >
 
-        {/* ── MOBILE ONLY: Ambient background ─────────────────────────────── */}
-        <div
-          className="lg:hidden"
-          aria-hidden="true"
-          style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}
-        >
-          {/* Orange radial glow — top-center */}
-          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 90% 55% at 50% -5%, rgba(232,105,42,0.14) 0%, transparent 60%)' }} />
-          {/* Blue glow — bottom */}
-          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 70% 50% at 50% 110%, rgba(56,189,248,0.08) 0%, transparent 60%)' }} />
-          {/* Dot grid */}
-          <svg
-            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0.12 }}
-            aria-hidden="true"
-          >
-            <defs>
-              <pattern id="mobile-dots" x="0" y="0" width="32" height="32" patternUnits="userSpaceOnUse">
-                <circle cx="1" cy="1" r="1" fill="#4a5a7a" />
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#mobile-dots)" />
-          </svg>
-          {/* Faint network echo — just enough to evoke the desktop motif */}
-          <svg
-            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
-            viewBox="0 0 400 800"
-            preserveAspectRatio="xMidYMid slice"
-            aria-hidden="true"
-          >
-            <g stroke="rgba(232,105,42,0.06)" strokeWidth="1.2" fill="none">
-              <line x1="200" y1="120" x2="60" y2="260" />
-              <line x1="200" y1="120" x2="340" y2="260" />
-              <line x1="200" y1="120" x2="200" y2="-20" />
-              <line x1="60" y1="260" x2="20" y2="380" />
-              <line x1="340" y1="260" x2="380" y2="380" />
-            </g>
-            <g opacity="0.22">
-              <circle cx="60" cy="260" r="5" fill="rgba(56,130,220,0.55)" />
-              <circle cx="340" cy="260" r="5" fill="rgba(56,130,220,0.55)" />
-              <circle cx="20" cy="380" r="3.5" fill="rgba(56,130,220,0.3)" />
-              <circle cx="380" cy="380" r="3.5" fill="rgba(56,130,220,0.3)" />
-            </g>
-            <circle cx="200" cy="120" r="7" fill="rgba(232,105,42,0.18)" stroke="rgba(232,105,42,0.25)" strokeWidth="1.5" />
-          </svg>
-        </div>
-
-        {/* Logo — desktop: position:absolute top-left, out of flex flow */}
+        {/* Logo — desktop only: position:absolute top-left, out of flex flow */}
         <div
           className="hidden lg:flex absolute top-9 left-12"
           style={{
@@ -192,47 +389,18 @@ export function LoginPage() {
           </span>
         </div>
 
-        {/* Logo — mobile: centered above card ─────────────────────────────── */}
+        {/* Form content — full-width column on mobile; max-400px centered on desktop */}
         <div
-          className="lg:hidden flex items-center gap-[10px] mb-7"
-          style={{ animation: 'fadeInUp .5s ease both' }}
-        >
-          <div
-            style={{
-              width: '40px',
-              height: '40px',
-              background: '#E8692A',
-              borderRadius: '11px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-              boxShadow: '0 0 28px rgba(232,105,42,0.45), 0 0 8px rgba(232,105,42,0.2)',
-            }}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="white" strokeWidth="1.8" strokeLinejoin="round" />
-              <path d="M2 17l10 5 10-5" stroke="white" strokeWidth="1.8" strokeLinejoin="round" />
-              <path d="M2 12l10 5 10-5" stroke="white" strokeWidth="1.8" strokeLinejoin="round" />
-            </svg>
-          </div>
-          <span style={{ color: 'white', fontSize: '17px', fontWeight: 700, letterSpacing: '.4px' }}>
-            AMS
-          </span>
-        </div>
-
-        {/* Form card — max-width 400px, animated */}
-        <div
-          className="w-full max-lg:rounded-[22px] max-lg:backdrop-blur-[16px] max-lg:bg-white/[0.025] max-lg:border max-lg:border-white/[0.07] max-lg:shadow-[0_24px_60px_-20px_rgba(0,0,0,0.7)] max-lg:px-6 max-lg:py-7"
-          style={{ maxWidth: '400px', animation: 'fadeInUp .6s ease .1s both' }}
+          className="w-full lg:max-w-[400px] max-lg:flex-1 max-lg:flex max-lg:flex-col"
+          style={{ animation: 'fadeInUp .6s ease .1s both' }}
         >
 
           {/* Title block */}
-          <div style={{ marginBottom: '40px' }}>
+          <div className="lg:mb-[40px] max-lg:mb-7">
             <h1
+              className="max-lg:text-[22px] lg:text-[28px]"
               style={{
                 color: '#ffffff',
-                fontSize: '28px',
                 fontWeight: 700,
                 letterSpacing: '-.5px',
                 marginBottom: '8px',
@@ -241,7 +409,10 @@ export function LoginPage() {
             >
               {t('page.title')}
             </h1>
-            <p style={{ color: '#6b7280', fontSize: '14px', lineHeight: 1.5 }}>
+            <p
+              className="max-lg:text-[13px] lg:text-[14px]"
+              style={{ color: '#6b7280', lineHeight: 1.5 }}
+            >
               {t('page.subtitle')}
             </p>
           </div>
@@ -264,16 +435,14 @@ export function LoginPage() {
           )}
 
           {/* ── Admin section ── */}
-          <section aria-labelledby="admin-section-lbl" style={{ marginBottom: '28px' }}>
+          <section aria-labelledby="admin-section-lbl" className="lg:mb-7 max-lg:mb-5">
             <p
               id="admin-section-lbl"
+              className="max-lg:text-[9px] lg:text-[10px] max-lg:mb-[10px] lg:mb-3 max-lg:text-[#3a4055] lg:text-[#4a5065]"
               style={{
-                color: '#4a5065',
-                fontSize: '10px',
                 fontWeight: 600,
                 letterSpacing: '1.2px',
                 textTransform: 'uppercase',
-                marginBottom: '12px',
               }}
             >
               {t('admin.label')}
@@ -289,8 +458,9 @@ export function LoginPage() {
               type="button"
               onClick={() => { void handleGoogle() }}
               disabled={googleBusy}
-              className="w-full flex items-center justify-center gap-[10px] bg-[#1e2130] border border-[#2e3347] rounded-[10px] text-[#e5e7eb] text-[14px] font-medium hover:bg-[#2a2d38] hover:border-[#4a5065] disabled:opacity-50 transition-colors duration-150 cursor-pointer"
-              style={{ padding: '13px 20px' }}
+              className="w-full flex items-center justify-center gap-[10px] text-[#e5e7eb] text-[14px] font-medium disabled:opacity-50 transition-colors duration-150 cursor-pointer border px-5
+                lg:bg-[#1e2130] lg:border-[#2e3347] lg:rounded-[10px] lg:py-[13px] lg:hover:bg-[#2a2d38] lg:hover:border-[#4a5065]
+                max-lg:bg-[#1a1e2e] max-lg:border-[#252940] max-lg:rounded-[12px] max-lg:py-[14px] max-lg:hover:bg-[#22263a]"
             >
               {googleBusy ? (
                 <Icon name="loader-circle" size={18} className="animate-spin text-[#e5e7eb]" />
@@ -308,26 +478,27 @@ export function LoginPage() {
 
           {/* ── Divider ── */}
           <div
-            className="flex items-center gap-3"
+            className="flex items-center gap-3 lg:mb-7 max-lg:mb-5"
             aria-hidden="true"
-            style={{ marginBottom: '28px' }}
           >
-            <div style={{ flex: 1, height: '1px', background: '#22263a' }} />
-            <span style={{ color: '#3a3f55', fontSize: '12px' }}>{t('divider')}</span>
-            <div style={{ flex: 1, height: '1px', background: '#22263a' }} />
+            <div className="flex-1 h-px lg:bg-[#22263a] max-lg:bg-[#1e2235]" />
+            <span
+              className="max-lg:text-[11px] lg:text-[12px] max-lg:text-[#2e3450] lg:text-[#3a3f55]"
+            >
+              {t('divider')}
+            </span>
+            <div className="flex-1 h-px lg:bg-[#22263a] max-lg:bg-[#1e2235]" />
           </div>
 
           {/* ── Employee section ── */}
           <section aria-labelledby="employee-section-lbl">
             <p
               id="employee-section-lbl"
+              className="max-lg:text-[9px] lg:text-[10px] max-lg:mb-[10px] lg:mb-3 max-lg:text-[#3a4055] lg:text-[#4a5065]"
               style={{
-                color: '#4a5065',
-                fontSize: '10px',
                 fontWeight: 600,
                 letterSpacing: '1.2px',
                 textTransform: 'uppercase',
-                marginBottom: '12px',
               }}
             >
               {t('employee.label')}
@@ -376,24 +547,20 @@ export function LoginPage() {
                     onChange={(e) => { setEmail(e.target.value); setEmailError(null) }}
                     placeholder={t('employee.emailPlaceholder')}
                     disabled={linkBusy}
-                    className="w-full placeholder:text-[#4a5065] outline-none block"
+                    className="w-full placeholder:text-[#4a5065] outline-none block border text-[#e5e7eb] text-[14px] px-4
+                      lg:bg-[#131620] lg:border-[#2e3347] lg:rounded-[10px] lg:py-[13px]
+                      max-lg:bg-[#13151f] max-lg:border-[#252940] max-lg:rounded-[12px] max-lg:py-[14px]"
                     style={{
-                      background: '#131620',
-                      border: '1px solid #2e3347',
-                      borderRadius: '10px',
-                      padding: '13px 16px',
-                      color: '#e5e7eb',
-                      fontSize: '14px',
                       boxSizing: 'border-box',
                       opacity: linkBusy ? 0.5 : 1,
                       transition: 'border-color 0.15s, box-shadow 0.15s',
                     }}
                     onFocus={(e) => {
                       e.currentTarget.style.borderColor = '#E8692A'
-                      e.currentTarget.style.boxShadow = '0 0 0 2px rgba(232,105,42,0.18)'
+                      e.currentTarget.style.boxShadow = '0 0 0 2px rgba(232,105,42,0.2)'
                     }}
                     onBlur={(e) => {
-                      e.currentTarget.style.borderColor = '#2e3347'
+                      e.currentTarget.style.borderColor = ''
                       e.currentTarget.style.boxShadow = 'none'
                     }}
                   />
@@ -408,8 +575,10 @@ export function LoginPage() {
                   type="button"
                   onClick={() => { void handleSendLink() }}
                   disabled={linkBusy}
-                  className="w-full flex items-center justify-center gap-2 bg-[#E8692A] rounded-[10px] text-white text-[14px] font-semibold hover:bg-[#cf5a1f] disabled:opacity-60 transition-colors duration-150 cursor-pointer border-0"
-                  style={{ padding: '13px 20px', letterSpacing: '.2px' }}
+                  className="w-full flex items-center justify-center gap-2 bg-[#E8692A] text-white text-[14px] font-semibold disabled:opacity-60 transition-colors duration-150 cursor-pointer border-0 px-5
+                    max-lg:rounded-[12px] max-lg:py-[14px] max-lg:hover:bg-[#d45e22]
+                    lg:rounded-[10px] lg:py-[13px] lg:hover:bg-[#cf5a1f]"
+                  style={{ letterSpacing: '.2px' }}
                 >
                   {linkBusy && (
                     <Icon name="loader-circle" size={16} className="animate-spin" />
@@ -420,15 +589,10 @@ export function LoginPage() {
             )}
           </section>
 
-          {/* Footer note — inside form card, centered, after employee section */}
+          {/* Footer note — mt-auto pushes it to bottom of column on mobile */}
           <p
-            style={{
-              marginTop: '36px',
-              textAlign: 'center',
-              color: '#3a4055',
-              fontSize: '12px',
-              lineHeight: 1.6,
-            }}
+            className="text-center max-lg:mt-auto max-lg:pt-6 max-lg:text-[11px] max-lg:text-[#2a3048] lg:mt-[36px] lg:text-[12px] lg:text-[#3a4055]"
+            style={{ lineHeight: 1.6 }}
           >
             {footerLines[0]}
             {footerLines.length > 1 && (
