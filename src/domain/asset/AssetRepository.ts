@@ -38,6 +38,9 @@ export interface AssetRepository {
   loadReferenceData(): Promise<AssetReferenceData>
   /** Assets currently assigned to a given employee (self-service). */
   listAssetsForEmployee(employeeId: string): Promise<Asset[]>
+  /** Resolves the first asset whose `invCode` exactly equals the argument, or `null`.
+   *  Used by the barcode scanner to navigate from a scanned code to the asset detail. */
+  findByInvCode(invCode: string): Promise<Asset | null>
   /** Catalogs an employee may read (statuses, categories, branches, departments) — for self-service pages.
    *  Does NOT read /employees, so it works under the employee-scoped read rules. */
   loadSelfServiceRefData(): Promise<SelfServiceRefData>
@@ -95,6 +98,12 @@ export interface ChangeStatusOpts {
 
 export interface AssetWriteRepository {
   getAsset(id: string): Promise<Asset | null>
+  /** Resolves the first asset whose `invCode` exactly equals the argument, or `null` if none exists. */
+  findByInvCode(invCode: string): Promise<Asset | null>
+  /** Resolves the first asset whose `barcode` equals the argument, or `null`. */
+  findByBarcode(barcode: string): Promise<Asset | null>
+  /** True if any OTHER asset already uses this barcode. */
+  isBarcodeTaken(barcode: string, exceptId?: string): Promise<boolean>
   isInvCodeTaken(invCode: string, exceptId?: string): Promise<boolean>
   isSerialTaken(serial: string, exceptId?: string): Promise<boolean>
   createAsset(input: CreateAssetInput, actor: Actor): Promise<AuditedResult<Asset>>

@@ -24,6 +24,7 @@ function stubRepo(assets: Asset[]): AssetRepository {
     loadReferenceData: vi.fn().mockResolvedValue(EMPTY_REF),
     listAssetsForEmployee: vi.fn().mockResolvedValue([]),
     loadSelfServiceRefData: vi.fn().mockResolvedValue({ statuses: [], categories: [], branches: [], departments: [] }),
+    findByInvCode: vi.fn().mockResolvedValue(null),
   }
 }
 function renderBell(repo: AssetRepository, onSelect = vi.fn()) {

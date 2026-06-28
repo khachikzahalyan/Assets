@@ -13,6 +13,7 @@ import type {
 } from '@/domain/asset'
 import type { UpgradeComponent, UpgradeEvent } from '@/domain/asset'
 import { deriveCreateStatus, isSpecTracked, SPEC_KEY } from '@/domain/asset'
+import { allocateUniqueBarcode } from '@/domain/asset/barcode'
 import { HEAD_OFFICE_BRANCH_ID } from '@/domain/asset/transferRules'
 import { firestoreAuditContext, withAudit } from '@/lib/audit'
 import type { AuditedResult, AuditLog } from '@/domain/audit'
@@ -43,6 +44,7 @@ function toAsset(id: string, d: Record<string, unknown>): Asset {
     type: (d.type as string | null) ?? null,
     invCode: String(d.invCode ?? ''),
     serial: (d.serial as string | null) ?? null,
+    barcode: (d.barcode as string | null) ?? null,
     statusId: String(d.statusId ?? ''),
     assignment: (d.assignment as Asset['assignment']) ?? null,
     branchId: String(d.branchId ?? ''),
@@ -206,6 +208,25 @@ export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepo
     return snap.exists() ? toAsset(snap.id, snap.data() as Record<string, unknown>) : null
   }
 
+  async findByInvCode(invCode: string): Promise<Asset | null> {
+    const snap = await getDocs(fsQuery(collection(this.db, 'assets'), where('invCode', '==', invCode), limit(1)))
+    if (snap.empty) return null
+    const d = snap.docs[0]!
+    return toAsset(d.id, d.data() as Record<string, unknown>)
+  }
+
+  async findByBarcode(barcode: string): Promise<Asset | null> {
+    const snap = await getDocs(fsQuery(collection(this.db, 'assets'), where('barcode', '==', barcode), limit(1)))
+    if (snap.empty) return null
+    const d = snap.docs[0]!
+    return toAsset(d.id, d.data() as Record<string, unknown>)
+  }
+
+  async isBarcodeTaken(barcode: string, exceptId?: string): Promise<boolean> {
+    const snap = await getDocs(fsQuery(collection(this.db, 'assets'), where('barcode', '==', barcode), limit(2)))
+    return snap.docs.some(d => d.id !== exceptId)
+  }
+
   async isInvCodeTaken(invCode: string, exceptId?: string): Promise<boolean> {
     const snap = await getDocs(fsQuery(collection(this.db, 'assets'), where('invCode', '==', invCode), limit(2)))
     return snap.docs.some(d => d.id !== exceptId)
@@ -219,12 +240,13 @@ export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepo
   async createAsset(input: CreateAssetInput, actor: Actor): Promise<AuditedResult<Asset>> {
     if (await this.isInvCodeTaken(input.invCode)) throw new Error(`Inventory code already in use: ${input.invCode}`)
     if (input.serial && await this.isSerialTaken(input.serial)) throw new Error(`Serial already in use: ${input.serial}`)
+    const barcode = await allocateUniqueBarcode((c) => this.isBarcodeTaken(c))
     const statusId = deriveCreateStatus(input.assignment)
     const ref = doc(collection(this.db, 'assets'))
     const data: Record<string, unknown> = stripUndefinedFs({
       categoryId: input.categoryId, brand: input.brand, model: input.model,
       type: input.type,
-      invCode: input.invCode, serial: input.serial, statusId,
+      invCode: input.invCode, serial: input.serial, barcode, statusId,
       assignment: input.assignment, branchId: input.branchId, deptId: input.deptId,
       currentSpecs: input.currentSpecs ?? null,
       condition: input.condition,

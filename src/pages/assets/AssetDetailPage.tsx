@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
-  PageHeader, ErrorState, EmptyState,
+  PageHeader, ErrorState, EmptyState, Btn, Icon,
 } from '@/components/ui'
 import { DetailHero } from '@/components/features/assets/detail/DetailHero'
 import { DetailTabs, type TabId } from '@/components/features/assets/detail/DetailTabs'
@@ -13,6 +13,7 @@ import { LocationCard } from '@/components/features/assets/detail/LocationCard'
 import { AssignmentCard } from '@/components/features/assets/detail/AssignmentCard'
 import { RepairCard } from '@/components/features/assets/detail/RepairCard'
 import { WriteOffModal } from '@/components/features/assets/detail/WriteOffModal'
+import { LabelPrintHost } from '@/components/features/assets/label/LabelPrintHost'
 import { auditToHistoryEvent } from '@/components/features/assets/detail/auditToHistoryEvent'
 import { categoryCapabilities } from '@/components/features/assets/create/CategoryPicker'
 import { deriveDisplayStatus } from '@/components/features/assets/assetFormat'
@@ -111,6 +112,7 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
   const [transferOpen, setTransferOpen] = useState(false)
   const [writeOffOpen, setWriteOffOpen] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [printing, setPrinting] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
 
   const load = useCallback(async () => {
@@ -497,6 +499,14 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
             isDisposed={isDisposed}
             onWriteOff={onOpenWriteOff}
           />
+          {asset.barcode && (
+            <div className="flex items-center gap-2 px-5 py-2.5 bg-surface border-x border-b border-border">
+              <Btn variant="secondary" size="sm" onClick={() => setPrinting(true)}>
+                <Icon name="printer" size={12} />
+                {t('label.print')}
+              </Btn>
+            </div>
+          )}
         </div>
 
         {/* ---------------------------------------------------------------- */}
@@ -598,6 +608,11 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
           onClose={() => setWriteOffOpen(false)}
           onConfirm={onConfirmWriteOff}
         />
+      )}
+
+      {/* Label print host — portal */}
+      {printing && asset.barcode && (
+        <LabelPrintHost assets={[asset]} onAfterPrint={() => setPrinting(false)} />
       )}
     </>
   )

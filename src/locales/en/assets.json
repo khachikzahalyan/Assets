@@ -296,5 +296,8 @@
     "serialRequired": "Enter the serial number",
     "serialTaken": "Serial number already in use",
     "typeRequired": "Enter the type"
+  },
+  "label": {
+    "print": "Print label"
   }
 }

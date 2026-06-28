@@ -57,3 +57,57 @@ describe('InMemoryAssetRepository.loadReferenceData', () => {
     expect(ref.statuses.map(s => s.id)).toContain('st_warehouse')
   })
 })
+
+describe('InMemoryAssetRepository.findByInvCode', () => {
+  it('found: returns the asset with the matching invCode', async () => {
+    const result = await repo().findByInvCode('SRV/00001')
+    expect(result).not.toBeNull()
+    expect(result!.id).toBe('a2')
+    expect(result!.invCode).toBe('SRV/00001')
+  })
+
+  it('not-found: returns null for an unknown invCode', async () => {
+    const result = await repo().findByInvCode('UNKNOWN/99999')
+    expect(result).toBeNull()
+  })
+
+  it('case-and-format exactness: differently-cased or partial code does not match', async () => {
+    // Lower-case variant of a known code must not match
+    expect(await repo().findByInvCode('srv/00001')).toBeNull()
+    // Partial prefix must not match
+    expect(await repo().findByInvCode('SRV')).toBeNull()
+    // Partial suffix must not match
+    expect(await repo().findByInvCode('00001')).toBeNull()
+  })
+})
+
+describe('InMemoryAssetRepository — barcode', () => {
+  const actor = { uid: 'u1', role: 'asset_admin' as const }
+  const baseInput = {
+    categoryId: 'cat_lap', brand: 'Dell', model: 'X', type: null,
+    serial: null, assignment: null, branchId: 'br_main', deptId: null,
+  }
+  it('createAsset assigns a unique 9-digit barcode', async () => {
+    const r = await repo().createAsset({ ...baseInput, invCode: 'LAP/90001' }, actor)
+    expect(r.value.barcode).toMatch(/^[1-9]\d{8}$/)
+  })
+  it('createAssetsBatch assigns distinct barcodes', async () => {
+    const created = await repo().createAssetsBatch([
+      { ...baseInput, invCode: 'LAP/90010' },
+      { ...baseInput, invCode: 'LAP/90011' },
+      { ...baseInput, invCode: 'LAP/90012' },
+    ], actor)
+    const codes = created.map(a => a.barcode)
+    expect(new Set(codes).size).toBe(3)
+    codes.forEach(c => expect(c).toMatch(/^[1-9]\d{8}$/))
+  })
+  it('findByBarcode + isBarcodeTaken resolve a created barcode', async () => {
+    const r = repo()
+    const { value } = await r.createAsset({ ...baseInput, invCode: 'LAP/90020' }, actor)
+    const code = value.barcode!
+    expect((await r.findByBarcode(code))?.id).toBe(value.id)
+    expect(await r.isBarcodeTaken(code)).toBe(true)
+    expect(await r.isBarcodeTaken('000000000')).toBe(false)
+    expect(await r.findByBarcode('000000000')).toBeNull()
+  })
+})

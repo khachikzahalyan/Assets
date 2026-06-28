@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { PageHeader, LoadingState, ErrorState } from '@/components/ui'
 import { AssetCreateForm } from '@/components/features/assets/create/AssetCreateForm'
+import { LabelPrintHost } from '@/components/features/assets/label/LabelPrintHost'
 import { useAuth } from '@/contexts/AuthContext'
 import type { Asset, AssetReferenceData, CreateAssetInput } from '@/domain/asset'
 import type { AssetRepository, AssetWriteRepository } from '@/domain/asset'
@@ -60,6 +61,7 @@ export function AssetCreatePage({ repository, licenseRepository, onCreated, onPe
   const [submitting, setSubmitting] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
   const [oemKeyWarning, setOemKeyWarning] = useState<string | null>(null)
+  const [printAssets, setPrintAssets] = useState<Asset[]>([])
 
   function loadRef() {
     setLoading(true)
@@ -89,9 +91,8 @@ export function AssetCreatePage({ repository, licenseRepository, onCreated, onPe
     try {
       const actor = { uid: user.id, role }
       const created = await (repo as AssetWriteRepository).createAssetsBatch(inputs, actor)
-      // Navigate to the list after a successful batch create.
       onCreated?.(created[0] ?? (undefined as unknown as Asset))
-      navigate('/assets')
+      setPrintAssets(created)
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err)
       if (/inv/i.test(msg)) setSaveError(t('validation.invTaken'))
@@ -153,8 +154,7 @@ export function AssetCreatePage({ repository, licenseRepository, onCreated, onPe
       }
 
       onCreated?.(value)
-      // Navigate to the list after a successful single create (mirrors the batch path).
-      navigate('/assets')
+      setPrintAssets([value])
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err)
       if (/inv/i.test(msg)) {
@@ -201,6 +201,9 @@ export function AssetCreatePage({ repository, licenseRepository, onCreated, onPe
         onCancel={() => navigate('/assets')}
         {...(resolvedLicenseRepo ? { licenseRepository: resolvedLicenseRepo } : {})}
       />
+      {printAssets.length > 0 && (
+        <LabelPrintHost assets={printAssets} onAfterPrint={() => navigate('/assets')} />
+      )}
     </div>
   )
 }

@@ -6,7 +6,7 @@
     "licenses": "Licenses", "parts": "Parts", "employees": "Employees", "branches": "Branches",
     "departments": "Departments", "categories": "Categories", "statuses": "Statuses", "roles": "Roles & access",
     "audit": "Audit log", "settings": "Settings", "pending-users": "Pending access",
-    "my-assets": "My assets", "my-acts": "My acts", "profile": "Profile"
+    "my-assets": "My assets", "my-acts": "My acts", "profile": "Profile", "scan": "Սկան"
   },
   "roles": { "super_admin": "Super Admin", "asset_admin": "Asset Admin", "tech_admin": "Tech Admin", "employee": "Employee" }
 }
