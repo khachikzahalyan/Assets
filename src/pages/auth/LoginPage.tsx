@@ -243,31 +243,34 @@ export function LoginPage() {
             <circle cx="300" cy="210" r="5.5" fill="url(#mnb)" opacity="0.85" />
             <circle cx="95" cy="220" r="5.5" fill="url(#mnb)" opacity="0.85" />
           </g>
-          {/* Pulse rings on center node (196,150) — prototype breathing pulse */}
-          <circle
-            cx="196"
-            cy="150"
-            r="28"
-            fill="none"
-            stroke="#E8692A"
-            strokeWidth="1"
-            style={{
-              opacity: 0,
-              animation: 'pulse-ring-m 3s ease-in-out infinite',
-            }}
-          />
-          <circle
-            cx="196"
-            cy="150"
-            r="42"
-            fill="none"
-            stroke="#E8692A"
-            strokeWidth=".7"
-            style={{
-              opacity: 0,
-              animation: 'pulse-ring-m 3s ease-in-out .9s infinite',
-            }}
-          />
+          {/* Pulse rings on center node (196,150) — prototype breathing pulse;
+              group fades in once so the staggered rings ease in on mount. */}
+          <g style={{ animation: 'ringsIn 2s ease-in-out both' }}>
+            <circle
+              cx="196"
+              cy="150"
+              r="28"
+              fill="none"
+              stroke="#E8692A"
+              strokeWidth="1"
+              style={{
+                opacity: 0,
+                animation: 'pulse-ring-m 3s ease-in-out infinite',
+              }}
+            />
+            <circle
+              cx="196"
+              cy="150"
+              r="42"
+              fill="none"
+              stroke="#E8692A"
+              strokeWidth=".7"
+              style={{
+                opacity: 0,
+                animation: 'pulse-ring-m 3s ease-in-out .9s infinite',
+              }}
+            />
+          </g>
           {/* Center node */}
           <g filter="url(#mg-orange)">
             <circle cx="196" cy="150" r="18" fill="#1a1e2a" stroke="#E8692A" strokeWidth="1.2" opacity="0.9" />
@@ -742,28 +745,31 @@ export function LoginPage() {
             <circle cx="400" cy="130" r="7" fill="url(#node-blue)" opacity="0.7" />
           </g>
 
-          {/* Pulse rings on CENTER node (400,300) — prototype breathing pulse */}
-          <circle
-            cx="400" cy="300" r="42" fill="none" stroke="#E8692A" strokeWidth="1.5"
-            style={{
-              opacity: 0,
-              animation: 'pulse-ring 3s ease-in-out infinite',
-            }}
-          />
-          <circle
-            cx="400" cy="300" r="64" fill="none" stroke="#E8692A" strokeWidth="1"
-            style={{
-              opacity: 0,
-              animation: 'pulse-ring 3s ease-in-out .8s infinite',
-            }}
-          />
-          <circle
-            cx="400" cy="300" r="88" fill="none" stroke="#E8692A" strokeWidth="0.7"
-            style={{
-              opacity: 0,
-              animation: 'pulse-ring 3s ease-in-out 1.6s infinite',
-            }}
-          />
+          {/* Pulse rings on CENTER node (400,300) — prototype breathing pulse;
+              wrapped in a group that fades in once so the staggered rings ease in. */}
+          <g style={{ animation: 'ringsIn 2s ease-in-out both' }}>
+            <circle
+              cx="400" cy="300" r="42" fill="none" stroke="#E8692A" strokeWidth="1.5"
+              style={{
+                opacity: 0,
+                animation: 'pulse-ring 3s ease-in-out infinite',
+              }}
+            />
+            <circle
+              cx="400" cy="300" r="64" fill="none" stroke="#E8692A" strokeWidth="1"
+              style={{
+                opacity: 0,
+                animation: 'pulse-ring 3s ease-in-out .8s infinite',
+              }}
+            />
+            <circle
+              cx="400" cy="300" r="88" fill="none" stroke="#E8692A" strokeWidth="0.7"
+              style={{
+                opacity: 0,
+                animation: 'pulse-ring 3s ease-in-out 1.6s infinite',
+              }}
+            />
+          </g>
 
           {/* Center node: concentric circles + layers icon */}
           <g filter="url(#glow-orange)">

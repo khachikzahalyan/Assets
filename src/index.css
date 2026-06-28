@@ -396,6 +396,13 @@ select:-webkit-autofill {
   100% { transform: scale(.8);  opacity: .7;  }
 }
 
+/* ringsIn — one-time fade-in for the pulse-ring group so the staggered rings
+   ease in on mount instead of popping to full opacity at each delay. */
+@keyframes ringsIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
 /* scan — horizontal light-line sweeps the full height of the right panel */
 @keyframes scan {
   0%   { top: 0%;   opacity: 0; }
@@ -463,9 +470,13 @@ select:-webkit-autofill {
 /* ── Asset label printing (barcode labels) ── */
 .ams-print-label-root { display: none; }
 @media print {
+  /* Size the printed page to the label itself (not A4). Tune to your label stock. */
+  @page { size: 50mm 30mm; margin: 0; }
+  html, body { margin: 0; padding: 0; background: #fff; }
   body > #root { display: none; }
   .ams-print-label-root { display: block; }
   .ams-label { page-break-after: always; }
+  .ams-label:last-child { page-break-after: auto; }
 }
 
 /* ===== Shell parts (Task 4) ===== */
