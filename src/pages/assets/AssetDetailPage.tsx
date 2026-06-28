@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
-  PageHeader, ErrorState, EmptyState, Icon,
+  PageHeader, ErrorState, EmptyState,
 } from '@/components/ui'
 import { DetailHero } from '@/components/features/assets/detail/DetailHero'
 import { DetailTabs, type TabId } from '@/components/features/assets/detail/DetailTabs'
@@ -328,11 +328,16 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
   // ---- Render states ----
   if (loading) {
     return (
+      /*
+       * Skeleton mirrors real layout:
+       * Mobile order: hero (order-1) → sidebar (order-2) → tabs/specs (order-3).
+       * Desktop: standard lg:grid-cols-3 layout.
+       */
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start" aria-hidden="true">
-        {/* LEFT column */}
-        <div className="lg:col-span-2 space-y-0">
-          {/* Hero card */}
-          <div className="bg-surface rounded-t-2xl border border-b-0 border-border overflow-hidden">
+
+        {/* Hero card — order-1 on mobile; self-contained card matching <DetailHero> */}
+        <div className="lg:col-span-2 space-y-0 max-md:order-1">
+          <div className="bg-surface rounded-2xl border border-border overflow-hidden">
             <div className="h-1 w-full anim-skeleton opacity-50" />
             <div className="p-5 sm:p-6">
               <div className="flex items-start gap-4 max-md:flex-wrap">
@@ -348,41 +353,51 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Tab strip — REAL tab labels (static i18n), non-interactive during loading */}
+        {/* RIGHT column — 3 sidebar cards; order-2 on mobile */}
+        <div className="space-y-4 max-md:order-2 lg:row-span-2">
+          {Array.from({ length: 3 }).map((_, cardIdx) => (
+            <div key={cardIdx} className="bg-surface border border-border rounded-xl overflow-hidden">
+              <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-border">
+                {/* icon shimmer */}
+                <div className="w-[15px] h-[15px] rounded anim-skeleton flex-shrink-0" />
+                {/* title shimmer */}
+                <div className="h-[10px] w-[40%] rounded anim-skeleton" />
+              </div>
+              <div className="p-5 space-y-3">
+                {Array.from({ length: 3 }).map((__, r) => (
+                  <div key={r} className="h-[13px] rounded anim-skeleton" style={{ width: `${65 - r * 10}%` }} />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Tab strip + panel — order-3 on mobile */}
+        <div className="lg:col-span-2 space-y-0 max-md:order-3">
+          {/* Tab strip — shimmer (not interactive during loading) */}
           <div className="bg-surface border-x border-border px-5 flex items-center gap-1 h-[44px]">
-            {(['detail.tabs.specs', 'detail.tabs.history', 'detail.tabs.docs'] as const).map((key, i) => (
-              <span
-                key={key}
-                className={`flex items-center gap-1.5 px-3 py-3 text-[13.5px] font-medium flex-shrink-0 ${
-                  i === 0 ? 'text-accent-light' : 'text-text-subtle'
-                }`}
-              >
-                <Icon name={i === 0 ? 'cpu' : i === 1 ? 'history' : 'file-text'} size={14} />
-                {t(key)}
-              </span>
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-1.5 px-3 py-3 flex-shrink-0">
+                <div className="w-[14px] h-[14px] rounded anim-skeleton flex-shrink-0" />
+                <div className="h-[12px] rounded anim-skeleton" style={{ width: i === 0 ? 72 : i === 1 ? 64 : 56 }} />
+              </div>
             ))}
           </div>
 
           {/* Tab panel body */}
           <div className="bg-surface rounded-b-2xl border-x border-b border-border px-5 sm:px-6 py-5">
-            {/* Card header: REAL icon + REAL title + REAL disabled copy button */}
+            {/* Card header — shimmer (no real text/icon/button) */}
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2.5">
-                <Icon name="cpu" size={18} className="text-violet-400 flex-shrink-0" />
-                <span className="text-[12px] uppercase tracking-[0.09em] font-semibold text-text-tertiary">
-                  {t('detail.specs.title')}
-                </span>
+                {/* icon shimmer */}
+                <div className="w-[18px] h-[18px] rounded anim-skeleton flex-shrink-0" />
+                {/* title shimmer */}
+                <div className="h-[10px] w-[120px] rounded anim-skeleton" />
               </div>
-              <button
-                type="button"
-                disabled
-                className="inline-flex items-center gap-1.5 h-[32px] px-3 rounded-lg text-[12.5px] font-medium border bg-surface-2 border-border text-text-tertiary opacity-50 cursor-default flex-shrink-0"
-                aria-label={t('detail.specs.copy')}
-              >
-                <Icon name="copy" size={13} />
-                {t('detail.specs.copy')}
-              </button>
+              {/* copy button shimmer */}
+              <div className="h-8 w-[96px] rounded-lg anim-skeleton flex-shrink-0" />
             </div>
 
             {/* Spec tiles — shimmer (category-dependent, DB) */}
@@ -410,31 +425,6 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
               <div className="h-8 w-[96px] rounded-lg anim-skeleton flex-shrink-0" />
             </div>
           </div>
-        </div>
-
-        {/* RIGHT column — 3 sidebar cards with REAL titles */}
-        <div className="space-y-4">
-          {(
-            [
-              { titleKey: 'detail.assignment.title', icon: 'user-check' },
-              { titleKey: 'detail.location.title',   icon: 'map-pin' },
-              { titleKey: 'detail.repair.title',     icon: 'wrench' },
-            ] as const
-          ).map(({ titleKey, icon }) => (
-            <div key={titleKey} className="bg-surface border border-border rounded-xl overflow-hidden">
-              <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-border">
-                <Icon name={icon} size={15} className="text-text-subtle flex-shrink-0" />
-                <span className="text-[12px] uppercase tracking-[0.09em] font-semibold text-text-tertiary">
-                  {t(titleKey)}
-                </span>
-              </div>
-              <div className="p-5 space-y-3">
-                {Array.from({ length: 3 }).map((__, r) => (
-                  <div key={r} className="h-[13px] rounded anim-skeleton" style={{ width: `${65 - r * 10}%` }} />
-                ))}
-              </div>
-            </div>
-          ))}
         </div>
       </div>
     )
@@ -486,12 +476,18 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
         <p role="alert" className="mb-3 text-[12px] text-[#FDA4AF] px-1">{actionError}</p>
       )}
 
-      {/* Two-column grid on large screens */}
+      {/*
+       * Two-column grid on large screens.
+       * Mobile order: hero (order-1) → sidebar / assignment (order-2) → tabs/specs (order-3).
+       * We use a flat grid with max-md:order-* on three wrappers to achieve this without
+       * duplicating DOM nodes.
+       */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
+
         {/* ---------------------------------------------------------------- */}
-        {/* LEFT column — hero + tabs + tab body                             */}
+        {/* HERO — always first on both desktop and mobile                   */}
         {/* ---------------------------------------------------------------- */}
-        <div className="lg:col-span-2 space-y-0">
+        <div className="lg:col-span-2 space-y-0 max-md:order-1">
           {/* Hero */}
           <DetailHero
             asset={asset}
@@ -501,7 +497,47 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
             isDisposed={isDisposed}
             onWriteOff={onOpenWriteOff}
           />
+        </div>
 
+        {/* ---------------------------------------------------------------- */}
+        {/* RIGHT column — assignment + location + repair                    */}
+        {/* Mobile: order-2 (appears between hero and tab panel)             */}
+        {/* ---------------------------------------------------------------- */}
+        <div className="space-y-3 max-md:order-2 lg:row-span-2">
+          {/* Assignment card */}
+          {ref && (
+            <AssignmentCard
+              asset={asset}
+              refData={ref}
+              caps={caps}
+              canAssign={canAssign && !isDisposed}
+              busy={busy}
+              transferOpen={transferOpen}
+              onOpenTransfer={() => setTransferOpen(true)}
+              onCloseTransfer={() => setTransferOpen(false)}
+              onCommit={onTransfer}
+            />
+          )}
+
+          {/* Location card */}
+          {ref && (
+            <LocationCard asset={asset} refData={ref} />
+          )}
+
+          {/* Repair card */}
+          <RepairCard
+            asset={asset}
+            canRepair={canRepair && !isDisposed}
+            busy={busy}
+            onSendToRepair={onSendToRepair}
+            onReturnFromRepair={onReturnFromRepair}
+          />
+        </div>
+
+        {/* ---------------------------------------------------------------- */}
+        {/* TAB STRIP + TAB BODY — mobile: order-3 (below sidebar)           */}
+        {/* ---------------------------------------------------------------- */}
+        <div className="lg:col-span-2 space-y-0 max-md:order-3">
           {/* Tabs */}
           <DetailTabs
             active={activeTab}
@@ -551,40 +587,6 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
               />
             )}
           </div>
-        </div>
-
-        {/* ---------------------------------------------------------------- */}
-        {/* RIGHT column — assignment + location + repair                    */}
-        {/* ---------------------------------------------------------------- */}
-        <div className="space-y-3">
-          {/* Assignment card */}
-          {ref && (
-            <AssignmentCard
-              asset={asset}
-              refData={ref}
-              caps={caps}
-              canAssign={canAssign && !isDisposed}
-              busy={busy}
-              transferOpen={transferOpen}
-              onOpenTransfer={() => setTransferOpen(true)}
-              onCloseTransfer={() => setTransferOpen(false)}
-              onCommit={onTransfer}
-            />
-          )}
-
-          {/* Location card */}
-          {ref && (
-            <LocationCard asset={asset} refData={ref} />
-          )}
-
-          {/* Repair card */}
-          <RepairCard
-            asset={asset}
-            canRepair={canRepair && !isDisposed}
-            busy={busy}
-            onSendToRepair={onSendToRepair}
-            onReturnFromRepair={onReturnFromRepair}
-          />
         </div>
       </div>
 

@@ -392,20 +392,18 @@ export function LicensesPage({
         <>
           {wLoading && (
             /*
-             * Keys-tab skeleton — mirrors WindowsKeysSection table rows.
-             * Each row is ROW_H=56px with icon-box, name/meta, status chip, and action stub.
+             * Keys-tab skeleton — mirrors WindowsKeysSection layout.
+             * Desktop: table rows (ROW_H=56px). Mobile: card-shaped shimmers.
              * Wrapped in a SectionCard-shaped container (bg-surface, border, rounded-xl).
              */
             <div className="bg-surface border border-border rounded-xl overflow-hidden" aria-hidden="true">
-              {/* Card header — REAL icon + REAL title */}
+              {/* Card header — shimmer */}
               <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-border">
-                <Icon name="key-round" size={15} className="text-text-subtle flex-shrink-0 w-7 h-7 flex items-center justify-center" />
-                <span className="text-[12px] uppercase tracking-[0.09em] font-semibold text-text-tertiary">
-                  {t('keys.sectionTitle')}
-                </span>
+                <div className="w-7 h-7 rounded-lg anim-skeleton flex-shrink-0" />
+                <div className="h-[10px] w-[120px] rounded anim-skeleton" />
               </div>
-              {/* Table rows — shimmer (DB: license name + meta + status) */}
-              <div className="divide-y divide-border">
+              {/* Desktop: table rows — shimmer (DB: license name + meta + status) */}
+              <div className="divide-y divide-border max-md:hidden">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <div key={i} className="flex items-center gap-3 px-5 py-0" style={{ minHeight: 56 }}>
                     <div className="w-8 h-8 rounded-lg anim-skeleton flex-shrink-0" />
@@ -415,6 +413,19 @@ export function LicensesPage({
                     </div>
                     <div className="h-[20px] w-[64px] rounded-md anim-skeleton flex-shrink-0" />
                     <div className="h-[28px] w-[28px] rounded-md anim-skeleton flex-shrink-0" />
+                  </div>
+                ))}
+              </div>
+              {/* Mobile: card-shaped shimmers */}
+              <div className="divide-y divide-border md:hidden">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="px-4 py-3 flex flex-col gap-2">
+                    <div className="h-[13px] rounded anim-skeleton font-mono" style={{ width: `${55 + (i % 3) * 10}%` }} />
+                    <div className="flex items-center gap-2">
+                      <div className="h-[11px] rounded anim-skeleton" style={{ width: `${30 + (i % 4) * 8}%` }} />
+                      <div className="h-[18px] w-[60px] rounded-md anim-skeleton flex-shrink-0" />
+                    </div>
+                    <div className="h-[11px] rounded anim-skeleton" style={{ width: `${40 + (i % 3) * 10}%` }} />
                   </div>
                 ))}
               </div>
@@ -447,12 +458,10 @@ export function LicensesPage({
              * Each SubscriptionCard is a bordered card with title, meta rows, and assignee chips.
              */
             <div className="bg-surface border border-border rounded-xl overflow-hidden" aria-hidden="true">
-              {/* Card header — REAL icon + REAL title */}
+              {/* Card header — shimmer */}
               <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-border">
-                <Icon name="boxes" size={15} className="text-text-subtle flex-shrink-0 w-7 h-7 flex items-center justify-center" />
-                <span className="text-[12px] uppercase tracking-[0.09em] font-semibold text-text-tertiary">
-                  {t('subs.sectionTitle')}
-                </span>
+                <div className="w-7 h-7 rounded-lg anim-skeleton flex-shrink-0" />
+                <div className="h-[10px] w-[120px] rounded anim-skeleton" />
               </div>
               {/* Sub-card grid — shimmer (DB: subscription name + meta + assignees) */}
               <div className="p-5">

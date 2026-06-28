@@ -1,6 +1,7 @@
 import { useMemo, useState, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import { cn } from '@/lib/utils'
 import {
   PageHeader, SectionCard, Btn, Icon, EmptyState, ErrorState, Field, Select,
@@ -233,6 +234,8 @@ export function PendingUsersPage({ repository }: PendingUsersPageProps) {
   )
   const repo = repository ?? defaultRepo
 
+  const isMobile = useIsMobile()
+
   const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([])
   const [loading, setLoading]           = useState(true)
   const [error, setError]               = useState<string | null>(null)
@@ -271,29 +274,45 @@ export function PendingUsersPage({ repository }: PendingUsersPageProps) {
 
   function renderBody() {
     if (loading) {
+      if (isMobile) {
+        /* Mobile skeleton — card-shaped shimmers */
+        return (
+          <div aria-hidden="true" className="divide-y divide-border">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="px-3 py-3 flex flex-col gap-2">
+                {/* Row 1: avatar + name */}
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-full anim-skeleton flex-shrink-0" />
+                  <div className="h-[13px] rounded anim-skeleton flex-1" style={{ maxWidth: '55%' }} />
+                </div>
+                {/* Row 2: email */}
+                <div className="h-[11px] rounded anim-skeleton" style={{ width: `${50 + (i % 3) * 12}%` }} />
+                {/* Row 3: date */}
+                <div className="h-[11px] rounded anim-skeleton" style={{ width: `${35 + (i % 4) * 8}%` }} />
+                {/* Row 4: button */}
+                <div className="h-[32px] w-full rounded-lg anim-skeleton mt-0.5" />
+              </div>
+            ))}
+          </div>
+        )
+      }
       /*
-       * Pending-users skeleton — mirrors the real table:
+       * Desktop skeleton — mirrors the real table:
        * thead: user / email / signed-in / action — ~38px header
        * tbody rows: py-3 px-3 — avatar+name | email | date | button — ~48px per row
        */
       return (
         <div aria-hidden="true">
-          {/* Table header — REAL column labels */}
+          {/* Table header — shimmer column labels */}
           <div className="flex items-center gap-3 border-b border-border py-2.5 px-3">
             {(
-              [
-                { label: t('col.user'),     widthPct: '35%' },
-                { label: t('col.email'),    widthPct: '30%' },
-                { label: t('col.signedIn'), widthPct: '20%' },
-                { label: '',                widthPct: '10%' },
-              ] as const
-            ).map(({ label, widthPct }, i) => (
-              <div
-                key={i}
-                className="text-[11px] uppercase tracking-[0.06em] font-semibold text-text-subtle"
-                style={{ width: widthPct, flexShrink: 0 }}
-              >
-                {label}
+              ['35%', '30%', '20%', '10%'] as const
+            ).map((widthPct, i) => (
+              <div key={i} style={{ width: widthPct, flexShrink: 0 }}>
+                {/* Skip the last (action) column — no shimmer bar for it */}
+                {i < 3 && (
+                  <div className="h-[9px] rounded anim-skeleton" style={{ width: '55%' }} />
+                )}
               </div>
             ))}
           </div>
@@ -326,6 +345,43 @@ export function PendingUsersPage({ repository }: PendingUsersPageProps) {
         />
       )
     }
+
+    if (isMobile) {
+      /* Mobile card list */
+      return (
+        <div className="divide-y divide-border">
+          {pendingUsers.map(pu => (
+            <div key={pu.id} className="px-3 py-3 flex flex-col gap-1.5">
+              {/* Row 1: avatar + name */}
+              <div className="flex items-center gap-2">
+                <span className="w-7 h-7 rounded-full bg-surface-2 border border-border text-text-subtle inline-flex items-center justify-center flex-shrink-0">
+                  <Icon name="user" size={13} />
+                </span>
+                <span className="text-[13px] font-medium text-text-primary truncate">
+                  {pu.displayName || pu.email}
+                </span>
+              </div>
+              {/* Row 2: email */}
+              <p className="text-[12px] text-text-tertiary truncate pl-0.5">{pu.email}</p>
+              {/* Row 3: sign-in date */}
+              <p className="text-[11.5px] text-text-subtle pl-0.5">{formatDate(pu.createdAt)}</p>
+              {/* Full-width assign button */}
+              <Btn
+                size="sm"
+                variant="primary"
+                onClick={() => setDialogUser(pu)}
+                className="w-full mt-0.5"
+              >
+                <Icon name="user-plus" size={13} />
+                {t('assign')}
+              </Btn>
+            </div>
+          ))}
+        </div>
+      )
+    }
+
+    /* Desktop table */
     return (
       <div className="overflow-x-auto">
         <table className="w-full text-sm">

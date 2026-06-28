@@ -729,16 +729,6 @@ export function EmployeesPage({
           firstColWide
           lastColAction
           gridTemplate="minmax(180px,1.6fr) minmax(120px,0.9fr) minmax(140px,1.2fr) minmax(110px,0.85fr) minmax(160px,1.4fr) minmax(80px,0.6fr) minmax(100px,0.9fr) 56px"
-          headers={[
-            t('table.employee'),
-            t('table.branch'),
-            t('table.position'),
-            t('table.phone'),
-            t('table.gmail'),
-            t('table.assets'),
-            t('table.status'),
-            '',
-          ]}
         />
     if (error)   return <ErrorState onRetry={reload} />
     if (sorted.length === 0) {

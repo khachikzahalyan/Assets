@@ -130,9 +130,10 @@ describe('PartsPage', () => {
     })
     // Act
     const { container } = renderPage()
-    // Assert — skeleton renders real tab labels and shimmer bars (per skeleton-static-text refactor)
-    expect(screen.getByText('tabs.warehouse')).toBeInTheDocument()
+    // Assert — skeleton renders only shimmer bars (no real tab labels)
     expect(container.querySelector('.anim-skeleton')).toBeInTheDocument()
+    expect(screen.queryByText('tabs.warehouse')).not.toBeInTheDocument()
+    expect(screen.queryByText('tabs.devices')).not.toBeInTheDocument()
   })
 
   it('shows error state when useParts returns an error', () => {
