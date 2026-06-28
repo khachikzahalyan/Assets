@@ -10,6 +10,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Chip, Icon } from '@/components/ui'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import type { WorkstationLicense } from '@/domain/license'
 import type { AuditLog } from '@/domain/audit'
 import type { Actor } from '@/domain/asset'
@@ -97,6 +98,7 @@ export function WindowsKeysSection({
   onActivated,
 }: WindowsKeysSectionProps) {
   const { t } = useTranslation('licenses')
+  const isMobile = useIsMobile()
   const [filter, setFilter] = useState<KeyStatus>('in_use')
   const [page, setPage] = useState(1)
   const [detailsId, setDetailsId] = useState<string | null>(null)
@@ -164,7 +166,7 @@ export function WindowsKeysSection({
   ]
 
   const filterChips = (
-    <div className="flex items-center gap-0.5">
+    <div className="flex items-center gap-0.5 overflow-x-auto no-scrollbar flex-nowrap">
       {FILTERS.map(f => {
         const active = filter === f.id
         return (
@@ -173,7 +175,7 @@ export function WindowsKeysSection({
             type="button"
             onClick={() => setFilter(f.id)}
             data-testid={`filter-${f.id}`}
-            className={`relative py-1.5 px-3 text-[13px] font-medium transition-colors flex items-center gap-1.5 ${
+            className={`relative py-1.5 px-3 text-[13px] font-medium transition-colors flex items-center gap-1.5 flex-shrink-0 ${
               active ? 'text-accent' : 'text-text-primary hover:text-text-secondary'
             }`}
           >
@@ -204,7 +206,7 @@ export function WindowsKeysSection({
         aria-label={t('keys.sectionTitle')}
       >
         {/* Section header */}
-        <header className="flex items-center justify-between px-5 py-2.5 border-b border-border">
+        <header className="flex items-center justify-between px-5 py-2.5 border-b border-border max-md:flex-col max-md:items-start max-md:gap-1.5 max-md:py-3">
           <div className="flex items-center gap-2.5">
             <span className="w-7 h-7 rounded-md bg-surface-2 text-violet-400 inline-flex items-center justify-center">
               <Icon name="key-round" size={14} />
@@ -213,7 +215,9 @@ export function WindowsKeysSection({
               {t('keys.sectionTitle')}
             </h2>
           </div>
-          {filterChips}
+          <div className="max-md:w-full max-md:overflow-x-auto max-md:no-scrollbar">
+            {filterChips}
+          </div>
         </header>
 
         {rows.length === 0 ? (
@@ -226,109 +230,172 @@ export function WindowsKeysSection({
           </div>
         ) : (
           <div className="flex flex-col flex-1 min-h-0">
-            <div className="overflow-x-auto flex-1">
-              <table className="w-full text-left border-collapse" aria-label={t('keys.sectionTitle')}>
-                <thead>
-                  <tr className="text-[11px] uppercase tracking-[0.09em] text-text-tertiary border-b border-border">
-                    <th className="px-5 py-3.5 font-semibold bg-bg">{t('keys.colKey')}</th>
-                    <th className="px-5 py-3.5 font-semibold bg-bg">{t('keys.colVersion')}</th>
-                    <th className="px-5 py-3.5 font-semibold bg-bg">{t('keys.colStatus')}</th>
-                    <th className="px-5 py-3.5 font-semibold bg-bg">{t('keys.colAsset')}</th>
-                    {showAction && (
-                      <th className="px-5 py-3.5 font-semibold bg-bg text-right">{t('keys.colAction')}</th>
-                    )}
-                  </tr>
-                </thead>
-                <tbody>
-                  {pageRows.map(lic => {
-                    const isFree = licenseStatus(lic) === 'free'
-                    const masked = maskedKeys[lic.id] ?? '—'
-                    return (
-                      <tr
-                        key={lic.id}
-                        style={{ height: ROW_H }}
-                        onClick={() => setDetailsId(lic.id)}
-                        data-testid={`key-row-${lic.id}`}
-                        className="border-b border-border hover:bg-surface-2 transition-colors cursor-pointer"
-                      >
-                        <td className="px-5 py-3">
-                          <span className="font-mono text-[13px] text-text-primary tracking-tight">{masked}</span>
-                        </td>
-                        <td className="px-5 py-3 text-[13.5px] text-text-secondary">{lic.name}</td>
-                        <td className="px-5 py-3">
-                          {isFree
-                            ? <Chip color="green" dot>{t('keys.statusFree')}</Chip>
-                            : <Chip color="blue" dot>{t('keys.statusInUse')}</Chip>
-                          }
-                        </td>
-                        <td className="px-5 py-3">
-                          {isFree ? (
-                            <div className="leading-tight">
-                              <div className="text-[13.5px] text-text-primary font-medium">
-                                {'—'}
-                              </div>
-                              {lic.retiredAt && (
-                                <div className="text-[12px] text-text-tertiary">
-                                  {t('keys.freedOn', { date: fmtDate(lic.retiredAt, 'ru') })}
-                                </div>
-                              )}
-                              {lic.assignedAt && !lic.retiredAt && (
-                                <div className="text-[12px] text-text-tertiary">
-                                  {t('keys.freedOn', { date: fmtDate(lic.assignedAt, 'ru') })}
-                                </div>
-                              )}
-                            </div>
-                          ) : (
-                            (() => {
-                              const assetId = lic.assignedToAssetId ?? null
-                              const entry = assetId ? (assetNameMap[assetId] ?? null) : null
-                              const displayName = entry ? entry.name : (assetId ?? '—')
-                              const displayInvCode = entry ? entry.invCode : null
-                              return (
-                                <div className="leading-tight">
-                                  <div className="text-[13.5px] text-text-primary font-semibold">
-                                    {displayName}
-                                  </div>
-                                  {displayInvCode && (
-                                    <div className="font-mono text-[12px] text-text-tertiary">
-                                      {displayInvCode}
-                                    </div>
-                                  )}
-                                </div>
-                              )
-                            })()
-                          )}
-                        </td>
-                        {showAction && (
-                          <td className="px-5 py-3 text-right">
-                            <button
-                              type="button"
-                              onClick={e => { e.stopPropagation(); setActivatingId(lic.id) }}
-                              data-testid={`activate-btn-${lic.id}`}
-                              className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-md text-[12px] font-semibold text-accent-light border border-accent/30 bg-accent/10 hover:bg-accent/20 transition-colors"
-                            >
-                              <Icon name="zap" size={12} />
-                              {t('keys.activate')}
-                            </button>
-                          </td>
-                        )}
-                      </tr>
-                    )
-                  })}
-
-                  {/* Placeholder rows to keep block height constant */}
-                  {Array.from({ length: Math.max(0, PAGE_SIZE - pageRows.length) }).map((_, i) => (
-                    <tr
-                      key={`__ph_${i}`}
-                      aria-hidden="true"
-                      style={{ height: ROW_H, borderBottom: '1px solid rgba(42,47,54,0.35)' }}
+            {isMobile ? (
+              /* ── Mobile card list ─────────────────────────────────────────── */
+              <div className="divide-y divide-border">
+                {pageRows.map(lic => {
+                  const isFree = licenseStatus(lic) === 'free'
+                  const masked = maskedKeys[lic.id] ?? '—'
+                  const assetId = lic.assignedToAssetId ?? null
+                  const entry = assetId ? (assetNameMap[assetId] ?? null) : null
+                  const displayName = entry ? entry.name : (assetId ?? '—')
+                  const displayInvCode = entry ? entry.invCode : null
+                  return (
+                    <div
+                      key={lic.id}
+                      data-testid={`key-row-${lic.id}`}
+                      onClick={() => setDetailsId(lic.id)}
+                      className="px-4 py-3 flex flex-col gap-1.5 cursor-pointer hover:bg-surface-2 transition-colors"
                     >
-                      <td colSpan={showAction ? 5 : 4} className="px-5" />
+                      {/* Row 1: masked key (font-mono) */}
+                      <span className="font-mono text-[13px] text-text-primary tracking-tight">{masked}</span>
+                      {/* Row 2: version + status chip */}
+                      <div className="flex items-center gap-2">
+                        <span className="text-[12.5px] text-text-secondary">{lic.name}</span>
+                        {isFree
+                          ? <Chip color="green" dot>{t('keys.statusFree')}</Chip>
+                          : <Chip color="blue" dot>{t('keys.statusInUse')}</Chip>
+                        }
+                      </div>
+                      {/* Row 3: asset name */}
+                      {isFree ? (
+                        <div className="text-[12px] text-text-tertiary">
+                          {lic.retiredAt
+                            ? t('keys.freedOn', { date: fmtDate(lic.retiredAt, 'ru') })
+                            : lic.assignedAt
+                            ? t('keys.freedOn', { date: fmtDate(lic.assignedAt, 'ru') })
+                            : '—'}
+                        </div>
+                      ) : (
+                        <div className="leading-tight">
+                          <div className="text-[12.5px] text-text-primary font-semibold">{displayName}</div>
+                          {displayInvCode && (
+                            <div className="font-mono text-[11.5px] text-text-tertiary">{displayInvCode}</div>
+                          )}
+                        </div>
+                      )}
+                      {/* Full-width activate button — FREE keys only */}
+                      {showAction && (
+                        <button
+                          type="button"
+                          onClick={e => { e.stopPropagation(); setActivatingId(lic.id) }}
+                          data-testid={`activate-btn-${lic.id}`}
+                          className="mt-1 w-full h-8 rounded-lg text-[13px] font-semibold text-accent-light border border-accent/30 bg-accent/10 hover:bg-accent/20 transition-colors inline-flex items-center justify-center gap-1.5"
+                        >
+                          <Icon name="zap" size={13} />
+                          {t('keys.activate')}
+                        </button>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              /* ── Desktop table ────────────────────────────────────────────── */
+              <div className="overflow-x-auto flex-1">
+                <table className="w-full text-left border-collapse" aria-label={t('keys.sectionTitle')}>
+                  <thead>
+                    <tr className="text-[11px] uppercase tracking-[0.09em] text-text-tertiary border-b border-border">
+                      <th className="px-5 py-3.5 font-semibold bg-bg">{t('keys.colKey')}</th>
+                      <th className="px-5 py-3.5 font-semibold bg-bg">{t('keys.colVersion')}</th>
+                      <th className="px-5 py-3.5 font-semibold bg-bg">{t('keys.colStatus')}</th>
+                      <th className="px-5 py-3.5 font-semibold bg-bg">{t('keys.colAsset')}</th>
+                      {showAction && (
+                        <th className="px-5 py-3.5 font-semibold bg-bg text-right">{t('keys.colAction')}</th>
+                      )}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {pageRows.map(lic => {
+                      const isFree = licenseStatus(lic) === 'free'
+                      const masked = maskedKeys[lic.id] ?? '—'
+                      return (
+                        <tr
+                          key={lic.id}
+                          style={{ height: ROW_H }}
+                          onClick={() => setDetailsId(lic.id)}
+                          data-testid={`key-row-${lic.id}`}
+                          className="border-b border-border hover:bg-surface-2 transition-colors cursor-pointer"
+                        >
+                          <td className="px-5 py-3">
+                            <span className="font-mono text-[13px] text-text-primary tracking-tight">{masked}</span>
+                          </td>
+                          <td className="px-5 py-3 text-[13.5px] text-text-secondary">{lic.name}</td>
+                          <td className="px-5 py-3">
+                            {isFree
+                              ? <Chip color="green" dot>{t('keys.statusFree')}</Chip>
+                              : <Chip color="blue" dot>{t('keys.statusInUse')}</Chip>
+                            }
+                          </td>
+                          <td className="px-5 py-3">
+                            {isFree ? (
+                              <div className="leading-tight">
+                                <div className="text-[13.5px] text-text-primary font-medium">
+                                  {'—'}
+                                </div>
+                                {lic.retiredAt && (
+                                  <div className="text-[12px] text-text-tertiary">
+                                    {t('keys.freedOn', { date: fmtDate(lic.retiredAt, 'ru') })}
+                                  </div>
+                                )}
+                                {lic.assignedAt && !lic.retiredAt && (
+                                  <div className="text-[12px] text-text-tertiary">
+                                    {t('keys.freedOn', { date: fmtDate(lic.assignedAt, 'ru') })}
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              (() => {
+                                const assetId = lic.assignedToAssetId ?? null
+                                const entry = assetId ? (assetNameMap[assetId] ?? null) : null
+                                const displayName = entry ? entry.name : (assetId ?? '—')
+                                const displayInvCode = entry ? entry.invCode : null
+                                return (
+                                  <div className="leading-tight">
+                                    <div className="text-[13.5px] text-text-primary font-semibold">
+                                      {displayName}
+                                    </div>
+                                    {displayInvCode && (
+                                      <div className="font-mono text-[12px] text-text-tertiary">
+                                        {displayInvCode}
+                                      </div>
+                                    )}
+                                  </div>
+                                )
+                              })()
+                            )}
+                          </td>
+                          {showAction && (
+                            <td className="px-5 py-3 text-right">
+                              <button
+                                type="button"
+                                onClick={e => { e.stopPropagation(); setActivatingId(lic.id) }}
+                                data-testid={`activate-btn-${lic.id}`}
+                                className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-md text-[12px] font-semibold text-accent-light border border-accent/30 bg-accent/10 hover:bg-accent/20 transition-colors"
+                              >
+                                <Icon name="zap" size={12} />
+                                {t('keys.activate')}
+                              </button>
+                            </td>
+                          )}
+                        </tr>
+                      )
+                    })}
+
+                    {/* Placeholder rows to keep block height constant */}
+                    {Array.from({ length: Math.max(0, PAGE_SIZE - pageRows.length) }).map((_, i) => (
+                      <tr
+                        key={`__ph_${i}`}
+                        aria-hidden="true"
+                        style={{ height: ROW_H, borderBottom: '1px solid rgba(42,47,54,0.35)' }}
+                      >
+                        <td colSpan={showAction ? 5 : 4} className="px-5" />
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
             <LicensesPagination
               page={page}
