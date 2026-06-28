@@ -254,8 +254,6 @@ export function LoginPage() {
             style={{
               opacity: 0,
               animation: 'pulse-ring-m 3s ease-in-out infinite',
-              transformBox: 'fill-box',
-              transformOrigin: 'center',
             }}
           />
           <circle
@@ -268,8 +266,6 @@ export function LoginPage() {
             style={{
               opacity: 0,
               animation: 'pulse-ring-m 3s ease-in-out .9s infinite',
-              transformBox: 'fill-box',
-              transformOrigin: 'center',
             }}
           />
           {/* Center node */}
@@ -752,8 +748,6 @@ export function LoginPage() {
             style={{
               opacity: 0,
               animation: 'pulse-ring 3s ease-in-out infinite',
-              transformBox: 'fill-box',
-              transformOrigin: 'center',
             }}
           />
           <circle
@@ -761,8 +755,6 @@ export function LoginPage() {
             style={{
               opacity: 0,
               animation: 'pulse-ring 3s ease-in-out .8s infinite',
-              transformBox: 'fill-box',
-              transformOrigin: 'center',
             }}
           />
           <circle
@@ -770,8 +762,6 @@ export function LoginPage() {
             style={{
               opacity: 0,
               animation: 'pulse-ring 3s ease-in-out 1.6s infinite',
-              transformBox: 'fill-box',
-              transformOrigin: 'center',
             }}
           />
 
