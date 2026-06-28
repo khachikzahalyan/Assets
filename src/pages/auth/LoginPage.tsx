@@ -111,14 +111,59 @@ export function LoginPage() {
 
       {/* ── LEFT: Form panel ─────────────────────────────────────────────────── */}
       <div
-        className="w-full lg:w-[44%] relative flex items-center justify-center px-6 py-10 lg:px-16 lg:py-[60px]"
+        className="w-full lg:w-[44%] relative flex items-center justify-center max-lg:flex-col max-lg:px-5 max-lg:py-10 lg:px-16 lg:py-[60px]"
       >
 
-        {/* Logo — position:absolute top-left, out of flex flow */}
+        {/* ── MOBILE ONLY: Ambient background ─────────────────────────────── */}
         <div
-          className="absolute top-9 left-6 lg:left-12"
+          className="lg:hidden"
+          aria-hidden="true"
+          style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}
+        >
+          {/* Orange radial glow — top-center */}
+          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 90% 55% at 50% -5%, rgba(232,105,42,0.14) 0%, transparent 60%)' }} />
+          {/* Blue glow — bottom */}
+          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 70% 50% at 50% 110%, rgba(56,189,248,0.08) 0%, transparent 60%)' }} />
+          {/* Dot grid */}
+          <svg
+            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0.12 }}
+            aria-hidden="true"
+          >
+            <defs>
+              <pattern id="mobile-dots" x="0" y="0" width="32" height="32" patternUnits="userSpaceOnUse">
+                <circle cx="1" cy="1" r="1" fill="#4a5a7a" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#mobile-dots)" />
+          </svg>
+          {/* Faint network echo — just enough to evoke the desktop motif */}
+          <svg
+            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+            viewBox="0 0 400 800"
+            preserveAspectRatio="xMidYMid slice"
+            aria-hidden="true"
+          >
+            <g stroke="rgba(232,105,42,0.06)" strokeWidth="1.2" fill="none">
+              <line x1="200" y1="120" x2="60" y2="260" />
+              <line x1="200" y1="120" x2="340" y2="260" />
+              <line x1="200" y1="120" x2="200" y2="-20" />
+              <line x1="60" y1="260" x2="20" y2="380" />
+              <line x1="340" y1="260" x2="380" y2="380" />
+            </g>
+            <g opacity="0.22">
+              <circle cx="60" cy="260" r="5" fill="rgba(56,130,220,0.55)" />
+              <circle cx="340" cy="260" r="5" fill="rgba(56,130,220,0.55)" />
+              <circle cx="20" cy="380" r="3.5" fill="rgba(56,130,220,0.3)" />
+              <circle cx="380" cy="380" r="3.5" fill="rgba(56,130,220,0.3)" />
+            </g>
+            <circle cx="200" cy="120" r="7" fill="rgba(232,105,42,0.18)" stroke="rgba(232,105,42,0.25)" strokeWidth="1.5" />
+          </svg>
+        </div>
+
+        {/* Logo — desktop: position:absolute top-left, out of flex flow */}
+        <div
+          className="hidden lg:flex absolute top-9 left-12"
           style={{
-            display: 'flex',
             alignItems: 'center',
             gap: '10px',
             animation: 'fadeInUp .5s ease both',
@@ -147,10 +192,39 @@ export function LoginPage() {
           </span>
         </div>
 
-        {/* Form card — max-width 380px, animated */}
+        {/* Logo — mobile: centered above card ─────────────────────────────── */}
         <div
-          className="w-full"
-          style={{ maxWidth: '380px', animation: 'fadeInUp .6s ease .1s both' }}
+          className="lg:hidden flex items-center gap-[10px] mb-7"
+          style={{ animation: 'fadeInUp .5s ease both' }}
+        >
+          <div
+            style={{
+              width: '40px',
+              height: '40px',
+              background: '#E8692A',
+              borderRadius: '11px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+              boxShadow: '0 0 28px rgba(232,105,42,0.45), 0 0 8px rgba(232,105,42,0.2)',
+            }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="white" strokeWidth="1.8" strokeLinejoin="round" />
+              <path d="M2 17l10 5 10-5" stroke="white" strokeWidth="1.8" strokeLinejoin="round" />
+              <path d="M2 12l10 5 10-5" stroke="white" strokeWidth="1.8" strokeLinejoin="round" />
+            </svg>
+          </div>
+          <span style={{ color: 'white', fontSize: '17px', fontWeight: 700, letterSpacing: '.4px' }}>
+            AMS
+          </span>
+        </div>
+
+        {/* Form card — max-width 400px, animated */}
+        <div
+          className="w-full max-lg:rounded-[22px] max-lg:backdrop-blur-[16px] max-lg:bg-white/[0.025] max-lg:border max-lg:border-white/[0.07] max-lg:shadow-[0_24px_60px_-20px_rgba(0,0,0,0.7)] max-lg:px-6 max-lg:py-7"
+          style={{ maxWidth: '400px', animation: 'fadeInUp .6s ease .1s both' }}
         >
 
           {/* Title block */}
