@@ -53,6 +53,7 @@ import { SERVER_CATEGORY_IDS, LAPTOP_CATEGORY_IDS } from '@/domain/asset/categor
 const COL_PARTS = 'parts'
 const COL_MOVEMENTS = 'part_movements'
 const COL_ASSETS = 'assets'
+const COL_CATEGORIES = 'categories'
 
 // ---- Upgradeable category ids (must match assetFamilyOf non-null set) -------
 // These are the LAPTOP + DESKTOP + SERVER category ids as defined in partStock.ts
@@ -140,12 +141,23 @@ export class FirestorePartRepository implements PartRepository, PartWriteReposit
   // ---- PartRepository (reads) -----------------------------------------------
 
   async loadReferenceData(): Promise<PartReferenceData> {
-    // Read parts, movements, and upgradeable assets in parallel.
-    const [partsSnap, movementsSnap, assetsSnap] = await Promise.all([
+    // Read parts, movements, upgradeable assets, and categories in parallel.
+    const [partsSnap, movementsSnap, assetsSnap, categoriesSnap] = await Promise.all([
       getDocs(collection(this.fsDb, COL_PARTS)),
       getDocs(fsQuery(collection(this.fsDb, COL_MOVEMENTS), orderBy('at', 'desc'))),
       getDocs(collection(this.fsDb, COL_ASSETS)),
+      getDocs(collection(this.fsDb, COL_CATEGORIES)),
     ])
+
+    // categoryId → { name, lucideIcon } so device cards match the Assets page exactly.
+    const categoryMeta = new Map<string, { name: string; icon: string }>()
+    for (const c of categoriesSnap.docs) {
+      const cd = c.data() as Record<string, unknown>
+      categoryMeta.set(c.id, {
+        name: String(cd['name'] ?? ''),
+        icon: String(cd['lucideIcon'] ?? ''),
+      })
+    }
 
     const movements: PartMovement[] = movementsSnap.docs.map(d =>
       toMovement(d.id, d.data() as Record<string, unknown>),
@@ -178,6 +190,8 @@ export class FirestorePartRepository implements PartRepository, PartWriteReposit
       const assignment = (data['assignment'] as Record<string, unknown> | null) ?? null
       const user = (assignment?.['employeeId'] as string | null) ?? ''
 
+      const catMeta = categoryMeta.get(categoryId)
+
       partsAssets.push({
         id: String(data['invCode'] ?? d.id),
         assetId: d.id,
@@ -185,6 +199,9 @@ export class FirestorePartRepository implements PartRepository, PartWriteReposit
         kind,
         name,
         user,
+        // exactOptionalPropertyTypes: omit the key entirely rather than assign undefined
+        ...(catMeta?.name ? { categoryName: catMeta.name } : {}),
+        ...(catMeta?.icon ? { categoryIcon: catMeta.icon } : {}),
         // Prefer the asset's explicit upgradeCurrent (mutated by install/uninstall).
         // When empty (asset created via the Assets form, which only stores
         // currentSpecs), synthesize the slots from currentSpecs + factory defaults

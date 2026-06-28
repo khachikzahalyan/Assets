@@ -120,6 +120,7 @@ import {
   CircleX,
   ArrowLeftRight,
   ClipboardList,
+  Gamepad2,
   type LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -247,6 +248,7 @@ const REGISTRY: Record<string, LucideIcon> = {
   'x-circle': CircleX,
   'arrow-left-right': ArrowLeftRight,
   'clipboard-list': ClipboardList,
+  'gamepad-2': Gamepad2,
 }
 
 export interface IconProps {

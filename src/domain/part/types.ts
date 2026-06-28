@@ -81,4 +81,8 @@ export interface PartsAsset {
   name: string          // brand + model
   user: string          // assignee display
   upgradeCurrent: UpgradeSlot[]
+  /** Category display name from the categories collection (e.g. «Ноутбук»). */
+  categoryName?: string
+  /** Category lucide icon name from the categories collection (e.g. 'laptop'). */
+  categoryIcon?: string
 }
