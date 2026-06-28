@@ -388,6 +388,14 @@ select:-webkit-autofill {
   100% { transform: scale(.85);  opacity: .6; }
 }
 
+/* ring-expand — radar/sonar ripple: a ring is born at the node and grows
+   outward while fading. Stagger several for a continuous emanating wave. */
+@keyframes ring-expand {
+  0%   { transform: scale(.85); opacity: 0; }
+  12%  { opacity: .55; }
+  100% { transform: scale(3.8); opacity: 0; }
+}
+
 /* scan — horizontal light-line sweeps the full height of the right panel */
 @keyframes scan {
   0%   { top: 0%;   opacity: 0; }
@@ -450,6 +458,14 @@ select:-webkit-autofill {
   overflow-y: auto;
   padding: var(--content-py) var(--content-px);
   animation: contentEnter 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ── Asset label printing (barcode labels) ── */
+.ams-print-label-root { display: none; }
+@media print {
+  body > #root { display: none; }
+  .ams-print-label-root { display: block; }
+  .ams-label { page-break-after: always; }
 }
 
 /* ===== Shell parts (Task 4) ===== */

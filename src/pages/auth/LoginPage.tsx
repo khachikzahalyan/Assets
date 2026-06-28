@@ -243,35 +243,25 @@ export function LoginPage() {
             <circle cx="300" cy="210" r="5.5" fill="url(#mnb)" opacity="0.85" />
             <circle cx="95" cy="220" r="5.5" fill="url(#mnb)" opacity="0.85" />
           </g>
-          {/* Pulse rings on center node (196,150) */}
-          <circle
-            cx="196"
-            cy="150"
-            r="28"
-            fill="none"
-            stroke="#E8692A"
-            strokeWidth="1"
-            style={{
-              opacity: 0,
-              animation: 'pulse-ring 3s ease-in-out infinite',
-              transformBox: 'fill-box',
-              transformOrigin: 'center',
-            }}
-          />
-          <circle
-            cx="196"
-            cy="150"
-            r="42"
-            fill="none"
-            stroke="#E8692A"
-            strokeWidth=".7"
-            style={{
-              opacity: 0,
-              animation: 'pulse-ring 3s ease-in-out .9s infinite',
-              transformBox: 'fill-box',
-              transformOrigin: 'center',
-            }}
-          />
+          {/* Radar ripple rings on center node (196,150) — expand outward + fade */}
+          {['0s', '1.2s', '2.4s'].map((delay) => (
+            <circle
+              key={delay}
+              cx="196"
+              cy="150"
+              r="22"
+              fill="none"
+              stroke="#E8692A"
+              strokeWidth="1"
+              vectorEffect="non-scaling-stroke"
+              style={{
+                opacity: 0,
+                animation: `ring-expand 3.6s ease-out ${delay} infinite`,
+                transformBox: 'fill-box',
+                transformOrigin: 'center',
+              }}
+            />
+          ))}
           {/* Center node */}
           <g filter="url(#mg-orange)">
             <circle cx="196" cy="150" r="18" fill="#1a1e2a" stroke="#E8692A" strokeWidth="1.2" opacity="0.9" />
@@ -746,34 +736,21 @@ export function LoginPage() {
             <circle cx="400" cy="130" r="7" fill="url(#node-blue)" opacity="0.7" />
           </g>
 
-          {/* Pulse rings on CENTER node (400,300) */}
-          <circle
-            cx="400" cy="300" r="42" fill="none" stroke="#E8692A" strokeWidth="1.5"
-            style={{
-              opacity: 0,
-              animation: 'pulse-ring 3s ease-in-out infinite',
-              transformBox: 'fill-box',
-              transformOrigin: 'center',
-            }}
-          />
-          <circle
-            cx="400" cy="300" r="64" fill="none" stroke="#E8692A" strokeWidth="1"
-            style={{
-              opacity: 0,
-              animation: 'pulse-ring 3s ease-in-out .8s infinite',
-              transformBox: 'fill-box',
-              transformOrigin: 'center',
-            }}
-          />
-          <circle
-            cx="400" cy="300" r="88" fill="none" stroke="#E8692A" strokeWidth="0.7"
-            style={{
-              opacity: 0,
-              animation: 'pulse-ring 3s ease-in-out 1.6s infinite',
-              transformBox: 'fill-box',
-              transformOrigin: 'center',
-            }}
-          />
+          {/* Radar ripple rings on CENTER node (400,300) — born at the node,
+              expand outward and fade; staggered for a continuous emanating wave. */}
+          {['0s', '1.2s', '2.4s'].map((delay) => (
+            <circle
+              key={delay}
+              cx="400" cy="300" r="30" fill="none" stroke="#E8692A" strokeWidth="1.2"
+              vectorEffect="non-scaling-stroke"
+              style={{
+                opacity: 0,
+                animation: `ring-expand 3.6s ease-out ${delay} infinite`,
+                transformBox: 'fill-box',
+                transformOrigin: 'center',
+              }}
+            />
+          ))}
 
           {/* Center node: concentric circles + layers icon */}
           <g filter="url(#glow-orange)">
