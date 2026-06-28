@@ -3,132 +3,11 @@ import { Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { completeEmailLinkIfPresent, sendEmployeeLink, signInWithGoogle } from '@/lib/auth'
 import { useAuth } from '@/contexts/AuthContext'
-import { Input } from '@/components/ui/input'
 import { Icon } from '@/components/ui/icon'
 
 /** Minimal email validity check — non-empty and contains @. */
 function isValidEmail(v: string): boolean {
   return v.trim().length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim())
-}
-
-// ── Decorative network SVG for the right panel ────────────────────────────────
-function NetworkVisual() {
-  const ringStyle = (delay: string, color: string): React.CSSProperties => ({
-    animation: 'pulse-ring 2.6s ease-out infinite',
-    transformBox: 'fill-box',
-    transformOrigin: 'center',
-    animationDelay: delay,
-    stroke: color,
-  })
-
-  return (
-    <svg
-      viewBox="0 0 560 420"
-      preserveAspectRatio="xMidYMid meet"
-      className="w-full h-full"
-      aria-hidden="true"
-    >
-      <defs>
-        {/* Node fill gradients */}
-        <radialGradient id="ng-orange" cx="35%" cy="35%" r="65%">
-          <stop offset="0%" stopColor="#FF8C42" />
-          <stop offset="100%" stopColor="#C85820" />
-        </radialGradient>
-        <radialGradient id="ng-blue" cx="35%" cy="35%" r="65%">
-          <stop offset="0%" stopColor="#7DD3FC" />
-          <stop offset="100%" stopColor="#2980B9" />
-        </radialGradient>
-        <radialGradient id="ng-dim" cx="35%" cy="35%" r="65%">
-          <stop offset="0%" stopColor="#3C4A5E" />
-          <stop offset="100%" stopColor="#1E2532" />
-        </radialGradient>
-        <radialGradient id="ng-center" cx="30%" cy="30%" r="70%">
-          <stop offset="0%" stopColor="#FF9A50" />
-          <stop offset="100%" stopColor="#E8692A" />
-        </radialGradient>
-
-        {/* Glow filters */}
-        <filter id="gf-orange" x="-80%" y="-80%" width="360%" height="360%">
-          <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur" />
-          <feFlood floodColor="#E8692A" floodOpacity="0.7" result="fc" />
-          <feComposite in="fc" in2="blur" operator="in" result="glow" />
-          <feMerge>
-            <feMergeNode in="glow" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-        <filter id="gf-blue" x="-80%" y="-80%" width="360%" height="360%">
-          <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur" />
-          <feFlood floodColor="#38BDF8" floodOpacity="0.7" result="fc" />
-          <feComposite in="fc" in2="blur" operator="in" result="glow" />
-          <feMerge>
-            <feMergeNode in="glow" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-        <filter id="gf-center" x="-100%" y="-100%" width="400%" height="400%">
-          <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="blur" />
-          <feFlood floodColor="#E8692A" floodOpacity="0.6" result="fc" />
-          <feComposite in="fc" in2="blur" operator="in" result="glow" />
-          <feMerge>
-            <feMergeNode in="glow" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-      </defs>
-
-      {/* Connection lines */}
-      <g stroke="rgba(255,255,255,0.07)" strokeWidth="1" fill="none">
-        <line x1="280" y1="210" x2="110" y2="105" />
-        <line x1="280" y1="210" x2="450" y2="90" />
-        <line x1="280" y1="210" x2="90" y2="305" />
-        <line x1="280" y1="210" x2="470" y2="320" />
-        <line x1="280" y1="210" x2="185" y2="215" />
-        <line x1="280" y1="210" x2="400" y2="200" />
-        <line x1="280" y1="210" x2="330" y2="335" />
-        <line x1="110" y1="105" x2="90" y2="305" />
-        <line x1="110" y1="105" x2="185" y2="215" />
-        <line x1="450" y1="90" x2="400" y2="200" />
-        <line x1="450" y1="90" x2="470" y2="320" />
-        <line x1="470" y1="320" x2="330" y2="335" />
-        <line x1="90" y1="305" x2="330" y2="335" />
-      </g>
-
-      {/* Pulse rings — 3 animated, on orange + 2 blue nodes */}
-      <circle cx="110" cy="105" r="20" fill="none" strokeWidth="1"
-        style={ringStyle('0s', '#E8692A')} />
-      <circle cx="450" cy="90" r="20" fill="none" strokeWidth="1"
-        style={ringStyle('0.87s', '#38BDF8')} />
-      <circle cx="470" cy="320" r="20" fill="none" strokeWidth="1"
-        style={ringStyle('1.74s', '#38BDF8')} />
-
-      {/* Dim nodes */}
-      <circle cx="90" cy="305" r="7" fill="url(#ng-dim)" />
-      <circle cx="185" cy="215" r="6" fill="url(#ng-dim)" />
-      <circle cx="400" cy="200" r="6" fill="url(#ng-dim)" />
-      <circle cx="330" cy="335" r="5" fill="url(#ng-dim)" opacity="0.7" />
-
-      {/* Blue nodes */}
-      <circle cx="450" cy="90" r="12" fill="url(#ng-blue)" filter="url(#gf-blue)" />
-      <circle cx="470" cy="320" r="12" fill="url(#ng-blue)" filter="url(#gf-blue)" />
-
-      {/* Orange node */}
-      <circle cx="110" cy="105" r="12" fill="url(#ng-orange)" filter="url(#gf-orange)" />
-
-      {/* Center node — box/package icon at (280,210), rect offset by half-size */}
-      <g transform="translate(254, 184)" filter="url(#gf-center)">
-        <rect width="52" height="52" rx="12" fill="url(#ng-center)" />
-        {/* Lucide package icon (24×24), centered in 52×52 rect via translate(14,14) */}
-        <g transform="translate(14,14)" fill="none"
-          stroke="rgba(255,255,255,0.92)" strokeWidth="1.5"
-          strokeLinecap="round" strokeLinejoin="round">
-          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 1 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-          <polyline points="3.27,6.96 12,12.01 20.73,6.96" />
-          <line x1="12" y1="22.08" x2="12" y2="12" />
-        </g>
-      </g>
-    </svg>
-  )
 }
 
 // ── Main page component ───────────────────────────────────────────────────────
@@ -221,196 +100,269 @@ export function LoginPage() {
     )
   }
 
+  // Split footer note on newline for <br/> rendering
+  const footerLines = t('footer.note').split('\n')
+
   return (
-    <div className="min-h-screen flex" style={{ background: '#1C1F26' }}>
+    <div
+      className="min-h-screen flex"
+      style={{ background: '#1C1F26', fontFamily: "'Inter', system-ui, sans-serif" }}
+    >
 
       {/* ── LEFT: Form panel ─────────────────────────────────────────────────── */}
-      <div className="w-full lg:w-[44%] flex flex-col py-10 px-8 lg:px-14 xl:px-20">
+      <div
+        className="w-full lg:w-[44%] relative flex items-center justify-center px-6 py-10 lg:px-16 lg:py-[60px]"
+      >
 
-        {/* Logo */}
-        <div className="flex items-center gap-2.5 flex-shrink-0">
-          <div
-            className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-            style={{ background: '#E8692A' }}
-          >
-            <Icon name="package" size={18} className="text-white" />
-          </div>
-          <span className="font-bold text-[15px] tracking-tight text-white">AMS</span>
-        </div>
-
-        {/* Form area — vertically centered in remaining space */}
-        <div className="flex-1 flex flex-col justify-center py-8">
-          <div
-            className="w-full max-w-[360px]"
-            style={{ animation: 'fadeInUp 0.45s ease both' }}
-          >
-
-            {/* Title */}
-            <div className="mb-8">
-              <h1 className="text-[26px] font-bold text-white leading-tight tracking-tight mb-1.5">
-                {t('page.title')}
-              </h1>
-              <p className="text-[13.5px]" style={{ color: 'rgba(255,255,255,0.42)' }}>
-                {t('page.subtitle')}
-              </p>
-            </div>
-
-            {/* Email-link check error banner */}
-            {linkCheckError && !linkChecking && (
-              <div className="mb-5">
-                <ErrorBanner message={linkCheckError} />
-              </div>
-            )}
-
-            {/* Loading indicator for email link completion */}
-            {linkChecking && (
-              <div className="flex items-center gap-2 py-2 mb-4">
-                <Icon name="loader-circle" size={16} className="animate-spin text-[#E8692A]" />
-                <span className="text-[12.5px]" style={{ color: 'rgba(255,255,255,0.42)' }}>
-                  {t('loading')}
-                </span>
-              </div>
-            )}
-
-            {/* ── Admin section ── */}
-            <section aria-labelledby="admin-section-lbl" className="mb-5">
-              <p
-                id="admin-section-lbl"
-                className="text-[10.5px] font-semibold uppercase tracking-[0.08em] mb-3"
-                style={{ color: 'rgba(255,255,255,0.32)' }}
-              >
-                {t('admin.label')}
-              </p>
-
-              {googleError && (
-                <div className="mb-3">
-                  <ErrorBanner message={googleError} />
-                </div>
-              )}
-
-              <button
-                type="button"
-                onClick={() => { void handleGoogle() }}
-                disabled={googleBusy}
-                className="w-full h-11 flex items-center justify-center gap-3 rounded-xl font-medium text-[14px] text-white transition-opacity duration-150 disabled:opacity-50 hover:opacity-90"
-                style={{
-                  background: '#1e2130',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                }}
-              >
-                {googleBusy ? (
-                  <Icon name="loader-circle" size={16} className="animate-spin text-white" />
-                ) : (
-                  <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" className="flex-shrink-0">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" />
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-                  </svg>
-                )}
-                {t('admin.googleBtn')}
-              </button>
-            </section>
-
-            {/* ── Divider ── */}
-            <div className="flex items-center gap-3 mb-5" aria-hidden="true">
-              <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.08)' }} />
-              <span className="text-[11px] font-medium" style={{ color: 'rgba(255,255,255,0.28)' }}>
-                {t('divider')}
-              </span>
-              <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.08)' }} />
-            </div>
-
-            {/* ── Employee section ── */}
-            <section aria-labelledby="employee-section-lbl">
-              <p
-                id="employee-section-lbl"
-                className="text-[10.5px] font-semibold uppercase tracking-[0.08em] mb-3"
-                style={{ color: 'rgba(255,255,255,0.32)' }}
-              >
-                {t('employee.label')}
-              </p>
-
-              {linkSent ? (
-                /* Success state */
-                <div className="flex flex-col items-center text-center gap-2.5 py-5">
-                  <span
-                    className="w-11 h-11 rounded-full inline-flex items-center justify-center"
-                    style={{
-                      background: 'rgba(16,185,129,0.1)',
-                      border: '1px solid rgba(16,185,129,0.3)',
-                    }}
-                  >
-                    <Icon name="mail-check" size={20} className="text-emerald-400" />
-                  </span>
-                  <p className="text-[14.5px] font-semibold text-white">
-                    {t('employee.successTitle')}
-                  </p>
-                  <p className="text-[12.5px] max-w-xs" style={{ color: 'rgba(255,255,255,0.42)' }}>
-                    {t('employee.successDesc', { email: email.trim() })}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => { setLinkSent(false); setEmail(''); setLinkError(null) }}
-                    className="mt-1 text-[12px] underline underline-offset-2 transition-opacity hover:opacity-70"
-                    style={{ color: 'rgba(255,255,255,0.38)' }}
-                  >
-                    {t('employee.tryAnother')}
-                  </button>
-                </div>
-              ) : (
-                /* Input form */
-                <div className="space-y-3">
-                  {linkError && <ErrorBanner message={linkError} />}
-
-                  <div>
-                    <label htmlFor="employee-email" className="sr-only">
-                      {t('employee.emailPlaceholder')}
-                    </label>
-                    <Input
-                      id="employee-email"
-                      value={email}
-                      onChange={(v) => { setEmail(v); setEmailError(null) }}
-                      placeholder={t('employee.emailPlaceholder')}
-                      type="email"
-                      disabled={linkBusy}
-                      autoFocus={false}
-                      className="bg-[#131620] border-white/10 text-white placeholder:text-white/25 focus:border-[#E8692A] focus:ring-[rgba(232,105,42,0.25)]"
-                    />
-                    {emailError && (
-                      <p role="alert" className="mt-1.5 text-[11.5px] text-[#FDA4AF]">
-                        {emailError}
-                      </p>
-                    )}
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => { void handleSendLink() }}
-                    disabled={linkBusy}
-                    className="w-full h-11 flex items-center justify-center gap-2 rounded-xl font-semibold text-[14px] text-white transition-opacity duration-150 disabled:opacity-50 hover:opacity-90"
-                    style={{ background: '#E8692A' }}
-                  >
-                    {linkBusy && (
-                      <Icon name="loader-circle" size={16} className="animate-spin" />
-                    )}
-                    {linkBusy ? t('employee.sending') : t('employee.linkBtn')}
-                  </button>
-                </div>
-              )}
-            </section>
-
-          </div>
-        </div>
-
-        {/* Footer note */}
-        <p
-          className="text-[11px] flex-shrink-0 whitespace-pre-line"
-          style={{ color: 'rgba(255,255,255,0.18)' }}
+        {/* Logo — position:absolute top-left, out of flex flow */}
+        <div
+          className="absolute top-9 left-6 lg:left-12"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            animation: 'fadeInUp .5s ease both',
+          }}
         >
-          {t('footer.note')}
-        </p>
+          <div
+            style={{
+              width: '34px',
+              height: '34px',
+              background: '#E8692A',
+              borderRadius: '9px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="white" strokeWidth="1.8" strokeLinejoin="round" />
+              <path d="M2 17l10 5 10-5" stroke="white" strokeWidth="1.8" strokeLinejoin="round" />
+              <path d="M2 12l10 5 10-5" stroke="white" strokeWidth="1.8" strokeLinejoin="round" />
+            </svg>
+          </div>
+          <span style={{ color: 'white', fontSize: '15px', fontWeight: 600, letterSpacing: '.3px' }}>
+            AMS
+          </span>
+        </div>
 
+        {/* Form card — max-width 380px, animated */}
+        <div
+          className="w-full"
+          style={{ maxWidth: '380px', animation: 'fadeInUp .6s ease .1s both' }}
+        >
+
+          {/* Title block */}
+          <div style={{ marginBottom: '40px' }}>
+            <h1
+              style={{
+                color: '#ffffff',
+                fontSize: '28px',
+                fontWeight: 700,
+                letterSpacing: '-.5px',
+                marginBottom: '8px',
+                lineHeight: 1.2,
+              }}
+            >
+              {t('page.title')}
+            </h1>
+            <p style={{ color: '#6b7280', fontSize: '14px', lineHeight: 1.5 }}>
+              {t('page.subtitle')}
+            </p>
+          </div>
+
+          {/* Email-link check error banner */}
+          {linkCheckError && !linkChecking && (
+            <div className="mb-5">
+              <ErrorBanner message={linkCheckError} />
+            </div>
+          )}
+
+          {/* Loading indicator for email link completion */}
+          {linkChecking && (
+            <div className="flex items-center gap-2 py-2 mb-4">
+              <Icon name="loader-circle" size={16} className="animate-spin text-[#E8692A]" />
+              <span className="text-[12.5px]" style={{ color: 'rgba(255,255,255,0.42)' }}>
+                {t('loading')}
+              </span>
+            </div>
+          )}
+
+          {/* ── Admin section ── */}
+          <section aria-labelledby="admin-section-lbl" style={{ marginBottom: '28px' }}>
+            <p
+              id="admin-section-lbl"
+              style={{
+                color: '#4a5065',
+                fontSize: '10px',
+                fontWeight: 600,
+                letterSpacing: '1.2px',
+                textTransform: 'uppercase',
+                marginBottom: '12px',
+              }}
+            >
+              {t('admin.label')}
+            </p>
+
+            {googleError && (
+              <div style={{ marginBottom: '12px' }}>
+                <ErrorBanner message={googleError} />
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={() => { void handleGoogle() }}
+              disabled={googleBusy}
+              className="w-full flex items-center justify-center gap-[10px] bg-[#1e2130] border border-[#2e3347] rounded-[10px] text-[#e5e7eb] text-[14px] font-medium hover:bg-[#2a2d38] hover:border-[#4a5065] disabled:opacity-50 transition-colors duration-150 cursor-pointer"
+              style={{ padding: '13px 20px' }}
+            >
+              {googleBusy ? (
+                <Icon name="loader-circle" size={18} className="animate-spin text-[#e5e7eb]" />
+              ) : (
+                <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" className="flex-shrink-0">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" />
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                </svg>
+              )}
+              {t('admin.googleBtn')}
+            </button>
+          </section>
+
+          {/* ── Divider ── */}
+          <div
+            className="flex items-center gap-3"
+            aria-hidden="true"
+            style={{ marginBottom: '28px' }}
+          >
+            <div style={{ flex: 1, height: '1px', background: '#22263a' }} />
+            <span style={{ color: '#3a3f55', fontSize: '12px' }}>{t('divider')}</span>
+            <div style={{ flex: 1, height: '1px', background: '#22263a' }} />
+          </div>
+
+          {/* ── Employee section ── */}
+          <section aria-labelledby="employee-section-lbl">
+            <p
+              id="employee-section-lbl"
+              style={{
+                color: '#4a5065',
+                fontSize: '10px',
+                fontWeight: 600,
+                letterSpacing: '1.2px',
+                textTransform: 'uppercase',
+                marginBottom: '12px',
+              }}
+            >
+              {t('employee.label')}
+            </p>
+
+            {linkSent ? (
+              /* Success state */
+              <div className="flex flex-col items-center text-center gap-2.5 py-5">
+                <span
+                  className="w-11 h-11 rounded-full inline-flex items-center justify-center"
+                  style={{
+                    background: 'rgba(16,185,129,0.1)',
+                    border: '1px solid rgba(16,185,129,0.3)',
+                  }}
+                >
+                  <Icon name="mail-check" size={20} className="text-emerald-400" />
+                </span>
+                <p className="text-[14.5px] font-semibold text-white">
+                  {t('employee.successTitle')}
+                </p>
+                <p className="text-[12.5px] max-w-xs" style={{ color: 'rgba(255,255,255,0.42)' }}>
+                  {t('employee.successDesc', { email: email.trim() })}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => { setLinkSent(false); setEmail(''); setLinkError(null) }}
+                  className="mt-1 text-[12px] underline underline-offset-2 transition-opacity hover:opacity-70"
+                  style={{ color: 'rgba(255,255,255,0.38)', background: 'none', border: 'none', cursor: 'pointer' }}
+                >
+                  {t('employee.tryAnother')}
+                </button>
+              </div>
+            ) : (
+              /* Input form */
+              <div className="space-y-3">
+                {linkError && <ErrorBanner message={linkError} />}
+
+                <div>
+                  <label htmlFor="employee-email" className="sr-only">
+                    {t('employee.emailPlaceholder')}
+                  </label>
+                  <input
+                    id="employee-email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => { setEmail(e.target.value); setEmailError(null) }}
+                    placeholder={t('employee.emailPlaceholder')}
+                    disabled={linkBusy}
+                    className="w-full placeholder:text-[#4a5065] outline-none block"
+                    style={{
+                      background: '#131620',
+                      border: '1px solid #2e3347',
+                      borderRadius: '10px',
+                      padding: '13px 16px',
+                      color: '#e5e7eb',
+                      fontSize: '14px',
+                      boxSizing: 'border-box',
+                      opacity: linkBusy ? 0.5 : 1,
+                      transition: 'border-color 0.15s, box-shadow 0.15s',
+                    }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor = '#E8692A'
+                      e.currentTarget.style.boxShadow = '0 0 0 2px rgba(232,105,42,0.18)'
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = '#2e3347'
+                      e.currentTarget.style.boxShadow = 'none'
+                    }}
+                  />
+                  {emailError && (
+                    <p role="alert" className="mt-1.5 text-[11.5px] text-[#FDA4AF]">
+                      {emailError}
+                    </p>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => { void handleSendLink() }}
+                  disabled={linkBusy}
+                  className="w-full flex items-center justify-center gap-2 bg-[#E8692A] rounded-[10px] text-white text-[14px] font-semibold hover:bg-[#cf5a1f] disabled:opacity-60 transition-colors duration-150 cursor-pointer border-0"
+                  style={{ padding: '13px 20px', letterSpacing: '.2px' }}
+                >
+                  {linkBusy && (
+                    <Icon name="loader-circle" size={16} className="animate-spin" />
+                  )}
+                  {linkBusy ? t('employee.sending') : t('employee.linkBtn')}
+                </button>
+              </div>
+            )}
+          </section>
+
+          {/* Footer note — inside form card, centered, after employee section */}
+          <p
+            style={{
+              marginTop: '36px',
+              textAlign: 'center',
+              color: '#3a4055',
+              fontSize: '12px',
+              lineHeight: 1.6,
+            }}
+          >
+            {footerLines[0]}
+            {footerLines.length > 1 && (
+              <><br />{footerLines[1]}</>
+            )}
+          </p>
+
+        </div>
       </div>
 
       {/* ── RIGHT: Decorative panel (desktop only) ───────────────────────────── */}
@@ -420,130 +372,314 @@ export function LoginPage() {
         aria-hidden="true"
       >
 
-        {/* Radial glows */}
+        {/* 1. Orange radial glow — CENTERED */}
         <div
-          className="absolute inset-0 pointer-events-none"
           style={{
-            background: [
-              'radial-gradient(ellipse 65% 55% at 72% 18%, rgba(232,105,42,0.20) 0%, transparent 70%)',
-              'radial-gradient(ellipse 55% 55% at 22% 82%, rgba(56,189,248,0.13) 0%, transparent 70%)',
-            ].join(', '),
+            position: 'absolute',
+            top: '50%',
+            left: '40%',
+            transform: 'translate(-50%, -50%)',
+            width: '700px',
+            height: '700px',
+            background: 'radial-gradient(circle, rgba(232,105,42,0.18) 0%, rgba(232,105,42,0.05) 40%, transparent 70%)',
+            pointerEvents: 'none',
           }}
         />
 
-        {/* Dot-grid pattern */}
+        {/* 2. Blue glow — TOP-RIGHT */}
+        <div
+          style={{
+            position: 'absolute',
+            top: '-100px',
+            right: '-80px',
+            width: '500px',
+            height: '500px',
+            background: 'radial-gradient(circle, rgba(56,130,220,0.12) 0%, transparent 65%)',
+            pointerEvents: 'none',
+          }}
+        />
+
+        {/* 3. Dot grid */}
         <svg
-          className="absolute inset-0 w-full h-full pointer-events-none"
-          xmlns="http://www.w3.org/2000/svg"
-          style={{ opacity: 0.5 }}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            width: '100%',
+            height: '100%',
+            opacity: 0.15,
+          }}
+          aria-hidden="true"
         >
           <defs>
-            <pattern id="dot-grid-lg" x="0" y="0" width="28" height="28" patternUnits="userSpaceOnUse">
-              <circle cx="1" cy="1" r="1" fill="rgba(255,255,255,0.055)" />
+            <pattern id="dots" x="0" y="0" width="32" height="32" patternUnits="userSpaceOnUse">
+              <circle cx="1" cy="1" r="1" fill="#4a5a7a" />
             </pattern>
           </defs>
-          <rect width="100%" height="100%" fill="url(#dot-grid-lg)" />
+          <rect width="100%" height="100%" fill="url(#dots)" />
         </svg>
 
-        {/* Giant "AMS" letterform */}
+        {/* 4. Network SVG — full cover, viewBox 800×600, slice */}
+        <svg
+          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%' }}
+          viewBox="0 0 800 600"
+          preserveAspectRatio="xMidYMid slice"
+          aria-hidden="true"
+        >
+          <defs>
+            <filter id="glow-orange">
+              <feGaussianBlur stdDeviation="6" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+            <filter id="glow-blue">
+              <feGaussianBlur stdDeviation="5" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+            <radialGradient id="node-orange" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#E8692A" />
+              <stop offset="100%" stopColor="#c45520" />
+            </radialGradient>
+            <radialGradient id="node-blue" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#4a9eff" />
+              <stop offset="100%" stopColor="#2d6fd4" />
+            </radialGradient>
+            <radialGradient id="node-dim" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#2e3a55" />
+              <stop offset="100%" stopColor="#1e2840" />
+            </radialGradient>
+          </defs>
+
+          {/* Orange connection lines */}
+          <g stroke="#E8692A" strokeWidth="1" fill="none" opacity="0.25">
+            <line x1="400" y1="300" x2="220" y2="160" />
+            <line x1="400" y1="300" x2="580" y2="180" />
+            <line x1="400" y1="300" x2="600" y2="400" />
+            <line x1="400" y1="300" x2="240" y2="430" />
+            <line x1="400" y1="300" x2="400" y2="130" />
+            <line x1="220" y1="160" x2="100" y2="220" />
+            <line x1="220" y1="160" x2="290" y2="60" />
+            <line x1="580" y1="180" x2="690" y2="100" />
+            <line x1="580" y1="180" x2="700" y2="240" />
+            <line x1="600" y1="400" x2="730" y2="380" />
+            <line x1="600" y1="400" x2="660" y2="490" />
+            <line x1="240" y1="430" x2="130" y2="490" />
+            <line x1="240" y1="430" x2="160" y2="340" />
+            <line x1="400" y1="130" x2="490" y2="60" />
+            <line x1="400" y1="130" x2="310" y2="55" />
+          </g>
+
+          {/* Blue secondary lines */}
+          <g stroke="#3a82dc" strokeWidth="0.8" fill="none" opacity="0.2">
+            <line x1="100" y1="220" x2="160" y2="340" />
+            <line x1="290" y1="60" x2="310" y2="55" />
+            <line x1="690" y1="100" x2="700" y2="240" />
+            <line x1="730" y1="380" x2="660" y2="490" />
+            <line x1="130" y1="490" x2="160" y2="340" />
+          </g>
+
+          {/* Dim leaf nodes */}
+          <g opacity="0.5">
+            <circle cx="100" cy="220" r="5" fill="url(#node-dim)" />
+            <circle cx="290" cy="60" r="5" fill="url(#node-dim)" />
+            <circle cx="690" cy="100" r="5" fill="url(#node-dim)" />
+            <circle cx="700" cy="240" r="5" fill="url(#node-dim)" />
+            <circle cx="730" cy="380" r="5" fill="url(#node-dim)" />
+            <circle cx="660" cy="490" r="5" fill="url(#node-dim)" />
+            <circle cx="130" cy="490" r="5" fill="url(#node-dim)" />
+            <circle cx="160" cy="340" r="5" fill="url(#node-dim)" />
+            <circle cx="490" cy="60" r="5" fill="url(#node-dim)" />
+            <circle cx="310" cy="55" r="5" fill="url(#node-dim)" />
+          </g>
+
+          {/* Blue intermediate nodes */}
+          <g filter="url(#glow-blue)">
+            <circle cx="220" cy="160" r="8" fill="url(#node-blue)" opacity="0.85" />
+            <circle cx="580" cy="180" r="8" fill="url(#node-blue)" opacity="0.85" />
+            <circle cx="600" cy="400" r="8" fill="url(#node-blue)" opacity="0.85" />
+            <circle cx="240" cy="430" r="8" fill="url(#node-blue)" opacity="0.85" />
+            <circle cx="400" cy="130" r="7" fill="url(#node-blue)" opacity="0.7" />
+          </g>
+
+          {/* Pulse rings on CENTER node (400,300) */}
+          <circle
+            cx="400" cy="300" r="42" fill="none" stroke="#E8692A" strokeWidth="1.5"
+            style={{
+              opacity: 0,
+              animation: 'pulse-ring 3s ease-in-out infinite',
+              transformBox: 'fill-box',
+              transformOrigin: 'center',
+            }}
+          />
+          <circle
+            cx="400" cy="300" r="64" fill="none" stroke="#E8692A" strokeWidth="1"
+            style={{
+              opacity: 0,
+              animation: 'pulse-ring 3s ease-in-out .8s infinite',
+              transformBox: 'fill-box',
+              transformOrigin: 'center',
+            }}
+          />
+          <circle
+            cx="400" cy="300" r="88" fill="none" stroke="#E8692A" strokeWidth="0.7"
+            style={{
+              opacity: 0,
+              animation: 'pulse-ring 3s ease-in-out 1.6s infinite',
+              transformBox: 'fill-box',
+              transformOrigin: 'center',
+            }}
+          />
+
+          {/* Center node: concentric circles + layers icon */}
+          <g filter="url(#glow-orange)">
+            <circle cx="400" cy="300" r="26" fill="#1a1e2a" stroke="#E8692A" strokeWidth="1.5" opacity="0.9" />
+            <circle cx="400" cy="300" r="14" fill="url(#node-orange)" />
+            <g
+              transform="translate(392,292)"
+              fill="none"
+              stroke="white"
+              strokeWidth="1.3"
+              strokeLinejoin="round"
+            >
+              <path d="M8 1L1 4.5l7 3.5 7-3.5L8 1z" />
+              <path d="M1 11.5l7 3.5 7-3.5" />
+              <path d="M1 8l7 3.5 7-3.5" />
+            </g>
+          </g>
+        </svg>
+
+        {/* 5. Giant AMS — anchored BOTTOM-RIGHT */}
         <div
-          className="absolute inset-0 flex items-center justify-center pointer-events-none select-none"
           style={{
-            fontSize: 'clamp(180px, 22vw, 300px)',
-            fontWeight: 900,
+            position: 'absolute',
+            bottom: '-40px',
+            right: '-30px',
+            fontSize: '280px',
+            fontWeight: 800,
             color: 'rgba(255,255,255,0.025)',
-            letterSpacing: '-0.04em',
+            letterSpacing: '-10px',
             lineHeight: 1,
+            pointerEvents: 'none',
+            userSelect: 'none',
           }}
         >
           AMS
         </div>
 
-        {/* Network SVG — fills the panel */}
-        <div className="absolute inset-0 flex items-center justify-center p-12">
-          <NetworkVisual />
-        </div>
-
-        {/* Animated scan line */}
+        {/* 6. Scan line */}
         <div
-          className="absolute left-0 right-0 h-[1px] pointer-events-none"
           style={{
-            background: 'linear-gradient(90deg, transparent 0%, rgba(232,105,42,0.55) 50%, transparent 100%)',
-            animation: 'scan 5s linear infinite',
+            position: 'absolute',
+            left: 0,
+            right: 0,
             top: 0,
+            height: '2px',
+            background: 'linear-gradient(90deg, transparent, rgba(232,105,42,0.4), transparent)',
+            animation: 'scan 6s ease-in-out infinite',
+            pointerEvents: 'none',
           }}
         />
 
-        {/* Stats cards — top-right */}
-        <div className="absolute top-8 right-8 flex flex-col gap-3 z-10">
-          <div
-            className="px-4 py-3 rounded-xl min-w-[140px]"
-            style={{
-              background: 'rgba(255,255,255,0.035)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              backdropFilter: 'blur(12px)',
-              WebkitBackdropFilter: 'blur(12px)',
-            }}
-          >
-            <div
-              className="text-[22px] font-bold leading-none mb-1"
-              style={{ color: '#E8692A' }}
-            >
-              {t('visual.rolesValue')}
-            </div>
-            <div className="text-[11px] leading-snug" style={{ color: 'rgba(255,255,255,0.38)' }}>
-              {t('visual.rolesDesc')}
-            </div>
-          </div>
-
-          <div
-            className="px-4 py-3 rounded-xl min-w-[140px]"
-            style={{
-              background: 'rgba(255,255,255,0.035)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              backdropFilter: 'blur(12px)',
-              WebkitBackdropFilter: 'blur(12px)',
-            }}
-          >
-            <div
-              className="text-[22px] font-bold leading-none mb-1"
-              style={{ color: '#38BDF8' }}
-            >
-              {t('visual.qrValue')}
-            </div>
-            <div className="text-[11px] leading-snug" style={{ color: 'rgba(255,255,255,0.38)' }}>
-              {t('visual.qrDesc')}
-            </div>
-          </div>
-        </div>
-
-        {/* Glassmorphism info card — bottom-left */}
+        {/* 7. Info card — bottom-left */}
         <div
-          className="absolute bottom-8 left-8 max-w-[272px] rounded-2xl p-5 z-10"
           style={{
+            position: 'absolute',
+            bottom: '40px',
+            left: '40px',
             background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: '14px',
+            padding: '20px 24px',
+            maxWidth: '280px',
           }}
         >
-          {/* Online status */}
-          <div className="flex items-center gap-2 mb-3">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
             <div
-              className="w-2 h-2 rounded-full flex-shrink-0"
-              style={{ background: '#10B981', boxShadow: '0 0 6px rgba(16,185,129,0.8)' }}
+              style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                background: '#22c55e',
+                boxShadow: '0 0 8px #22c55e',
+                flexShrink: 0,
+              }}
             />
-            <span className="text-[11px] font-medium" style={{ color: 'rgba(255,255,255,0.55)' }}>
+            <span
+              style={{
+                color: '#6b7280',
+                fontSize: '11px',
+                fontWeight: 500,
+                textTransform: 'uppercase',
+                letterSpacing: '.8px',
+              }}
+            >
               {t('visual.statusOnline')}
             </span>
           </div>
-
-          <h3 className="text-[13px] font-semibold text-white mb-1.5 leading-snug">
+          <p style={{ color: '#e5e7eb', fontSize: '14px', fontWeight: 500, marginBottom: '4px' }}>
             {t('visual.infoTitle')}
-          </h3>
-          <p className="text-[11.5px] leading-relaxed" style={{ color: 'rgba(255,255,255,0.42)' }}>
+          </p>
+          <p style={{ color: '#4a5065', fontSize: '12px', lineHeight: 1.5 }}>
             {t('visual.infoDesc')}
           </p>
+        </div>
+
+        {/* 8. Stats cards — top-right, right-aligned text */}
+        <div
+          style={{
+            position: 'absolute',
+            top: '40px',
+            right: '40px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '10px',
+            alignItems: 'flex-end',
+          }}
+        >
+          {/* Roles card — orange tinted */}
+          <div
+            style={{
+              background: 'rgba(232,105,42,0.12)',
+              border: '1px solid rgba(232,105,42,0.25)',
+              borderRadius: '10px',
+              padding: '10px 16px',
+              textAlign: 'right',
+            }}
+          >
+            <p style={{ color: '#E8692A', fontSize: '18px', fontWeight: 700, lineHeight: 1 }}>
+              {t('visual.rolesValue')}
+            </p>
+            <p style={{ color: '#4a5065', fontSize: '11px', marginTop: '2px' }}>
+              {t('visual.rolesDesc')}
+            </p>
+          </div>
+
+          {/* QR card — neutral */}
+          <div
+            style={{
+              background: 'rgba(255,255,255,0.04)',
+              border: '1px solid rgba(255,255,255,0.07)',
+              borderRadius: '10px',
+              padding: '10px 16px',
+              textAlign: 'right',
+            }}
+          >
+            <p style={{ color: '#e5e7eb', fontSize: '18px', fontWeight: 700, lineHeight: 1 }}>
+              {t('visual.qrValue')}
+            </p>
+            <p style={{ color: '#4a5065', fontSize: '11px', marginTop: '2px' }}>
+              {t('visual.qrDesc')}
+            </p>
+          </div>
         </div>
 
       </div>

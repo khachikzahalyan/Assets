@@ -377,23 +377,23 @@ select:-webkit-autofill {
 
 /* ── Login page decorative animations ── */
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(14px); }
+  from { opacity: 0; transform: translateY(18px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* pulse-ring — SVG circle expands outward and fades; use transformBox:fill-box + transformOrigin:center */
+/* pulse-ring — SVG circle breathes (scale 0.85↔1.05); use transformBox:fill-box + transformOrigin:center */
 @keyframes pulse-ring {
-  0%   { transform: scale(1);   opacity: 0.75; }
-  70%  { transform: scale(1.9); opacity: 0.18; }
-  100% { transform: scale(2.1); opacity: 0; }
+  0%   { transform: scale(.85);  opacity: .6; }
+  50%  { transform: scale(1.05); opacity: .2; }
+  100% { transform: scale(.85);  opacity: .6; }
 }
 
 /* scan — horizontal light-line scans down the right decorative panel */
 @keyframes scan {
-  0%   { top: 0;    opacity: 0; }
-  6%   { opacity: 0.85; }
-  94%  { opacity: 0.85; }
-  100% { top: 100%; opacity: 0; }
+  0%   { transform: translateY(-100%); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { transform: translateY(600%);  opacity: 0; }
 }
 
 /* =========================================================
