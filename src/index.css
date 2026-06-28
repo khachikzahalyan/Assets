@@ -388,12 +388,12 @@ select:-webkit-autofill {
   100% { transform: scale(.85);  opacity: .6; }
 }
 
-/* ring-expand — radar/sonar ripple: a ring is born at the node and grows
-   outward while fading. Stagger several for a continuous emanating wave. */
-@keyframes ring-expand {
-  0%   { transform: scale(.85); opacity: 0; }
-  12%  { opacity: .55; }
-  100% { transform: scale(3.8); opacity: 0; }
+/* pulse-ring-m — mobile-hero variant (matches the Login Mobile prototype:
+   wider breath + brighter peak than the desktop pulse-ring). */
+@keyframes pulse-ring-m {
+  0%   { transform: scale(.8);  opacity: .7;  }
+  50%  { transform: scale(1.1); opacity: .15; }
+  100% { transform: scale(.8);  opacity: .7;  }
 }
 
 /* scan — horizontal light-line sweeps the full height of the right panel */
