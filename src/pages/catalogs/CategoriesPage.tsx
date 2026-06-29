@@ -7,10 +7,10 @@ import { CatalogTable, ConfirmDeleteDialog, type CatalogColumn } from '@/compone
 import { CategoryFormDialog, type CategoryFormValues } from '@/components/features/categories'
 import type { Category, CategoryRepository } from '@/domain/category'
 import { FirestoreCategoryRepository } from '@/infra/repositories'
-import { EntityInUseError, PrefixLockedError } from '@/domain/shared'
+import { EntityInUseError } from '@/domain/shared'
 import { db } from '@/lib/firebase'
 
-const PAGE_SIZE = 15
+const GROUP_ORDER = ['devices', 'network', 'furniture'] as const
 
 export interface CategoriesPageProps { repository?: CategoryRepository }
 
@@ -26,12 +26,10 @@ export function CategoriesPage({ repository }: CategoriesPageProps) {
   const canMutate = role === 'super_admin'
   const isMobile = useIsMobile()
 
-  const [page, setPage]       = useState(1)
-  const [rows, setRows]       = useState<Category[]>([])
-  const [loading, setLoad]    = useState(true)
-  const [error, setError]     = useState<string | null>(null)
-  const [editing, setEditing] = useState<Category | 'new' | null>(null)
-  const [prefixLocked, setPrefixLocked] = useState(false)
+  const [rows, setRows]             = useState<Category[]>([])
+  const [loading, setLoad]          = useState(true)
+  const [error, setError]           = useState<string | null>(null)
+  const [editing, setEditing]       = useState<Category | 'new' | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [saveError, setSaveError]   = useState<string | null>(null)
   const [deleting, setDeleting]     = useState<Category | null>(null)
@@ -46,26 +44,31 @@ export function CategoriesPage({ repository }: CategoriesPageProps) {
   }, [repo, t])
   useEffect(() => { void load() }, [load])
 
-  const total   = rows.length
-  const from    = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1
-  const to      = Math.min(page * PAGE_SIZE, total)
-  const pageRows = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const total = rows.length
+
+  // Group → chip colour (devices/network/furniture).
+  const GROUP_CHIP: Record<string, 'blue' | 'green' | 'amber'> = {
+    devices: 'blue', network: 'green', furniture: 'amber',
+  }
 
   const columns: CatalogColumn<Category>[] = [
     {
       key: 'name',
       header: t('col.name'),
-      render: c => <span className="text-text-primary">{c.name}</span>,
+      width: '2fr',
+      render: c => (
+        <span className="flex items-center gap-2 min-w-0">
+          <Icon name={c.lucideIcon} size={15} className="text-text-tertiary flex-shrink-0" />
+          <span className="text-text-primary truncate">{c.name}</span>
+        </span>
+      ),
     },
     {
       key: 'group',
       header: t('col.group'),
-      render: c => <Chip color="indigo">{t(`group.${c.group}`)}</Chip>,
-    },
-    {
-      key: 'prefix',
-      header: t('col.prefix'),
-      render: c => <span className="font-mono text-text-tertiary">{c.prefix}</span>,
+      render: c => (
+        <Chip color={GROUP_CHIP[c.group] ?? 'gray'}>{t(`group.${c.group}`)}</Chip>
+      ),
     },
     {
       key: 'specs',
@@ -78,14 +81,8 @@ export function CategoriesPage({ repository }: CategoriesPageProps) {
     },
   ]
 
-  async function openEdit(cat: Category) {
+  function openEdit(cat: Category) {
     setSaveError(null)
-    try {
-      const count = await repo.countReferences(cat.id)
-      setPrefixLocked(count > 0)
-    } catch {
-      setPrefixLocked(false)
-    }
     setEditing(cat)
   }
 
@@ -99,14 +96,9 @@ export function CategoriesPage({ repository }: CategoriesPageProps) {
       }
       setEditing(null); await load()
     } catch (e) {
-      if (e instanceof PrefixLockedError) {
-        setSaveError(t('form.prefixLocked'))
-      } else {
-        const msg = e instanceof Error ? e.message : String(e)
-        if (/name already in use/i.test(msg)) setSaveError(t('validation.nameTaken'))
-        else if (/prefix already in use/i.test(msg)) setSaveError(t('validation.prefixTaken'))
-        else setSaveError(t('validation.saveFailed'))
-      }
+      const msg = e instanceof Error ? e.message : String(e)
+      if (/name already in use/i.test(msg)) setSaveError(t('validation.nameTaken'))
+      else setSaveError(t('validation.saveFailed'))
     } finally { setSubmitting(false) }
   }
 
@@ -137,29 +129,21 @@ export function CategoriesPage({ repository }: CategoriesPageProps) {
     if (rows.length === 0) return (
       <EmptyState icon="tags" title={t('empty.title')} description={t('empty.desc')} />
     )
+    // Single clean table, ordered by group then name (group is now a column).
+    const ordered = [...rows].sort((a, b) => {
+      const ga = GROUP_ORDER.indexOf(a.group as (typeof GROUP_ORDER)[number])
+      const gb = GROUP_ORDER.indexOf(b.group as (typeof GROUP_ORDER)[number])
+      if (ga !== gb) return ga - gb
+      return a.name.localeCompare(b.name)
+    })
     return (
-      <>
-        <CatalogTable
-          rows={pageRows} columns={columns} canMutate={canMutate}
-          onEdit={openEdit}
-          onDelete={askDelete}
-        />
-        {total > PAGE_SIZE && (
-          <div className="flex items-center justify-between pt-4 border-t border-border mt-2">
-            <span className="text-[12px] text-text-subtle">
-              {t('pagination.range', { from, to, total })}
-            </span>
-            <div className="flex gap-2">
-              <Btn variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>
-                <Icon name="chevron-right" size={13} className="rotate-180" />
-              </Btn>
-              <Btn variant="secondary" size="sm" disabled={to >= total} onClick={() => setPage(p => p + 1)}>
-                <Icon name="chevron-right" size={13} />
-              </Btn>
-            </div>
-          </div>
-        )}
-      </>
+      <CatalogTable
+        rows={ordered}
+        columns={columns}
+        canMutate={canMutate}
+        onEdit={openEdit}
+        onDelete={askDelete}
+      />
     )
   }
 
@@ -168,7 +152,7 @@ export function CategoriesPage({ repository }: CategoriesPageProps) {
       <PageHeader
         icon="tags" title={t('title')} {...(!loading ? { count: total } : {})}
         {...(canMutate ? { actions: (
-          <Btn variant="primary" size="md" onClick={() => { setSaveError(null); setPrefixLocked(false); setEditing('new') }}>
+          <Btn variant="primary" size="md" onClick={() => { setSaveError(null); setEditing('new') }}>
             <Icon name="tags" size={14} />{t('create')}
           </Btn>
         ) } : {})}
@@ -179,7 +163,6 @@ export function CategoriesPage({ repository }: CategoriesPageProps) {
         <CategoryFormDialog
           open
           initial={editing !== 'new' ? editing : null}
-          prefixLocked={prefixLocked}
           submitting={submitting} submitError={saveError}
           onSubmit={handleSubmit} onCancel={() => setEditing(null)}
         />
