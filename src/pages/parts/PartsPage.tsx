@@ -440,8 +440,8 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
         </div>
       )}
 
-      {/* Tab body — flex-1 min-h-0 overflow-hidden at all widths; inner grid scrolls */}
-      <div className="flex-1 min-h-0 overflow-hidden">
+      {/* Tab body — flex-1 min-h-0 overflow-hidden at all widths; inner grid scrolls. Mobile: allow y-scroll so WarehouseTab history isn't clipped */}
+      <div className="flex-1 min-h-0 overflow-hidden max-md:overflow-y-auto">
         {activeTab === 'warehouse' && (
           <WarehouseTab
             parts={parts}

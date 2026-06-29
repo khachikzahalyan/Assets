@@ -665,8 +665,9 @@ export function EmployeesPage({
 
   function renderPagination() {
     return (
-      <div className="flex items-center justify-between px-5 py-2 border-t border-border bg-bg">
-        <span className="text-[14px] text-text-tertiary tabular-nums">
+      <div className="flex items-center justify-between px-5 py-2 border-t border-border bg-bg max-md:justify-center">
+        {/* Info text — hidden on mobile */}
+        <span className="text-[14px] text-text-tertiary tabular-nums max-md:hidden">
           {t('pagination.showing', { from, to, total: totalCount })}
         </span>
         <div className="flex items-center gap-1">
@@ -679,10 +680,14 @@ export function EmployeesPage({
           >
             <Icon name="chevron-right" size={14} className="rotate-180" />
           </button>
+          {/* Mobile-only compact page indicator */}
+          <span className="hidden max-md:inline text-[14px] font-semibold tabular-nums text-text-primary px-2">
+            {page} / {totalPages}
+          </span>
           {winStart > 1 && (
             <>
-              <button type="button" onClick={() => goTo(1)} className="w-8 h-8 rounded-md text-[14px] font-semibold text-text-primary hover:bg-surface-2">1</button>
-              {winStart > 2 && <span className="px-1 text-text-subtle text-[14px]">…</span>}
+              <button type="button" onClick={() => goTo(1)} className="w-8 h-8 rounded-md text-[14px] font-semibold text-text-primary hover:bg-surface-2 max-md:hidden">1</button>
+              {winStart > 2 && <span className="px-1 text-text-subtle text-[14px] max-md:hidden">…</span>}
             </>
           )}
           {pageNums.map(p => (
@@ -695,15 +700,15 @@ export function EmployeesPage({
                 p === page
                   ? 'bg-accent text-white shadow-sm shadow-accent/25'
                   : 'text-text-primary hover:bg-surface-2'
-              }`}
+              }${p !== page ? ' max-md:hidden' : ''}`}
             >
               {p}
             </button>
           ))}
           {winEnd < totalPages && (
             <>
-              {winEnd < totalPages - 1 && <span className="px-1 text-text-subtle text-[14px]">…</span>}
-              <button type="button" onClick={() => goTo(totalPages)} className="w-8 h-8 rounded-md text-[14px] font-semibold text-text-primary hover:bg-surface-2">{totalPages}</button>
+              {winEnd < totalPages - 1 && <span className="px-1 text-text-subtle text-[14px] max-md:hidden">…</span>}
+              <button type="button" onClick={() => goTo(totalPages)} className="w-8 h-8 rounded-md text-[14px] font-semibold text-text-primary hover:bg-surface-2 max-md:hidden">{totalPages}</button>
             </>
           )}
           <button

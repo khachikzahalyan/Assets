@@ -118,9 +118,11 @@ export function ProfilePage({ repository, loadRefData }: ProfilePageProps) {
 
   return (
     <div className="space-y-5">
+      {/* SectionCard below already shows the title on mobile — hide PageHeader to avoid duplicate */}
       <PageHeader
         icon="user"
         title={fullName}
+        className="max-md:hidden"
         actions={
           <Chip color={employee.status === 'active' ? 'green' : 'gray'} dot>
             {t(`status.${employee.status}`)}

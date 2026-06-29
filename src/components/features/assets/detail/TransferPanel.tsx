@@ -289,8 +289,8 @@ export function TransferPanel({ asset: _asset, refData, caps, busy, onCommit, on
         <div className="flex-1 h-px bg-surface-2" />
       </div>
 
-      {/* Mode tiles row */}
-      <div className="grid grid-cols-5 gap-1.5 max-md:grid-cols-3">
+      {/* Mode tiles row — mobile: 2-col grid, last tile spans full row to avoid orphaned half-row */}
+      <div className="grid grid-cols-5 gap-1.5 max-md:grid-cols-2 max-md:[&>*:last-child]:col-span-2">
         {TRANSFER_MODES.map(m => (
           <ModeTile
             key={m.id}

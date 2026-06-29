@@ -90,7 +90,8 @@ export function MyActsPage({ repository }: MyActsPageProps) {
 
   return (
     <div className="space-y-5">
-      <PageHeader icon="file-text" title={t('self.myActs')} />
+      {/* SectionCard below already shows the same title on mobile — hide PageHeader to avoid duplicate */}
+      <PageHeader icon="file-text" title={t('self.myActs')} className="max-md:hidden" />
 
       {actionError && (
         <p role="alert" className="text-[12px] text-[#FDA4AF] px-1">{actionError}</p>

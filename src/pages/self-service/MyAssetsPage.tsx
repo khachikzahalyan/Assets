@@ -103,7 +103,8 @@ export function MyAssetsPage({ repository }: MyAssetsPageProps) {
 
   return (
     <div className="space-y-5">
-      <PageHeader icon="package" title={t('self.myAssets')} />
+      {/* SectionCard below already shows the same title on mobile — hide PageHeader to avoid duplicate */}
+      <PageHeader icon="package" title={t('self.myAssets')} className="max-md:hidden" />
 
       <SectionCard title={t('self.myAssets')} icon="package">
         {assets.length === 0 ? (

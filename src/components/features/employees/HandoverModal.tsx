@@ -216,9 +216,9 @@ export function HandoverModal({
           />
         ))}
       </div>
-      {/* Row 3: keyboard hint — only in step 1 */}
+      {/* Row 3: keyboard hint — only in step 1; not actionable on touch */}
       {step === 'receive' && (
-        <span className="ams-handover-progress-kbhint text-[12.5px] text-text-subtle font-mono leading-none">
+        <span className="ams-handover-progress-kbhint text-[12.5px] text-text-subtle font-mono leading-none max-md:hidden">
           {t('handover.kbHint')}
         </span>
       )}
@@ -414,7 +414,7 @@ export function HandoverModal({
 
         {/* Sticky footer */}
         <div
-          className={`ams-handover-footer border-t border-border px-5 py-3 flex items-center gap-3 shrink-0 transition-shadow duration-200 ${
+          className={`ams-handover-footer border-t border-border px-5 py-3 flex items-center gap-3 shrink-0 transition-shadow duration-200 max-md:flex-col max-md:items-stretch max-md:gap-2 ${
             scrolledFromBottom
               ? 'shadow-[0_-1px_0_0_rgba(15,23,42,0.04),0_-4px_8px_-6px_rgba(15,23,42,0.12)]'
               : ''

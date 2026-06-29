@@ -54,7 +54,7 @@ export function ScanPage({ repository }: ScanPageProps) {
   return (
     <div>
       <PageHeader icon="scan-line" title={t('title')} />
-      <SectionCard noHeader>
+      <SectionCard noHeader bodyClassName="max-md:p-2">
         {error ? (
           <div className="flex flex-col items-center gap-3 py-10 text-center">
             <p className="text-text-secondary text-sm">{error}</p>

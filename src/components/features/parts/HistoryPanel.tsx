@@ -372,7 +372,7 @@ export function HistoryPanel({
                 return (
                   <li
                     key={mv.id ?? i}
-                    className="flex items-center gap-3 px-5 h-[56px] flex-shrink-0 hover:bg-[#111315]/60 transition-colors"
+                    className="flex items-center gap-3 px-5 h-[56px] flex-shrink-0 hover:bg-[#111315]/60 transition-colors max-md:h-auto max-md:py-3 max-md:flex-wrap"
                   >
                     <span className={`w-2 h-2 rounded-full flex-shrink-0 ${dotColor}`} />
                     <div className="flex items-center gap-1.5 min-w-0 flex-1">
@@ -391,7 +391,7 @@ export function HistoryPanel({
                       </div>
                     </div>
                     <div className="flex-shrink-0">{actionChip}</div>
-                    <div className="text-[14px] font-medium text-text-tertiary tabular-nums whitespace-nowrap flex-shrink-0 w-[88px] text-right">
+                    <div className="text-[14px] font-medium text-text-tertiary tabular-nums whitespace-nowrap flex-shrink-0 w-[88px] text-right max-md:hidden">
                       {fmtPartsDate(mv.at)}
                     </div>
                   </li>

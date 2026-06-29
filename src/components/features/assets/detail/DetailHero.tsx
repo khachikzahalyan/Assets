@@ -50,7 +50,7 @@ export function DetailHero({
               {asset.serial && (
                 <span className="inline-flex items-center gap-1.5 text-text-tertiary">
                   <span className="uppercase tracking-wide text-[12px] text-text-subtle">SN</span>
-                  <span className="font-mono text-[#E2E8F0]">{asset.serial}</span>
+                  <span className="font-mono text-[#E2E8F0] break-all">{asset.serial}</span>
                 </span>
               )}
             </div>

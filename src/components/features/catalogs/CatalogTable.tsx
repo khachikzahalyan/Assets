@@ -94,26 +94,24 @@ export function CatalogTable<T extends { id: string }>(props: CatalogTableProps<
                 ))}
               </div>
 
-              {/* Actions */}
+              {/* Actions — single IconBtn per action; 44px tap target on mobile via className override */}
               {canMutate && (
                 <div className="flex items-center gap-1 flex-shrink-0 self-center">
-                  <button
-                    type="button"
-                    aria-label={editLabel}
+                  <IconBtn
+                    icon="pencil"
+                    title={editLabel}
+                    tone="slate"
                     onClick={() => onEdit(row)}
-                    className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg text-text-subtle hover:text-text-primary hover:bg-surface-2 transition-colors"
-                  >
-                    <IconBtn icon="pencil" title={editLabel} tone="slate" onClick={() => onEdit(row)} />
-                  </button>
+                    className="max-md:!w-11 max-md:!h-11"
+                  />
                   {canDel && (
-                    <button
-                      type="button"
-                      aria-label={deleteLabel}
+                    <IconBtn
+                      icon="trash-2"
+                      title={deleteLabel}
+                      tone="rose"
                       onClick={() => onDelete(row)}
-                      className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg text-text-subtle hover:text-rose-400 hover:bg-surface-2 transition-colors"
-                    >
-                      <IconBtn icon="trash-2" title={deleteLabel} tone="rose" onClick={() => onDelete(row)} />
-                    </button>
+                      className="max-md:!w-11 max-md:!h-11"
+                    />
                   )}
                 </div>
               )}
