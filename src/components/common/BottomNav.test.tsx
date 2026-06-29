@@ -2,7 +2,7 @@
  * BottomNav unit tests.
  *
  * Verifies:
- *  - super_admin sees exactly 5 primary items (dashboard/assets/employees/scan/settings)
+ *  - super_admin sees ALL admin nav items (full set, in a horizontal scroll strip)
  *  - employee sees exactly 3 self-service items (my-assets/my-acts/profile)
  *  - active item carries aria-current="page" and the accent CSS class
  *  - clicking an item calls onNavigate with the correct route id
@@ -55,13 +55,13 @@ beforeAll(async () => {
 // ── tests ──────────────────────────────────────────────────────────────────
 
 describe('BottomNav — super_admin', () => {
-  it('renders exactly 5 primary items', () => {
+  it('renders the full admin nav (more than 5 items, scrollable strip)', () => {
     renderBottomNav('super_admin', 'dashboard')
     const buttons = screen.getAllByRole('button')
-    expect(buttons).toHaveLength(5)
+    expect(buttons.length).toBeGreaterThan(5)
   })
 
-  it('shows the curated set: Дашборд, Активы, Сотрудники, Сканировать, Настройки', () => {
+  it('shows the core items: Дашборд, Активы, Сотрудники, Сканировать, Настройки', () => {
     renderBottomNav('super_admin', 'dashboard')
     expect(screen.getByText('Дашборд')).toBeInTheDocument()
     expect(screen.getByText('Активы')).toBeInTheDocument()
@@ -70,10 +70,10 @@ describe('BottomNav — super_admin', () => {
     expect(screen.getByText('Настройки')).toBeInTheDocument()
   })
 
-  it('does NOT show items outside the curated 5 (e.g. Лицензии, Филиалы)', () => {
+  it('also shows the rest of the nav (e.g. Лицензии, Филиалы) — all reachable by scrolling', () => {
     renderBottomNav('super_admin', 'dashboard')
-    expect(screen.queryByText('Лицензии')).not.toBeInTheDocument()
-    expect(screen.queryByText('Филиалы')).not.toBeInTheDocument()
+    expect(screen.getByText('Лицензии')).toBeInTheDocument()
+    expect(screen.getByText('Филиалы')).toBeInTheDocument()
   })
 })
 

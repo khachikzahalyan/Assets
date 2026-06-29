@@ -72,33 +72,3 @@ export function navForRole(role: Role): NavGroup[] {
 export function defaultRouteForRole(role: Role): RouteId {
   return role === 'employee' ? 'my-assets' : 'dashboard'
 }
-
-/**
- * Priority order for the mobile bottom tab bar (admin roles).
- * The first ≤5 items from this list that the role is allowed to see
- * become the tab bar items.
- */
-const ADMIN_MOBILE_ORDER: readonly RouteId[] = [
-  'dashboard', 'assets', 'employees', 'scan', 'settings', 'licenses', 'parts',
-]
-
-/**
- * Returns the primary navigation items for the mobile bottom tab bar.
- * - Admin roles: up to 5 items from ADMIN_MOBILE_ORDER, filtered by role permission.
- * - Employee role: the full employee nav (3 items).
- *
- * Results per role:
- *   super_admin  → dashboard, assets, employees, scan, settings
- *   asset_admin  → dashboard, assets, employees, scan, parts
- *   tech_admin   → dashboard, assets, scan, licenses, parts
- *   employee     → my-assets, my-acts, profile
- */
-export function mobilePrimaryNav(role: Role): NavItem[] {
-  const groups = navForRole(role)
-  const all: NavItem[] = groups.flatMap((g) => g.items)
-  if (role === 'employee') return all
-  return ADMIN_MOBILE_ORDER
-    .map((id) => all.find((it) => it.id === id))
-    .filter((it): it is NavItem => it != null)
-    .slice(0, 5)
-}
