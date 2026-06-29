@@ -641,16 +641,21 @@ select:-webkit-autofill {
 
   #root {
     height: auto !important;
-    min-height: 100vh;
+    min-height: 100dvh;           /* dvh = dynamic viewport height (collapses with address bar) */
     overflow-x: hidden !important;
     overflow-y: visible !important;
   }
 
-  /* ── App-shell root: fixed viewport height on mobile ── */
+  /* ── App-shell root: BODY-SCROLL model on mobile.
+     Body is the single scroller; the shell grows with content.
+     (Alternative locked-body model was rejected because body-scroll lets the
+     mobile browser address bar auto-collapse, which is the better native feel.)
+     Replace both the 100svh and 100vh rules — dvh tracks the shrinking
+     visible viewport so there is no address-bar overshoot. ── */
   .app-shell-root {
-    height: 100svh;
-    height: 100vh;
-    overflow: hidden;
+    height: auto !important;      /* remove fixed viewport lock — shell grows */
+    min-height: 100dvh;           /* still fills the screen when content is short */
+    overflow: visible !important; /* was hidden — remove inner clip so body scrolls */
   }
 
   /* ── Sidebar: hide static sidebar from layout (drawer handles it) ── */
@@ -664,11 +669,14 @@ select:-webkit-autofill {
     width: 100%;
   }
 
-  /* ── Main column: full width ── */
+  /* ── Main column: full width.
+     overflow must be visible so that position:sticky on the topbar
+     propagates up to body (any overflow:hidden here would create a new
+     scroll context and break sticky). ── */
   .app-shell-main {
     width: 100%;
     min-width: 0;
-    overflow: hidden;
+    overflow: visible !important; /* was hidden — must be visible for sticky topbar */
   }
 
   /* ── Topbar: 52px height, 8px side padding, no backdrop-filter
@@ -686,15 +694,15 @@ select:-webkit-autofill {
     flex-shrink: 0;
   }
 
-  /* ── Content area: scrollable with 12px padding.
-     Bottom padding = 64px (bottom tab bar height) + safe-area so content
+  /* ── Content area: 12px padding, NO inner scroll.
+     Body is the single scroller (body-scroll model).
+     Bottom padding = 64px (fixed BottomNav height) + safe-area so content
      is never hidden behind the BottomNav bar on iOS/Android.
-     Note: pages that go edge-to-edge (assets card list) override this
+     Note: pages that go edge-to-edge (assets card list) override padding
      via the .app-shell-content-flush modifier applied by AssetsPage. ── */
   .app-shell-content {
     padding: 12px 12px calc(64px + env(safe-area-inset-bottom, 0px)) !important;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow-y: visible !important; /* was auto — body is now the single scroller */
     flex: 1;
     min-height: 0;
     box-sizing: border-box !important;
