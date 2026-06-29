@@ -4,7 +4,7 @@ import {
   DashboardPage, StubPage, LoginPage, AssetsPage, AssetCreatePage, AssetDetailPage,
   EmployeesPage, EmployeeCreatePage, EmployeeDetailPage, MyAssetsPage, MyActsPage, ProfilePage,
   PendingUsersPage, BranchesPage, DepartmentsPage, CategoriesPage, SettingsPage, StatusesPage,
-  AuditPage, LicensesPage, RolesPage, PartsPage, PartsReceivePage,
+  AuditPage, LicensesPage, RolesPage, PartsPage, PartsReceivePage, ScanPage,
 } from '@/pages'
 import { RequireAuth, RoleGate } from '@/components/routing'
 import { PHASE_STUB_ROUTES } from './nav'
@@ -126,6 +126,14 @@ export function AppRoutes() {
           <Route path="/licenses" element={
             <RoleGate roles={routeRoles('licenses')}><LicensesPage /></RoleGate>
           } />
+          <Route
+            path="/scan"
+            element={
+              <RoleGate roles={routeRoles('scan')}>
+                <ScanPage />
+              </RoleGate>
+            }
+          />
           <Route path="/settings" element={
             <RoleGate roles={routeRoles('settings')}><SettingsPage /></RoleGate>
           } />

@@ -113,7 +113,7 @@ export function AddSubscriptionModal({
             />
           </Field>
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 max-md:grid-cols-1 gap-3">
             <Field label={t('add.seatsTotal')} required>
               <input
                 id="sub-seats"

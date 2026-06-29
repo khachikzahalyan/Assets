@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
-  PageHeader, SectionCard, Chip, ErrorState, EmptyState, Icon,
+  PageHeader, SectionCard, Chip, ErrorState, EmptyState,
 } from '@/components/ui'
 import { useAuth } from '@/contexts/AuthContext'
 import type { Asset, AssetRepository, SelfServiceRefData } from '@/domain/asset'
@@ -69,13 +69,11 @@ export function MyAssetsPage({ repository }: MyAssetsPageProps) {
   if (loading) {
     return (
       <div className="space-y-5" aria-busy="true">
-        <PageHeader icon="package" title={t('self.myAssets')} />
+        <div className="h-8 w-[180px] rounded-lg anim-skeleton" />
         <div className="bg-surface border border-border rounded-xl overflow-hidden">
           <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-border">
-            <Icon name="package" size={15} className="text-text-subtle flex-shrink-0 w-7 h-7 flex items-center justify-center" />
-            <span className="text-[12px] uppercase tracking-[0.09em] font-semibold text-text-tertiary">
-              {t('self.myAssets')}
-            </span>
+            <div className="w-7 h-7 rounded-lg anim-skeleton flex-shrink-0" />
+            <div className="h-[10px] w-[100px] rounded anim-skeleton" />
           </div>
           <div className="p-5 space-y-2">
             {Array.from({ length: 5 }).map((_, i) => (

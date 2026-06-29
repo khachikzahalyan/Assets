@@ -58,7 +58,7 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
   const { ref, loading, error, reload, installPart, uninstallPart, recordService, createGpu } = useParts(repo)
 
   const [activeTab, setActiveTab] = useState<ActiveTab>(
-    urlTab === 'devices' ? 'devices' : 'warehouse',
+    urlTab === 'warehouse' ? 'warehouse' : 'devices',
   )
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== 'undefined' ? window.matchMedia('(max-width: 767px)').matches : false,
@@ -219,53 +219,26 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
       <div className="flex flex-col h-full p-2 gap-3 overflow-hidden max-md:overflow-y-auto max-md:overflow-x-hidden max-md:h-auto max-md:p-0 max-md:gap-3" aria-hidden="true">
         {/* Stat strip — REAL icons and REAL labels, shimmer values */}
         <div className="relative grid grid-cols-4 gap-2.5 max-md:grid-cols-2 max-md:gap-[10px] flex-shrink-0">
-          {(
-            [
-              { labelKey: 'stats.onHand',    icon: 'inbox' },
-              { labelKey: 'stats.installed', icon: 'wrench' },
-              { labelKey: 'stats.broken',    icon: 'x-octagon' },
-              { labelKey: 'stats.devices',   icon: 'monitor-smartphone' },
-            ] as const
-          ).map(({ labelKey, icon }) => (
-            <div key={labelKey} className="bg-surface border border-border rounded-xl p-3 flex items-center gap-3">
-              <Icon name={icon} size={18} className="text-text-subtle flex-shrink-0 w-8 h-8 flex items-center justify-center" />
-              <div className="flex-1 min-w-0 space-y-2">
-                <span className="block text-[11px] uppercase tracking-[0.07em] font-semibold text-text-subtle">
-                  {t(labelKey)}
-                </span>
-                <div className="h-[16px] w-[45%] rounded anim-skeleton" />
-              </div>
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="bg-surface border border-border rounded-xl p-3 flex flex-col justify-center min-h-[58px] gap-2.5">
+              <div className="h-[10px] w-[55%] rounded anim-skeleton" />
+              <div className="h-[16px] w-[42%] rounded anim-skeleton" />
             </div>
           ))}
         </div>
 
-        {/* Tab strip — REAL tab labels + REAL disabled add button */}
+        {/* Tab strip — shimmer (no interactive, no real labels) */}
         <div className="flex items-center justify-between border-b border-border flex-shrink-0 h-[44px]">
           <div className="flex items-center gap-1">
-            {(
-              [
-                { id: 'devices',   labelKey: 'tabs.devices',   icon: 'monitor-smartphone' },
-                { id: 'warehouse', labelKey: 'tabs.warehouse', icon: 'package' },
-              ] as const
-            ).map(({ id, labelKey, icon }) => (
-              <span
-                key={id}
-                className="inline-flex items-center gap-1.5 px-4 py-3 text-[15px] font-semibold text-text-subtle"
-              >
-                <Icon name={icon} size={14} />
-                {t(labelKey)}
-              </span>
+            {Array.from({ length: 2 }).map((_, i) => (
+              <div key={i} className="inline-flex items-center gap-1.5 px-4 py-3">
+                <div className="w-[14px] h-[14px] rounded anim-skeleton flex-shrink-0" />
+                <div className="h-[12px] rounded anim-skeleton" style={{ width: i === 0 ? 72 : 60 }} />
+              </div>
             ))}
           </div>
-          <button
-            type="button"
-            disabled
-            className="mr-1 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-accent text-white text-[13.5px] font-semibold opacity-50 cursor-default max-md:hidden"
-            aria-label={t('actions.add')}
-          >
-            <Icon name="plus" size={14} />
-            <span>{t('actions.add')}</span>
-          </button>
+          {/* add button shimmer (desktop only) */}
+          <div className="mr-1 h-8 w-[96px] rounded-lg anim-skeleton max-md:hidden" />
         </div>
 
         {/* Content region */}
@@ -292,11 +265,9 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
               <div className="h-[15px] w-[180px] rounded anim-skeleton" />
               <div className="h-[22px] w-[44px] rounded-md anim-skeleton ml-auto flex-shrink-0" />
             </div>
-            {/* REAL «История» subheader + summary chips (shimmer — DB: movement counts) */}
+            {/* history subheader — shimmer + summary chips (shimmer — DB: movement counts) */}
             <div className="flex items-center gap-2 px-5 py-3 border-b border-border flex-shrink-0">
-              <span className="text-[11px] uppercase tracking-[0.07em] font-semibold text-text-tertiary">
-                {t('warehouse.history')}
-              </span>
+              <div className="h-[10px] w-[72px] rounded anim-skeleton" />
               <div className="h-[20px] w-[112px] rounded-md anim-skeleton ml-auto" />
               <div className="h-[20px] w-[120px] rounded-md anim-skeleton" />
             </div>

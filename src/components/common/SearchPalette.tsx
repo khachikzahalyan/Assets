@@ -56,12 +56,14 @@ export function SearchPalette({ open, onClose, onPick }: SearchPaletteProps) {
   }
 
   return createPortal(
-    <div className="fixed inset-0 z-[60] flex items-start justify-center pt-[12vh] max-md:pt-[8vh] px-4 max-md:px-3">
+    <div className="fixed inset-0 z-[60] flex items-start justify-center pt-[12vh] px-4 max-md:items-end max-md:pt-0 max-md:px-0">
       <div className="absolute inset-0 bg-black/60 anim-backdrop-fade" onClick={onClose} />
       <div
-        className="relative w-full max-w-xl bg-surface rounded-xl border border-border anim-modal-pop overflow-hidden"
+        className="relative w-full max-w-xl bg-surface rounded-xl border border-border anim-modal-pop overflow-hidden max-md:rounded-t-[18px] max-md:rounded-b-none max-md:max-w-full max-md:max-h-[90dvh] max-md:flex max-md:flex-col"
         style={{ boxShadow: '0 12px 32px rgba(0,0,0,0.55)' }}
       >
+        {/* Pull handle — mobile only */}
+        <div className="hidden max-md:block mx-auto h-1 w-9 rounded-full bg-white/20 mt-2 mb-1 flex-shrink-0" />
         {/* Search input row */}
         <div className="flex items-center gap-2 px-4 h-12 border-b border-border">
           <Icon name="search" size={16} className="text-text-subtle" />
@@ -76,8 +78,8 @@ export function SearchPalette({ open, onClose, onPick }: SearchPaletteProps) {
           <kbd className="px-1.5 py-0.5 text-[10px] font-semibold rounded border border-border bg-surface-2 text-text-tertiary">ESC</kbd>
         </div>
 
-        {/* Results — max-height uses dvh-aware value to avoid overflow on short landscape */}
-        <div className="max-h-[360px] max-md:max-h-[min(360px,50dvh)] overflow-y-auto py-1.5">
+        {/* Results — max-height uses dvh-aware value; on mobile flex-1 so sheet controls height */}
+        <div className="max-h-[360px] overflow-y-auto py-1.5 max-md:max-h-none max-md:flex-1 max-md:min-h-0">
           {filtered.length === 0 && (
             <div className="px-4 py-6 text-center text-[12.5px] text-text-subtle">
               {t('search.empty')}

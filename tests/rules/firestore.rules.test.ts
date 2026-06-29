@@ -599,14 +599,98 @@ describe('/employees read + write scope', () => {
     }))
   })
 
-  it('delete FAILS for super_admin (soft-delete only via status field)', async () => {
+  it('delete SUCCEEDS for super_admin (termination move leg)', async () => {
     await seedDoc(env, 'employees/del_emp', { firstName: 'D', lastName: 'E', email: 'd@x.com', status: 'active' })
-    await assertFails(deleteDoc(doc(authedDb(env, SUPER), 'employees', 'del_emp')))
+    await assertSucceeds(deleteDoc(doc(authedDb(env, SUPER), 'employees', 'del_emp')))
   })
 
-  it('delete FAILS for asset_admin', async () => {
+  it('delete SUCCEEDS for asset_admin (termination move leg)', async () => {
     await seedDoc(env, 'employees/del_emp2', { firstName: 'D', lastName: 'E', email: 'd2@x.com', status: 'active' })
-    await assertFails(deleteDoc(doc(authedDb(env, ASSET), 'employees', 'del_emp2')))
+    await assertSucceeds(deleteDoc(doc(authedDb(env, ASSET), 'employees', 'del_emp2')))
+  })
+
+  it('employee (role EMP) CANNOT delete an employee doc', async () => {
+    await seedDoc(env, 'employees/del_emp3', { firstName: 'D', lastName: 'E', email: 'd3@x.com', status: 'active' })
+    await assertFails(deleteDoc(doc(authedDb(env, EMP), 'employees', 'del_emp3')))
+  })
+})
+
+describe('/former_employees read + write scope', () => {
+  beforeEach(async () => {
+    await seedDoc(env, 'former_employees/fe1', {
+      firstName: 'Anna', lastName: 'Former', email: 'anna@x.com',
+      status: 'terminated', terminatedBy: ASSET, terminatedAt: null,
+    })
+  })
+
+  it('super_admin CAN read a former_employees doc', async () => {
+    await assertSucceeds(getDoc(doc(authedDb(env, SUPER), 'former_employees', 'fe1')))
+  })
+
+  it('asset_admin CAN read a former_employees doc', async () => {
+    await assertSucceeds(getDoc(doc(authedDb(env, ASSET), 'former_employees', 'fe1')))
+  })
+
+  it('tech_admin CAN read a former_employees doc', async () => {
+    await assertSucceeds(getDoc(doc(authedDb(env, TECH), 'former_employees', 'fe1')))
+  })
+
+  it('employee CANNOT read a former_employees doc (no self-service access after termination)', async () => {
+    await assertFails(getDoc(doc(authedDb(env, EMP), 'former_employees', 'fe1')))
+  })
+
+  it('super_admin CAN create a former_employees doc with non-empty email', async () => {
+    await assertSucceeds(setDoc(doc(authedDb(env, SUPER), 'former_employees', 'fe_super'), {
+      firstName: 'Ivan', lastName: 'Terminated', email: 'ivan@x.com',
+      status: 'terminated', terminatedBy: SUPER, terminatedAt: null,
+    }))
+  })
+
+  it('asset_admin CAN create a former_employees doc with non-empty email', async () => {
+    await assertSucceeds(setDoc(doc(authedDb(env, ASSET), 'former_employees', 'fe_asset'), {
+      firstName: 'Maria', lastName: 'Terminated', email: 'maria@x.com',
+      status: 'terminated', terminatedBy: ASSET, terminatedAt: null,
+    }))
+  })
+
+  it('create with empty email FAILS', async () => {
+    await assertFails(setDoc(doc(authedDb(env, ASSET), 'former_employees', 'fe_noemail'), {
+      firstName: 'X', lastName: 'Y', email: '', status: 'terminated',
+    }))
+  })
+
+  it('tech_admin CANNOT create a former_employees doc', async () => {
+    await assertFails(setDoc(doc(authedDb(env, TECH), 'former_employees', 'fe_tech'), {
+      firstName: 'Z', lastName: 'W', email: 'z@x.com', status: 'terminated',
+    }))
+  })
+
+  it('asset_admin CAN delete a former_employees doc (restore move leg)', async () => {
+    await seedDoc(env, 'former_employees/fe_restore', {
+      firstName: 'Restore', lastName: 'Me', email: 'restore@x.com', status: 'terminated',
+    })
+    await assertSucceeds(deleteDoc(doc(authedDb(env, ASSET), 'former_employees', 'fe_restore')))
+  })
+
+  it('employee CANNOT write a former_employees doc', async () => {
+    await assertFails(setDoc(doc(authedDb(env, EMP), 'former_employees', 'fe_emp_write'), {
+      firstName: 'X', lastName: 'Y', email: 'x@x.com', status: 'terminated',
+    }))
+  })
+})
+
+describe('/former_employees move atomicity (both legs individually permitted for ASSET)', () => {
+  it('ASSET can create former_employees/move1 AND delete employees/move1 (move legs)', async () => {
+    await seedDoc(env, 'employees/move1', {
+      firstName: 'Move', lastName: 'Me', email: 'move@x.com', status: 'active',
+    })
+    // Archive leg: create the former_employees doc
+    await assertSucceeds(setDoc(doc(authedDb(env, ASSET), 'former_employees', 'move1'), {
+      firstName: 'Move', lastName: 'Me', email: 'move@x.com',
+      status: 'terminated', terminatedBy: ASSET, terminatedAt: null,
+    }))
+    // Delete leg: remove the employees doc
+    await assertSucceeds(deleteDoc(doc(authedDb(env, ASSET), 'employees', 'move1')))
   })
 })
 

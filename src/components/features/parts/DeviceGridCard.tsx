@@ -2,7 +2,14 @@ import { useTranslation } from 'react-i18next'
 import { Icon } from '@/components/ui'
 import type { PartsAsset } from '@/domain/part/types'
 import { assetFamilyOf, isServiceOnly } from '@/domain/part/partStock'
-import { familyChip, PART_CAT_BY_ID } from './partsTokens'
+import { CATEGORY_COLOR } from '@/components/features/assets/categoryColors'
+
+/** Fallback lucide icon by hardware family (when the category has no lucideIcon). */
+function familyIconFallback(family: string): string {
+  if (family === 'laptop') return 'laptop'
+  if (family === 'server') return 'server'
+  return 'monitor'
+}
 
 export interface DeviceGridCardProps {
   asset: PartsAsset
@@ -21,12 +28,16 @@ export function DeviceGridCard({ asset, selected, hasBroken = false, onSelect }:
   const { t } = useTranslation('parts')
 
   const family = assetFamilyOf(asset.categoryId) ?? 'desktop'
-  const cfg = familyChip(family)
   const isService = isServiceOnly(asset.categoryId)
 
-  /* Category human label */
-  const catMeta = PART_CAT_BY_ID[asset.categoryId]
-  const catLabel = catMeta ? catMeta.label : (asset.categoryId || asset.kind || '')
+  /* Category icon + colour — SAME system as the Assets page (categoryColors.ts
+     + the category's lucideIcon) so laptops/desktops/servers look identical there. */
+  const catColor = CATEGORY_COLOR[asset.categoryId] ?? null
+  const iconName = asset.categoryIcon || familyIconFallback(family)
+  const accent = catColor?.icon ?? '#F97316'
+
+  /* Category human label — the category NAME (e.g. «Ноутбук»), not the raw id. */
+  const catLabel = asset.categoryName || asset.kind || asset.categoryId || ''
 
   /* Total components = number of upgradeCurrent entries (all slots, including empty factory ones) */
   const totalComponents = asset.upgradeCurrent.length
@@ -36,7 +47,7 @@ export function DeviceGridCard({ asset, selected, hasBroken = false, onSelect }:
 
   /* selected → inset accent left border */
   const cardStyle: React.CSSProperties = selected
-    ? { boxShadow: `inset 2px 0 0 ${cfg.accent}` }
+    ? { boxShadow: `inset 2px 0 0 ${accent}` }
     : {}
 
   const cardBg = selected ? 'bg-white/10' : 'bg-surface hover:bg-white/[0.05]'
@@ -51,12 +62,13 @@ export function DeviceGridCard({ asset, selected, hasBroken = false, onSelect }:
     >
       {/* top row: family icon + status dot + component count */}
       <div className="flex items-start justify-between gap-1">
-        {/* family icon square — 36px desktop, 28px mobile per §11 spec */}
+        {/* category icon square — colours from the Assets category palette */}
         <span
-          className={`w-9 h-9 rounded-lg ${cfg.iconBg} ${cfg.iconText} inline-flex items-center justify-center flex-shrink-0 max-md:w-7 max-md:h-7`}
+          className="w-9 h-9 rounded-lg inline-flex items-center justify-center flex-shrink-0 max-md:w-7 max-md:h-7"
+          style={catColor ? { backgroundColor: catColor.bg, color: catColor.icon } : undefined}
         >
           {/* icon svg: 16px desktop → 13px mobile */}
-          <Icon name={cfg.iconName} size={16} className="max-md:!w-[13px] max-md:!h-[13px]" />
+          <Icon name={iconName} size={16} className="max-md:!w-[13px] max-md:!h-[13px]" />
         </span>
         {/* status dot + component counter */}
         <div className="flex items-center gap-1 pt-0.5 flex-shrink-0">

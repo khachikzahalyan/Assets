@@ -168,16 +168,28 @@ service cloud.firestore {
     }
     // ---- /employees ----
     // Read: any admin, OR the employee reading their OWN doc (self-service profile).
-    //   An employee must NOT read other employees' PII.
-    // Create/Update: super | asset_admin (role matrix). Doc id is the person's uid.
-    //   email must be a non-empty string (basic shape guard; uniqueness is repo-enforced).
-    // Delete: forbidden — employees are soft-deleted via status:'terminated'.
+    // Create/Update: super | asset_admin. Doc id is the person's uid; email non-empty.
+    // Delete: super | asset_admin — ONLY as the termination MOVE leg (employee doc is
+    //   deleted while a matching former_employees/{id} doc is created in the same txn).
     match /employees/{id} {
       allow read: if isAnyAdmin() || (isSignedIn() && request.auth.uid == id);
       allow create, update: if (isSuperAdmin() || isAssetAdmin())
         && request.resource.data.email is string
         && request.resource.data.email.size() > 0;
-      allow delete: if false;
+      allow delete: if isSuperAdmin() || isAssetAdmin();
+    }
+
+    // ---- /former_employees — archive of terminated employees ----
+    // Read: any admin (name resolution in history + the Архив list). NO employee
+    //   self-read (terminated people have no self-service access).
+    // Create/Update: super | asset_admin (archive + restore move legs); email non-empty.
+    // Delete: super | asset_admin (restore move deletes the archive doc).
+    match /former_employees/{id} {
+      allow read: if isAnyAdmin();
+      allow create, update: if (isSuperAdmin() || isAssetAdmin())
+        && request.resource.data.email is string
+        && request.resource.data.email.size() > 0;
+      allow delete: if isSuperAdmin() || isAssetAdmin();
     }
 
     // ---- Reference catalogs: read any signed-in, write super only ----

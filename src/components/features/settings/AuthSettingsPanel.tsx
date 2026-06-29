@@ -246,8 +246,8 @@ export function AuthSettingsPanel({ repository }: AuthSettingsPanelProps) {
     return (
       <SectionCard title={t('auth.title')} icon="shield-check">
         <div className="space-y-5" aria-hidden="true">
-          {/* Subtitle — REAL static text */}
-          <p className="text-[13px] text-text-subtle">{t('auth.subtitle')}</p>
+          {/* Subtitle — shimmer */}
+          <div className="h-[13px] w-[70%] rounded anim-skeleton" />
           {/* Domain list rows — shimmer (DB: the actual saved domains) */}
           <div className="space-y-1.5">
             {Array.from({ length: 3 }).map((_, i) => (
@@ -257,32 +257,17 @@ export function AuthSettingsPanel({ repository }: AuthSettingsPanelProps) {
               </div>
             ))}
           </div>
-          {/* Add-domain row — REAL label + shimmer input + REAL disabled button */}
+          {/* Add-domain row — shimmer label + shimmer input + shimmer button */}
           <div className="space-y-1.5">
-            <label className="block text-[11px] uppercase tracking-[0.06em] font-semibold text-text-subtle">
-              {t('auth.addLabel')}
-            </label>
+            <div className="h-[9px] w-[100px] rounded anim-skeleton" />
             <div className="flex gap-2">
               <div className="flex-1 h-9 rounded-lg anim-skeleton" />
-              <button
-                type="button"
-                disabled
-                className="inline-flex items-center gap-1.5 h-9 px-3 rounded-lg text-[13px] font-medium border bg-surface-2 border-border text-text-tertiary opacity-50 cursor-default flex-shrink-0"
-              >
-                <Icon name="plus" size={13} />
-                {t('auth.addBtn')}
-              </button>
+              <div className="h-9 w-[88px] rounded-lg anim-skeleton flex-shrink-0" />
             </div>
           </div>
-          {/* Save button — REAL disabled */}
+          {/* Save button — shimmer */}
           <div className="flex justify-end pt-2 border-t border-border">
-            <button
-              type="button"
-              disabled
-              className="inline-flex items-center h-9 px-4 rounded-lg text-[13px] font-semibold bg-accent text-white opacity-50 cursor-default"
-            >
-              {t('auth.saveBtn')}
-            </button>
+            <div className="h-9 w-[96px] rounded-lg anim-skeleton" />
           </div>
         </div>
       </SectionCard>
@@ -331,7 +316,7 @@ export function AuthSettingsPanel({ repository }: AuthSettingsPanelProps) {
                   type="button"
                   aria-label={t('auth.removeAria', { domain })}
                   onClick={() => handleRemove(domain)}
-                  className="w-6 h-6 rounded flex items-center justify-center text-text-subtle hover:text-[#FDA4AF] hover:bg-rose-950/40 transition-colors"
+                  className="w-6 h-6 max-md:w-8 max-md:h-8 rounded flex items-center justify-center text-text-subtle hover:text-[#FDA4AF] hover:bg-rose-950/40 transition-colors"
                 >
                   <Icon name="x" size={13} />
                 </button>

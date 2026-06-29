@@ -277,8 +277,8 @@ export function PartsReceivePage({ repository }: PartsReceivePageProps = {}) {
         <div className="flex-shrink-0 space-y-2.5">
           {/* Back-button stub */}
           <div className="h-[20px] w-[80px] rounded anim-skeleton" />
-          {/* Stat strip — always 4 columns on this page */}
-          <div className="grid grid-cols-4 gap-2.5">
+          {/* Stat strip — 4 cols desktop, 2 cols mobile */}
+          <div className="grid grid-cols-4 max-md:grid-cols-2 gap-2.5 max-md:gap-[10px]">
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="bg-surface border border-border rounded-xl p-3 flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg anim-skeleton flex-shrink-0" />
@@ -337,7 +337,7 @@ export function PartsReceivePage({ repository }: PartsReceivePageProps = {}) {
           <Icon name="arrow-left" size={15} />
           {t('actions.back')}
         </button>
-        <div className="grid grid-cols-4 gap-2.5">
+        <div className="grid grid-cols-4 max-md:grid-cols-2 gap-2.5 max-md:gap-[10px]">
           <StatTile tone="emerald" icon="inbox" label={t('stats.onHand')} value={stats.onHand} />
           <StatTile tone="violet" icon="wrench" label={t('stats.installed')} value={stats.installed} />
           <StatTile tone="rose" icon="x-octagon" label={t('stats.broken')} value={stats.broken} />
@@ -379,8 +379,8 @@ export function PartsReceivePage({ repository }: PartsReceivePageProps = {}) {
       </div>
 
       {/* Footer: summary + actions — pinned to the bottom */}
-      <div className="flex-shrink-0 flex items-center justify-between gap-4 border-t border-border pt-3 pb-1 mt-3">
-        <div className="text-[14.5px] text-text-tertiary min-w-0 truncate">
+      <div className="flex-shrink-0 flex items-center justify-between gap-4 border-t border-border pt-3 pb-1 mt-3 max-md:flex-col max-md:items-stretch max-md:gap-2">
+        <div className="text-[14.5px] text-text-tertiary min-w-0 truncate max-md:text-[13.5px]">
           {itemsCount > 0 ? (
             <>
               {t('addModal.summaryLabel')}{' '}
@@ -393,7 +393,7 @@ export function PartsReceivePage({ repository }: PartsReceivePageProps = {}) {
             t('addModal.summaryEmpty')
           )}
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-2 flex-shrink-0 max-md:flex-shrink max-md:w-full max-md:justify-end">
           <button
             type="button"
             onClick={handleCancel}

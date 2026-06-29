@@ -9,6 +9,7 @@ import {
   type AssetAssignment, type UpgradeComponent, type UpgradeEvent,
 } from '@/domain/asset'
 import { HEAD_OFFICE_BRANCH_ID } from '@/domain/asset/transferRules'
+import { allocateUniqueBarcode } from '@/domain/asset/barcode'
 import { withAudit, type AuditContext, createInMemoryAuditStore, inMemoryAuditContext } from '@/lib/audit'
 import type { AuditLog } from '@/domain/audit'
 import type { WorkstationLicenseRepository } from '@/domain/license'
@@ -108,6 +109,18 @@ export class InMemoryAssetRepository implements AssetRepository, AssetWriteRepos
     return this.assets.find(a => a.id === id) ?? null
   }
 
+  async findByInvCode(invCode: string): Promise<Asset | null> {
+    return this.assets.find(a => a.invCode === invCode) ?? null
+  }
+
+  async findByBarcode(barcode: string): Promise<Asset | null> {
+    return this.assets.find(a => a.barcode === barcode) ?? null
+  }
+
+  async isBarcodeTaken(barcode: string, exceptId?: string): Promise<boolean> {
+    return this.assets.some(a => a.barcode === barcode && a.id !== exceptId)
+  }
+
   async isInvCodeTaken(invCode: string, exceptId?: string): Promise<boolean> {
     return this.assets.some(a => a.invCode === invCode && a.id !== exceptId)
   }
@@ -123,6 +136,9 @@ export class InMemoryAssetRepository implements AssetRepository, AssetWriteRepos
     if (input.serial && await this.isSerialTaken(input.serial)) {
       throw new Error(`Serial already in use: ${input.serial}`)
     }
+    const barcode = (input.barcode && !(await this.isBarcodeTaken(input.barcode)))
+      ? input.barcode
+      : await allocateUniqueBarcode((c) => this.isBarcodeTaken(c))
     const id = `a_${++this.seq}`
     const statusId = deriveCreateStatus(input.assignment)
     const asset: Asset = {
@@ -133,6 +149,7 @@ export class InMemoryAssetRepository implements AssetRepository, AssetWriteRepos
       type: input.type ?? null,
       invCode: input.invCode,
       serial: input.serial,
+      barcode,
       statusId,
       assignment: input.assignment,
       branchId: input.branchId,

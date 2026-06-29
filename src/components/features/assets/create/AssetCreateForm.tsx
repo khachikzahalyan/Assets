@@ -182,7 +182,8 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
     !showOemKey ||
     licenseMode !== 'manual' ||
     Boolean(oemPickId) ||
-    isCompleteProductKey(oemRawKey)
+    oemRawKey.trim() === '' ||           // empty key = no license (optional) — allowed
+    isCompleteProductKey(oemRawKey)      // a *partial* key is the only invalid state
 
   const canSave = categoryChosen && identityComplete && !warrantyInvalid && !groupIncomplete && !submitting && manualKeyValid
 

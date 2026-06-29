@@ -1,11 +1,10 @@
 {
-  "_todo": "hy translations are English placeholders — schedule native Armenian review",
-  "page": { "title": "Sign in to AMS", "subtitle": "Asset Management System" },
+  "page": { "title": "Մուտք գործել համակարգ", "subtitle": "Asset Management System — Ձեր ընկերության ակտիվների հաշվառում" },
   "admin": {
     "label": "For administrators",
     "googleBtn": "Sign in with Google"
   },
-  "divider": "or",
+  "divider": "կամ",
   "employee": {
     "label": "For employees",
     "emailPlaceholder": "Enter your email",
@@ -15,6 +14,22 @@
     "successDesc": "We sent a sign-in link to {{email}}. The link is valid for 1 hour.",
     "invalidEmail": "Please enter a valid email",
     "tryAnother": "Send to a different email"
+  },
+  "footer": {
+    "note": "Միայն լիազորված աշխատակիցների համար.\nՄուտք՝ հրավերով:"
+  },
+  "visual": {
+    "statusOnline": "Համակարգն առցանց է",
+    "infoTitle": "Հեռահաղորդակցություն · Ակտիվների հաշվառում",
+    "infoDesc": "Նոութբուքեր, սերվերներ, ցանցային սարքավորումներ, լիցենզիաներ և աշխատակիցներ — մեկ համակարգում:",
+    "rolesValue": "4 դեր",
+    "rolesDesc": "Super Admin · Asset Admin · Tech · User",
+    "qrValue": "QR-կոդեր",
+    "qrDesc": "Ակտիվներ և աշխատակիցներ · Ստատիկ պիտակներ"
+  },
+  "hero": {
+    "brand": "Asset Management System",
+    "online": "Առցանց"
   },
   "confirmEmailPrompt": "Enter the email address the sign-in link was sent to",
   "error": {

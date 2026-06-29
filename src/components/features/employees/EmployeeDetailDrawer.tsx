@@ -47,6 +47,8 @@ export interface EmployeeDetailDrawerProps {
   departments: { id: string; name: string }[]
   branches: { id: string; name: string }[]
   onTransferAssets: (assetIds: string[], destination: Destination) => void | Promise<void>
+  /** The currently authenticated user's id — used to disable self-archive. */
+  currentUserId?: string
 }
 
 // ── Local helpers ─────────────────────────────────────────────────────────────
@@ -172,6 +174,7 @@ export function EmployeeDetailDrawer({
   departments,
   branches,
   onTransferAssets,
+  currentUserId,
 }: EmployeeDetailDrawerProps) {
   const { t } = useTranslation('employees')
   const { t: tCommon } = useTranslation('common')
@@ -195,6 +198,8 @@ export function EmployeeDetailDrawer({
   if (!open || !emp) return null
 
   const isActive = emp.status === 'active'
+  /** True when the viewed employee is the currently logged-in user — archive is blocked. */
+  const isSelf = currentUserId !== undefined && emp.id === currentUserId
 
   // ── Transfer helpers ──────────────────────────────────────────────────────
 
@@ -504,7 +509,13 @@ export function EmployeeDetailDrawer({
           ────────────────────────────────────────────── */}
       {isActive && (
         <footer className="px-5 py-3 bg-bg/60 border-t border-border flex items-center justify-end gap-2 shrink-0">
-          <Btn variant="danger" onClick={() => onArchive(emp.id)}>
+          <Btn
+            variant="danger"
+            onClick={() => onArchive(emp.id)}
+            disabled={isSelf}
+            title={isSelf ? t('guard.self-archive') : undefined}
+            className={isSelf ? 'opacity-40 cursor-not-allowed' : undefined}
+          >
             <Icon name="package" size={14} />
             {t('detail.handover')}
           </Btn>

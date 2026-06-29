@@ -1,5 +1,5 @@
 {
-  "page": { "title": "Sign in to AMS", "subtitle": "Asset Management System" },
+  "page": { "title": "Sign in to AMS", "subtitle": "Enterprise Asset Management" },
   "admin": {
     "label": "For administrators",
     "googleBtn": "Sign in with Google"
@@ -15,11 +15,27 @@
     "invalidEmail": "Please enter a valid email",
     "tryAnother": "Send to a different email"
   },
+  "footer": {
+    "note": "Authorised personnel only.\nAccess by invitation."
+  },
+  "visual": {
+    "statusOnline": "System online",
+    "infoTitle": "Telecommunications · Asset Management",
+    "infoDesc": "Laptops, servers, network equipment, licenses and employees — in one system.",
+    "rolesValue": "4 roles",
+    "rolesDesc": "Super Admin · Asset Admin · Tech · Employee",
+    "qrValue": "QR codes",
+    "qrDesc": "Assets & employees · Static labels"
+  },
   "confirmEmailPrompt": "Enter the email address the sign-in link was sent to",
   "error": {
     "googleFailed": "Could not sign in with Google. Please try again.",
     "linkFailed": "Could not send the link. Check your email and try again.",
     "emailLinkFailed": "The link is invalid or expired. Please request a new one."
   },
-  "loading": "Verifying sign-in link…"
+  "loading": "Verifying sign-in link…",
+  "hero": {
+    "brand": "Asset Management System",
+    "online": "Online"
+  }
 }

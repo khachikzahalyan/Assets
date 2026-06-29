@@ -13,6 +13,7 @@ import type {
 } from '@/domain/asset'
 import type { UpgradeComponent, UpgradeEvent } from '@/domain/asset'
 import { deriveCreateStatus, isSpecTracked, SPEC_KEY } from '@/domain/asset'
+import { allocateUniqueBarcode } from '@/domain/asset/barcode'
 import { HEAD_OFFICE_BRANCH_ID } from '@/domain/asset/transferRules'
 import { firestoreAuditContext, withAudit } from '@/lib/audit'
 import type { AuditedResult, AuditLog } from '@/domain/audit'
@@ -43,6 +44,7 @@ function toAsset(id: string, d: Record<string, unknown>): Asset {
     type: (d.type as string | null) ?? null,
     invCode: String(d.invCode ?? ''),
     serial: (d.serial as string | null) ?? null,
+    barcode: (d.barcode as string | null) ?? null,
     statusId: String(d.statusId ?? ''),
     assignment: (d.assignment as Asset['assignment']) ?? null,
     branchId: String(d.branchId ?? ''),
@@ -109,6 +111,8 @@ export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepo
   // FIX 4: instance-level cache so loadReferenceData() is fetched at most once
   // per repository instance, regardless of how many callers (listAssets group filter
   // + useAssets hook) call it concurrently.
+  // The cache is cleared on rejection so a transient failure (e.g. permission-denied
+  // on former_employees before rules are deployed) doesn't permanently poison the cache.
   private refCache: Promise<AssetReferenceData> | null = null
 
   async listAssets(query: AssetListQuery): Promise<Asset[]> {
@@ -135,7 +139,15 @@ export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepo
   }
 
   async loadReferenceData(): Promise<AssetReferenceData> {
-    if (!this.refCache) this.refCache = this.fetchReferenceData()
+    if (!this.refCache) {
+      // Clear the cache on rejection so a transient error (e.g. permission-denied
+      // on former_employees before rules are deployed) doesn't permanently poison
+      // the in-memory cache and make all subsequent calls fail without hitting Firebase.
+      this.refCache = this.fetchReferenceData().catch((err) => {
+        this.refCache = null
+        throw err
+      })
+    }
     return this.refCache
   }
 
@@ -164,13 +176,18 @@ export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepo
       departmentId: (d.departmentId as string | null) ?? null,
       position: (d.position as string | null) ?? null,
     })
+    // former_employees is read fail-soft: if the collection is undeployable/unreachable
+    // (e.g. Firestore rules not yet deployed to live), it degrades to an empty list
+    // rather than rejecting the entire Promise.all and bricking every page.
+    // Core ref data (statuses, branches, departments, categories, active employees)
+    // remain strict — those must succeed for the app to function.
     const [statuses, branches, departments, categories, activeEmps, formerEmps] = await Promise.all([
       this.readCol<StatusRow>('asset_statuses', d => ({ name: String(d.name ?? ''), color: String(d.color ?? 'gray') })),
       this.readCol<RefRow>('branches', d => ({ name: String(d.name ?? '') })),
       this.readCol<RefRow>('departments', d => ({ name: String(d.name ?? '') })),
       this.readCol<CategoryRow>('categories', mapCategory),
       this.readCol<EmployeeRow>('employees', empMap),
-      this.readCol<EmployeeRow>('former_employees', empMap),
+      this.readCol<EmployeeRow>('former_employees', empMap).catch(() => [] as EmployeeRow[]),
     ])
     const seen = new Set(activeEmps.map(e => e.id))
     const employees = [...activeEmps, ...formerEmps.filter(e => !seen.has(e.id))]
@@ -191,6 +208,25 @@ export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepo
     return snap.exists() ? toAsset(snap.id, snap.data() as Record<string, unknown>) : null
   }
 
+  async findByInvCode(invCode: string): Promise<Asset | null> {
+    const snap = await getDocs(fsQuery(collection(this.db, 'assets'), where('invCode', '==', invCode), limit(1)))
+    if (snap.empty) return null
+    const d = snap.docs[0]!
+    return toAsset(d.id, d.data() as Record<string, unknown>)
+  }
+
+  async findByBarcode(barcode: string): Promise<Asset | null> {
+    const snap = await getDocs(fsQuery(collection(this.db, 'assets'), where('barcode', '==', barcode), limit(1)))
+    if (snap.empty) return null
+    const d = snap.docs[0]!
+    return toAsset(d.id, d.data() as Record<string, unknown>)
+  }
+
+  async isBarcodeTaken(barcode: string, exceptId?: string): Promise<boolean> {
+    const snap = await getDocs(fsQuery(collection(this.db, 'assets'), where('barcode', '==', barcode), limit(2)))
+    return snap.docs.some(d => d.id !== exceptId)
+  }
+
   async isInvCodeTaken(invCode: string, exceptId?: string): Promise<boolean> {
     const snap = await getDocs(fsQuery(collection(this.db, 'assets'), where('invCode', '==', invCode), limit(2)))
     return snap.docs.some(d => d.id !== exceptId)
@@ -204,12 +240,15 @@ export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepo
   async createAsset(input: CreateAssetInput, actor: Actor): Promise<AuditedResult<Asset>> {
     if (await this.isInvCodeTaken(input.invCode)) throw new Error(`Inventory code already in use: ${input.invCode}`)
     if (input.serial && await this.isSerialTaken(input.serial)) throw new Error(`Serial already in use: ${input.serial}`)
+    const barcode = (input.barcode && !(await this.isBarcodeTaken(input.barcode)))
+      ? input.barcode
+      : await allocateUniqueBarcode((c) => this.isBarcodeTaken(c))
     const statusId = deriveCreateStatus(input.assignment)
     const ref = doc(collection(this.db, 'assets'))
     const data: Record<string, unknown> = stripUndefinedFs({
       categoryId: input.categoryId, brand: input.brand, model: input.model,
       type: input.type,
-      invCode: input.invCode, serial: input.serial, statusId,
+      invCode: input.invCode, serial: input.serial, barcode, statusId,
       assignment: input.assignment, branchId: input.branchId, deptId: input.deptId,
       currentSpecs: input.currentSpecs ?? null,
       condition: input.condition,

@@ -230,14 +230,6 @@ export function AssetsPage({ repository }: AssetsPageProps) {
           firstColWide
           lastColAction
           gridTemplate="minmax(240px,2.4fr) minmax(130px,1fr) minmax(100px,0.85fr) minmax(150px,1.2fr) minmax(110px,1fr) 56px"
-          headers={[
-            t('cols.asset', { ns: 'assets' }),
-            t('cols.branch', { ns: 'assets' }),
-            t('cols.code', { ns: 'assets' }),
-            t('cols.assignee', { ns: 'assets' }),
-            t('cols.status', { ns: 'assets' }),
-            '',
-          ]}
         />
     if (error) return <ErrorState onRetry={reload} />
     if (displayed.length === 0) {

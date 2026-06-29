@@ -58,6 +58,8 @@ export interface Asset {
   type?: string | null
   invCode: string
   serial: string | null
+  /** System-generated unique numeric barcode (Code 128 label). Optional: null/absent for legacy assets. */
+  barcode?: string | null
   statusId: string
   assignment: AssetAssignment | null
   branchId: string

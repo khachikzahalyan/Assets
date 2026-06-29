@@ -1,0 +1,9 @@
+{
+  "cameraError": "Could not start the camera",
+  "hint": "Point the camera at the barcode or QR code",
+  "notFound": "No asset found for code “{{code}}”",
+  "permissionDenied": "No camera access. Allow it and try again.",
+  "resolving": "Looking up asset…",
+  "retry": "Retry",
+  "title": "Scan asset"
+}

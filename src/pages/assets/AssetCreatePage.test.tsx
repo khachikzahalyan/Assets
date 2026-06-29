@@ -105,10 +105,15 @@ describe('AssetCreatePage', () => {
     const save = screen.getByRole('button', { name: /Создать актив/i })
     await waitFor(() => expect(save).not.toBeDisabled())
 
-    // 8. Click Создать актив
+    // 8. Click Создать актив — this now opens a DRAFT preview; nothing is saved yet.
     fireEvent.click(save)
 
-    // 9. Verify audit entry and callback
+    // 9. The save is deferred until «Печать» is clicked inside the preview dialog.
+    const dialog = await waitFor(() => screen.getByRole('dialog'))
+    expect(store.logs).toHaveLength(0)
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Печать наклейки' }))
+
+    // 10. Now the asset is committed — verify audit entry and callback.
     await waitFor(() => {
       expect(store.logs).toHaveLength(1)
       expect(store.logs[0]!.action).toBe('created')

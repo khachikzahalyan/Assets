@@ -375,6 +375,42 @@ select:-webkit-autofill {
 }
 .anim-drawer-slide-in { animation: drawerSlideInRight 200ms cubic-bezier(0.16, 1, 0.3, 1) both; }
 
+/* ── Login page decorative animations ── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* pulse-ring — SVG circle breathes (scale 0.85↔1.05); use transformBox:fill-box + transformOrigin:center */
+@keyframes pulse-ring {
+  0%   { transform: scale(.85);  opacity: .6; }
+  50%  { transform: scale(1.05); opacity: .2; }
+  100% { transform: scale(.85);  opacity: .6; }
+}
+
+/* pulse-ring-m — mobile-hero variant (matches the Login Mobile prototype:
+   wider breath + brighter peak than the desktop pulse-ring). */
+@keyframes pulse-ring-m {
+  0%   { transform: scale(.8);  opacity: .7;  }
+  50%  { transform: scale(1.1); opacity: .15; }
+  100% { transform: scale(.8);  opacity: .7;  }
+}
+
+/* ringsIn — one-time fade-in for the pulse-ring group so the staggered rings
+   ease in on mount instead of popping to full opacity at each delay. */
+@keyframes ringsIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* scan — horizontal light-line sweeps the full height of the right panel */
+@keyframes scan {
+  0%   { top: 0%;   opacity: 0; }
+  8%   { opacity: 1; }
+  92%  { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
 /* =========================================================
    App-shell layout primitives
    ========================================================= */
@@ -429,6 +465,23 @@ select:-webkit-autofill {
   overflow-y: auto;
   padding: var(--content-py) var(--content-px);
   animation: contentEnter 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ── Asset label printing (barcode labels) ── */
+.ams-print-label-root { display: none; }
+@media print {
+  /* Compact page sized to the asset label. WIDTH matches the owner's 80mm thermal roll
+     (EPSON TM-T20III) so the printer can honor it; HEIGHT 40mm keeps the receipt feed short
+     instead of advancing the whole 297mm roll. Change `size` to match your label stock. */
+  @page { size: 80mm 40mm; margin: 0; }
+  html, body { margin: 0; padding: 0; background: #fff; }
+  /* Hide EVERYTHING except the label print root — the app (#root) AND any open dialog.
+     The preview dialog ALSO portals to <body>, so hiding only #root let the open dialog
+     overlay the print and the label came out blank. */
+  body > *:not(.ams-print-label-root) { display: none !important; }
+  .ams-print-label-root { display: block !important; }
+  .ams-label { page-break-after: always; }
+  .ams-label:last-child { page-break-after: auto; }
 }
 
 /* ===== Shell parts (Task 4) ===== */

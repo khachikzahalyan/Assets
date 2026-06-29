@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Icon, Chip } from '@/components/ui'
+import { CATEGORY_COLOR } from '@/components/features/assets/categoryColors'
 import type { PartsAsset, UpgradeSlot, PartMovement, Part } from '@/domain/part/types'
 import {
   installedRowVisual,
@@ -148,8 +149,15 @@ export function InstalledDetailPanel({ asset, onUninstall, movements = [], parts
       {/* ── Device header ── */}
       <div className="px-5 py-4 border-b border-border flex items-start justify-between gap-3 flex-shrink-0">
         <div className="flex items-center gap-3 min-w-0">
-          <span className="w-10 h-10 rounded-xl bg-[#F97316]/10 text-accent inline-flex items-center justify-center flex-shrink-0">
-            <Icon name="monitor" size={18} />
+          <span
+            className="w-10 h-10 rounded-xl inline-flex items-center justify-center flex-shrink-0"
+            style={
+              CATEGORY_COLOR[asset.categoryId]
+                ? { backgroundColor: CATEGORY_COLOR[asset.categoryId]!.bg, color: CATEGORY_COLOR[asset.categoryId]!.icon }
+                : { backgroundColor: 'rgba(249,115,22,0.10)', color: '#F97316' }
+            }
+          >
+            <Icon name={asset.categoryIcon || 'monitor'} size={18} />
           </span>
           <div className="min-w-0">
             <div className="text-[18px] font-bold text-text-primary truncate leading-tight">{asset.name}</div>

@@ -134,4 +134,50 @@ describe('InMemoryEmployeeRepository archive/restore (move)', () => {
     const repo = new InMemoryEmployeeRepository([makeEmp('e1')], [], undefined, async () => true)
     await expect(repo.archiveEmployee('e1', ARCHIVE_ACTOR)).rejects.toBeInstanceOf(EmployeeArchiveError)
   })
+
+  it('archive writes EXACTLY ONE terminated audit entry with minimal { status } payload; restore writes EXACTLY ONE reactivated entry', async () => {
+    // Arrange — explicit audit store so we can inspect every entry written
+    const auditStore = createInMemoryAuditStore()
+    const active = [makeEmp('e1'), makeEmp('e2')]
+    const former: Employee[] = []
+    const repo = new InMemoryEmployeeRepository(active, former, inMemoryAuditContext(auditStore))
+
+    // Act — archive e1
+    const auditLenBefore = auditStore.logs.length
+    await repo.archiveEmployee('e1', ARCHIVE_ACTOR)
+    const afterArchive = auditStore.logs.slice(auditLenBefore)
+
+    // Assert — exactly one audit entry, correct entity/action, NO PII in payload
+    expect(afterArchive).toHaveLength(1)
+    const termEntry = afterArchive[0]!
+    expect(termEntry.entityType).toBe('employee')
+    expect(termEntry.entityId).toBe('e1')
+    expect(termEntry.action).toBe('terminated')
+    // Audit payload contains ONLY status — no name/email/phone/PII
+    expect(termEntry.before).toEqual({ status: 'active' })
+    expect(termEntry.after).toEqual({ status: 'terminated' })
+    // The two employee arrays are the ONLY state changed: e1 left employees, entered former
+    expect(active.map(e => e.id)).toEqual(['e2'])
+    expect(former.map(e => e.id)).toEqual(['e1'])
+
+    // Act — restore e1
+    const auditLenBeforeRestore = auditStore.logs.length
+    await repo.restoreEmployee('e1', ARCHIVE_ACTOR)
+    const afterRestore = auditStore.logs.slice(auditLenBeforeRestore)
+
+    // Assert — exactly one reactivated entry, minimal payload
+    expect(afterRestore).toHaveLength(1)
+    const reactEntry = afterRestore[0]!
+    expect(reactEntry.entityType).toBe('employee')
+    expect(reactEntry.entityId).toBe('e1')
+    expect(reactEntry.action).toBe('reactivated')
+    expect(reactEntry.before).toEqual({ status: 'terminated' })
+    expect(reactEntry.after).toEqual({ status: 'active' })
+
+    // NOTE: terminatedBy persistence is a Firestore-impl concern — the field is written in
+    // firestoreEmployeeRepository.ts:archiveEmployee as `terminatedBy: actor.uid` on the
+    // former_employees/{id} doc. It is NOT part of the domain Employee type, so it does not
+    // appear in the inMemory adapter and has no coverage here. It must be verified by a
+    // Firestore-emulator-backed integration test (requires Java / CI emulator environment).
+  })
 })

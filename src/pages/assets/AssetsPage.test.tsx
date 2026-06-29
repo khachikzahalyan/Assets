@@ -205,6 +205,7 @@ describe('AssetsPage', () => {
       loadReferenceData: () => Promise.resolve(REF),
       listAssetsForEmployee: () => Promise.resolve([]),
       loadSelfServiceRefData: () => Promise.resolve({ statuses: [], categories: [], branches: [], departments: [] }),
+      findByInvCode: () => Promise.resolve(null),
     }
     renderPage('asset_admin', errorRepo)
     // ErrorState renders the common error title
@@ -219,6 +220,7 @@ describe('AssetsPage', () => {
       loadReferenceData: () => Promise.resolve(REF),
       listAssetsForEmployee: () => Promise.resolve([]),
       loadSelfServiceRefData: () => Promise.resolve({ statuses: [], categories: [], branches: [], departments: [] }),
+      findByInvCode: () => Promise.resolve(null),
     }
     renderPage('asset_admin', errorRepo)
     await waitFor(() => {
