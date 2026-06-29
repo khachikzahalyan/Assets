@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import type { CategoryRow } from './types'
-import { resolveCategoryCapabilities, deriveCategoryFlags } from './categoryCapabilities'
+import { resolveCategoryCapabilities, deriveCategoryFlags, categoryHasGpu } from './categoryCapabilities'
 
 /** Minimal CategoryRow factory — only the fields the resolver reads. */
 function row(over: Partial<CategoryRow> & Pick<CategoryRow, 'id' | 'group' | 'name'>): CategoryRow {
@@ -244,4 +244,89 @@ describe('deriveCategoryFlags agrees with resolveCategoryCapabilities (no-doc-fl
       expect(direct).toEqual(viaResolve)
     })
   }
+})
+
+// ---------------------------------------------------------------------------
+// resolveCategoryCapabilities — hasGpu flag
+// ---------------------------------------------------------------------------
+describe('resolveCategoryCapabilities — hasGpu flag', () => {
+  it('computer (cat_computer) has hasGpu = true', () => {
+    const caps = resolveCategoryCapabilities(row({ id: 'cat_computer', group: 'devices', name: 'Компьютер' }))
+    expect(caps.hasGpu).toBe(true)
+  })
+
+  it('desktop (cat_desktop) has hasGpu = true', () => {
+    const caps = resolveCategoryCapabilities(row({ id: 'cat_desktop', group: 'devices', name: 'Десктоп' }))
+    expect(caps.hasGpu).toBe(true)
+  })
+
+  it('laptop (cat_laptop) has hasGpu = true', () => {
+    const caps = resolveCategoryCapabilities(row({ id: 'cat_laptop', group: 'devices', name: 'Ноутбук' }))
+    expect(caps.hasGpu).toBe(true)
+  })
+
+  it('gaming laptop (cat_gaming_laptop) has hasGpu = true', () => {
+    const caps = resolveCategoryCapabilities(row({ id: 'cat_gaming_laptop', group: 'devices', name: 'Игровой ноутбук' }))
+    expect(caps.hasGpu).toBe(true)
+  })
+
+  it('server (cat_server) has hasGpu = false', () => {
+    const caps = resolveCategoryCapabilities(row({ id: 'cat_server', group: 'network', name: 'Сервер' }))
+    expect(caps.hasGpu).toBe(false)
+  })
+
+  it('furniture (cat_desk) has hasGpu = false', () => {
+    const caps = resolveCategoryCapabilities(row({ id: 'cat_desk', group: 'furniture', name: 'Стол' }))
+    expect(caps.hasGpu).toBe(false)
+  })
+
+  it('monitor (cat_monitor) has hasGpu = false', () => {
+    const caps = resolveCategoryCapabilities(row({ id: 'cat_monitor', group: 'devices', name: 'Монитор' }))
+    expect(caps.hasGpu).toBe(false)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// categoryHasGpu — pure helper
+// ---------------------------------------------------------------------------
+describe('categoryHasGpu — pure helper', () => {
+  it('returns true for cat_computer', () => {
+    expect(categoryHasGpu('cat_computer')).toBe(true)
+  })
+
+  it('returns true for cat_workstation', () => {
+    expect(categoryHasGpu('cat_workstation')).toBe(true)
+  })
+
+  it('returns true for cat_laptop', () => {
+    expect(categoryHasGpu('cat_laptop')).toBe(true)
+  })
+
+  it('returns true for cat_macbook_pro', () => {
+    expect(categoryHasGpu('cat_macbook_pro')).toBe(true)
+  })
+
+  it('returns false for cat_server', () => {
+    expect(categoryHasGpu('cat_server')).toBe(false)
+  })
+
+  it('returns false for cat_desk (furniture)', () => {
+    expect(categoryHasGpu('cat_desk')).toBe(false)
+  })
+
+  it('returns false for cat_monitor', () => {
+    expect(categoryHasGpu('cat_monitor')).toBe(false)
+  })
+
+  it('returns false for null', () => {
+    expect(categoryHasGpu(null)).toBe(false)
+  })
+
+  it('returns false for undefined', () => {
+    expect(categoryHasGpu(undefined)).toBe(false)
+  })
+
+  it('returns false for empty string', () => {
+    expect(categoryHasGpu('')).toBe(false)
+  })
 })

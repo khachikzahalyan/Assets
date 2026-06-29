@@ -26,10 +26,12 @@ export interface SpecsPanelProps {
   specs: AssetSpecs
   onChange: (next: AssetSpecs) => void
   isServer: boolean
+  /** When false the Видеокарта field is hidden. True only for computers + laptops. */
+  hasGpu: boolean
 }
 
 /** Характеристики: Процессор (combobox), Видеокарта (free text), ОЗУ + Накопитель builders. */
-export function SpecsPanel({ specs, onChange, isServer }: SpecsPanelProps) {
+export function SpecsPanel({ specs, onChange, isServer, hasGpu }: SpecsPanelProps) {
   const { t } = useTranslation('assets')
   const set = (patch: Partial<AssetSpecs>) => onChange({ ...specs, ...patch })
 
@@ -52,18 +54,22 @@ export function SpecsPanel({ specs, onChange, isServer }: SpecsPanelProps) {
           placeholder={t('placeholders.cpu')}
         />
 
-        <label htmlFor="asset-spec-gpu" className="text-[16px] font-medium text-text-tertiary pt-2 max-md:pt-0 max-md:text-[13px] max-md:font-semibold max-md:tracking-[0.06em] max-md:uppercase max-md:pb-0">Видеокарта</label>
-        {/* Underline style — matches SpecCombobox for visual consistency */}
-        <div className="flex items-center border-b border-border focus-within:border-accent focus-within:shadow-[0_2px_8px_rgba(217,119,87,0.1)] transition-[border-color,box-shadow] duration-200">
-          <input
-            id="asset-spec-gpu"
-            type="text"
-            value={specs.gpu || ''}
-            onChange={e => set({ gpu: e.target.value })}
-            placeholder="Встроенная"
-            className="flex-1 min-w-0 px-0 py-2.5 text-[15px] bg-transparent text-text-primary outline-none placeholder:text-text-subtle"
-          />
-        </div>
+        {hasGpu && (
+          <label htmlFor="asset-spec-gpu" className="text-[16px] font-medium text-text-tertiary pt-2 max-md:pt-0 max-md:text-[13px] max-md:font-semibold max-md:tracking-[0.06em] max-md:uppercase max-md:pb-0">Видеокарта</label>
+        )}
+        {hasGpu && (
+          /* Underline style — matches SpecCombobox for visual consistency */
+          <div className="flex items-center border-b border-border focus-within:border-accent focus-within:shadow-[0_2px_8px_rgba(217,119,87,0.1)] transition-[border-color,box-shadow] duration-200">
+            <input
+              id="asset-spec-gpu"
+              type="text"
+              value={specs.gpu || ''}
+              onChange={e => set({ gpu: e.target.value })}
+              placeholder="Встроенная"
+              className="flex-1 min-w-0 px-0 py-2.5 text-[15px] bg-transparent text-text-primary outline-none placeholder:text-text-subtle"
+            />
+          </div>
+        )}
 
         {/* B5: RAM label + count badge when > 1 slot */}
         <span id="asset-spec-ram-label" className="text-[16px] font-medium text-text-tertiary pt-2 max-md:pt-0 max-md:text-[13px] max-md:font-semibold max-md:tracking-[0.06em] max-md:uppercase flex items-center gap-1.5">

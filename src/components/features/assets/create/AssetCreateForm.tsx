@@ -216,7 +216,7 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
     if (specs.cpu?.trim()) out.cpu = specs.cpu.trim()
     if (specs.ram?.trim()) out.ram = specs.ram.trim()
     if (specs.ssd?.trim()) out.ssd = specs.ssd.trim()
-    if (specs.gpu?.trim()) out.gpu = specs.gpu.trim()
+    if (specs.gpu?.trim() && caps?.hasGpu) out.gpu = specs.gpu.trim()
     return Object.keys(out).length > 0 ? out : null
   }
 
@@ -480,7 +480,7 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
             <section className="max-md:px-[14px] px-6 py-5">
               {/* Mobile: divider before Характеристики (right col stacks below left col) */}
               <MobileDivider />
-              <SpecsPanel specs={specs} onChange={setSpecs} isServer={caps.isServer} />
+              <SpecsPanel specs={specs} onChange={setSpecs} isServer={caps.isServer} hasGpu={caps.hasGpu} />
             </section>
           )}
 

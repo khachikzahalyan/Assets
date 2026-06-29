@@ -27,10 +27,11 @@ describe('buildSpecsLines — labelKey values and ordering', () => {
     ssd: 'Samsung 990 PRO 1 ТБ NVMe',
   }
 
-  it('returns 4 lines in cpu→gpu→ram→ssd order for full specs', () => {
-    const lines = buildSpecsLines(FULL_SPECS)
+  it('returns cpu→gpu→ram→ssd as the first 4 lines for a laptop with full specs', () => {
+    // Use cat_laptop so GPU is included; laptop also appends Cooling + Battery (6 total)
+    const lines = buildSpecsLines(FULL_SPECS, 'cat_laptop')
 
-    expect(lines).toHaveLength(4)
+    expect(lines).toHaveLength(6)
     expect(lines[0]!.labelKey).toBe('form.specCpu')
     expect(lines[1]!.labelKey).toBe('form.specGpu')
     expect(lines[2]!.labelKey).toBe('form.specRam')
@@ -38,22 +39,22 @@ describe('buildSpecsLines — labelKey values and ordering', () => {
   })
 
   it('cpu line has icon "cpu" and accent "indigo"', () => {
-    const lines = buildSpecsLines(FULL_SPECS)
+    const lines = buildSpecsLines(FULL_SPECS, 'cat_laptop')
     expect(lines[0]).toMatchObject({ icon: 'cpu', accent: 'indigo' })
   })
 
   it('gpu line has icon "circuit-board" and accent "violet"', () => {
-    const lines = buildSpecsLines(FULL_SPECS)
+    const lines = buildSpecsLines(FULL_SPECS, 'cat_laptop')
     expect(lines[1]).toMatchObject({ icon: 'circuit-board', accent: 'violet' })
   })
 
   it('ram line has icon "memory-stick" and accent "emerald"', () => {
-    const lines = buildSpecsLines(FULL_SPECS)
+    const lines = buildSpecsLines(FULL_SPECS, 'cat_laptop')
     expect(lines[2]).toMatchObject({ icon: 'memory-stick', accent: 'emerald' })
   })
 
   it('ssd line has icon "hard-drive" and accent "sky"', () => {
-    const lines = buildSpecsLines(FULL_SPECS)
+    const lines = buildSpecsLines(FULL_SPECS, 'cat_laptop')
     expect(lines[3]).toMatchObject({ icon: 'hard-drive', accent: 'sky' })
   })
 })
@@ -277,11 +278,12 @@ describe('buildSpecsLines — rawValue for storage fidelity', () => {
   })
 
   it('cpu/gpu/ram lines never have rawValue', () => {
+    // Pass cat_laptop so GPU is included; Cooling+Battery status tiles also have no rawValue
     const lines = buildSpecsLines({
       cpu: 'Intel Core i7-1265U',
       gpu: 'Intel Iris Xe',
       ram: '16 ГБ',
-    })
+    }, 'cat_laptop')
     for (const line of lines) {
       expect(line.rawValue).toBeUndefined()
     }
@@ -329,12 +331,13 @@ describe('buildSpecsCopyText — copy text fidelity', () => {
   })
 
   it('full asset copy text has correct format', () => {
+    // Use cat_laptop so GPU is included; laptop also adds Cooling+Battery rows after
     const lines = buildSpecsLines({
       cpu: 'Intel Core i7-1265U',
       gpu: 'Intel Iris Xe',
       ram: '16 ГБ',
       ssd: 'Samsung 990 PRO 1 ТБ NVMe',
-    })
+    }, 'cat_laptop')
     const text = buildSpecsCopyText(lines, t)
     const rows = text.split('\n')
 
@@ -451,14 +454,74 @@ describe('buildSpecsLines — factory status valueClassName', () => {
   })
 
   it('cpu / gpu / ram / ssd lines do NOT carry valueClassName', () => {
+    // Use cat_laptop so GPU is included; filter ensures only the 4 spec lines are checked
     const lines = buildSpecsLines({
       cpu: 'Intel Core i7',
       gpu: 'Intel Iris Xe',
       ram: '16 ГБ',
       ssd: 'SSD 512 ГБ',
-    })
+    }, 'cat_laptop')
     for (const line of lines.filter(l => ['form.specCpu', 'form.specGpu', 'form.specRam', 'form.specSsd'].includes(l.labelKey))) {
       expect(line.valueClassName).toBeUndefined()
     }
+  })
+})
+
+// ---------------------------------------------------------------------------
+// buildSpecsLines — GPU category gating (Task: strict GPU capability rules)
+// ---------------------------------------------------------------------------
+
+describe('buildSpecsLines — GPU category gating', () => {
+  const SPECS_WITH_GPU = { cpu: 'Intel i7', gpu: 'NVIDIA RTX 4070', ram: '32 ГБ', ssd: 'SSD 512 ГБ' }
+
+  it('includes GPU line for cat_computer when currentSpecs.gpu is set', () => {
+    const lines = buildSpecsLines(SPECS_WITH_GPU, 'cat_computer')
+    expect(lines.some(l => l.labelKey === 'form.specGpu')).toBe(true)
+    expect(lines.find(l => l.labelKey === 'form.specGpu')!.value).toBe('NVIDIA RTX 4070')
+  })
+
+  it('includes GPU line for cat_laptop when currentSpecs.gpu is set', () => {
+    const lines = buildSpecsLines(SPECS_WITH_GPU, 'cat_laptop')
+    expect(lines.some(l => l.labelKey === 'form.specGpu')).toBe(true)
+  })
+
+  it('includes GPU line for cat_workstation when currentSpecs.gpu is set', () => {
+    const lines = buildSpecsLines(SPECS_WITH_GPU, 'cat_workstation')
+    expect(lines.some(l => l.labelKey === 'form.specGpu')).toBe(true)
+  })
+
+  it('omits GPU line for cat_server even when currentSpecs.gpu is set', () => {
+    // Servers can have a stale gpu value stored — must NOT render the tile
+    const lines = buildSpecsLines({ ...SPECS_WITH_GPU, gpu: 'Встроенная' }, 'cat_server')
+    expect(lines.some(l => l.labelKey === 'form.specGpu')).toBe(false)
+  })
+
+  it('omits GPU line for furniture (cat_chair) even when currentSpecs.gpu is set', () => {
+    // Furniture with a stale gpu field must NOT render the tile
+    const lines = buildSpecsLines({ gpu: 'Встроенная' }, 'cat_chair')
+    expect(lines.some(l => l.labelKey === 'form.specGpu')).toBe(false)
+  })
+
+  it('omits GPU line for cat_monitor even when currentSpecs.gpu is set', () => {
+    const lines = buildSpecsLines({ cpu: 'i5', gpu: 'Встроенная' }, 'cat_monitor')
+    expect(lines.some(l => l.labelKey === 'form.specGpu')).toBe(false)
+  })
+
+  it('omits GPU line when categoryId is null (defensive: no category yet)', () => {
+    const lines = buildSpecsLines(SPECS_WITH_GPU, null)
+    expect(lines.some(l => l.labelKey === 'form.specGpu')).toBe(false)
+  })
+
+  it('omits GPU line when categoryId is undefined (original call signature without 2nd arg)', () => {
+    const lines = buildSpecsLines(SPECS_WITH_GPU)
+    expect(lines.some(l => l.labelKey === 'form.specGpu')).toBe(false)
+  })
+
+  it('CPU, RAM, SSD lines are NOT affected by GPU gating — still show for cat_server', () => {
+    const lines = buildSpecsLines(SPECS_WITH_GPU, 'cat_server')
+    expect(lines.some(l => l.labelKey === 'form.specCpu')).toBe(true)
+    expect(lines.some(l => l.labelKey === 'form.specRam')).toBe(true)
+    expect(lines.some(l => l.labelKey === 'form.specSsd')).toBe(true)
+    expect(lines.some(l => l.labelKey === 'form.specGpu')).toBe(false)
   })
 })

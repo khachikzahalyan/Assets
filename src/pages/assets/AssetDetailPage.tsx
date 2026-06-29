@@ -188,6 +188,20 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
 
   const canManageLicense = (role === 'super_admin' || role === 'tech_admin') && !isDisposed && Boolean(caps?.hasOemLicense)
 
+  // Derived once here so the effect dep is a stable boolean (not a full object ref).
+  const hasSpecsFlag = Boolean(caps?.hasSpecs)
+
+  // Normalize activeTab: when the specs tab is hidden (furniture, peripherals, etc.)
+  // and the tab is still set to 'specs' from the initial default, fall back to 'history'.
+  // Guard on !loading so the effect only fires after caps are resolved — during loading
+  // caps is null (hasSpecsFlag=false) and we must NOT switch a spec-capable asset to 'history'.
+  useEffect(() => {
+    if (loading) return
+    if (!hasSpecsFlag && activeTab === 'specs') {
+      setActiveTab('history')
+    }
+  }, [loading, hasSpecsFlag, activeTab])
+
   // ---- Transfer handler ----
   async function onTransfer(patch: TransferPatch) {
     if (!asset) return
@@ -464,8 +478,8 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
     )
   }
 
-  // Tab body visibility
-  const showSpecs = Boolean(caps?.hasSpecs)
+  // Tab body visibility — mirrors hasSpecsFlag computed above (used by the effect).
+  const showSpecs = hasSpecsFlag
 
   // Derive creation date from history events (the event with kind === 'created')
   const creationEvent = historyEvents.find(ev => ev.kind === 'created')
@@ -567,7 +581,7 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
           >
             {activeTab === 'specs' && (
               <div className="space-y-5">
-                {(caps?.hasSpecs || canManageLicense || licenses.length > 0 || caps?.hasOemLicense) ? (
+                {(caps?.hasSpecs || caps?.hasOemLicense || licenses.length > 0) ? (
                   <TechSpecsCard
                     asset={asset}
                     licenses={licenses}

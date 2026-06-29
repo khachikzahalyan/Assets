@@ -27,6 +27,8 @@ export interface CategoryCapabilities {
   isServer: boolean
   isLaptop: boolean
   isNetwork: boolean
+  /** True ONLY for desktop computers and laptops — GPU field shown/stored only for these. */
+  hasGpu: boolean
 }
 
 /**
@@ -51,6 +53,15 @@ export const LAPTOP_CATEGORY_IDS: ReadonlySet<string> = new Set([
 const COMPUTER_CATEGORY_IDS: ReadonlySet<string> = new Set([
   'cat_computer', 'cat_desktop', 'cat_workstation', 'cat_mini_pc', 'cat_aio',
 ])
+
+/**
+ * Pure helper — returns true when a category id belongs to the GPU-capable families
+ * (desktop computers and laptops). Safe to call with null/undefined (returns false).
+ * Consumed by detailFormat.buildSpecsLines to gate the GPU spec tile.
+ */
+export function categoryHasGpu(id: string | null | undefined): boolean {
+  return !!id && (COMPUTER_CATEGORY_IDS.has(id) || LAPTOP_CATEGORY_IDS.has(id))
+}
 
 /** Apple laptops: specs YES, but OS comes with the machine → OEM license NO. */
 const APPLE_LAPTOP_IDS: ReadonlySet<string> = new Set([
@@ -342,6 +353,7 @@ export function resolveCategoryCapabilities(cat: CategoryRow): CategoryCapabilit
     cat.hasSpecs !== undefined ? cat.hasSpecs : (base.hasSpecs || specHeuristic || isServer)
 
   const hasBrandModel = !hasTypeField
+  const hasGpu = COMPUTER_CATEGORY_IDS.has(cat.id) || LAPTOP_CATEGORY_IDS.has(cat.id)
 
-  return { hasBrandModel, hasTypeField, requiresSerial, hasSpecs, hasOemLicense, isServer, isLaptop, isNetwork }
+  return { hasBrandModel, hasTypeField, requiresSerial, hasSpecs, hasOemLicense, isServer, isLaptop, isNetwork, hasGpu }
 }

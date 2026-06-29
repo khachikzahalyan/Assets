@@ -1,6 +1,6 @@
 import type { AssetAssignment, AssetSpecs } from '@/domain/asset'
 import type { UpgradeSlot } from '@/domain/part/types'
-import { LAPTOP_CATEGORY_IDS, SERVER_CATEGORY_IDS } from '@/domain/asset/categoryCapabilities'
+import { LAPTOP_CATEGORY_IDS, SERVER_CATEGORY_IDS, categoryHasGpu } from '@/domain/asset/categoryCapabilities'
 
 // ---------------------------------------------------------------------------
 // Date / time helpers
@@ -317,7 +317,7 @@ export function buildSpecsLines(
   if (currentSpecs.cpu) {
     lines.push({ labelKey: 'form.specCpu', value: currentSpecs.cpu, accent: 'indigo',  icon: 'cpu'           })
   }
-  if (currentSpecs.gpu) {
+  if (currentSpecs.gpu && categoryHasGpu(categoryId)) {
     lines.push({ labelKey: 'form.specGpu', value: currentSpecs.gpu, accent: 'violet',  icon: 'circuit-board' })
   }
   if (currentSpecs.ram) {

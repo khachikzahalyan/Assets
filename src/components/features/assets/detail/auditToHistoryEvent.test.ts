@@ -272,15 +272,15 @@ describe('buildSpecsLines', () => {
     expect(buildSpecsLines({})).toEqual([])
   })
 
-  it('builds cpu line first, then gpu, then ram, then ssd — in spec order', () => {
-    // Arrange
+  it('builds cpu→gpu→ram→ssd as first 4 lines for a laptop category (in spec order)', () => {
+    // Arrange — use cat_laptop so GPU is included; laptop adds Cooling+Battery = 6 total
     const specs = { cpu: 'Intel i7', gpu: 'RTX 3060', ram: '16 ГБ', ssd: '512 ГБ' }
 
     // Act
-    const lines = buildSpecsLines(specs)
+    const lines = buildSpecsLines(specs, 'cat_laptop')
 
-    // Assert order and content — labels now carried as i18n keys, not resolved strings
-    expect(lines).toHaveLength(4)
+    // Assert order and content — labels carried as i18n keys, not resolved strings
+    expect(lines).toHaveLength(6)
     expect(lines[0]).toMatchObject({ labelKey: 'form.specCpu', value: 'Intel i7',  icon: 'cpu',           accent: 'indigo'  })
     expect(lines[1]).toMatchObject({ labelKey: 'form.specGpu', value: 'RTX 3060',  icon: 'circuit-board', accent: 'violet'  })
     expect(lines[2]).toMatchObject({ labelKey: 'form.specRam', value: '16 ГБ',     icon: 'memory-stick',  accent: 'emerald' })
