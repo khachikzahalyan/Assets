@@ -1,6 +1,7 @@
-import { type ReactNode, useState, useEffect } from 'react'
+import { type ReactNode, useMemo, useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Chip, Icon } from '@/components/ui'
+import { Chip, Icon, DataTable } from '@/components/ui'
+import type { DataTableColumn } from '@/components/ui'
 import type { WorkstationLicense } from '@/domain/license'
 import { formatLicenseDate } from './formatLicenseDate'
 
@@ -25,6 +26,77 @@ export function WorkstationLicenseTable({ rows, renderActions }: WorkstationLice
     mq.addEventListener('change', handler)
     return () => mq.removeEventListener('change', handler)
   }, [])
+
+  // ── Desktop DataTable columns ────────────────────────────────────────────────
+  const columns = useMemo<DataTableColumn<WorkstationLicense>[]>(() => {
+    const cols: DataTableColumn<WorkstationLicense>[] = [
+      {
+        key: 'name',
+        header: t('col.name'),
+        width: 'minmax(140px,1.6fr)',
+        cell: (row) => (
+          <span className="text-[13px] text-text-primary font-medium">{row.name}</span>
+        ),
+      },
+      {
+        key: 'vendor',
+        header: t('col.vendor'),
+        width: 'minmax(100px,1fr)',
+        cell: (row) => (
+          <span className="text-[13px] text-text-tertiary">{row.vendor ?? '—'}</span>
+        ),
+      },
+      {
+        key: 'type',
+        header: t('col.type'),
+        width: 'minmax(100px,1fr)',
+        cell: (row) => (
+          <span className="text-[13px] text-text-tertiary">{row.type}</span>
+        ),
+      },
+      {
+        key: 'assignment',
+        header: t('col.assignment'),
+        width: 'minmax(120px,1.2fr)',
+        cell: (row) => <AssignmentCell license={row} />,
+      },
+      {
+        key: 'status',
+        header: t('col.status'),
+        width: 'minmax(90px,0.9fr)',
+        cell: (row) => (
+          <Chip color={row.lifecycleStatus === 'active' ? 'green' : 'gray'} dot>
+            {t(`status.${row.lifecycleStatus}`)}
+          </Chip>
+        ),
+      },
+      {
+        key: 'expiry',
+        header: t('col.expiry'),
+        width: 'minmax(100px,1fr)',
+        cell: (row) => row.expiresAt ? (
+          <span className="text-[13px] text-text-tertiary">
+            {formatLicenseDate(row.expiresAt, i18n.language)}
+          </span>
+        ) : (
+          <span className="text-[13px] text-text-subtle">—</span>
+        ),
+      },
+    ]
+    if (renderActions) {
+      cols.push({
+        key: '__actions',
+        header: '',
+        width: '80px',
+        cell: (row) => (
+          <div className="flex items-center gap-1 flex-wrap">
+            {renderActions(row)}
+          </div>
+        ),
+      })
+    }
+    return cols
+  }, [t, i18n.language, renderActions])
 
   if (isMobile) {
     // ── Mobile card list ────────────────────────────────────────────────────────
@@ -65,62 +137,13 @@ export function WorkstationLicenseTable({ rows, renderActions }: WorkstationLice
     )
   }
 
-  // ── Desktop table ───────────────────────────────────────────────────────────
+  // ── Desktop DataTable ───────────────────────────────────────────────────────
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-[13px]">
-        <thead>
-          <tr className="text-left text-[12px] text-text-subtle border-b border-border">
-            <th className="py-2 pr-4 font-medium">{t('col.name')}</th>
-            <th className="py-2 pr-4 font-medium">{t('col.vendor')}</th>
-            <th className="py-2 pr-4 font-medium">{t('col.type')}</th>
-            <th className="py-2 pr-4 font-medium">{t('col.assignment')}</th>
-            <th className="py-2 pr-4 font-medium">{t('col.status')}</th>
-            <th className="py-2 pr-4 font-medium">{t('col.expiry')}</th>
-            {renderActions && <th className="py-2 pr-4 font-medium" />}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => (
-            <tr key={row.id} className="border-b border-[#1F242B] hover:bg-[#161A20]">
-              <td className="py-2.5 pr-4">
-                <span className="text-text-primary font-medium">{row.name}</span>
-              </td>
-              <td className="py-2.5 pr-4">
-                <span className="text-text-tertiary">{row.vendor ?? '—'}</span>
-              </td>
-              <td className="py-2.5 pr-4">
-                <span className="text-text-tertiary">{row.type}</span>
-              </td>
-              <td className="py-2.5 pr-4">
-                <AssignmentCell license={row} />
-              </td>
-              <td className="py-2.5 pr-4">
-                <Chip color={row.lifecycleStatus === 'active' ? 'green' : 'gray'} dot>
-                  {t(`status.${row.lifecycleStatus}`)}
-                </Chip>
-              </td>
-              <td className="py-2.5 pr-4">
-                {row.expiresAt ? (
-                  <span className="text-text-tertiary">
-                    {formatLicenseDate(row.expiresAt, i18n.language)}
-                  </span>
-                ) : (
-                  <span className="text-text-subtle">—</span>
-                )}
-              </td>
-              {renderActions && (
-                <td className="py-2.5 pr-4">
-                  <div className="flex items-center gap-1 flex-wrap">
-                    {renderActions(row)}
-                  </div>
-                </td>
-              )}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <DataTable<WorkstationLicense>
+      columns={columns}
+      rows={rows}
+      getRowKey={(row) => row.id}
+    />
   )
 }
 
@@ -137,7 +160,7 @@ function AssignmentCell({ license }: { license: WorkstationLicense }) {
     return (
       <div className="flex items-center gap-1.5">
         <Icon name="user" size={12} className="text-text-subtle" />
-        <span className="text-text-tertiary">
+        <span className="text-[13px] text-text-tertiary">
           {t('assignment.employee')}
           {license.assignedToEmployeeId ? (
             <span className="text-text-subtle ml-1 text-[12px]">
@@ -153,7 +176,7 @@ function AssignmentCell({ license }: { license: WorkstationLicense }) {
   return (
     <div className="flex items-center gap-1.5">
       <Icon name="monitor" size={12} className="text-text-subtle" />
-      <span className="text-text-tertiary">
+      <span className="text-[13px] text-text-tertiary">
         {t('assignment.device')}
         {license.assignedToAssetId ? (
           <span className="text-text-subtle ml-1 text-[12px]">
@@ -164,4 +187,3 @@ function AssignmentCell({ license }: { license: WorkstationLicense }) {
     </div>
   )
 }
-

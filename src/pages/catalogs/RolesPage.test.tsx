@@ -93,7 +93,7 @@ describe('RolesPage', () => {
     renderPage()
     await screen.findByText('Super One')
     // open the dialog on the current user's own row
-    const row = screen.getByText('Super One').closest('tr')!
+    const row = screen.getByText('Super One').closest<HTMLElement>('[role="row"]')!
     fireEvent.click(within(row).getByRole('button', { name: /Изменить роль/ }))
     // pick asset_admin then confirm
     fireEvent.change(await screen.findByLabelText('Новая роль'), { target: { value: 'asset_admin' } })
@@ -106,7 +106,7 @@ describe('RolesPage', () => {
     const spy = vi.spyOn(repo, 'assignRole')
     renderPage(repo)
     await screen.findByText('Asset Admin')
-    const row = screen.getByText('Asset Admin').closest('tr')!
+    const row = screen.getByText('Asset Admin').closest<HTMLElement>('[role="row"]')!
     fireEvent.click(within(row).getByRole('button', { name: /Изменить роль/ }))
     fireEvent.change(await screen.findByLabelText('Новая роль'), { target: { value: 'tech_admin' } })
     fireEvent.click(screen.getByRole('button', { name: 'Изменить' }))
@@ -185,7 +185,7 @@ describe('RolesPage', () => {
     // Arrange: open dialog on Asset Admin (current role: asset_admin)
     renderPage()
     await screen.findByText('Asset Admin')
-    const row = screen.getByText('Asset Admin').closest('tr')!
+    const row = screen.getByText('Asset Admin').closest<HTMLElement>('[role="row"]')!
     fireEvent.click(within(row).getByRole('button', { name: /Изменить роль/ }))
 
     // Act: leave the role select at its current value (asset_admin)

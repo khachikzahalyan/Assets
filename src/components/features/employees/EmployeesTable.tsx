@@ -1,18 +1,24 @@
 import { useMemo, useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { EmployeeRow } from './EmployeeRow'
-import { Icon, Chip } from '@/components/ui'
+import { Icon, Chip, DataTable } from '@/components/ui'
+import type { DataTableColumn } from '@/components/ui'
+import { EmployeeAvatar } from './EmployeeAvatar'
+import { formatLocalPhone } from './employeeFormat'
 import type { Employee } from '@/domain/employee'
 import type { RefRow } from '@/domain/asset'
 
-// Grid columns — must match EmployeeRow exactly
-const GRID_COLS =
-  'minmax(180px,1.6fr) minmax(120px,0.9fr) minmax(140px,1.2fr) minmax(110px,0.85fr) minmax(160px,1.4fr) minmax(80px,0.6fr) minmax(100px,0.9fr) 56px'
+// Grid column widths — must match the original GRID_COLS exactly for visual parity
+const COL_WIDTHS = [
+  'minmax(180px,1.6fr)', // Employee
+  'minmax(120px,0.9fr)', // Branch
+  'minmax(140px,1.2fr)', // Position / Dept
+  'minmax(110px,0.85fr)', // Phone
+  'minmax(160px,1.4fr)', // Gmail
+  'minmax(80px,0.6fr)',  // Assets
+  'minmax(100px,0.9fr)', // Status
+  '56px',                // Chevron / Actions
+] as const
 
-// The first branch in any list is treated as head office by convention; the
-// true head-office check compares against the configured branch id.
-// Since the domain does not carry a headOffice flag on RefRow, we expose it
-// via a prop so the page can pass it down.
 export interface EmployeesTableProps {
   rows: Employee[]
   branches: RefRow[]
@@ -47,13 +53,7 @@ export function EmployeesTable({
     [branches, departments],
   )
 
-  // Placeholder rows to maintain constant 10-row footprint (desktop only)
-  const placeholderCount = Math.max(0, minRows - rows.length)
-
   // ── Responsive: show mobile cards only when viewport is < 768px ─────────────
-  // Using state + matchMedia so the layout is correct on first paint and updates
-  // on resize. jsdom does not implement matchMedia — guard with typeof check so
-  // isMobile stays false in tests, preventing duplicate text nodes.
   const [isMobile, setIsMobile] = useState<boolean>(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false
     return window.matchMedia('(max-width: 767px)').matches
@@ -65,6 +65,154 @@ export function EmployeesTable({
     mq.addEventListener('change', handler)
     return () => mq.removeEventListener('change', handler)
   }, [])
+
+  // ── Desktop DataTable columns ────────────────────────────────────────────────
+  const columns = useMemo<DataTableColumn<Employee>[]>(() => [
+    {
+      key: 'employee',
+      header: t('table.employee'),
+      width: COL_WIDTHS[0],
+      cellClassName: 'overflow-hidden min-w-0',
+      cell: (emp) => (
+        <div className="flex items-center gap-2.5 overflow-hidden min-w-0 w-full">
+          <EmployeeAvatar firstName={emp.firstName} lastName={emp.lastName} id={emp.id} size="sm" />
+          <span className="text-[15px] font-semibold text-text-primary truncate leading-tight">
+            {emp.firstName} {emp.lastName}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: 'branch',
+      header: t('table.branch'),
+      width: COL_WIDTHS[1],
+      cellClassName: 'overflow-hidden min-w-0',
+      cell: (emp) => {
+        const branchName = emp.branchId ? (branchMap.get(emp.branchId) ?? '') : ''
+        const isHeadOffice = !!headOfficeBranchId && emp.branchId === headOfficeBranchId
+        return (
+          <div className="flex items-center gap-1.5 overflow-hidden min-w-0">
+            <span
+              className="shrink-0 inline-flex"
+              style={{ color: isHeadOffice ? '#10B981' : '#38BDF8' }}
+            >
+              <Icon name={isHeadOffice ? 'landmark' : 'building'} size={12} />
+            </span>
+            <span className="text-[14.5px] text-text-secondary truncate">
+              {branchName || <span className="text-text-subtle">—</span>}
+            </span>
+          </div>
+        )
+      },
+    },
+    {
+      key: 'position',
+      header: t('table.position'),
+      width: COL_WIDTHS[2],
+      cellClassName: 'overflow-hidden min-w-0',
+      cell: (emp) => {
+        const deptName = emp.departmentId ? (deptMap.get(emp.departmentId) ?? '') : ''
+        return (
+          <div className="min-w-0 w-full">
+            <div className="text-[14.5px] font-medium text-text-primary truncate whitespace-nowrap leading-tight">
+              {emp.position || <span className="text-text-subtle">—</span>}
+            </div>
+            <div className="text-[13px] text-text-tertiary truncate whitespace-nowrap leading-tight mt-0.5">
+              {deptName || <span className="text-text-subtle">—</span>}
+            </div>
+          </div>
+        )
+      },
+    },
+    {
+      key: 'phone',
+      header: t('table.phone'),
+      width: COL_WIDTHS[3],
+      cellClassName: 'overflow-hidden min-w-0',
+      cell: (emp) => emp.phone ? (
+        <span className="text-[14px] text-text-secondary font-mono tabular-nums whitespace-nowrap truncate">
+          {formatLocalPhone(emp.phone)}
+        </span>
+      ) : (
+        <span className="text-[14px] text-text-subtle" aria-label={t('table.phone')}>—</span>
+      ),
+    },
+    {
+      key: 'email',
+      header: t('table.gmail'),
+      width: COL_WIDTHS[4],
+      cellClassName: 'overflow-hidden min-w-0',
+      cell: (emp) => emp.email ? (
+        <span className="text-[14px] text-text-tertiary truncate inline-block max-w-full">
+          {emp.email}
+        </span>
+      ) : (
+        <span className="text-[14px] text-text-subtle">—</span>
+      ),
+    },
+    {
+      key: 'assets',
+      header: t('table.assets'),
+      width: COL_WIDTHS[5],
+      cellClassName: 'overflow-hidden min-w-0',
+      cell: (emp) => {
+        const assetCount = assetCounts[emp.id] ?? 0
+        return (
+          <span
+            className={`inline-flex items-center gap-1.5 font-mono text-[14px] font-medium px-1.5 py-0.5 rounded border ${
+              assetCount === 0
+                ? 'text-text-subtle bg-bg border-border'
+                : 'text-text-secondary bg-bg border-border/70'
+            }`}
+            aria-label={t('table.assets')}
+          >
+            <Icon name="package" size={11} className="text-text-subtle" />
+            {assetCount}
+          </span>
+        )
+      },
+    },
+    {
+      key: 'status',
+      header: t('table.status'),
+      width: COL_WIDTHS[6],
+      cellClassName: 'overflow-hidden min-w-0',
+      cell: (emp) => {
+        const statusColor = emp.status === 'active' ? 'green' : 'violet'
+        return (
+          <Chip color={statusColor} dot>
+            {t(`status.${emp.status}`)}
+          </Chip>
+        )
+      },
+    },
+    {
+      key: 'actions',
+      header: '',
+      width: COL_WIDTHS[7],
+      cellClassName: 'overflow-hidden min-w-0',
+      cell: (emp) => (
+        <div className="flex items-center justify-end gap-1" style={{ paddingRight: '4px' }}>
+          {emp.status === 'terminated' && onRestore && (
+            <button
+              type="button"
+              onClick={e => { e.stopPropagation(); onRestore(emp.id) }}
+              title={t('detail.restore')}
+              aria-label={t('detail.restore')}
+              className="inline-flex items-center justify-center w-7 h-7 rounded-md text-text-subtle hover:text-violet-300 hover:bg-violet-500/10 transition-colors duration-100 opacity-0 group-hover:opacity-100 focus:opacity-100"
+            >
+              <Icon name="rotate-ccw" size={13} />
+            </button>
+          )}
+          <Icon
+            name="chevron-right"
+            size={14}
+            className="text-text-subtle group-hover:text-accent-light transition-colors duration-150 ml-0.5"
+          />
+        </div>
+      ),
+    },
+  ], [t, branchMap, deptMap, headOfficeBranchId, assetCounts, onRestore])
 
   // ── Mobile card list (< 768px) ───────────────────────────────────────────────
   if (isMobile) {
@@ -86,7 +234,7 @@ export function EmployeesTable({
               onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onRowClick(emp) } }}
               className="flex flex-row items-start gap-3 bg-surface px-[14px] py-[10px] border-b border-white/[0.06] cursor-pointer transition-colors duration-[140ms] min-h-[68px] box-border last:border-b-0 active:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[rgba(249,115,22,0.40)]"
             >
-              {/* Icon tile — generic muted user icon (matches prototype mobile card) */}
+              {/* Icon tile */}
               <span className="w-8 h-8 min-w-[32px] rounded-[8px] bg-white/[0.04] border-[0.5px] border-white/[0.06] inline-flex items-center justify-center flex-shrink-0 text-white/60 mt-[1px]">
                 <Icon name="user" size={16} />
               </span>
@@ -134,100 +282,16 @@ export function EmployeesTable({
     )
   }
 
-  // ── Desktop grid table (≥ 768px) ────────────────────────────────────────────
+  // ── Desktop DataTable (≥ 768px) ─────────────────────────────────────────────
   return (
-    <div
-      role="table"
+    <DataTable<Employee>
+      columns={columns}
+      rows={rows}
+      getRowKey={(emp) => emp.id}
+      onRowClick={onRowClick}
+      minRows={minRows}
+      placeholderTestId="emp-placeholder-row"
       aria-label={t('title')}
-      style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%' }}
-    >
-      {/* Sticky header */}
-      <div
-        role="rowgroup"
-        style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 2,
-          display: 'grid',
-          gridTemplateColumns: GRID_COLS,
-          height: '44px',
-          minHeight: '44px',
-          alignItems: 'center',
-          background: '#111315',
-          borderBottom: '1px solid rgba(42,47,54,0.9)',
-          flexShrink: 0,
-        }}
-      >
-        {[
-          { label: t('table.employee'), pl: '20px' },
-          { label: t('table.branch'), pl: '12px' },
-          { label: t('table.position'), pl: '12px' },
-          { label: t('table.phone'), pl: '12px' },
-          { label: t('table.gmail'), pl: '12px' },
-          { label: t('table.assets'), pl: '12px' },
-          { label: t('table.status'), pl: '12px' },
-          { label: '', pl: '12px' },
-        ].map(({ label, pl }, i) => (
-          <div
-            key={i}
-            role="columnheader"
-            className="px-3 text-[12px] uppercase tracking-[0.09em] font-semibold text-text-tertiary truncate overflow-hidden min-w-0"
-            style={{ paddingLeft: pl }}
-          >
-            {label}
-          </div>
-        ))}
-      </div>
-
-      {/* Data rows + placeholder rows */}
-      <div
-        role="rowgroup"
-        style={{ display: 'flex', flexDirection: 'column', flex: '1 1 0', minHeight: 0 }}
-      >
-        {rows.map(emp => (
-          <EmployeeRow
-            key={emp.id}
-            employee={emp}
-            branchName={emp.branchId ? (branchMap.get(emp.branchId) ?? '') : ''}
-            isHeadOffice={!!headOfficeBranchId && emp.branchId === headOfficeBranchId}
-            deptName={emp.departmentId ? (deptMap.get(emp.departmentId) ?? '') : ''}
-            assetCount={assetCounts[emp.id] ?? 0}
-            onClick={() => onRowClick(emp)}
-            onRestore={onRestore}
-          />
-        ))}
-
-        {/* Placeholder rows — desktop only (max-md:hidden) — maintain fixed table height.
-            MUST NOT have role="row" so getAllByRole('row') counts stay correct.
-            aria-hidden, pointer-events:none, no hover, no focus. */}
-        {Array.from({ length: placeholderCount }).map((_, i) => (
-          <div
-            key={`__ph_${i}`}
-            aria-hidden="true"
-            data-testid="emp-placeholder-row"
-            className="max-md:hidden"
-            style={{
-              position: 'relative',
-              flex: '1 1 0',
-              minHeight: '58px',
-              borderTop: '1px solid rgba(42,47,54,0.35)',
-              pointerEvents: 'none',
-            }}
-          >
-            <div
-              style={{
-                position: 'absolute',
-                left: '20px',
-                right: '20px',
-                top: '50%',
-                height: '1px',
-                borderTop: '1px dashed rgba(42,47,54,0.5)',
-                transform: 'translateY(-50%)',
-              }}
-            />
-          </div>
-        ))}
-      </div>
-    </div>
+    />
   )
 }

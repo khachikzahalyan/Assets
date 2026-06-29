@@ -2,16 +2,15 @@ import { useMemo, useState, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
 import { useIsMobile } from '@/hooks/useIsMobile'
-import { cn } from '@/lib/utils'
 import {
   PageHeader, SectionCard, Btn, Icon, EmptyState, ErrorState, Field, Select,
-  LIST_ROW_SEPARATOR_FULL, MODAL_SHEET,
+  MODAL_SHEET, DataTable, Input,
 } from '@/components/ui'
+import type { DataTableColumn } from '@/components/ui'
 import type { PendingUser, UserRepository, AssignRoleInput } from '@/domain/user'
 import type { Role } from '@/config/roles'
 import { ROLE_IDS } from '@/config/roles'
 import { createDefaultUserRepository } from '@/infra/repositories'
-import { Input } from '@/components/ui'
 
 export interface PendingUsersPageProps {
   repository?: UserRepository
@@ -381,57 +380,59 @@ export function PendingUsersPage({ repository }: PendingUsersPageProps) {
       )
     }
 
-    /* Desktop table */
+    /* Desktop DataTable */
+    const dtColumns: DataTableColumn<PendingUser>[] = [
+      {
+        key: 'user',
+        header: t('col.user'),
+        width: 'minmax(180px,2fr)',
+        cell: (pu) => (
+          <span className="flex items-center gap-2">
+            <span className="w-7 h-7 rounded-full bg-surface-2 border border-border text-text-subtle inline-flex items-center justify-center flex-shrink-0">
+              <Icon name="user" size={13} />
+            </span>
+            <span className="text-[13px] font-medium text-text-primary truncate max-w-[160px]">
+              {pu.displayName || pu.email}
+            </span>
+          </span>
+        ),
+      },
+      {
+        key: 'email',
+        header: t('col.email'),
+        width: 'minmax(140px,1.5fr)',
+        cell: (pu) => (
+          <span className="text-[13px] text-text-tertiary">{pu.email}</span>
+        ),
+      },
+      {
+        key: 'signedIn',
+        header: t('col.signedIn'),
+        width: 'minmax(140px,1.5fr)',
+        cell: (pu) => (
+          <span className="text-[13px] text-text-subtle">{formatDate(pu.createdAt)}</span>
+        ),
+      },
+      {
+        key: 'action',
+        header: '',
+        width: '120px',
+        align: 'right',
+        cell: (pu) => (
+          <Btn size="sm" variant="primary" onClick={() => setDialogUser(pu)}>
+            <Icon name="user-plus" size={13} />
+            {t('assign')}
+          </Btn>
+        ),
+      },
+    ]
     return (
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-border">
-              <th className="text-left py-2.5 px-3 text-[11px] uppercase tracking-[0.06em] font-semibold text-text-subtle">
-                {t('col.user')}
-              </th>
-              <th className="text-left py-2.5 px-3 text-[11px] uppercase tracking-[0.06em] font-semibold text-text-subtle">
-                {t('col.email')}
-              </th>
-              <th className="text-left py-2.5 px-3 text-[11px] uppercase tracking-[0.06em] font-semibold text-text-subtle">
-                {t('col.signedIn')}
-              </th>
-              <th className="py-2.5 px-3" />
-            </tr>
-          </thead>
-          <tbody>
-            {pendingUsers.map(pu => (
-              <tr
-                key={pu.id}
-                className={cn(LIST_ROW_SEPARATOR_FULL, 'hover:bg-surface-2 transition-colors')}
-              >
-                <td className="py-3 px-3">
-                  <span className="flex items-center gap-2">
-                    <span className="w-7 h-7 rounded-full bg-surface-2 border border-border text-text-subtle inline-flex items-center justify-center flex-shrink-0">
-                      <Icon name="user" size={13} />
-                    </span>
-                    <span className="text-[13px] font-medium text-text-primary truncate max-w-[160px]">
-                      {pu.displayName || pu.email}
-                    </span>
-                  </span>
-                </td>
-                <td className="py-3 px-3 text-[13px] text-text-tertiary">{pu.email}</td>
-                <td className="py-3 px-3 text-[13px] text-text-subtle">{formatDate(pu.createdAt)}</td>
-                <td className="py-3 px-3 text-right">
-                  <Btn
-                    size="sm"
-                    variant="primary"
-                    onClick={() => setDialogUser(pu)}
-                  >
-                    <Icon name="user-plus" size={13} />
-                    {t('assign')}
-                  </Btn>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <DataTable<PendingUser>
+        columns={dtColumns}
+        rows={pendingUsers}
+        getRowKey={(pu) => pu.id}
+        aria-label={t('title')}
+      />
     )
   }
 

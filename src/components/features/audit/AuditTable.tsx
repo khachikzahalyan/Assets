@@ -1,7 +1,8 @@
-import { Fragment, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
-import { Icon, Chip } from '@/components/ui'
+import { Icon, Chip, DataTable } from '@/components/ui'
+import type { DataTableColumn } from '@/components/ui'
 import { AuditDiff } from './AuditDiff'
 import { formatAuditTs, resolveActorName, entityLink } from './auditFormat'
 import type { AuditLog, AuditLogReferenceData } from '@/domain/audit'
@@ -28,6 +29,94 @@ export function AuditTable({ rows, ref: refData }: AuditTableProps) {
     mq.addEventListener('change', handler)
     return () => mq.removeEventListener('change', handler)
   }, [])
+
+  // ── Desktop DataTable columns ────────────────────────────────────────────────
+  const columns = useMemo<DataTableColumn<AuditLog>[]>(() => [
+    {
+      key: 'chevron',
+      header: '',
+      width: '36px',
+      cell: (log) => (
+        <Icon
+          name="chevron-right"
+          size={13}
+          className={`text-text-subtle transition-transform ${expanded === log.id ? 'rotate-90' : ''}`}
+        />
+      ),
+    },
+    {
+      key: 'time',
+      header: t('col.time'),
+      width: 'minmax(130px,1fr)',
+      cell: (log) => (
+        <span className="font-mono text-[12px] text-text-tertiary whitespace-nowrap">
+          {formatAuditTs(log.at, i18n.language)}
+        </span>
+      ),
+    },
+    {
+      key: 'actor',
+      header: t('col.actor'),
+      width: 'minmax(120px,1.5fr)',
+      cell: (log) => (
+        <span className="text-[12.5px] text-text-primary">
+          {resolveActorName(log.actorUid, refData.actors)}
+        </span>
+      ),
+    },
+    {
+      key: 'role',
+      header: t('col.role'),
+      width: 'minmax(100px,1fr)',
+      cell: (log) => (
+        <span className="text-[12.5px] text-text-tertiary">
+          {t(`role.${log.actorRole}`, { defaultValue: log.actorRole })}
+        </span>
+      ),
+    },
+    {
+      key: 'entity',
+      header: t('col.entity'),
+      width: 'minmax(90px,1fr)',
+      cell: (log) => (
+        <Chip>
+          {t(`entity.${log.entityType}`, { defaultValue: log.entityType })}
+        </Chip>
+      ),
+    },
+    {
+      key: 'action',
+      header: t('col.action'),
+      width: 'minmax(90px,1fr)',
+      cell: (log) => (
+        <span className="text-[12.5px] text-text-tertiary">
+          {t(`action.${log.action}`, { defaultValue: log.action })}
+        </span>
+      ),
+    },
+    {
+      key: 'entityId',
+      header: t('col.entityId'),
+      width: 'minmax(120px,1.2fr)',
+      cell: (log) => {
+        const link = entityLink(log)
+        if (link != null) {
+          return (
+            <button
+              type="button"
+              onClick={e => { e.stopPropagation(); navigate(link) }}
+              className="font-mono text-[12px] text-accent-light hover:underline"
+            >
+              {log.entityId}
+            </button>
+          )
+        }
+        return (
+          <span className="font-mono text-[12px] text-text-subtle">{log.entityId}</span>
+        )
+      },
+    },
+  ], [t, i18n.language, expanded, navigate, refData.actors])
 
   if (isMobile) {
     // ── Mobile card list ────────────────────────────────────────────────────────
@@ -95,81 +184,21 @@ export function AuditTable({ rows, ref: refData }: AuditTableProps) {
     )
   }
 
-  // ── Desktop table ───────────────────────────────────────────────────────────
+  // ── Desktop DataTable ───────────────────────────────────────────────────────
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-left">
-        <thead>
-          <tr className="text-[11px] uppercase tracking-wide text-text-subtle border-b border-border">
-            <th className="font-semibold py-2 pr-3 w-8"></th>
-            <th className="font-semibold py-2 pr-3 whitespace-nowrap">{t('col.time')}</th>
-            <th className="font-semibold py-2 pr-3">{t('col.actor')}</th>
-            <th className="font-semibold py-2 pr-3">{t('col.role')}</th>
-            <th className="font-semibold py-2 pr-3">{t('col.entity')}</th>
-            <th className="font-semibold py-2 pr-3">{t('col.action')}</th>
-            <th className="font-semibold py-2">{t('col.entityId')}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map(log => {
-            const isOpen = expanded === log.id
-            const link = entityLink(log)
-            return (
-              <Fragment key={log.id}>
-                <tr
-                  onClick={() => setExpanded(isOpen ? null : log.id)}
-                  className="text-[12.5px] border-b border-border hover:bg-[#1A1D21] cursor-pointer transition-colors duration-100"
-                >
-                  <td className="py-2 pr-3 text-text-subtle">
-                    <Icon
-                      name="chevron-right"
-                      size={13}
-                      className={isOpen ? 'rotate-90 transition-transform' : 'transition-transform'}
-                    />
-                  </td>
-                  <td className="py-2 pr-3 text-text-tertiary whitespace-nowrap font-mono text-[12px]">
-                    {formatAuditTs(log.at, i18n.language)}
-                  </td>
-                  <td className="py-2 pr-3 text-text-primary">
-                    {resolveActorName(log.actorUid, refData.actors)}
-                  </td>
-                  <td className="py-2 pr-3 text-text-tertiary">
-                    {t(`role.${log.actorRole}`, { defaultValue: log.actorRole })}
-                  </td>
-                  <td className="py-2 pr-3">
-                    <Chip>
-                      {t(`entity.${log.entityType}`, { defaultValue: log.entityType })}
-                    </Chip>
-                  </td>
-                  <td className="py-2 pr-3 text-text-tertiary">
-                    {t(`action.${log.action}`, { defaultValue: log.action })}
-                  </td>
-                  <td className="py-2 font-mono text-[12px]">
-                    {link != null ? (
-                      <button
-                        type="button"
-                        onClick={e => { e.stopPropagation(); navigate(link) }}
-                        className="text-accent-light hover:underline"
-                      >
-                        {log.entityId}
-                      </button>
-                    ) : (
-                      <span className="text-text-subtle">{log.entityId}</span>
-                    )}
-                  </td>
-                </tr>
-                {isOpen && (
-                  <tr className="border-b border-border bg-[#15181C]">
-                    <td colSpan={7} className="py-2 px-3">
-                      <AuditDiff log={log} />
-                    </td>
-                  </tr>
-                )}
-              </Fragment>
-            )
-          })}
-        </tbody>
-      </table>
-    </div>
+    <DataTable<AuditLog>
+      columns={columns}
+      rows={rows}
+      getRowKey={(log) => log.id}
+      onRowClick={(log) => setExpanded(expanded === log.id ? null : log.id)}
+      renderRowExpanded={(log) =>
+        expanded === log.id ? (
+          <div className="py-2 px-3">
+            <AuditDiff log={log} />
+          </div>
+        ) : null
+      }
+      aria-label={t('pageTitle', { defaultValue: 'Аудит' })}
+    />
   )
 }

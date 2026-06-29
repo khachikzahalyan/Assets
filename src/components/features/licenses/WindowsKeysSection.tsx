@@ -9,7 +9,8 @@
  */
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Chip, Icon } from '@/components/ui'
+import { Chip, Icon, DataTable } from '@/components/ui'
+import type { DataTableColumn } from '@/components/ui'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import type { WorkstationLicense } from '@/domain/license'
 import type { AuditLog } from '@/domain/audit'
@@ -22,7 +23,6 @@ import { fmtDate } from './licenseHelpers'
 import { revealLicenseKey } from '@/lib/licenses/revealKey'
 
 const PAGE_SIZE = 10
-const ROW_H = 56
 
 type KeyStatus = 'in_use' | 'free'
 
@@ -160,6 +160,103 @@ export function WindowsKeysSection({
     }
   }
 
+  const showAction = filter === 'free'
+
+  // ── Desktop DataTable columns ────────────────────────────────────────────────
+  const columns = useMemo<DataTableColumn<WorkstationLicense>[]>(() => {
+    const cols: DataTableColumn<WorkstationLicense>[] = [
+      {
+        key: 'key',
+        header: t('keys.colKey'),
+        width: 'minmax(180px,2fr)',
+        cell: (lic) => (
+          <span className="font-mono text-[13px] text-text-primary tracking-tight">
+            {maskedKeys[lic.id] ?? '—'}
+          </span>
+        ),
+      },
+      {
+        key: 'version',
+        header: t('keys.colVersion'),
+        width: 'minmax(120px,1fr)',
+        cell: (lic) => (
+          <span className="text-[13.5px] text-text-secondary">{lic.name}</span>
+        ),
+      },
+      {
+        key: 'status',
+        header: t('keys.colStatus'),
+        width: 'minmax(90px,0.7fr)',
+        cell: (lic) => {
+          const isFree = licenseStatus(lic) === 'free'
+          return isFree
+            ? <Chip color="green" dot>{t('keys.statusFree')}</Chip>
+            : <Chip color="blue" dot>{t('keys.statusInUse')}</Chip>
+        },
+      },
+      {
+        key: 'asset',
+        header: t('keys.colAsset'),
+        width: 'minmax(140px,1.4fr)',
+        cell: (lic) => {
+          const isFree = licenseStatus(lic) === 'free'
+          if (isFree) {
+            return (
+              <div className="leading-tight">
+                <div className="text-[13.5px] text-text-primary font-medium">{'—'}</div>
+                {lic.retiredAt && (
+                  <div className="text-[12px] text-text-tertiary">
+                    {t('keys.freedOn', { date: fmtDate(lic.retiredAt, 'ru') })}
+                  </div>
+                )}
+                {lic.assignedAt && !lic.retiredAt && (
+                  <div className="text-[12px] text-text-tertiary">
+                    {t('keys.freedOn', { date: fmtDate(lic.assignedAt, 'ru') })}
+                  </div>
+                )}
+              </div>
+            )
+          }
+          const assetId = lic.assignedToAssetId ?? null
+          const entry = assetId ? (assetNameMap[assetId] ?? null) : null
+          const displayName = entry ? entry.name : (assetId ?? '—')
+          const displayInvCode = entry ? entry.invCode : null
+          return (
+            <div className="leading-tight">
+              <div className="text-[13.5px] text-text-primary font-semibold">{displayName}</div>
+              {displayInvCode && (
+                <div className="font-mono text-[12px] text-text-tertiary">{displayInvCode}</div>
+              )}
+            </div>
+          )
+        },
+      },
+    ]
+
+    if (showAction) {
+      cols.push({
+        key: 'action',
+        header: t('keys.colAction'),
+        width: '96px',
+        align: 'right',
+        cell: (lic) => (
+          <button
+            type="button"
+            onClick={e => { e.stopPropagation(); setActivatingId(lic.id) }}
+            data-testid={`activate-btn-${lic.id}`}
+            className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-md text-[12px] font-semibold text-accent-light border border-accent/30 bg-accent/10 hover:bg-accent/20 transition-colors"
+          >
+            <Icon name="zap" size={12} />
+            {t('keys.activate')}
+          </button>
+        ),
+      })
+    }
+
+    return cols
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [t, maskedKeys, assetNameMap, showAction])
+
   const FILTERS: { id: KeyStatus; label: string }[] = [
     { id: 'in_use', label: t('keys.statusInUse') },
     { id: 'free',   label: t('keys.statusFree')  },
@@ -196,8 +293,6 @@ export function WindowsKeysSection({
       })}
     </div>
   )
-
-  const showAction = filter === 'free'
 
   return (
     <>
@@ -291,110 +386,16 @@ export function WindowsKeysSection({
                 })}
               </div>
             ) : (
-              /* ── Desktop table ────────────────────────────────────────────── */
-              <div className="overflow-x-auto flex-1">
-                <table className="w-full text-left border-collapse" aria-label={t('keys.sectionTitle')}>
-                  <thead>
-                    <tr className="text-[11px] uppercase tracking-[0.09em] text-text-tertiary border-b border-border">
-                      <th className="px-5 py-3.5 font-semibold bg-bg">{t('keys.colKey')}</th>
-                      <th className="px-5 py-3.5 font-semibold bg-bg">{t('keys.colVersion')}</th>
-                      <th className="px-5 py-3.5 font-semibold bg-bg">{t('keys.colStatus')}</th>
-                      <th className="px-5 py-3.5 font-semibold bg-bg">{t('keys.colAsset')}</th>
-                      {showAction && (
-                        <th className="px-5 py-3.5 font-semibold bg-bg text-right">{t('keys.colAction')}</th>
-                      )}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {pageRows.map(lic => {
-                      const isFree = licenseStatus(lic) === 'free'
-                      const masked = maskedKeys[lic.id] ?? '—'
-                      return (
-                        <tr
-                          key={lic.id}
-                          style={{ height: ROW_H }}
-                          onClick={() => setDetailsId(lic.id)}
-                          data-testid={`key-row-${lic.id}`}
-                          className="border-b border-border hover:bg-surface-2 transition-colors cursor-pointer"
-                        >
-                          <td className="px-5 py-3">
-                            <span className="font-mono text-[13px] text-text-primary tracking-tight">{masked}</span>
-                          </td>
-                          <td className="px-5 py-3 text-[13.5px] text-text-secondary">{lic.name}</td>
-                          <td className="px-5 py-3">
-                            {isFree
-                              ? <Chip color="green" dot>{t('keys.statusFree')}</Chip>
-                              : <Chip color="blue" dot>{t('keys.statusInUse')}</Chip>
-                            }
-                          </td>
-                          <td className="px-5 py-3">
-                            {isFree ? (
-                              <div className="leading-tight">
-                                <div className="text-[13.5px] text-text-primary font-medium">
-                                  {'—'}
-                                </div>
-                                {lic.retiredAt && (
-                                  <div className="text-[12px] text-text-tertiary">
-                                    {t('keys.freedOn', { date: fmtDate(lic.retiredAt, 'ru') })}
-                                  </div>
-                                )}
-                                {lic.assignedAt && !lic.retiredAt && (
-                                  <div className="text-[12px] text-text-tertiary">
-                                    {t('keys.freedOn', { date: fmtDate(lic.assignedAt, 'ru') })}
-                                  </div>
-                                )}
-                              </div>
-                            ) : (
-                              (() => {
-                                const assetId = lic.assignedToAssetId ?? null
-                                const entry = assetId ? (assetNameMap[assetId] ?? null) : null
-                                const displayName = entry ? entry.name : (assetId ?? '—')
-                                const displayInvCode = entry ? entry.invCode : null
-                                return (
-                                  <div className="leading-tight">
-                                    <div className="text-[13.5px] text-text-primary font-semibold">
-                                      {displayName}
-                                    </div>
-                                    {displayInvCode && (
-                                      <div className="font-mono text-[12px] text-text-tertiary">
-                                        {displayInvCode}
-                                      </div>
-                                    )}
-                                  </div>
-                                )
-                              })()
-                            )}
-                          </td>
-                          {showAction && (
-                            <td className="px-5 py-3 text-right">
-                              <button
-                                type="button"
-                                onClick={e => { e.stopPropagation(); setActivatingId(lic.id) }}
-                                data-testid={`activate-btn-${lic.id}`}
-                                className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-md text-[12px] font-semibold text-accent-light border border-accent/30 bg-accent/10 hover:bg-accent/20 transition-colors"
-                              >
-                                <Icon name="zap" size={12} />
-                                {t('keys.activate')}
-                              </button>
-                            </td>
-                          )}
-                        </tr>
-                      )
-                    })}
-
-                    {/* Placeholder rows to keep block height constant */}
-                    {Array.from({ length: Math.max(0, PAGE_SIZE - pageRows.length) }).map((_, i) => (
-                      <tr
-                        key={`__ph_${i}`}
-                        aria-hidden="true"
-                        style={{ height: ROW_H, borderBottom: '1px solid rgba(42,47,54,0.35)' }}
-                      >
-                        <td colSpan={showAction ? 5 : 4} className="px-5" />
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              /* ── Desktop DataTable ────────────────────────────────────────── */
+              <DataTable<WorkstationLicense>
+                columns={columns}
+                rows={pageRows}
+                getRowKey={(lic) => lic.id}
+                getRowDataTestId={(lic) => `key-row-${lic.id}`}
+                onRowClick={(lic) => setDetailsId(lic.id)}
+                minRows={PAGE_SIZE}
+                aria-label={t('keys.sectionTitle')}
+              />
             )}
 
             <LicensesPagination

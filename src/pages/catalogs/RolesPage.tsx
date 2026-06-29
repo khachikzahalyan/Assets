@@ -4,9 +4,10 @@ import { useAuth } from '@/contexts/AuthContext'
 import { cn } from '@/lib/utils'
 import {
   PageHeader, SectionCard, Btn, Icon, EmptyState, LoadingState, ErrorState, Field, Select, Input, Chip,
-  CardListSkeleton,
-  DIALOG_BACKDROP, LIST_ROW_SEPARATOR_FULL, MODAL_SHEET,
+  CardListSkeleton, DataTable,
+  DIALOG_BACKDROP, MODAL_SHEET,
 } from '@/components/ui'
+import type { DataTableColumn } from '@/components/ui'
 import type { User, UserRepository, AssignRoleInput, UserListQuery } from '@/domain/user'
 import { RoleLockoutError } from '@/domain/user'
 import type { Role } from '@/config/roles'
@@ -264,53 +265,69 @@ export function RolesPage({ repository }: RolesPageProps) {
       )
     }
 
+    // ── Desktop DataTable ───────────────────────────────────────────────────
+    const dtColumns: DataTableColumn<User>[] = [
+      {
+        key: 'user',
+        header: t('col.user'),
+        width: 'minmax(180px,2fr)',
+        cell: (u) => {
+          const isSelf = u.id === user.id
+          return (
+            <span className="flex items-center gap-2">
+              <span className="w-7 h-7 rounded-full bg-surface-2 border border-border text-text-subtle inline-flex items-center justify-center flex-shrink-0">
+                <Icon name="user" size={13} />
+              </span>
+              <span className="text-[13px] font-medium text-text-primary truncate max-w-[160px]">{u.displayName || u.email}</span>
+              {isSelf && <span className="text-[10.5px] px-1.5 py-0.5 rounded bg-accent/15 text-accent flex-shrink-0">{t('you')}</span>}
+            </span>
+          )
+        },
+      },
+      {
+        key: 'email',
+        header: t('col.email'),
+        width: 'minmax(140px,1.5fr)',
+        cell: (u) => <span className="text-[13px] text-text-tertiary">{u.email}</span>,
+      },
+      {
+        key: 'role',
+        header: t('col.role'),
+        width: 'minmax(120px,1.3fr)',
+        cell: (u) => (
+          <span className="inline-flex items-center gap-1 text-[13px] text-text-primary">
+            <RoleIcon role={u.role} size={18} className="shrink-0" />
+            {roleLabel(u.role)}
+          </span>
+        ),
+      },
+      {
+        key: 'status',
+        header: t('col.status'),
+        width: 'minmax(100px,1fr)',
+        cell: (u) => <span className="text-[13px] text-text-tertiary">{t(`status.${u.status}`)}</span>,
+      },
+      {
+        key: 'action',
+        header: '',
+        width: '100px',
+        align: 'right',
+        cell: (u) => (
+          <Btn size="sm" variant="secondary" onClick={() => setDialogUser(u)}>
+            <Icon name="shield-check" size={13} />
+            {t('change')}
+          </Btn>
+        ),
+      },
+    ]
     return (
-      // ── Desktop table ───────────────────────────────────────────────────────
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-border">
-              <th className="text-left py-2.5 px-3 text-[11px] uppercase tracking-[0.06em] font-semibold text-text-subtle">{t('col.user')}</th>
-              <th className="text-left py-2.5 px-3 text-[11px] uppercase tracking-[0.06em] font-semibold text-text-subtle">{t('col.email')}</th>
-              <th className="text-left py-2.5 px-3 text-[11px] uppercase tracking-[0.06em] font-semibold text-text-subtle">{t('col.role')}</th>
-              <th className="text-left py-2.5 px-3 text-[11px] uppercase tracking-[0.06em] font-semibold text-text-subtle">{t('col.status')}</th>
-              <th className="py-2.5 px-3" />
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map(u => {
-              const isSelf = u.id === user.id
-              return (
-                <tr key={u.id} className={cn(LIST_ROW_SEPARATOR_FULL, 'transition-colors', isSelf ? 'bg-accent/5' : 'hover:bg-surface-2')}>
-                  <td className="py-3 px-3">
-                    <span className="flex items-center gap-2">
-                      <span className="w-7 h-7 rounded-full bg-surface-2 border border-border text-text-subtle inline-flex items-center justify-center flex-shrink-0">
-                        <Icon name="user" size={13} />
-                      </span>
-                      <span className="text-[13px] font-medium text-text-primary truncate max-w-[160px]">{u.displayName || u.email}</span>
-                      {isSelf && <span className="text-[10.5px] px-1.5 py-0.5 rounded bg-accent/15 text-accent flex-shrink-0">{t('you')}</span>}
-                    </span>
-                  </td>
-                  <td className="py-3 px-3 text-[13px] text-text-tertiary">{u.email}</td>
-                  <td className="py-3 px-3 text-[13px] text-text-primary">
-                    <span className="inline-flex items-center gap-1">
-                      <RoleIcon role={u.role} size={18} className="shrink-0" />
-                      {roleLabel(u.role)}
-                    </span>
-                  </td>
-                  <td className="py-3 px-3 text-[13px] text-text-tertiary">{t(`status.${u.status}`)}</td>
-                  <td className="py-3 px-3 text-right">
-                    <Btn size="sm" variant="secondary" onClick={() => setDialogUser(u)}>
-                      <Icon name="shield-check" size={13} />
-                      {t('change')}
-                    </Btn>
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
-      </div>
+      <DataTable<User>
+        columns={dtColumns}
+        rows={filtered}
+        getRowKey={(u) => u.id}
+        rowClassName={(u) => cn(u.id === user.id ? 'bg-accent/5' : '')}
+        aria-label={t('title')}
+      />
     )
   }
 

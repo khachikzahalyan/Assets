@@ -1,13 +1,16 @@
 import type { ReactNode } from 'react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { IconBtn } from '@/components/ui'
+import { IconBtn, DataTable } from '@/components/ui'
+import type { DataTableColumn } from '@/components/ui'
 
 export interface CatalogColumn<T> {
   key: string
   header: string
   render: (row: T) => ReactNode
   className?: string
+  /** CSS grid track width for the DataTable desktop view. Defaults to '1fr'. */
+  width?: string
 }
 
 export interface CatalogTableProps<T extends { id: string }> {
@@ -38,6 +41,34 @@ export function CatalogTable<T extends { id: string }>(props: CatalogTableProps<
     mq.addEventListener('change', handler)
     return () => mq.removeEventListener('change', handler)
   }, [])
+
+  // ── Desktop DataTable columns ────────────────────────────────────────────────
+  const dtColumns = useMemo<DataTableColumn<T>[]>(() => {
+    const cols: DataTableColumn<T>[] = columns.map(c => ({
+      key: c.key,
+      header: c.header,
+      width: c.width ?? '1fr',
+      cell: c.render,
+      ...(c.className ? { headerClassName: c.className, cellClassName: c.className } : {}),
+    }))
+    if (canMutate) {
+      cols.push({
+        key: '__actions',
+        header: '',
+        width: '80px',
+        align: 'right',
+        cell: (row) => (
+          <div className="flex items-center gap-1 justify-end">
+            <IconBtn icon="pencil" title={editLabel} tone="slate" onClick={() => onEdit(row)} />
+            {(canDeleteRow ? canDeleteRow(row) : true) && (
+              <IconBtn icon="trash-2" title={deleteLabel} tone="rose" onClick={() => onDelete(row)} />
+            )}
+          </div>
+        ),
+      })
+    }
+    return cols
+  }, [columns, canMutate, canDeleteRow, onEdit, onDelete, editLabel, deleteLabel])
 
   if (isMobile) {
     // ── Mobile card list ────────────────────────────────────────────────────────
@@ -93,34 +124,12 @@ export function CatalogTable<T extends { id: string }>(props: CatalogTableProps<
     )
   }
 
-  // ── Desktop table ───────────────────────────────────────────────────────────
+  // ── Desktop DataTable ───────────────────────────────────────────────────────
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-[13px]">
-        <thead>
-          <tr className="text-left text-[12px] text-text-subtle border-b border-border">
-            {columns.map(c => <th key={c.key} className={`py-2 pr-4 font-medium ${c.className ?? ''}`}>{c.header}</th>)}
-            {canMutate && <th className="py-2 w-[80px]" />}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map(row => (
-            <tr key={row.id} className="border-b border-[#1F242B] hover:bg-[#161A20]">
-              {columns.map(c => <td key={c.key} className={`py-2.5 pr-4 ${c.className ?? ''}`}>{c.render(row)}</td>)}
-              {canMutate && (
-                <td className="py-2.5">
-                  <div className="flex items-center gap-1 justify-end">
-                    <IconBtn icon="pencil" title={editLabel} tone="slate" onClick={() => onEdit(row)} />
-                    {(canDeleteRow ? canDeleteRow(row) : true) && (
-                      <IconBtn icon="trash-2" title={deleteLabel} tone="rose" onClick={() => onDelete(row)} />
-                    )}
-                  </div>
-                </td>
-              )}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <DataTable<T>
+      columns={dtColumns}
+      rows={rows}
+      getRowKey={(row) => row.id}
+    />
   )
 }
