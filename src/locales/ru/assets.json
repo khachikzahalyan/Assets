@@ -97,6 +97,7 @@
     "createTitle": "Регистрация актива",
     "createTitleGroup": "Регистрация партии",
     "createAsset": "Создать актив",
+    "sectionMainInfo": "Основная информация",
     "subtitle": "Новый актив · АМС",
     "subtitleCat": "Новый актив · {{cat}}",
     "close": "Закрыть",

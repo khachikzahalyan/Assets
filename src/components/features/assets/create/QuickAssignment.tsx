@@ -33,6 +33,14 @@ const MODE_BUTTONS: { id: Exclude<QAPicked, null>; key: string; icon: string }[]
   { id: 'department', key: 'qa.department', icon: 'users' },
 ]
 
+/** Per-mode active color tokens: chip outline + icon box. */
+const MODE_COLOR: Record<Exclude<QAPicked, null>, { chip: string; iconBox: string }> = {
+  warehouse: { chip: 'bg-accent/[0.12] border-accent ring-1 ring-accent/15', iconBox: 'bg-accent text-white' },
+  employee:  { chip: 'bg-info/[0.12] border-info ring-1 ring-info/15',       iconBox: 'bg-info text-white' },
+  branch:    { chip: 'bg-success/[0.12] border-success ring-1 ring-success/15', iconBox: 'bg-success text-white' },
+  department: { chip: 'bg-violet-500/[0.12] border-violet-500 ring-1 ring-violet-500/15', iconBox: 'bg-violet-500 text-white' },
+}
+
 export function QuickAssignment({
   value, onChange, employees, departments, branches, mainBranchId, statuses, isLaptop = false, isNetwork = false,
 }: QuickAssignmentProps) {
@@ -96,6 +104,7 @@ export function QuickAssignment({
       <div className={`grid ${visibleModes.length === 2 ? 'grid-cols-2' : 'grid-cols-4 max-md:grid-cols-2'} gap-1.5`}>
         {visibleModes.map(b => {
           const active = picked === b.id
+          const color = MODE_COLOR[b.id]
           return (
             <button
               key={b.id}
@@ -104,10 +113,10 @@ export function QuickAssignment({
               aria-pressed={active}
               className={`group flex flex-col items-center justify-center gap-1.5 py-2.5 px-1.5 rounded-lg border transition-all duration-150 text-[13px] font-semibold tracking-tight
                 ${active
-                  ? 'bg-[rgba(249,115,22,0.12)] border-accent text-text-primary ring-1 ring-[#F97316]/15'
+                  ? color.chip
                   : 'bg-surface border-border text-text-primary hover:border-border-strong hover:bg-surface-2'}`}
             >
-              <div className={`w-7 h-7 rounded-md flex items-center justify-center transition-colors ${active ? 'bg-accent text-white' : 'bg-surface-2 text-text-primary group-hover:bg-border'}`}>
+              <div className={`w-7 h-7 rounded-md flex items-center justify-center transition-colors ${active ? color.iconBox : 'bg-surface-2 text-text-primary group-hover:bg-border'}`}>
                 <Icon name={b.icon} size={14} />
               </div>
               <span>{t(b.key)}</span>

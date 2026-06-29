@@ -29,7 +29,7 @@ export function Field({ label, required, hint, children }: FieldProps) {
   return (
     <label className="block">
       {label && (
-        <div className="text-[13px] uppercase tracking-[0.07em] font-semibold text-text-tertiary mb-1.5 flex items-center gap-1">
+        <div className="text-[13px] max-lg:text-[9.5px] uppercase tracking-[0.07em] max-lg:tracking-[1.4px] font-semibold max-lg:font-bold text-text-tertiary max-lg:text-text-subtle mb-1.5 flex items-center gap-1">
           {label}{required && <span className="text-accent ml-0.5">*</span>}
         </div>
       )}

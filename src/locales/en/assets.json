@@ -188,11 +188,18 @@
   },
   "form": {
     "addUpgrade": "Add upgrade",
+    "backToList": "Back to asset list",
     "brand": "Brand",
     "cancel": "Cancel",
     "category": "Category",
     "change": "Change",
+    "close": "Close",
     "createTitle": "Register asset",
+    "createTitleGroup": "Register batch",
+    "createAsset": "Create asset",
+    "sectionMainInfo": "Main information",
+    "subtitle": "New asset · AMS",
+    "subtitleCat": "New asset · {{cat}}",
     "editTitle": "Asset {{code}}",
     "history": "History",
     "invCode": "Inventory code",
@@ -206,10 +213,39 @@
     "specGpu": "GPU",
     "specRam": "RAM",
     "specSsd": "Storage",
+    "specSsdPlural": "Storage drives",
     "specs": "Specifications",
     "type": "Type",
     "upgrades": "Upgrades",
     "writeOff": "Write off"
+  },
+  "condition": {
+    "new": "New",
+    "purchaseDate": "Purchase date",
+    "title": "Condition & warranty",
+    "used": "Used",
+    "warrantyBeforePurchase": "Warranty cannot be earlier than purchase date",
+    "warrantyEndsAt": "Warranty until"
+  },
+  "groupMode": {
+    "batchHint": "Batch of assets — assignment is set after registration",
+    "createN": "Create {{count}} {{noun}}",
+    "current": "Current entry",
+    "incomplete": "Confirm all {{total}} {{noun}} in the batch ({{done}} of {{total}})",
+    "progress": "Progress",
+    "quantity": "Quantity",
+    "single": "Single",
+    "group": "Batch",
+    "title": "Asset batch"
+  },
+  "osLicense": {
+    "digital": "Digital OEM",
+    "digitalDesc": "Hardware-bound",
+    "manual": "Key",
+    "manualDesc": "Enter product key",
+    "productKey": "Product key",
+    "productKeyPlaceholder": "Enter key or choose from free pool…",
+    "title": "OS License"
   },
   "oem": {
     "keyLabel": "OEM License Key",
@@ -250,8 +286,13 @@
   "placeholders": {
     "brand": "e.g. Apple, Dell",
     "category": "Select a category",
+    "categorySearch": "Search categories…",
+    "cpu": "e.g. Intel Core i7-1265U",
     "invCode": "450/100",
+    "invCodeFurniture": "470/00012",
     "model": "e.g. XPS 15, MacBook Pro",
+    "noResults": "Nothing found",
+    "recipientSearch": "Search…",
     "serial": "SN-XXXX",
     "spec": "Not specified",
     "type": "e.g. Desk, Chair"
@@ -260,9 +301,13 @@
     "branch": "Branch",
     "department": "Department",
     "employee": "Employee",
+    "office": "Primary",
+    "onShelf": "Asset in warehouse",
     "pickRecipient": "Choose a recipient",
-    "title": "Assign to",
-    "warehouse": "Warehouse"
+    "remote": "Remote",
+    "title": "Quick assignment",
+    "warehouse": "Warehouse",
+    "workMode": "Work mode"
   },
   "relTime": {
     "dayAgo": "{{n}} days ago",
@@ -289,13 +334,17 @@
   },
   "validation": {
     "brandModelRequired": "Enter brand and model",
+    "brandRequired": "Enter the brand",
+    "modelRequired": "Enter the model",
     "invRequired": "Enter the inventory code",
     "invTaken": "Inventory code already in use",
+    "licenseKeyRequired": "Enter the product key",
     "oemKeyNotStored": "Asset created, but the key was not stored — re-enter it via the license card.",
     "saveFailed": "Save failed. Please try again.",
     "serialRequired": "Enter the serial number",
     "serialTaken": "Serial number already in use",
-    "typeRequired": "Enter the type"
+    "typeRequired": "Enter the type",
+    "warrantyBeforePurchase": "Warranty cannot be earlier than purchase date"
   },
   "label": {
     "print": "Print label"

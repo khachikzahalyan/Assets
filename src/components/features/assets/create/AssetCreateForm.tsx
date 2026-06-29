@@ -33,6 +33,25 @@ export interface AssetCreateFormProps {
 
 const EMPTY_SPECS: AssetSpecs = { cpu: '', ram: '', ssd: '', gpu: 'Встроенная' }
 
+/** 8-px dark divider band between form sections — visible on <lg only. */
+function MobileDivider() {
+  return (
+    <div
+      aria-hidden="true"
+      className="lg:hidden h-2 bg-bg border-y border-border/30 -mx-[14px] md:-mx-6 my-0"
+    />
+  )
+}
+
+/** Tiny uppercase section title — visible on <lg only. */
+function MobileSectionTitle({ label }: { label: string }) {
+  return (
+    <div className="lg:hidden pb-1 pt-4 text-[9.5px] font-bold tracking-[1.4px] uppercase text-text-subtle">
+      {label}
+    </div>
+  )
+}
+
 export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatch, submitting, error, onCancel, licenseRepository }: AssetCreateFormProps) {
   const { t } = useTranslation('assets')
 
@@ -331,8 +350,8 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
         </div>
       </div>
 
-      {/* MOBILE: add bottom padding to clear fixed save bar (~64px bar + safe-area) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 max-md:pb-[calc(72px+env(safe-area-inset-bottom,0px))]">
+      {/* MOBILE: bottom padding clears the fixed action bar + global bottom nav */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 max-lg:pb-40">
         {/* LEFT column — borderless section matching prototype .ams-sec-asset */}
         <section className="max-md:px-[14px] px-6 py-5 lg:border-r lg:border-[#2A2F36]/80 max-w-full overflow-x-hidden">
           <div className="space-y-4">
@@ -347,6 +366,10 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
 
             {caps && (
               <div className="space-y-4 anim-fade-slide-in">
+                {/* Mobile: divider + "ОСНОВНАЯ ИНФОРМАЦИЯ" title before identity fields */}
+                <MobileDivider />
+                <MobileSectionTitle label={t('form.sectionMainInfo')} />
+
                 {caps.hasTypeField && (
                   <Field label={t('form.type')} required>
                     <Input id="asset-type" value={typeField} onChange={setTypeField} placeholder={t('placeholders.type')} />
@@ -374,38 +397,53 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
                     invPlaceholder={caps.hasTypeField ? t('placeholders.invCodeFurniture') : t('placeholders.invCode')}
                   />
                 ) : (
-                  <div className={`grid gap-6 max-md:gap-4 ${caps.requiresSerial ? 'grid-cols-2 max-md:grid-cols-1' : 'grid-cols-1'}`}>
-                    <Field label={t('form.invCode')} required>
-                      <Input id="asset-inv-code" value={invCode} onChange={setInvCode} placeholder={t('placeholders.invCode')} mono />
-                    </Field>
-                    {caps.requiresSerial && (
-                      <Field label={t('form.serial')} required>
-                        <Input id="asset-serial" value={serial} onChange={setSerial} placeholder={t('placeholders.serial')} mono />
+                  <>
+                    <div className={`grid gap-6 max-md:gap-4 ${caps.requiresSerial ? 'grid-cols-2 max-md:grid-cols-1' : 'grid-cols-1'}`}>
+                      <Field label={t('form.invCode')} required>
+                        <Input id="asset-inv-code" value={invCode} onChange={setInvCode} placeholder={t('placeholders.invCode')} mono />
                       </Field>
+                      {caps.requiresSerial && (
+                        <Field label={t('form.serial')} required>
+                          <Input id="asset-serial" value={serial} onChange={setSerial} placeholder={t('placeholders.serial')} mono />
+                        </Field>
+                      )}
+                    </div>
+                    {/* Mobile inline validation hint — identity errors shown near the fields */}
+                    {identityMissing.length > 0 && (
+                      <div className="lg:hidden flex items-start gap-2 bg-warning/[0.07] border border-warning/20 rounded-lg px-3 py-2">
+                        <Icon name="triangle-alert" size={14} className="text-warning shrink-0 mt-0.5" />
+                        <span className="text-[13px] text-warning leading-snug">{identityMissing[0]}</span>
+                      </div>
                     )}
-                  </div>
+                  </>
                 )}
 
                 {!caps.hasTypeField && (
-                  <ConditionWarranty value={warranty} onChange={setWarranty} />
+                  <>
+                    <MobileDivider />
+                    <ConditionWarranty value={warranty} onChange={setWarranty} />
+                  </>
                 )}
 
                 {showOemKey && !isGroup && (
                   /* B3: OS License card-toggle section */
-                  <div className="space-y-3">
-                    <div className="text-[13px] font-semibold text-text-tertiary tracking-[0.06em] uppercase">{t('osLicense.title')}</div>
-                    <LicensePicker
-                      value={{ licenseMode, rawKey: oemRawKey, pickId: oemPickId }}
-                      onChange={v => {
-                        setLicenseMode(v.licenseMode)
-                        setOemRawKey(v.rawKey)
-                        setOemPickId(v.pickId)
-                      }}
-                      pool={oemPool}
-                      showDigital
-                      idPrefix="asset-oem"
-                    />
-                  </div>
+                  <>
+                    <MobileDivider />
+                    <div className="space-y-3">
+                      <div className="text-[13px] font-semibold text-text-tertiary tracking-[0.06em] uppercase">{t('osLicense.title')}</div>
+                      <LicensePicker
+                        value={{ licenseMode, rawKey: oemRawKey, pickId: oemPickId }}
+                        onChange={v => {
+                          setLicenseMode(v.licenseMode)
+                          setOemRawKey(v.rawKey)
+                          setOemPickId(v.pickId)
+                        }}
+                        pool={oemPool}
+                        showDigital
+                        idPrefix="asset-oem"
+                      />
+                    </div>
+                  </>
                 )}
               </div>
             )}
@@ -417,12 +455,16 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
           {caps?.hasSpecs && (
             /* Specs section — borderless, no title (SpecsPanel renders its own header) */
             <section className="max-md:px-[14px] px-6 py-5">
+              {/* Mobile: divider before Характеристики (right col stacks below left col) */}
+              <MobileDivider />
               <SpecsPanel specs={specs} onChange={setSpecs} isServer={caps.isServer} />
             </section>
           )}
 
           {/* Quick Assignment section — borderless titled section */}
           <section className={`max-md:px-[14px] px-6 py-5${caps?.hasSpecs ? ' border-t border-[#2A2F36]/80' : ''}`}>
+            {/* Mobile: divider before QA when no specs section is above */}
+            {!caps?.hasSpecs && <MobileDivider />}
             <div className="text-[13px] font-semibold text-text-tertiary tracking-[0.06em] uppercase mb-4">
               {t('qa.title')}
             </div>
@@ -448,18 +490,18 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
         </div>
       </div>
 
-      {/* Footer — desktop: inline in flow; mobile: fixed to bottom of viewport */}
+      {/* Footer — desktop (lg+): inline in flow; mobile (<lg): fixed above global bottom nav */}
       <div className="
-        max-md:fixed max-md:bottom-0 max-md:left-0 max-md:right-0 max-md:z-50
-        max-md:pb-[env(safe-area-inset-bottom,0px)]
-        px-6 max-md:px-3 py-4 max-md:py-0
+        max-lg:fixed max-lg:left-0 max-lg:right-0 max-lg:z-50
+        max-lg:bottom-[calc(64px_+_env(safe-area-inset-bottom,0px))]
+        px-6 max-lg:px-3 py-4 max-lg:py-0
         border-t border-[#2A2F36]/80 bg-surface
         flex items-center justify-between gap-3
-        max-md:flex-col max-md:items-stretch max-md:gap-0
+        max-lg:flex-col max-lg:items-stretch max-lg:gap-0
       ">
         {/* Hint/error row — desktop: inline left; mobile: compact strip above buttons, hidden when empty */}
         {(error || saveDisabledReason) && (
-          <div className="max-w-[55%] max-md:max-w-full max-md:pt-2 max-md:pb-0 max-md:px-0">
+          <div className="max-w-[55%] max-lg:max-w-full max-lg:pt-2 max-lg:pb-0 max-lg:px-0">
             {error && <p role="alert" className="text-[12px] text-[#FDA4AF]">{error}</p>}
             {saveDisabledReason && !error && (
               <Chip color="amber">
@@ -469,12 +511,12 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
             )}
           </div>
         )}
-        <div className="flex items-center gap-3 max-md:gap-2 max-md:pb-2 max-md:pt-2 md:ml-auto">
+        <div className="flex items-center gap-3 max-lg:gap-2 max-lg:pb-2 max-lg:pt-2 lg:ml-auto">
           {/* Cancel — prototype style */}
           <button
             type="button"
             onClick={onCancel}
-            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 max-md:flex-1 max-md:py-2.5 max-md:px-3 max-md:min-h-[44px] text-[15px] max-md:text-[14px] font-medium text-text-primary hover:text-text-primary bg-[#111315]/50 border border-[#2A2F36]/60 rounded-xl transition-all duration-150"
+            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 max-lg:flex-1 max-lg:py-2.5 max-lg:px-3 max-lg:min-h-[44px] text-[15px] max-lg:text-[14px] font-medium text-text-primary hover:text-text-primary bg-[#111315]/50 border border-[#2A2F36]/60 rounded-xl transition-all duration-150"
           >
             <Icon name="x" size={14} />
             {t('form.cancel')}
@@ -485,7 +527,7 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
             disabled={!canSave}
             onClick={handleSave}
             title={saveDisabledReason ?? undefined}
-            className="inline-flex items-center justify-center gap-1.5 px-5 py-2 max-md:flex-1 max-md:py-2.5 max-md:px-3 max-md:min-h-[44px] text-[15px] max-md:text-[14px] font-semibold text-white bg-gradient-to-r from-accent to-accent-light rounded-xl shadow-[0_4px_16px_rgba(217,119,87,0.24)] hover:shadow-[0_6px_24px_rgba(217,119,87,0.32)] hover:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            className="inline-flex items-center justify-center gap-1.5 px-5 py-2 max-lg:flex-1 max-lg:py-2.5 max-lg:px-3 max-lg:min-h-[44px] text-[15px] max-lg:text-[14px] font-semibold text-white bg-gradient-to-r from-accent to-accent-light rounded-xl shadow-[0_4px_16px_rgba(217,119,87,0.24)] hover:shadow-[0_6px_24px_rgba(217,119,87,0.32)] hover:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
           >
             <Icon name="save" size={14} />
             {isGroup

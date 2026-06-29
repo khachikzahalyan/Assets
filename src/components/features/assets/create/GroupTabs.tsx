@@ -10,6 +10,22 @@ export const CATEGORY_GROUPS: { id: CategoryGroup; lucideIcon: string }[] = [
   { id: 'furniture', lucideIcon: 'armchair' },
 ]
 
+/** Per-group active chip color tokens (border / bg / icon). */
+const GROUP_ACTIVE: Record<CategoryGroup, { chip: string; icon: string }> = {
+  devices: {
+    chip: 'bg-accent/[0.12] border-accent ring-1 ring-accent/15',
+    icon: 'text-accent',
+  },
+  network: {
+    chip: 'bg-info/[0.12] border-info ring-1 ring-info/15',
+    icon: 'text-info',
+  },
+  furniture: {
+    chip: 'bg-violet-500/[0.12] border-violet-500 ring-1 ring-violet-500/15',
+    icon: 'text-violet-400',
+  },
+}
+
 export interface GroupTabsProps {
   categories: CategoryRow[]
   selected: CategoryGroup | null
@@ -34,6 +50,7 @@ export function GroupTabs({ categories, selected, onSelect }: GroupTabsProps) {
       {CATEGORY_GROUPS.map(g => {
         const active = selected === g.id
         const count = categories.filter(c => c.group === g.id).length
+        const color = GROUP_ACTIVE[g.id]
         return (
           <button
             key={g.id}
@@ -43,11 +60,11 @@ export function GroupTabs({ categories, selected, onSelect }: GroupTabsProps) {
             onClick={() => onSelect(g.id)}
             className={`flex items-center gap-2 px-4 py-2 max-md:px-3 max-md:py-1.5 max-md:shrink-0 max-md:whitespace-nowrap rounded-2xl border transition-all duration-200 text-left
               ${active
-                ? 'bg-[rgba(249,115,22,0.12)] border-accent text-text-primary ring-1 ring-[#F97316]/15'
+                ? color.chip
                 : 'bg-surface border-[#2A2F36]/70 text-text-primary hover:border-border-strong hover:bg-[#22272E]/60'}`}
           >
-            <Icon name={g.lucideIcon} size={15} className={active ? 'text-accent' : 'text-text-subtle'} />
-            <span className={`text-[15px] font-medium tracking-tight truncate max-md:truncate-none${active ? ' text-text-primary' : ' text-text-primary'}`}>{label[g.id]}</span>
+            <Icon name={g.lucideIcon} size={15} className={active ? color.icon : 'text-text-subtle'} />
+            <span className="text-[15px] font-medium tracking-tight truncate max-md:truncate-none text-text-primary">{label[g.id]}</span>
             <span className={`text-[14px] tabular-nums font-semibold shrink-0${active ? ' text-text-primary' : ' text-text-subtle'}`}>{count}</span>
           </button>
         )
