@@ -2,6 +2,8 @@ import {
   LayoutDashboard,
   ScanLine,
   Package,
+  Wifi,
+  Briefcase,
   PackagePlus,
   Minus,
   ArrowRightLeft,
@@ -251,6 +253,8 @@ const REGISTRY: Record<string, LucideIcon> = {
   'clipboard-list': ClipboardList,
   'gamepad-2': Gamepad2,
   'scan-line': ScanLine,
+  wifi: Wifi,
+  briefcase: Briefcase,
 }
 
 export interface IconProps {

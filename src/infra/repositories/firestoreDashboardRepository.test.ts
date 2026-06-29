@@ -14,23 +14,29 @@ import type { Firestore } from 'firebase/firestore'
 // ---------------------------------------------------------------------------
 const {
   mockCollection,
+  mockDoc,
   mockWhere,
   mockOrderBy,
   mockLimit,
   mockFsQuery,
   mockGetDocs,
+  mockGetDoc,
 } = vi.hoisted(() => ({
   mockCollection: vi.fn((_db: unknown, name: string) => ({ __col: name })),
+  mockDoc:        vi.fn((_db: unknown, col: string, id: string) => ({ __docRef: `${col}/${id}` })),
   mockWhere:      vi.fn((...args: unknown[]) => ({ __where: args })),
   mockOrderBy:    vi.fn((...args: unknown[]) => ({ __orderBy: args })),
   mockLimit:      vi.fn((n: number) => ({ __limit: n })),
   mockFsQuery:    vi.fn((_col: unknown, ...constraints: unknown[]) => ({ __query: constraints })),
   mockGetDocs:    vi.fn(),
+  mockGetDoc:     vi.fn(),
 }))
 
 vi.mock('firebase/firestore', () => ({
   collection: mockCollection,
+  doc:        mockDoc,
   getDocs:    mockGetDocs,
+  getDoc:     mockGetDoc,
   query:      mockFsQuery,
   where:      mockWhere,
   orderBy:    mockOrderBy,
@@ -215,17 +221,50 @@ describe('FirestoreDashboardRepository', () => {
   })
 
   describe('loadAssignmentActivity', () => {
-    it('queries audit_logs with entityType==assignment + orderBy at desc + limit(limitN*2), maps assetId from after', async () => {
+    it('queries audit_logs with entityType==assignment + orderBy at desc + limit(limitN*2), enriches with asset labels', async () => {
       // Feed newest-first (Firestore orderBy at desc guarantees this in production)
       mockGetDocs.mockResolvedValueOnce(makeSnap([auditReturned, auditAssigned, auditOther]))
+
+      // getDoc calls for asset docs (a_2 and a_1, unique ids from audit rows)
+      // Return a_2 with brand/model, a_1 assigned to emp_1
+      mockGetDoc.mockImplementation(({ __docRef }: { __docRef: string }) => {
+        if (__docRef === 'assets/a_2') {
+          return Promise.resolve({
+            exists: () => true,
+            data: () => ({ brand: 'Dell', model: 'XPS', invCode: 'INV/002', assignment: null }),
+          })
+        }
+        if (__docRef === 'assets/a_1') {
+          return Promise.resolve({
+            exists: () => true,
+            data: () => ({
+              brand: 'Apple', model: 'MBP', invCode: 'INV/001',
+              assignment: { mode: 'employee', employeeId: 'emp_1' },
+            }),
+          })
+        }
+        if (__docRef === 'employees/emp_1') {
+          return Promise.resolve({
+            exists: () => true,
+            data: () => ({ firstName: 'Alice', lastName: 'Smith' }),
+          })
+        }
+        return Promise.resolve({ exists: () => false, data: () => ({}) })
+      })
 
       const repo = new FirestoreDashboardRepository(fakeDb)
       const rows = await repo.loadAssignmentActivity(8)
 
       // auditOther (entityType='asset') is filtered out by mapAssignmentActivity
       expect(rows).toHaveLength(2)
-      expect(rows[0]).toMatchObject({ auditId: 'au_3', assetId: 'a_2', action: 'returned', actorUid: 'u_1' })
-      expect(rows[1]).toMatchObject({ auditId: 'au_2', assetId: 'a_1', action: 'assigned', actorUid: 'u_1' })
+      expect(rows[0]).toMatchObject({
+        auditId: 'au_3', assetId: 'a_2', action: 'returned', actorUid: 'u_1',
+        assetLabel: 'Dell XPS', recipientName: null,
+      })
+      expect(rows[1]).toMatchObject({
+        auditId: 'au_2', assetId: 'a_1', action: 'assigned', actorUid: 'u_1',
+        assetLabel: 'Apple MBP', recipientName: 'Alice Smith',
+      })
 
       // Verify query constraints
       expect(mockCollection).toHaveBeenCalledWith(fakeDb, 'audit_logs')
@@ -235,23 +274,50 @@ describe('FirestoreDashboardRepository', () => {
     })
   })
 
-  describe('loadRecentAudit', () => {
-    it('queries audit_logs orderBy at desc + limit and maps to AuditLog[]', async () => {
+  describe('loadRecentAuditRows', () => {
+    it('queries audit_logs orderBy at desc + limit, resolves actorName and targetLabel', async () => {
       mockGetDocs.mockResolvedValueOnce(makeSnap([auditReturned, auditAssigned, auditOther]))
 
+      // getDoc for user 'u_1' → displayName 'Bob Jones'
+      mockGetDoc.mockResolvedValue({
+        exists: () => true,
+        data: () => ({ displayName: 'Bob Jones' }),
+      })
+
       const repo = new FirestoreDashboardRepository(fakeDb)
-      const rows = await repo.loadRecentAudit(8)
+      const rows = await repo.loadRecentAuditRows(8)
 
       expect(rows).toHaveLength(3)
       expect(rows[0]!.id).toBe('au_3')
       expect(rows[0]!.at).toBe('2026-06-10T00:00:00.000Z')
+      expect(rows[0]!.actorName).toBe('Bob Jones')
+      // au_3: entityType='assignment', after.assetId='a_2'
+      expect(rows[0]!.targetLabel).toBe('a_2')
+
       expect(rows[1]!.id).toBe('au_2')
+      expect(rows[1]!.actorName).toBe('Bob Jones')
+      // au_2: entityType='assignment', after.assetId='a_1'
+      expect(rows[1]!.targetLabel).toBe('a_1')
+
       expect(rows[2]!.id).toBe('au_1')
-      expect(rows[2]!.entityType).toBe('asset')
+      // au_1: entityType='asset', after=null → falls back to entityId 'a_1'
+      expect(rows[2]!.targetLabel).toBe('a_1')
 
       expect(mockOrderBy).toHaveBeenCalledWith('at', 'desc')
       expect(mockLimit).toHaveBeenCalledWith(8)
       expect(mockCollection).toHaveBeenCalledWith(fakeDb, 'audit_logs')
+      // actor uid 'u_1' resolved via getDoc on users collection
+      expect(mockDoc).toHaveBeenCalledWith(fakeDb, 'users', 'u_1')
+    })
+
+    it('falls back to actorRole when user doc does not exist', async () => {
+      mockGetDocs.mockResolvedValueOnce(makeSnap([auditOther]))
+      mockGetDoc.mockResolvedValue({ exists: () => false, data: () => ({}) })
+
+      const repo = new FirestoreDashboardRepository(fakeDb)
+      const rows = await repo.loadRecentAuditRows(8)
+
+      expect(rows[0]!.actorName).toBe('asset_admin')  // actorRole fallback
     })
   })
 })

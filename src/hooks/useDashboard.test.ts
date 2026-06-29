@@ -11,7 +11,7 @@ function fakeRepo(overrides: Partial<DashboardRepository> = {}): DashboardReposi
     loadWorkstationLicenseStats: vi.fn().mockResolvedValue({ total: 0, free: 0, inUse: 0, retired: 0 }),
     loadServerLicenseCount: vi.fn().mockResolvedValue(0),
     loadPeopleStats: vi.fn().mockResolvedValue({ employeeCount: 0, pendingUsersCount: null }),
-    loadRecentAudit: vi.fn().mockResolvedValue([]),
+    loadRecentAuditRows: vi.fn().mockResolvedValue([]),
     ...overrides,
   }
 }
@@ -26,7 +26,7 @@ describe('useDashboard role gating', () => {
     expect(repo.loadWorkstationLicenseStats).toHaveBeenCalled()
     expect(repo.loadServerLicenseCount).toHaveBeenCalled()
     expect(repo.loadPeopleStats).toHaveBeenCalledWith(true)
-    expect(repo.loadRecentAudit).toHaveBeenCalled()
+    expect(repo.loadRecentAuditRows).toHaveBeenCalled()
     expect(result.current.data.serverLicenseCount).toBe(0)
     expect(result.current.data.recentAudit).toEqual([])
   })
@@ -40,7 +40,7 @@ describe('useDashboard role gating', () => {
     expect(repo.loadPeopleStats).toHaveBeenCalledWith(false)
     expect(repo.loadWorkstationLicenseStats).not.toHaveBeenCalled()
     expect(repo.loadServerLicenseCount).not.toHaveBeenCalled()
-    expect(repo.loadRecentAudit).not.toHaveBeenCalled()
+    expect(repo.loadRecentAuditRows).not.toHaveBeenCalled()
     expect(result.current.data.workstationLicenses).toBeNull()
     expect(result.current.data.serverLicenseCount).toBeNull()
     expect(result.current.data.people).not.toBeNull()
@@ -53,7 +53,7 @@ describe('useDashboard role gating', () => {
     expect(repo.loadWorkstationLicenseStats).toHaveBeenCalled()
     expect(repo.loadServerLicenseCount).not.toHaveBeenCalled()
     expect(repo.loadPeopleStats).not.toHaveBeenCalled()
-    expect(repo.loadRecentAudit).not.toHaveBeenCalled()
+    expect(repo.loadRecentAuditRows).not.toHaveBeenCalled()
     expect(result.current.data.people).toBeNull()
   })
 

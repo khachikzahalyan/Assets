@@ -3,6 +3,14 @@
     "assigned": "Актив выдан",
     "returned": "Актив возвращён"
   },
+  "audit": {
+    "col": {
+      "action": "Действие",
+      "description": "Описание",
+      "time": "Время",
+      "user": "Пользователь"
+    }
+  },
   "auditAction": {
     "assigned": "Выдано",
     "created": "Создано",
@@ -28,6 +36,7 @@
     "title": "По филиалам"
   },
   "groups": {
+    "categoryCaption": "{{count}} категорий",
     "devices": "Устройства",
     "furniture": "Мебель",
     "network": "Сетевые устройства",
@@ -36,6 +45,7 @@
   "kpi": {
     "currentlyOut": "Выдано сейчас",
     "employees": "Сотрудники",
+    "inWarehouse": "На складе",
     "licenses": "Лицензии",
     "serverLicenses": "Серверные лицензии",
     "totalAssets": "Всего активов"
@@ -43,9 +53,11 @@
   "license": {
     "free": "Свободно",
     "inUse": "Используется",
-    "retired": "Выведено",
+    "retired": "В архиве",
     "title": "Лицензии рабочих станций",
-    "total": "Всего"
+    "total": "Всего",
+    "totalLabel": "лицензий всего",
+    "usage": "Загруженность"
   },
   "noActivity": "Нет активности",
   "noAudit": "Нет событий",
@@ -61,7 +73,8 @@
     "st_disposed": "Списано",
     "st_repair": "В ремонте",
     "st_warehouse": "На складе",
-    "title": "Статусы"
+    "title": "Статусы активов",
+    "totalCaption": "{{count}} всего"
   },
   "title": "Панель управления",
   "viewAll": "Показать все"

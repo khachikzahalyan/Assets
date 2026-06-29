@@ -3,15 +3,14 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
 import { PageHeader, ErrorState } from '@/components/ui'
 import {
-  KpiTile,
-  StatusBreakdown,
-  GroupBreakdown,
-  BranchBreakdown,
-  LicenseStatTile,
-  PeopleTile,
-  RecentActivityList,
+  StatCard,
+  StatusBars,
+  GroupBars,
+  BranchBars,
+  LicensePanel,
+  ActivityPanel,
+  AuditTable,
 } from '@/components/features/dashboard'
-import type { ActivityRowVM } from '@/components/features/dashboard'
 import { useDashboard } from '@/hooks'
 import type { DashboardRepository } from '@/domain/dashboard'
 import { FirestoreDashboardRepository } from '@/infra/repositories'
@@ -34,46 +33,80 @@ export function DashboardPage({ repo }: DashboardPageProps) {
   const activeRepo = repo ?? defaultRepo
   const { data, loading, error, reload } = useDashboard(activeRepo, role)
 
+  // ── Loading skeleton (mirrors the 4-row layout — plain shimmer blocks only) ──
   if (loading) {
     return (
       <div className="space-y-5" aria-busy="true">
-        {/* Page header — shimmer */}
-        <div className="h-8 w-[200px] rounded-lg anim-skeleton" />
-        {/* KPI tile row — shimmer */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="bg-surface border border-border rounded-xl p-5 flex flex-col gap-3">
-              {/* icon shimmer */}
-              <div className="w-9 h-9 rounded-lg anim-skeleton flex-shrink-0" />
-              <div className="space-y-2">
-                {/* label shimmer */}
-                <div className="h-[10px] w-[55%] rounded anim-skeleton" />
-                {/* value shimmer */}
-                <div className="h-[22px] w-[40%] rounded anim-skeleton" />
-              </div>
+        {/* Header */}
+        <div className="h-9 w-[220px] rounded-xl anim-skeleton" />
+
+        {/* ROW 1: 5 KPI card shimmers */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="bg-surface border border-border rounded-xl p-[18px] flex flex-col gap-2">
+              <div className="w-8 h-8 rounded-[9px] anim-skeleton" />
+              <div className="h-8 w-[55%] rounded anim-skeleton" />
+              <div className="h-3 w-[70%] rounded anim-skeleton" />
             </div>
           ))}
         </div>
-        {/* Detail panels — shimmer */}
+
+        {/* ROW 2: 2 panel shimmers */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {Array.from({ length: 4 }).map((_, panelIdx) => (
-            <div key={panelIdx} className="bg-surface border border-border rounded-xl overflow-hidden">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <div key={i} className="bg-surface border border-border rounded-xl overflow-hidden">
               <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-border">
-                {/* icon shimmer */}
-                <div className="w-7 h-7 rounded-lg anim-skeleton flex-shrink-0" />
-                {/* title shimmer */}
-                <div className="h-[10px] w-[35%] rounded anim-skeleton" />
+                <div className="w-7 h-7 rounded-md anim-skeleton flex-shrink-0" />
+                <div className="h-3 w-[30%] rounded anim-skeleton" />
               </div>
-              <div className="p-5 space-y-3">
+              <div className="p-5 flex flex-col gap-3.5">
                 {Array.from({ length: 4 }).map((__, j) => (
-                  <div key={j} className="flex items-center gap-3">
-                    <div className="h-[12px] flex-1 rounded anim-skeleton" style={{ maxWidth: `${55 + j * 8}%` }} />
-                    <div className="h-[12px] w-[48px] rounded anim-skeleton flex-shrink-0" />
+                  <div key={j} className="flex flex-col gap-1.5">
+                    <div className="h-3 w-full rounded anim-skeleton" />
+                    <div className="h-1.5 w-full rounded-full anim-skeleton" />
                   </div>
                 ))}
               </div>
             </div>
           ))}
+        </div>
+
+        {/* ROW 3: 3 panel shimmers */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="bg-surface border border-border rounded-xl overflow-hidden">
+              <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-border">
+                <div className="w-7 h-7 rounded-md anim-skeleton flex-shrink-0" />
+                <div className="h-3 w-[35%] rounded anim-skeleton" />
+              </div>
+              <div className="p-5 space-y-3">
+                {Array.from({ length: 3 }).map((__, j) => (
+                  <div key={j} className="h-3 w-full rounded anim-skeleton" />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* ROW 4: Audit table shimmer */}
+        <div className="bg-surface border border-border rounded-xl overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-3.5 border-b border-border">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-md anim-skeleton flex-shrink-0" />
+              <div className="h-3 w-[120px] rounded anim-skeleton" />
+            </div>
+            <div className="h-3 w-[60px] rounded anim-skeleton" />
+          </div>
+          <div className="divide-y divide-border/50">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="px-5 py-3 flex items-center gap-4">
+                <div className="h-5 w-[100px] rounded-md anim-skeleton flex-shrink-0" />
+                <div className="h-3 flex-1 rounded anim-skeleton" />
+                <div className="h-3 w-[100px] rounded anim-skeleton flex-shrink-0" />
+                <div className="h-3 w-[50px] rounded anim-skeleton flex-shrink-0" />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     )
@@ -81,20 +114,12 @@ export function DashboardPage({ repo }: DashboardPageProps) {
 
   const assets = data.assets
 
-  const activityRows: ActivityRowVM[] = (data.assignments?.recent ?? []).map(r => ({
-    id: r.auditId,
-    icon: r.action === 'assigned' ? 'arrow-right' : 'undo-2',
-    label: t(`activity.${r.action}`),
-    at: r.at,
-    ...(r.assetId ? { to: `/assets/${r.assetId}` } : {}),
-  }))
-
-  const auditRows: ActivityRowVM[] = (data.recentAudit ?? []).map(a => ({
-    id: a.id,
-    icon: 'history',
-    label: t(`auditAction.${a.action}`, { defaultValue: a.action }),
-    at: a.at,
-  }))
+  const statuses = [
+    { id: 'st_warehouse', name: t('status.st_warehouse'), color: 'gray'   },
+    { id: 'st_assigned',  name: t('status.st_assigned'),  color: 'green'  },
+    { id: 'st_repair',    name: t('status.st_repair'),    color: 'orange' },
+    { id: 'st_disposed',  name: t('status.st_disposed'),  color: 'red'    },
+  ] as const
 
   return (
     <div className="space-y-5">
@@ -106,99 +131,87 @@ export function DashboardPage({ repo }: DashboardPageProps) {
         </div>
       )}
 
-      {/* KPI row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* ROW 1 — 5 KPI stat cards */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
         {assets && (
-          <KpiTile
+          <StatCard
             icon="package"
             label={t('kpi.totalAssets')}
             value={assets.total}
             to="/assets"
+            accent="orange"
+            featured
           />
         )}
-        {data.assignments && (
-          <KpiTile
-            icon="arrow-right-left"
+        {assets && (
+          <StatCard
+            icon="arrow-right"
             label={t('kpi.currentlyOut')}
-            value={data.assignments.currentlyOut}
+            value={assets.byStatus.st_assigned}
             to="/assets"
+            accent="green"
+          />
+        )}
+        {assets && (
+          <StatCard
+            icon="inbox"
+            label={t('kpi.inWarehouse')}
+            value={assets.byStatus.st_warehouse}
+            to="/assets"
+            accent="blue"
           />
         )}
         {data.workstationLicenses && (
-          <KpiTile
+          <StatCard
             icon="key-round"
             label={t('kpi.licenses')}
             value={data.workstationLicenses.total}
             to="/licenses"
+            accent="violet"
           />
         )}
-        {data.serverLicenseCount != null && (
-          <div data-testid="kpi-server-licenses">
-            <KpiTile
-              icon="server"
-              label={t('kpi.serverLicenses')}
-              value={data.serverLicenseCount}
-              to="/licenses"
-            />
-          </div>
-        )}
         {data.people && (
-          <KpiTile
+          <StatCard
             icon="users"
             label={t('kpi.employees')}
             value={data.people.employeeCount}
             to="/employees"
+            accent="amber"
+            testId="section-people"
           />
         )}
       </div>
 
-      {/* Detail grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {assets && (
-          <StatusBreakdown
+      {/* ROW 2 — Status breakdown + Group breakdown */}
+      {assets && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <StatusBars
             byStatus={assets.byStatus}
             total={assets.total}
-            statuses={[
-              { id: 'st_warehouse', name: t('status.st_warehouse'), color: 'gray' },
-              { id: 'st_assigned',  name: t('status.st_assigned'),  color: 'green' },
-              { id: 'st_repair',    name: t('status.st_repair'),    color: 'orange' },
-              { id: 'st_disposed',  name: t('status.st_disposed'),  color: 'red' },
-            ]}
+            statuses={[...statuses]}
+          />
+          <GroupBars byGroup={assets.byGroup} />
+        </div>
+      )}
+
+      {/* ROW 3 — Branches + Licenses + Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {assets && <BranchBars branches={assets.topBranches} />}
+        {data.workstationLicenses && (
+          <LicensePanel
+            stats={data.workstationLicenses}
+            serverLicenseCount={data.serverLicenseCount}
           />
         )}
-        {assets && <GroupBreakdown byGroup={assets.byGroup} />}
-        {assets && <BranchBreakdown branches={assets.topBranches} />}
-        {data.workstationLicenses && (
-          <div data-testid="section-licenses">
-            <LicenseStatTile stats={data.workstationLicenses} />
-          </div>
-        )}
-        {data.people && (
-          <div data-testid="section-people">
-            <PeopleTile
-              employeeCount={data.people.employeeCount}
-              pendingUsersCount={data.people.pendingUsersCount}
-            />
-          </div>
-        )}
-        <RecentActivityList
-          title={t('recentActivity')}
-          icon="arrow-right-left"
-          rows={activityRows}
-          emptyLabel={t('noActivity')}
-        />
-        {data.recentAudit && (
-          <div data-testid="section-recent-audit">
-            <RecentActivityList
-              title={t('recentAudit')}
-              icon="history"
-              rows={auditRows}
-              emptyLabel={t('noAudit')}
-              moreTo="/audit"
-            />
-          </div>
+        {data.assignments && (
+          <ActivityPanel rows={data.assignments.recent} />
         )}
       </div>
+
+      {/* ROW 4 — Audit log table (super_admin only) */}
+      {data.recentAudit && (
+        <AuditTable rows={data.recentAudit} />
+      )}
     </div>
   )
 }

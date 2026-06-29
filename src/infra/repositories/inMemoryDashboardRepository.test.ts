@@ -5,10 +5,18 @@ import type { AssetReferenceData } from '@/domain/asset'
 import type { WorkstationLicense } from '@/domain/license'
 import type { AuditLog } from '@/domain/audit'
 
-function asset(id: string, statusId: string, categoryId: string, branchId: string): Asset {
+function asset(
+  id: string,
+  statusId: string,
+  categoryId: string,
+  branchId: string,
+  employeeId?: string,
+): Asset {
   return {
     id, categoryId, brand: 'B', model: 'M', invCode: `INV/${id}`, serial: null,
-    statusId, assignment: null, branchId, deptId: null, updatedAt: '2026-06-01T00:00:00.000Z',
+    statusId,
+    assignment: employeeId ? { mode: 'employee', employeeId } : null,
+    branchId, deptId: null, updatedAt: '2026-06-01T00:00:00.000Z',
     currentSpecs: null,
   }
 }
@@ -27,7 +35,9 @@ const ref: AssetReferenceData = {
     { id: 'cat_router', name: 'Router', group: 'network', lucideIcon: 'router' },
     { id: 'cat_desk', name: 'Desk', group: 'furniture', lucideIcon: 'table-2' },
   ],
-  employees: [],
+  employees: [
+    { id: 'emp_1', firstName: 'Alice', lastName: 'Smith', email: 'alice@test.com' },
+  ],
 }
 
 function lic(id: string, lifecycleStatus: 'active' | 'retired', assignmentType: 'employee' | 'device' | 'unassigned'): WorkstationLicense {
@@ -56,7 +66,8 @@ const auditRows: AuditLog[] = [
 function makeRepo() {
   return new InMemoryDashboardRepository({
     assets: [
-      asset('a_1', 'st_assigned', 'cat_laptop', 'br_1'),
+      // a_1 is assigned to emp_1 so recipientName resolves
+      asset('a_1', 'st_assigned', 'cat_laptop', 'br_1', 'emp_1'),
       asset('a_2', 'st_warehouse', 'cat_laptop', 'br_1'),
       asset('a_3', 'st_repair', 'cat_router', 'br_2'),
       asset('a_4', 'st_disposed', 'cat_desk', 'br_2'),
@@ -71,6 +82,7 @@ function makeRepo() {
     employeeCount: 42,
     pendingUsersCount: 3,
     auditLogs: auditRows,
+    users: [{ id: 'u_1', firstName: 'Bob', lastName: 'Jones' }],
   })
 }
 
@@ -90,18 +102,30 @@ describe('InMemoryDashboardRepository', () => {
     ])
   })
 
-  it('loadAssignmentActivity returns assign/return rows newest-first with assetId from after', async () => {
+  it('loadAssignmentActivity returns enriched rows newest-first with assetLabel and recipientName', async () => {
     const rows = await makeRepo().loadAssignmentActivity(8)
-    expect(rows).toEqual([
-      { auditId: 'au_3', assetId: 'a_2', action: 'returned', actorUid: 'u_1', at: '2026-06-10T00:00:00.000Z' },
-      { auditId: 'au_2', assetId: 'a_1', action: 'assigned', actorUid: 'u_1', at: '2026-06-09T00:00:00.000Z' },
-    ])
+    expect(rows).toHaveLength(2)
+
+    // returned row: a_2 has no assignment, so recipientName=null; assetLabel='B M'
+    expect(rows[0]).toMatchObject({
+      auditId: 'au_3', assetId: 'a_2', action: 'returned',
+      actorUid: 'u_1', at: '2026-06-10T00:00:00.000Z',
+      assetLabel: 'B M', recipientName: null,
+    })
+    // assigned row: a_1 is currently assigned to emp_1 (Alice Smith)
+    expect(rows[1]).toMatchObject({
+      auditId: 'au_2', assetId: 'a_1', action: 'assigned',
+      actorUid: 'u_1', at: '2026-06-09T00:00:00.000Z',
+      assetLabel: 'B M', recipientName: 'Alice Smith',
+    })
   })
 
   it('loadAssignmentActivity respects limit', async () => {
     const rows = await makeRepo().loadAssignmentActivity(1)
     expect(rows).toHaveLength(1)
     expect(rows[0]!.auditId).toBe('au_3')
+    expect(rows[0]).toHaveProperty('assetLabel')
+    expect(rows[0]).toHaveProperty('recipientName')
   })
 
   it('loadWorkstationLicenseStats splits free/inUse/retired', async () => {
@@ -118,8 +142,30 @@ describe('InMemoryDashboardRepository', () => {
     expect(await makeRepo().loadPeopleStats(true)).toEqual({ employeeCount: 42, pendingUsersCount: 3 })
   })
 
-  it('loadRecentAudit returns newest-first, limited', async () => {
-    const rows = await makeRepo().loadRecentAudit(2)
-    expect(rows.map(r => r.id)).toEqual(['au_3', 'au_2'])
+  it('loadRecentAuditRows returns newest-first, limited, with actorName and targetLabel', async () => {
+    const rows = await makeRepo().loadRecentAuditRows(2)
+    expect(rows).toHaveLength(2)
+    expect(rows[0]!.id).toBe('au_3')
+    expect(rows[1]!.id).toBe('au_2')
+    // actorUid 'u_1' resolves to 'Bob Jones' from seeded users
+    expect(rows[0]!.actorName).toBe('Bob Jones')
+    expect(rows[1]!.actorName).toBe('Bob Jones')
+    // au_3 is entityType='assignment' with after.assetId='a_2'
+    expect(rows[0]!.targetLabel).toBe('a_2')
+    // au_2 is entityType='assignment' with after.assetId='a_1'
+    expect(rows[1]!.targetLabel).toBe('a_1')
+    // au_1 is entityType='asset' — cut by limit=2, so not present
+  })
+
+  it('loadRecentAuditRows falls back to actorRole when user is not seeded', async () => {
+    const repoNoUsers = new InMemoryDashboardRepository({
+      assets: [], ref,
+      workstationLicenses: [], serverLicenseCount: 0,
+      employeeCount: 0, pendingUsersCount: 0,
+      auditLogs: [auditRows[2]!],  // au_1: entityType='asset', actorUid='u_1'
+    })
+    const rows = await repoNoUsers.loadRecentAuditRows(8)
+    expect(rows[0]!.actorName).toBe('asset_admin')  // fallback to actorRole
+    expect(rows[0]!.targetLabel).toBe('a_1')  // entityType='asset', after=null → entityId
   })
 })

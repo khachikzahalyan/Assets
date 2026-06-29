@@ -55,7 +55,7 @@ vi.mock('@/infra/repositories', async (importOriginal) => {
     loadWorkstationLicenseStats() { return Promise.resolve({ total: 0, free: 0, inUse: 0, retired: 0 }) }
     loadServerLicenseCount() { return Promise.resolve(0) }
     loadPeopleStats() { return Promise.resolve({ employeeCount: 0, pendingUsersCount: null }) }
-    loadRecentAudit() { return Promise.resolve([]) }
+    loadRecentAuditRows() { return Promise.resolve([]) }
   }
   return {
     ...real,
@@ -171,7 +171,7 @@ describe('DashboardPage loading state', () => {
       loadWorkstationLicenseStats: () => new Promise(() => {}),
       loadServerLicenseCount:    () => new Promise(() => {}),
       loadPeopleStats:           () => new Promise(() => {}),
-      loadRecentAudit:           () => new Promise(() => {}),
+      loadRecentAuditRows:       () => new Promise(() => {}),
     }
     // @ts-expect-error — intentionally partial stub for loading test
     renderPage('super_admin', slowRepo)

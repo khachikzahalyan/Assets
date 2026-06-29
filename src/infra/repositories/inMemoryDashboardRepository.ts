@@ -3,9 +3,11 @@ import type { WorkstationLicense } from '@/domain/license'
 import type { AuditLog } from '@/domain/audit'
 import type { DashboardRepository } from '@/domain/dashboard'
 import type {
-  AssetStats, AssignmentActivityRow, WorkstationLicenseStats, PeopleStats,
+  AssetStats, AssignmentActivityRow, WorkstationLicenseStats, PeopleStats, DashboardAuditRow,
 } from '@/domain/dashboard'
-import { reduceAssetStats, reduceWorkstationLicenseStats, mapAssignmentActivity } from '@/domain/dashboard'
+import {
+  reduceAssetStats, reduceWorkstationLicenseStats, mapAssignmentActivity, resolveTargetLabel,
+} from '@/domain/dashboard'
 
 export interface InMemoryDashboardSeed {
   assets: Asset[]
@@ -15,6 +17,8 @@ export interface InMemoryDashboardSeed {
   employeeCount: number
   pendingUsersCount: number
   auditLogs: AuditLog[]
+  /** Optional: uid → name map for actor name resolution in audit rows. */
+  users?: Array<{ id: string; firstName: string | null; lastName: string | null }>
 }
 
 /** In-memory aggregation adapter for tests/dev. Reduces the same docs the Firestore
@@ -28,7 +32,20 @@ export class InMemoryDashboardRepository implements DashboardRepository {
 
   async loadAssignmentActivity(limitN = 8): Promise<AssignmentActivityRow[]> {
     const sorted = [...this.seed.auditLogs].sort((a, b) => b.at.localeCompare(a.at) || b.id.localeCompare(a.id))
-    return mapAssignmentActivity(sorted).slice(0, limitN)
+
+    const assetMap = new Map(this.seed.assets.map(a => [a.id, {
+      brand: a.brand,
+      model: a.model,
+      invCode: a.invCode,
+      assignedEmployeeId: a.assignment?.mode === 'employee' ? (a.assignment.employeeId ?? null) : null,
+    }]))
+
+    const employeeMap = new Map(this.seed.ref.employees.map(e => [e.id, {
+      firstName: e.firstName,
+      lastName: e.lastName,
+    }]))
+
+    return mapAssignmentActivity(sorted, assetMap, employeeMap).slice(0, limitN)
   }
 
   async loadWorkstationLicenseStats(): Promise<WorkstationLicenseStats> {
@@ -46,9 +63,26 @@ export class InMemoryDashboardRepository implements DashboardRepository {
     }
   }
 
-  async loadRecentAudit(limitN = 8): Promise<AuditLog[]> {
-    return [...this.seed.auditLogs]
+  async loadRecentAuditRows(limitN = 8): Promise<DashboardAuditRow[]> {
+    const logs = [...this.seed.auditLogs]
       .sort((a, b) => b.at.localeCompare(a.at) || b.id.localeCompare(a.id))
       .slice(0, limitN)
+
+    const userMap = new Map((this.seed.users ?? []).map(u => [u.id, u]))
+
+    return logs.map(log => {
+      const user = userMap.get(log.actorUid)
+      const actorName = user
+        ? ([user.firstName, user.lastName].filter(Boolean).join(' ').trim() || log.actorRole)
+        : log.actorRole
+
+      return {
+        id: log.id,
+        action: log.action,
+        actorName,
+        targetLabel: resolveTargetLabel(log),
+        at: log.at,
+      }
+    })
   }
 }

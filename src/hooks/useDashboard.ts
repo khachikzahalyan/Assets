@@ -75,7 +75,7 @@ export function useDashboard(repo: DashboardRepository, role: Role): UseDashboar
       if (p.workstationLicenses) run(() => repo.loadWorkstationLicenseStats(), v => { next.workstationLicenses = v })
       if (p.serverLicense) run(() => repo.loadServerLicenseCount(), v => { next.serverLicenseCount = v })
       if (p.people) run(() => repo.loadPeopleStats(p.pending), v => { next.people = v })
-      if (p.recentAudit) run(() => repo.loadRecentAudit(8), v => { next.recentAudit = v })
+      if (p.recentAudit) run(() => repo.loadRecentAuditRows(8), v => { next.recentAudit = v })
 
       await Promise.allSettled(tasks)
 

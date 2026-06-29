@@ -1,13 +1,19 @@
 import {
-  collection, getDocs, query as fsQuery, where, orderBy, limit as fsLimit, type Firestore,
+  collection, doc, getDocs, getDoc, query as fsQuery, where, orderBy, limit as fsLimit,
+  type Firestore,
 } from 'firebase/firestore'
 import type { Asset, CategoryRow, RefRow, StatusRow, EmployeeRow } from '@/domain/asset'
 import type { AssetReferenceData } from '@/domain/asset'
 import type { WorkstationLicense } from '@/domain/license'
 import type { AuditLog } from '@/domain/audit'
 import type { DashboardRepository } from '@/domain/dashboard'
-import type { AssetStats, AssignmentActivityRow, WorkstationLicenseStats, PeopleStats } from '@/domain/dashboard'
-import { reduceAssetStats, reduceWorkstationLicenseStats, mapAssignmentActivity } from '@/domain/dashboard'
+import type {
+  AssetStats, AssignmentActivityRow, WorkstationLicenseStats, PeopleStats, DashboardAuditRow,
+  AssetActivityInfo, EmployeeActivityInfo,
+} from '@/domain/dashboard'
+import {
+  reduceAssetStats, reduceWorkstationLicenseStats, mapAssignmentActivity, resolveTargetLabel,
+} from '@/domain/dashboard'
 
 function toIso(v: unknown): string {
   if (typeof v === 'string') return v
@@ -71,7 +77,62 @@ export class FirestoreDashboardRepository implements DashboardRepository {
       fsLimit(limitN * 2),
     ))
     const rows = snap.docs.map(d => this.toAuditLog(d.id, d.data() as Record<string, unknown>))
-    return mapAssignmentActivity(rows).slice(0, limitN)
+
+    // Collect unique assetIds from assign/return rows
+    const candidateRows = rows.filter(l => l.action === 'assigned' || l.action === 'returned')
+    const assetIds = [...new Set(
+      candidateRows
+        .map(l => String((l.after as Record<string, unknown> | null)?.assetId ?? ''))
+        .filter(Boolean),
+    )]
+
+    // Fetch asset docs in parallel (small N, per-row lookup acceptable)
+    const assetMap = new Map<string, AssetActivityInfo>()
+    await Promise.all(assetIds.map(async id => {
+      try {
+        const s = await getDoc(doc(this.db, 'assets', id))
+        if (s.exists()) {
+          const x = s.data() as Record<string, unknown>
+          const assignment = x.assignment as Record<string, unknown> | null
+          assetMap.set(id, {
+            brand: String(x.brand ?? '').trim() || null,
+            model: String(x.model ?? '').trim() || null,
+            invCode: String(x.invCode ?? ''),
+            assignedEmployeeId: assignment?.mode === 'employee'
+              ? (String(assignment.employeeId ?? '').trim() || null)
+              : null,
+          })
+        }
+      } catch {
+        // asset unresolvable — label falls back to assetId
+      }
+    }))
+
+    // Collect unique employeeIds from assets
+    const employeeIds = [...new Set(
+      [...assetMap.values()]
+        .map(a => a.assignedEmployeeId)
+        .filter((id): id is string => id !== null),
+    )]
+
+    // Fetch employee docs in parallel
+    const employeeMap = new Map<string, EmployeeActivityInfo>()
+    await Promise.all(employeeIds.map(async id => {
+      try {
+        const s = await getDoc(doc(this.db, 'employees', id))
+        if (s.exists()) {
+          const x = s.data() as Record<string, unknown>
+          employeeMap.set(id, {
+            firstName: String(x.firstName ?? '').trim() || null,
+            lastName: String(x.lastName ?? '').trim() || null,
+          })
+        }
+      } catch {
+        // employee unresolvable — recipientName stays null
+      }
+    }))
+
+    return mapAssignmentActivity(rows, assetMap, employeeMap).slice(0, limitN)
   }
 
   async loadWorkstationLicenseStats(): Promise<WorkstationLicenseStats> {
@@ -113,13 +174,36 @@ export class FirestoreDashboardRepository implements DashboardRepository {
     return { employeeCount: employeesSnap.size, pendingUsersCount }
   }
 
-  async loadRecentAudit(limitN = 8): Promise<AuditLog[]> {
+  async loadRecentAuditRows(limitN = 8): Promise<DashboardAuditRow[]> {
     const snap = await getDocs(fsQuery(
       collection(this.db, 'audit_logs'),
       orderBy('at', 'desc'),
       fsLimit(limitN),
     ))
-    return snap.docs.map(d => this.toAuditLog(d.id, d.data() as Record<string, unknown>))
+    const logs = snap.docs.map(d => this.toAuditLog(d.id, d.data() as Record<string, unknown>))
+
+    // Resolve actor display names from /users/{uid}.displayName (best-effort)
+    const uniqueUids = [...new Set(logs.map(l => l.actorUid).filter(Boolean))]
+    const actorNames = new Map<string, string>()
+    await Promise.all(uniqueUids.map(async uid => {
+      try {
+        const u = await getDoc(doc(this.db, 'users', uid))
+        if (u.exists()) {
+          const name = String((u.data() as Record<string, unknown>).displayName ?? '').trim()
+          if (name) actorNames.set(uid, name)
+        }
+      } catch {
+        // unresolvable — actorRole fallback applied below
+      }
+    }))
+
+    return logs.map(log => ({
+      id: log.id,
+      action: log.action,
+      actorName: actorNames.get(log.actorUid) ?? log.actorRole,
+      targetLabel: resolveTargetLabel(log),
+      at: log.at,
+    }))
   }
 
   private toAuditLog(id: string, x: Record<string, unknown>): AuditLog {

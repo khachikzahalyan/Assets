@@ -1,7 +1,6 @@
 import type {
-  AssetStats, AssignmentActivityRow, WorkstationLicenseStats, PeopleStats,
+  AssetStats, AssignmentActivityRow, WorkstationLicenseStats, PeopleStats, DashboardAuditRow,
 } from './types'
-import type { AuditLog } from '@/domain/audit'
 
 /**
  * READ-ONLY aggregation port for the role dashboards. No mutation methods.
@@ -16,6 +15,9 @@ export interface DashboardRepository {
   loadServerLicenseCount(): Promise<number>
   /** pendingUsersCount queried only when includePending (super_admin). */
   loadPeopleStats(includePending: boolean): Promise<PeopleStats>
-  /** super_admin only (caller-gated). Newest first. Keys already masked upstream. */
-  loadRecentAudit(limitN?: number): Promise<AuditLog[]>
+  /**
+   * super_admin only (caller-gated). Newest first.
+   * Returns enriched rows with resolved actor names and entity labels.
+   */
+  loadRecentAuditRows(limitN?: number): Promise<DashboardAuditRow[]>
 }

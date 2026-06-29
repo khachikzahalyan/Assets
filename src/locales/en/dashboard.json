@@ -3,6 +3,14 @@
     "assigned": "Asset assigned",
     "returned": "Asset returned"
   },
+  "audit": {
+    "col": {
+      "action": "Action",
+      "description": "Description",
+      "time": "Time",
+      "user": "User"
+    }
+  },
   "auditAction": {
     "assigned": "Assigned",
     "created": "Created",
@@ -28,6 +36,7 @@
     "title": "By branch"
   },
   "groups": {
+    "categoryCaption": "{{count}} categories",
     "devices": "Devices",
     "furniture": "Furniture",
     "network": "Network devices",
@@ -36,6 +45,7 @@
   "kpi": {
     "currentlyOut": "Currently assigned",
     "employees": "Employees",
+    "inWarehouse": "In warehouse",
     "licenses": "Licenses",
     "serverLicenses": "Server licenses",
     "totalAssets": "Total assets"
@@ -43,9 +53,11 @@
   "license": {
     "free": "Free",
     "inUse": "In use",
-    "retired": "Retired",
+    "retired": "Archived",
     "title": "Workstation licenses",
-    "total": "Total"
+    "total": "Total",
+    "totalLabel": "licenses total",
+    "usage": "Usage"
   },
   "noActivity": "No activity",
   "noAudit": "No events",
@@ -61,7 +73,8 @@
     "st_disposed": "Disposed",
     "st_repair": "In repair",
     "st_warehouse": "In warehouse",
-    "title": "Statuses"
+    "title": "Asset statuses",
+    "totalCaption": "{{count}} total"
   },
   "title": "Dashboard",
   "viewAll": "View all"
