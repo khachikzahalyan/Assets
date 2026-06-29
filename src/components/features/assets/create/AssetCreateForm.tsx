@@ -350,8 +350,8 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
         </div>
       </div>
 
-      {/* MOBILE: bottom padding clears the fixed action bar + global bottom nav */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 max-lg:pb-40">
+      {/* MOBILE: bottom padding clears the fixed action bar pinned to the bottom */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 max-lg:pb-28">
         {/* LEFT column — borderless section matching prototype .ams-sec-asset */}
         <section className="max-md:px-[14px] px-6 py-5 lg:border-r lg:border-[#2A2F36]/80 max-w-full overflow-x-hidden">
           <div className="space-y-4">
@@ -490,12 +490,13 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
         </div>
       </div>
 
-      {/* Footer — desktop (lg+): inline in flow; mobile (<lg): fixed above global bottom nav */}
+      {/* Footer — desktop (lg+): inline in flow; mobile (<lg): pinned to the very bottom.
+          The global bottom nav is hidden on this create route (AppShell), so the bar sits flush. */}
       <div className="
-        max-lg:fixed max-lg:left-0 max-lg:right-0 max-lg:z-50
-        max-lg:bottom-[calc(64px_+_env(safe-area-inset-bottom,0px))]
-        px-6 max-lg:px-3 py-4 max-lg:py-0
-        border-t border-[#2A2F36]/80 bg-surface
+        max-lg:fixed max-lg:left-0 max-lg:right-0 max-lg:bottom-0 max-lg:z-50
+        max-lg:pb-[calc(8px_+_env(safe-area-inset-bottom,0px))]
+        px-6 max-lg:px-3 py-4 max-lg:pt-2
+        border-t border-border bg-surface
         flex items-center justify-between gap-3
         max-lg:flex-col max-lg:items-stretch max-lg:gap-0
       ">

@@ -26,6 +26,10 @@ export function AppShell({ children }: AppShellProps) {
   const seg = location.pathname.replace(/^\/+/, '').split('/')[0] ?? ''
   const currentRoute = seg !== '' ? seg : defaultRouteForRole(role)
 
+  // Focused full-screen flows (e.g. asset registration) own the bottom of the
+  // screen with their own action bar — hide the global mobile tab bar there.
+  const hideBottomNav = location.pathname === '/assets/new'
+
   const onNavigate = (route: string) => navigate('/' + route)
 
   // Cmd+K / Ctrl+K → open SearchPalette
@@ -66,8 +70,9 @@ export function AppShell({ children }: AppShellProps) {
           </main>
         </div>
 
-        {/* Mobile bottom tab bar — self-hides on lg+ via lg:hidden */}
-        <BottomNav currentRoute={currentRoute} onNavigate={onNavigate} />
+        {/* Mobile bottom tab bar — self-hides on lg+ via lg:hidden; hidden during
+            focused full-screen flows that own the bottom (e.g. asset registration). */}
+        {!hideBottomNav && <BottomNav currentRoute={currentRoute} onNavigate={onNavigate} />}
       </div>
 
       <SearchPalette
