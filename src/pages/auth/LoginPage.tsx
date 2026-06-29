@@ -105,15 +105,15 @@ export function LoginPage() {
 
   return (
     <div
-      className="min-h-screen flex max-lg:flex-col"
+      className="flex max-lg:flex-col max-lg:h-[100dvh] max-lg:overflow-hidden lg:min-h-screen"
       style={{ background: '#1C1F26', fontFamily: "'Inter', system-ui, sans-serif" }}
     >
 
       {/* ── HERO — mobile only ────────────────────────────────────────────────── */}
       <div
-        className="lg:hidden flex-shrink-0 relative"
+        className="lg:hidden flex-shrink-0 relative h-[clamp(200px,28dvh,240px)]"
         aria-hidden="true"
-        style={{ height: '300px', background: '#0f111a', overflow: 'hidden' }}
+        style={{ background: '#0f111a', overflow: 'hidden' }}
       >
         {/* Orange glow — centered */}
         <div
@@ -353,7 +353,7 @@ export function LoginPage() {
 
       {/* ── LEFT: Form panel ─────────────────────────────────────────────────── */}
       <div
-        className="w-full lg:w-[44%] relative flex lg:items-center lg:justify-center lg:px-16 lg:py-[60px] max-lg:flex-1 max-lg:flex-col max-lg:px-6 max-lg:pt-12 max-lg:pb-8"
+        className="w-full lg:w-[44%] relative flex lg:items-center lg:justify-center lg:px-16 lg:py-[60px] max-lg:flex-1 max-lg:flex-col max-lg:px-6 max-lg:pt-7 max-lg:pb-5 max-lg:min-h-0 max-lg:overflow-y-auto"
       >
 
         {/* Logo — desktop only: position:absolute top-left, out of flex flow */}
@@ -395,7 +395,7 @@ export function LoginPage() {
         >
 
           {/* Title block */}
-          <div className="lg:mb-[40px] max-lg:mb-7">
+          <div className="lg:mb-[40px] max-lg:mb-5">
             <h1
               className="max-lg:text-[22px] lg:text-[28px]"
               style={{
@@ -590,7 +590,7 @@ export function LoginPage() {
 
           {/* Footer note — mt-auto pushes it to bottom of column on mobile */}
           <p
-            className="text-center max-lg:mt-auto max-lg:pt-6 max-lg:text-[11px] max-lg:text-[#2a3048] lg:mt-[36px] lg:text-[12px] lg:text-[#3a4055]"
+            className="text-center max-lg:mt-auto max-lg:pt-3 max-lg:text-[11px] max-lg:text-[#2a3048] lg:mt-[36px] lg:text-[12px] lg:text-[#3a4055]"
             style={{ lineHeight: 1.6 }}
           >
             {footerLines[0]}
