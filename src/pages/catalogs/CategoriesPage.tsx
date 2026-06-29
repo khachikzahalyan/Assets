@@ -1,16 +1,23 @@
 import { useMemo, useState, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
-import { PageHeader, SectionCard, Btn, Icon, Chip, EmptyState, LoadingState, ErrorState, CardListSkeleton } from '@/components/ui'
+import {
+  ListCard, ListPageShell,
+  Btn, Icon, Chip,
+  EmptyState, ErrorState,
+  TableSkeleton, CardListSkeleton,
+} from '@/components/ui'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { CatalogTable, ConfirmDeleteDialog, type CatalogColumn } from '@/components/features/catalogs'
 import { CategoryFormDialog, type CategoryFormValues } from '@/components/features/categories'
+import { PaginationBar } from '@/components/features/assets/PaginationBar'
 import type { Category, CategoryRepository } from '@/domain/category'
 import { FirestoreCategoryRepository } from '@/infra/repositories'
 import { EntityInUseError } from '@/domain/shared'
 import { db } from '@/lib/firebase'
 
 const GROUP_ORDER = ['devices', 'network', 'furniture'] as const
+const PAGE_SIZE = 12
 
 export interface CategoriesPageProps { repository?: CategoryRepository }
 
@@ -35,6 +42,7 @@ export function CategoriesPage({ repository }: CategoriesPageProps) {
   const [deleting, setDeleting]     = useState<Category | null>(null)
   const [blockedMsg, setBlockedMsg] = useState<string | null>(null)
   const [delBusy, setDelBusy]       = useState(false)
+  const [page, setPage]             = useState(1)
 
   const load = useCallback(async () => {
     setLoad(true); setError(null)
@@ -43,8 +51,6 @@ export function CategoriesPage({ repository }: CategoriesPageProps) {
     finally { setLoad(false) }
   }, [repo, t])
   useEffect(() => { void load() }, [load])
-
-  const total = rows.length
 
   // Group → chip colour (devices/network/furniture).
   const GROUP_CHIP: Record<string, 'blue' | 'green' | 'amber'> = {
@@ -81,6 +87,21 @@ export function CategoriesPage({ repository }: CategoriesPageProps) {
     },
   ]
 
+  // Sorted rows: group order then alphabetical name.
+  const ordered = useMemo(
+    () =>
+      [...rows].sort((a, b) => {
+        const ga = GROUP_ORDER.indexOf(a.group as (typeof GROUP_ORDER)[number])
+        const gb = GROUP_ORDER.indexOf(b.group as (typeof GROUP_ORDER)[number])
+        if (ga !== gb) return ga - gb
+        return a.name.localeCompare(b.name)
+      }),
+    [rows],
+  )
+
+  const total = ordered.length
+  const pageRows = ordered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+
   function openEdit(cat: Category) {
     setSaveError(null)
     setEditing(cat)
@@ -94,7 +115,9 @@ export function CategoriesPage({ repository }: CategoriesPageProps) {
       } else {
         await repo.createCategory(v, { uid: user.id, role })
       }
-      setEditing(null); await load()
+      setEditing(null)
+      setPage(1)
+      await load()
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e)
       if (/name already in use/i.test(msg)) setSaveError(t('validation.nameTaken'))
@@ -116,48 +139,84 @@ export function CategoriesPage({ repository }: CategoriesPageProps) {
     setDelBusy(true)
     try {
       await repo.deleteCategory(deleting.id, { uid: user.id, role })
-      setDeleting(null); setBlockedMsg(null); await load()
+      setDeleting(null); setBlockedMsg(null)
+      setPage(1)
+      await load()
     } catch (e) {
       if (e instanceof EntityInUseError) setBlockedMsg(t('delete.inUse', { count: e.count }))
       else { setDeleting(null); setError(t('validation.saveFailed')) }
     } finally { setDelBusy(false) }
   }
 
-  function body() {
-    if (loading) return isMobile ? <CardListSkeleton rows={6} variant="catalog" /> : <LoadingState rows={6} />
-    if (error)   return <ErrorState onRetry={load} />
+  function renderTableRegion() {
+    if (loading) return isMobile
+      ? <CardListSkeleton rows={6} variant="catalog" />
+      : (
+        <TableSkeleton
+          rows={PAGE_SIZE}
+          columns={4}
+          gridTemplate="minmax(160px,2fr) 1fr 1fr 80px"
+          lastColAction
+        />
+      )
+    if (error) return <ErrorState onRetry={load} />
     if (rows.length === 0) return (
       <EmptyState icon="tags" title={t('empty.title')} description={t('empty.desc')} />
     )
-    // Single clean table, ordered by group then name (group is now a column).
-    const ordered = [...rows].sort((a, b) => {
-      const ga = GROUP_ORDER.indexOf(a.group as (typeof GROUP_ORDER)[number])
-      const gb = GROUP_ORDER.indexOf(b.group as (typeof GROUP_ORDER)[number])
-      if (ga !== gb) return ga - gb
-      return a.name.localeCompare(b.name)
-    })
     return (
       <CatalogTable
-        rows={ordered}
+        rows={pageRows}
         columns={columns}
         canMutate={canMutate}
         onEdit={openEdit}
         onDelete={askDelete}
+        minRows={PAGE_SIZE}
       />
     )
   }
 
   return (
-    <div className="space-y-5">
-      <PageHeader
-        icon="tags" title={t('title')} {...(!loading ? { count: total } : {})}
-        {...(canMutate ? { actions: (
-          <Btn variant="primary" size="md" onClick={() => { setSaveError(null); setEditing('new') }}>
-            <Icon name="tags" size={14} />{t('create')}
-          </Btn>
-        ) } : {})}
-      />
-      <SectionCard noHeader><div className="space-y-4">{body()}</div></SectionCard>
+    <>
+      <ListPageShell flushMobile>
+        <ListCard
+          flushMobile
+          toolbar={
+            <>
+              <div className="flex items-center justify-between gap-3 px-5 py-3 max-md:px-3">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Icon name="tags" size={16} className="text-text-tertiary flex-shrink-0" />
+                  <h1 className="text-[15px] font-semibold text-text-primary">{t('title')}</h1>
+                  {!loading && (
+                    <span className="text-[13px] text-text-tertiary tabular-nums">{total}</span>
+                  )}
+                </div>
+                {canMutate && (
+                  <Btn
+                    variant="primary"
+                    size="md"
+                    onClick={() => { setSaveError(null); setEditing('new') }}
+                  >
+                    <Icon name="plus" size={14} />{t('create')}
+                  </Btn>
+                )}
+              </div>
+              <div className="border-t border-border" />
+            </>
+          }
+          pagination={
+            !loading && !error && total > PAGE_SIZE ? (
+              <PaginationBar
+                page={page}
+                pageSize={PAGE_SIZE}
+                total={total}
+                onPage={setPage}
+              />
+            ) : undefined
+          }
+        >
+          {renderTableRegion()}
+        </ListCard>
+      </ListPageShell>
 
       {editing !== null && (
         <CategoryFormDialog
@@ -174,6 +233,6 @@ export function CategoriesPage({ repository }: CategoriesPageProps) {
         blockedMessage={blockedMsg} busy={delBusy}
         onConfirm={confirmDelete} onCancel={() => { setDeleting(null); setBlockedMsg(null) }}
       />
-    </div>
+    </>
   )
 }

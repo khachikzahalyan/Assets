@@ -21,10 +21,16 @@ export interface CatalogTableProps<T extends { id: string }> {
   onDelete: (row: T) => void
   /** Optional: hide delete for a given row (e.g. system statuses). */
   canDeleteRow?: (row: T) => boolean
+  /**
+   * Desktop-only fill contract: minimum row count passed to DataTable so
+   * placeholder rows fill the remaining height inside ListCard. Mobile cards
+   * are unaffected. Defaults to rows.length (no placeholders).
+   */
+  minRows?: number
 }
 
 export function CatalogTable<T extends { id: string }>(props: CatalogTableProps<T>) {
-  const { rows, columns, canMutate, onEdit, onDelete, canDeleteRow } = props
+  const { rows, columns, canMutate, onEdit, onDelete, canDeleteRow, minRows } = props
   const { t } = useTranslation('common')
   const editLabel = t('actions.edit', { defaultValue: 'Edit' })
   const deleteLabel = t('actions.delete', { defaultValue: 'Delete' })
@@ -128,6 +134,7 @@ export function CatalogTable<T extends { id: string }>(props: CatalogTableProps<
       columns={dtColumns}
       rows={rows}
       getRowKey={(row) => row.id}
+      {...(minRows !== undefined ? { minRows } : {})}
     />
   )
 }
