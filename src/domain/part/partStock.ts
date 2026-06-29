@@ -244,3 +244,54 @@ export function synthesizeInstalledSlots(
 
   return slots
 }
+
+/**
+ * Resolve an asset's live installed-component slots — the SINGLE source of truth
+ * shared by the read projection, the install/uninstall write paths, AND the
+ * asset-detail Tech-Specs tiles.
+ *
+ * Always starts from the full synthesized set (factory cooler/psu/battery +
+ * ram/storage/gpu from `currentSpecs`), then OVERLAYS the explicit
+ * `upgradeCurrent` (a prior install/uninstall) onto it by kind + rank — so a
+ * replaced slot keeps its new spec + `replaced:true`, and any extra parts beyond
+ * the factory count (a 2nd RAM stick, etc.) are appended.
+ *
+ * Why merge instead of "explicit-or-synthesize": before this fix, a single
+ * replace persisted a 1-slot array, and a plain "prefer explicit" read would
+ * keep showing just that slot forever. Merging onto the synthesized base means
+ * the «Установлено» list can NEVER collapse — and assets already broken by the
+ * old behaviour self-heal on the next read. Returns a fresh, mutable copy.
+ */
+export function resolveUpgradeCurrent(
+  categoryId: string,
+  specs: AssetSpecs | null | undefined,
+  explicit: ReadonlyArray<UpgradeSlot> | null | undefined,
+): UpgradeSlot[] {
+  const base = synthesizeInstalledSlots(categoryId, specs)
+  if (!Array.isArray(explicit) || explicit.length === 0) return base
+
+  // Group explicit slots by kind so we can overlay them in order onto the base.
+  const byKind = new Map<string, UpgradeSlot[]>()
+  for (const s of explicit) {
+    const arr = byKind.get(s.kind)
+    if (arr) arr.push(s)
+    else byKind.set(s.kind, [s])
+  }
+
+  // Overlay: each base slot takes the matching stored slot's fields (stored wins
+  // — it reflects the latest install/replace), tracked per-kind by rank.
+  const rank = new Map<string, number>()
+  const merged: UpgradeSlot[] = base.map(slot => {
+    const r = rank.get(slot.kind) ?? 0
+    rank.set(slot.kind, r + 1)
+    const stored = byKind.get(slot.kind)?.[r]
+    return stored ? { ...slot, ...stored } : { ...slot }
+  })
+
+  // Append extra stored parts of each kind beyond the synthesized factory count
+  // (user-added parts the factory set doesn't account for).
+  for (const [kind, arr] of byKind) {
+    for (let i = rank.get(kind) ?? 0; i < arr.length; i++) merged.push({ ...arr[i]! })
+  }
+  return merged
+}

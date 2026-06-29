@@ -40,7 +40,7 @@ export function TechSpecsCard({
   const { t } = useTranslation('assets')
   const [copied, setCopied] = useState(false)
 
-  const lines = buildSpecsLines(asset.currentSpecs, asset.categoryId)
+  const lines = buildSpecsLines(asset.currentSpecs, asset.categoryId, asset.upgradeCurrent)
 
   const handleCopy = () => {
     if (!navigator.clipboard) return

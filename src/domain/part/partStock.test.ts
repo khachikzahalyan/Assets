@@ -14,6 +14,7 @@ import {
   isServiceOnly,
   assetFamilyOf,
   synthesizeInstalledSlots,
+  resolveUpgradeCurrent,
 } from './partStock'
 import type { UpgradeSlot } from './types'
 
@@ -514,5 +515,42 @@ describe('synthesizeInstalledSlots', () => {
     expect(kinds).not.toContain('ram')
     expect(kinds).not.toContain('storage')
     expect(kinds).not.toContain('gpu')
+  })
+})
+
+describe('resolveUpgradeCurrent', () => {
+  const specs = { ram: '16 ГБ DDR5', ssd: '1 ТБ' }
+
+  it('no explicit → full synthesized set (fresh asset)', () => {
+    const slots = resolveUpgradeCurrent('cat_laptop', specs, null)
+    expect(slots.map(s => s.kind)).toEqual(['ram', 'storage', 'cooler', 'battery'])
+    // factory slots carry no replaced flag
+    expect(slots.every(s => !s.replaced)).toBe(true)
+  })
+
+  it('heals a collapsed asset: a 1-slot explicit re-expands to the full set', () => {
+    // Simulates an asset broken by the old behaviour: only the replaced battery
+    // was persisted. The list must NOT collapse — it re-expands and the battery
+    // shows as replaced.
+    const collapsed: UpgradeSlot[] = [
+      { kind: 'battery', spec: 'Дополнительный АКБ', replaced: true },
+    ]
+    const slots = resolveUpgradeCurrent('cat_laptop', specs, collapsed)
+    expect(slots.map(s => s.kind)).toEqual(['ram', 'storage', 'cooler', 'battery'])
+    const battery = slots.find(s => s.kind === 'battery')
+    expect(battery?.replaced).toBe(true)
+    expect(battery?.spec).toBe('Дополнительный АКБ')
+    // untouched slots stay factory
+    expect(slots.find(s => s.kind === 'cooler')?.replaced).toBeFalsy()
+  })
+
+  it('appends extra parts beyond the factory count (2nd RAM stick)', () => {
+    const explicit: UpgradeSlot[] = [
+      { kind: 'ram', spec: '16 ГБ DDR5', replaced: false },
+      { kind: 'ram', spec: '32 ГБ DDR5', replaced: true },
+    ]
+    const rams = resolveUpgradeCurrent('cat_laptop', specs, explicit).filter(s => s.kind === 'ram')
+    expect(rams).toHaveLength(2)
+    expect(rams[1]?.spec).toBe('32 ГБ DDR5')
   })
 })

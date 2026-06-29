@@ -1,4 +1,5 @@
 import type { AssetAssignment, AssetSpecs } from '@/domain/asset'
+import type { UpgradeSlot } from '@/domain/part/types'
 import { LAPTOP_CATEGORY_IDS, SERVER_CATEGORY_IDS } from '@/domain/asset/categoryCapabilities'
 
 // ---------------------------------------------------------------------------
@@ -309,6 +310,7 @@ export function specTileFamily(categoryId: string | null | undefined): 'laptop' 
 export function buildSpecsLines(
   currentSpecs: AssetSpecs | null | undefined,
   categoryId?: string | null,
+  upgradeCurrent?: ReadonlyArray<UpgradeSlot> | null,
 ): SpecLine[] {
   if (!currentSpecs) return []
   const lines: SpecLine[] = []
@@ -354,38 +356,47 @@ export function buildSpecsLines(
     })
   }
 
-  // Status-only tiles for computer-class families (Phase 1: factory defaults only).
-  // Prototype order after Storage: Cooling → Battery (laptop) / PSU (desktop/server).
-  // Factory-status values use emerald text to signal "good / original" state.
+  // Status-only tiles for computer-class families: Cooling → Battery (laptop) /
+  // PSU (desktop/server). A factory part shows «Заводское/Заводская/Заводской»
+  // green; once a part change marks the slot replaced, the tile flips to
+  // «Заменено» amber — mirrors the Parts «Установлено» list (single source: the
+  // asset's resolved upgradeCurrent). A replaced kind is one with replaced:true.
   const FACTORY_GREEN = 'text-emerald-300'
+  const REPLACED_AMBER = 'text-amber-300'
+  const replacedKinds = new Set(
+    (upgradeCurrent ?? []).filter(s => s.replaced).map(s => s.kind),
+  )
   const family = specTileFamily(categoryId)
   if (family !== null) {
     // ОХЛАЖДЕНИЕ — all computer-class families (laptop, desktop, server)
+    const coolerReplaced = replacedKinds.has('cooler')
     lines.push({
       labelKey:       'detail.specs.cooling',
-      value:          'Заводское',
+      value:          coolerReplaced ? 'Заменено' : 'Заводское',
       accent:         'cyan',
       icon:           'fan',
-      valueClassName: FACTORY_GREEN,
+      valueClassName: coolerReplaced ? REPLACED_AMBER : FACTORY_GREEN,
     })
 
     if (family === 'laptop') {
       // БАТАРЕЯ/АККУМУЛЯТОР — laptops only (no PSU)
+      const batteryReplaced = replacedKinds.has('battery')
       lines.push({
         labelKey:       'detail.specs.battery',
-        value:          'Заводская',
+        value:          batteryReplaced ? 'Заменено' : 'Заводская',
         accent:         'rose',
         icon:           'battery-medium',
-        valueClassName: FACTORY_GREEN,
+        valueClassName: batteryReplaced ? REPLACED_AMBER : FACTORY_GREEN,
       })
     } else {
       // БЛОКИ ПИТАНИЯ — desktop and server families
+      const psuReplaced = replacedKinds.has('psu')
       lines.push({
         labelKey:       family === 'server' ? 'detail.specs.psuPlural' : 'detail.specs.psu',
-        value:          'Заводской',
+        value:          psuReplaced ? 'Заменено' : 'Заводской',
         accent:         'amber',
         icon:           'plug',
-        valueClassName: FACTORY_GREEN,
+        valueClassName: psuReplaced ? REPLACED_AMBER : FACTORY_GREEN,
       })
     }
   }

@@ -103,9 +103,10 @@ export function WarehouseTab({
   /* ── SKU list renderer (right panel top section) ── */
   const renderSkuList = () => {
     const isGpuCat = selectedCatId === 'gpu'
-    const visibleSkus = isGpuCat
-      ? selectedSkus
-      : selectedSkus.filter((sku) => stockOf(sku.id).onHand > 0)
+    // Show every SKU in the category, even at 0 on-hand, so the count reads «0 шт»
+    // instead of an empty state — per owner: don't hide out-of-stock parts. The
+    // empty state below only remains for a category with no SKU docs at all (GPU).
+    const visibleSkus = selectedSkus
 
     if (visibleSkus.length === 0) {
       return (

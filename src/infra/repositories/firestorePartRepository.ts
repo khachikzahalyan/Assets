@@ -42,7 +42,7 @@ import {
   assetFamilyOf,
   currentPartsForSkuCategory,
   isServiceOnly,
-  synthesizeInstalledSlots,
+  resolveUpgradeCurrent,
   DESKTOP_CATEGORY_IDS,
 } from '@/domain/part/partStock'
 import type { AssetSpecs } from '@/domain/asset/types'
@@ -206,11 +206,11 @@ export class FirestorePartRepository implements PartRepository, PartWriteReposit
         // When empty (asset created via the Assets form, which only stores
         // currentSpecs), synthesize the slots from currentSpecs + factory defaults
         // so the «Установлено» tab shows what was created in the Assets section.
-        upgradeCurrent: (() => {
-          const explicit = toUpgradeSlots(data['upgradeCurrent'])
-          if (explicit.length > 0) return explicit
-          return synthesizeInstalledSlots(categoryId, (data['currentSpecs'] as AssetSpecs | null | undefined) ?? null)
-        })(),
+        upgradeCurrent: resolveUpgradeCurrent(
+          categoryId,
+          (data['currentSpecs'] as AssetSpecs | null | undefined) ?? null,
+          toUpgradeSlots(data['upgradeCurrent']),
+        ),
       })
     }
 
@@ -406,7 +406,11 @@ export class FirestorePartRepository implements PartRepository, PartWriteReposit
         const partCategory = partData['category'] as Part['category']
 
         const assetData = assetSnap.data() as Record<string, unknown>
-        const upgradeCurrent: UpgradeSlot[] = toUpgradeSlots(assetData['upgradeCurrent'])
+        const upgradeCurrent: UpgradeSlot[] = resolveUpgradeCurrent(
+          input.assetCategoryId,
+          (assetData['currentSpecs'] as AssetSpecs | null | undefined) ?? null,
+          toUpgradeSlots(assetData['upgradeCurrent']),
+        )
 
         const ucBefore = upgradeCurrent.map(s => ({ ...s }))
 
@@ -551,7 +555,11 @@ export class FirestorePartRepository implements PartRepository, PartWriteReposit
         const partCategory = partData['category'] as Part['category']
 
         const assetData = assetSnap.data() as Record<string, unknown>
-        const upgradeCurrent: UpgradeSlot[] = toUpgradeSlots(assetData['upgradeCurrent'])
+        const upgradeCurrent: UpgradeSlot[] = resolveUpgradeCurrent(
+          input.assetCategoryId,
+          (assetData['currentSpecs'] as AssetSpecs | null | undefined) ?? null,
+          toUpgradeSlots(assetData['upgradeCurrent']),
+        )
         const ucBefore = upgradeCurrent.map(s => ({ ...s }))
 
         const at = new Date().toISOString()
