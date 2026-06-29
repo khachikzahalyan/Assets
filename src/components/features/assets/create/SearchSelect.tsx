@@ -96,7 +96,12 @@ export function SearchSelect({
 
     function onScroll() { updatePos() }
     function onResize() { updatePos() }
-    function onMouseDown(e: MouseEvent) {
+    // NOTE: We listen for `pointerdown` (not `mousedown`) so that taps inside
+    // a MobileSheet are excluded. MobileSheet's panel calls
+    // `e.stopPropagation()` on `pointerdown`, preventing the event from ever
+    // reaching `document`. A `mousedown` listener would NOT be stopped by that
+    // and would prematurely close the sheet before the `click` fires.
+    function onOutsidePointerDown(e: PointerEvent) {
       const target = e.target as Node | null
       const inTrigger = triggerRef.current?.contains(target) ?? false
       const inPortal = target instanceof Element && target.closest('[data-ss-portal="true"]') !== null
@@ -114,12 +119,12 @@ export function SearchSelect({
 
     window.addEventListener('scroll', onScroll, true)
     window.addEventListener('resize', onResize)
-    document.addEventListener('mousedown', onMouseDown)
+    document.addEventListener('pointerdown', onOutsidePointerDown)
     document.addEventListener('keydown', onKey)
     return () => {
       window.removeEventListener('scroll', onScroll, true)
       window.removeEventListener('resize', onResize)
-      document.removeEventListener('mousedown', onMouseDown)
+      document.removeEventListener('pointerdown', onOutsidePointerDown)
       document.removeEventListener('keydown', onKey)
     }
   }, [open])

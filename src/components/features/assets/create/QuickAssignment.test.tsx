@@ -77,4 +77,31 @@ describe('QuickAssignment', () => {
     fireEvent.click(screen.getByRole('button', { name: /^Сотрудник$/i }))
     expect(screen.queryByRole('button', { name: /Удалённый/i })).toBeNull()
   })
+
+  it('picking a branch + selecting from SearchSelect shows the branch name in the trigger', () => {
+    render(<Harness />)
+    // Activate branch mode — this mounts the SearchSelect
+    fireEvent.click(screen.getByRole('button', { name: /^Филиал$/i }))
+    // Open the combobox dropdown
+    fireEvent.click(screen.getByRole('combobox'))
+    // Pick 'Головной офис' from the option list
+    fireEvent.click(screen.getByRole('option', { name: 'Головной офис' }))
+    // Trigger must now display the selected branch name (not the placeholder)
+    expect(screen.getByText('Головной офис')).toBeTruthy()
+    // Value object must carry the correct branchId
+    const v = JSON.parse(screen.getByTestId('val').textContent!)
+    expect(v.picked).toBe('branch')
+    expect(v.assignment.branchId).toBe('b_main')
+  })
+
+  it('picking an employee + selecting from SearchSelect shows the employee name in the trigger', () => {
+    render(<Harness />)
+    fireEvent.click(screen.getByRole('button', { name: /^Сотрудник$/i }))
+    fireEvent.click(screen.getByRole('combobox'))
+    fireEvent.click(screen.getByRole('option', { name: 'Иван Петров' }))
+    expect(screen.getByText('Иван Петров')).toBeTruthy()
+    const v = JSON.parse(screen.getByTestId('val').textContent!)
+    expect(v.picked).toBe('employee')
+    expect(v.assignment.employeeId).toBe('e1')
+  })
 })

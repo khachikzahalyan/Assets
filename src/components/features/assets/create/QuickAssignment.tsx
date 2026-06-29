@@ -108,7 +108,7 @@ export function QuickAssignment({
               aria-pressed={active}
               className={`group flex flex-col items-center justify-center gap-1.5 py-2.5 px-1.5 rounded-lg border transition-all duration-150 text-[13px] font-semibold tracking-tight
                 ${active
-                  ? `${ACTIVE_CHIP} text-accent`
+                  ? `${ACTIVE_CHIP} text-white`
                   : 'bg-surface border-border text-text-primary hover:border-border-strong hover:bg-surface-2'}`}
             >
               <div className={`w-7 h-7 rounded-md flex items-center justify-center transition-colors ${active ? ACTIVE_ICON_BOX : 'bg-surface-2 text-text-primary group-hover:bg-border'}`}>
