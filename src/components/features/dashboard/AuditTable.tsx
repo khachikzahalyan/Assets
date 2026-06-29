@@ -79,10 +79,12 @@ export function AuditTable({ rows }: AuditTableProps) {
       {/* Panel header */}
       <header className="flex items-center justify-between px-5 py-3.5 border-b border-border">
         <div className="flex items-center gap-2.5">
-          <span className="w-7 h-7 rounded-md bg-surface-2 text-text-tertiary inline-flex items-center justify-center flex-shrink-0">
+          <span className="w-6 h-6 lg:w-7 lg:h-7 rounded-md bg-surface-2 text-text-tertiary inline-flex items-center justify-center flex-shrink-0">
             <Icon name="history" size={14} />
           </span>
-          <h2 className="text-[13px] font-semibold text-text-primary">{t('recentAudit')}</h2>
+          <h2 className="text-[12px] lg:text-[13px] font-semibold text-text-primary">
+            {t('recentAudit')}
+          </h2>
         </div>
         <Link
           to="/audit"
@@ -92,8 +94,8 @@ export function AuditTable({ rows }: AuditTableProps) {
         </Link>
       </header>
 
-      {/* Desktop column headers — hidden on mobile */}
-      <div className="hidden md:grid grid-cols-[160px_1fr_180px_72px] gap-4 px-5 py-2 border-b border-border/50">
+      {/* Desktop column headers — hidden below lg */}
+      <div className="hidden lg:grid grid-cols-[160px_1fr_180px_72px] gap-4 px-5 py-2 border-b border-border/50">
         {COL_KEYS.map(key => (
           <span
             key={key}
@@ -116,8 +118,8 @@ export function AuditTable({ rows }: AuditTableProps) {
 
             return (
               <div key={row.id} className="px-5 py-3">
-                {/* Desktop: 4-col grid */}
-                <div className="hidden md:grid grid-cols-[160px_1fr_180px_72px] gap-4 items-center">
+                {/* Desktop: 4-col grid (≥lg) */}
+                <div className="hidden lg:grid grid-cols-[160px_1fr_180px_72px] gap-4 items-center">
                   <span
                     className={cn(
                       'inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium w-fit max-w-full truncate',
@@ -145,8 +147,8 @@ export function AuditTable({ rows }: AuditTableProps) {
                   </span>
                 </div>
 
-                {/* Mobile: stacked card */}
-                <div className="md:hidden flex flex-col gap-1.5">
+                {/* Mobile: compact row — action badge + targetLabel + short date (<lg) */}
+                <div className="lg:hidden flex flex-col gap-1.5">
                   <div className="flex items-center justify-between gap-2">
                     <span
                       className={cn(
@@ -162,15 +164,6 @@ export function AuditTable({ rows }: AuditTableProps) {
                   </div>
                   <div className="text-[12.5px] text-text-secondary truncate">
                     {row.targetLabel}
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span
-                      className="w-5 h-5 rounded-full bg-surface-2 flex-shrink-0 inline-flex items-center justify-center text-[8px] font-bold text-text-tertiary"
-                      aria-hidden="true"
-                    >
-                      {initials}
-                    </span>
-                    <span className="text-[11px] text-text-subtle truncate">{row.actorName}</span>
                   </div>
                 </div>
               </div>

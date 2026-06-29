@@ -45,6 +45,8 @@
   "kpi": {
     "currentlyOut": "Ներկայումս հանձնված",
     "employees": "Աշխատակիցներ",
+    "heroAssigned": "հանձնված",
+    "heroWarehouse": "պահեստ",
     "inWarehouse": "Պահեստում",
     "licenses": "Լիցենզիաներ",
     "serverLicenses": "Սերվերային լիցենզիաներ",

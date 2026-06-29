@@ -45,6 +45,8 @@
   "kpi": {
     "currentlyOut": "Выдано сейчас",
     "employees": "Сотрудники",
+    "heroAssigned": "выдано",
+    "heroWarehouse": "склад",
     "inWarehouse": "На складе",
     "licenses": "Лицензии",
     "serverLicenses": "Серверные лицензии",
@@ -55,7 +57,7 @@
     "inUse": "Используется",
     "retired": "В архиве",
     "title": "Лицензии рабочих станций",
-    "total": "Всего",
+    "total": "всего",
     "totalLabel": "лицензий всего",
     "usage": "Загруженность"
   },

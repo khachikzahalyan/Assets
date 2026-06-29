@@ -14,13 +14,15 @@ export function BranchBars({ branches }: BranchBarsProps) {
   return (
     <section className="bg-surface border border-border rounded-xl overflow-hidden">
       <header className="flex items-center gap-2.5 px-5 py-3.5 border-b border-border">
-        <span className="w-7 h-7 rounded-md bg-success/15 text-success inline-flex items-center justify-center flex-shrink-0">
+        <span className="w-6 h-6 lg:w-7 lg:h-7 rounded-md bg-success/15 text-success inline-flex items-center justify-center flex-shrink-0">
           <Icon name="building" size={14} />
         </span>
-        <h2 className="text-[13px] font-semibold text-text-primary">{t('branches.title')}</h2>
+        <h2 className="text-[12px] lg:text-[13px] font-semibold text-text-primary">
+          {t('branches.title')}
+        </h2>
       </header>
 
-      <div className="p-5">
+      <div className="p-4 lg:p-5">
         {branches.length === 0 ? (
           <EmptyState icon="building" title={t('branches.empty')} />
         ) : (
@@ -37,9 +39,9 @@ export function BranchBars({ branches }: BranchBarsProps) {
                       {b.count}
                     </span>
                   </div>
-                  {/* 8px accent gradient bar */}
+                  {/* 5px accent gradient bar on mobile, 8px on desktop */}
                   <div
-                    className="w-full h-2 rounded-full bg-white/5 overflow-hidden"
+                    className="w-full h-[5px] lg:h-2 rounded-full bg-white/5 overflow-hidden"
                     aria-hidden="true"
                   >
                     <div

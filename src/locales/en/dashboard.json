@@ -45,6 +45,8 @@
   "kpi": {
     "currentlyOut": "Currently assigned",
     "employees": "Employees",
+    "heroAssigned": "issued",
+    "heroWarehouse": "in stock",
     "inWarehouse": "In warehouse",
     "licenses": "Licenses",
     "serverLicenses": "Server licenses",
@@ -55,7 +57,7 @@
     "inUse": "In use",
     "retired": "Archived",
     "title": "Workstation licenses",
-    "total": "Total",
+    "total": "total",
     "totalLabel": "licenses total",
     "usage": "Usage"
   },

@@ -54,10 +54,12 @@ export function ActivityPanel({ rows }: ActivityPanelProps) {
   return (
     <section className="bg-surface border border-border rounded-xl overflow-hidden">
       <header className="flex items-center gap-2.5 px-5 py-3.5 border-b border-border">
-        <span className="w-7 h-7 rounded-md bg-success/15 text-success inline-flex items-center justify-center flex-shrink-0">
+        <span className="w-6 h-6 lg:w-7 lg:h-7 rounded-md bg-success/15 text-success inline-flex items-center justify-center flex-shrink-0">
           <Icon name="arrow-right-left" size={14} />
         </span>
-        <h2 className="text-[13px] font-semibold text-text-primary">{t('recentActivity')}</h2>
+        <h2 className="text-[12px] lg:text-[13px] font-semibold text-text-primary">
+          {t('recentActivity')}
+        </h2>
       </header>
 
       <div className="p-4 flex flex-col">
@@ -81,10 +83,10 @@ export function ActivityPanel({ rows }: ActivityPanelProps) {
                       idx === 0 && 'bg-success/[0.04]',
                     )}
                   >
-                    {/* Gradient initials avatar */}
+                    {/* Gradient initials avatar — 30px */}
                     <span
                       className={cn(
-                        'w-7 h-7 rounded-full flex-shrink-0 inline-flex items-center justify-center',
+                        'w-[30px] h-[30px] rounded-full flex-shrink-0 inline-flex items-center justify-center',
                         'bg-gradient-to-br text-[10px] font-bold text-white leading-none',
                         grad,
                       )}
@@ -124,8 +126,16 @@ export function ActivityPanel({ rows }: ActivityPanelProps) {
               })}
             </div>
 
-            {/* View-all link */}
-            <div className="pt-3 text-right">
+            {/* Mobile: full-width outlined button */}
+            <Link
+              to="/assets"
+              className="lg:hidden mt-3 block text-center py-2 rounded-lg border border-border/60 text-[12px] text-text-secondary hover:border-border hover:text-text-primary transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent"
+            >
+              {t('viewAll')}
+            </Link>
+
+            {/* Desktop: right-aligned text link */}
+            <div className="hidden lg:block pt-3 text-right">
               <Link
                 to="/assets"
                 className="text-[11.5px] text-accent hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent"

@@ -15,6 +15,7 @@ import { useDashboard } from '@/hooks'
 import type { DashboardRepository } from '@/domain/dashboard'
 import { FirestoreDashboardRepository } from '@/infra/repositories'
 import { db } from '@/lib/firebase'
+import { cn } from '@/lib/utils'
 
 export interface DashboardPageProps {
   repo?: DashboardRepository
@@ -40,13 +41,35 @@ export function DashboardPage({ repo }: DashboardPageProps) {
         {/* Header */}
         <div className="h-9 w-[220px] rounded-xl anim-skeleton" />
 
-        {/* ROW 1: 5 KPI card shimmers */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+        {/* ROW 1: 5 KPI card shimmers — 2-col on mobile, 5-col on desktop */}
+        <div className="grid grid-cols-2 gap-2 lg:grid-cols-5 lg:gap-3">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="bg-surface border border-border rounded-xl p-[18px] flex flex-col gap-2">
-              <div className="w-8 h-8 rounded-[9px] anim-skeleton" />
-              <div className="h-8 w-[55%] rounded anim-skeleton" />
-              <div className="h-3 w-[70%] rounded anim-skeleton" />
+            <div
+              key={i}
+              className={cn(
+                'bg-surface border border-border rounded-xl p-3 lg:p-[18px]',
+                i === 0 && 'col-span-2 lg:col-span-1',
+              )}
+            >
+              {/* Mobile shimmer */}
+              <div className="lg:hidden flex flex-col gap-2">
+                <div className="flex items-center gap-1.5">
+                  <div
+                    className={cn(
+                      'rounded-[7px] anim-skeleton flex-shrink-0',
+                      i === 0 ? 'w-8 h-8' : 'w-6 h-6',
+                    )}
+                  />
+                  <div className="h-2.5 flex-1 rounded anim-skeleton" />
+                </div>
+                <div className="h-6 w-[55%] rounded anim-skeleton" />
+              </div>
+              {/* Desktop shimmer */}
+              <div className="hidden lg:flex flex-col gap-2">
+                <div className="w-8 h-8 rounded-[9px] anim-skeleton" />
+                <div className="h-8 w-[55%] rounded anim-skeleton" />
+                <div className="h-3 w-[70%] rounded anim-skeleton" />
+              </div>
             </div>
           ))}
         </div>
@@ -56,14 +79,14 @@ export function DashboardPage({ repo }: DashboardPageProps) {
           {Array.from({ length: 2 }).map((_, i) => (
             <div key={i} className="bg-surface border border-border rounded-xl overflow-hidden">
               <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-border">
-                <div className="w-7 h-7 rounded-md anim-skeleton flex-shrink-0" />
+                <div className="w-6 h-6 rounded-md anim-skeleton flex-shrink-0" />
                 <div className="h-3 w-[30%] rounded anim-skeleton" />
               </div>
-              <div className="p-5 flex flex-col gap-3.5">
+              <div className="p-4 lg:p-5 flex flex-col gap-3.5">
                 {Array.from({ length: 4 }).map((__, j) => (
                   <div key={j} className="flex flex-col gap-1.5">
                     <div className="h-3 w-full rounded anim-skeleton" />
-                    <div className="h-1.5 w-full rounded-full anim-skeleton" />
+                    <div className="h-[5px] lg:h-1.5 w-full rounded-full anim-skeleton" />
                   </div>
                 ))}
               </div>
@@ -76,10 +99,10 @@ export function DashboardPage({ repo }: DashboardPageProps) {
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="bg-surface border border-border rounded-xl overflow-hidden">
               <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-border">
-                <div className="w-7 h-7 rounded-md anim-skeleton flex-shrink-0" />
+                <div className="w-6 h-6 rounded-md anim-skeleton flex-shrink-0" />
                 <div className="h-3 w-[35%] rounded anim-skeleton" />
               </div>
-              <div className="p-5 space-y-3">
+              <div className="p-4 lg:p-5 space-y-3">
                 {Array.from({ length: 3 }).map((__, j) => (
                   <div key={j} className="h-3 w-full rounded anim-skeleton" />
                 ))}
@@ -92,18 +115,29 @@ export function DashboardPage({ repo }: DashboardPageProps) {
         <div className="bg-surface border border-border rounded-xl overflow-hidden">
           <div className="flex items-center justify-between px-5 py-3.5 border-b border-border">
             <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-md anim-skeleton flex-shrink-0" />
+              <div className="w-6 h-6 rounded-md anim-skeleton flex-shrink-0" />
               <div className="h-3 w-[120px] rounded anim-skeleton" />
             </div>
             <div className="h-3 w-[60px] rounded anim-skeleton" />
           </div>
           <div className="divide-y divide-border/50">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="px-5 py-3 flex items-center gap-4">
-                <div className="h-5 w-[100px] rounded-md anim-skeleton flex-shrink-0" />
-                <div className="h-3 flex-1 rounded anim-skeleton" />
-                <div className="h-3 w-[100px] rounded anim-skeleton flex-shrink-0" />
-                <div className="h-3 w-[50px] rounded anim-skeleton flex-shrink-0" />
+              <div key={i} className="px-5 py-3">
+                {/* Desktop: 4-col shimmer */}
+                <div className="hidden lg:flex items-center gap-4">
+                  <div className="h-5 w-[100px] rounded-md anim-skeleton flex-shrink-0" />
+                  <div className="h-3 flex-1 rounded anim-skeleton" />
+                  <div className="h-3 w-[100px] rounded anim-skeleton flex-shrink-0" />
+                  <div className="h-3 w-[50px] rounded anim-skeleton flex-shrink-0" />
+                </div>
+                {/* Mobile: compact 2-line shimmer */}
+                <div className="lg:hidden flex flex-col gap-1.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="h-5 w-[90px] rounded-md anim-skeleton" />
+                    <div className="h-3 w-[40px] rounded anim-skeleton" />
+                  </div>
+                  <div className="h-3 w-[70%] rounded anim-skeleton" />
+                </div>
               </div>
             ))}
           </div>
@@ -131,8 +165,8 @@ export function DashboardPage({ repo }: DashboardPageProps) {
         </div>
       )}
 
-      {/* ROW 1 — 5 KPI stat cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+      {/* ROW 1 — 5 KPI stat cards: 2-col grid on mobile, 5-col on desktop */}
+      <div className="grid grid-cols-2 gap-2 lg:grid-cols-5 lg:gap-3">
         {assets && (
           <StatCard
             icon="package"
@@ -141,6 +175,18 @@ export function DashboardPage({ repo }: DashboardPageProps) {
             to="/assets"
             accent="orange"
             featured
+            heroStats={[
+              {
+                value: assets.byStatus.st_assigned,
+                label: t('kpi.heroAssigned'),
+                tone: 'success',
+              },
+              {
+                value: assets.byStatus.st_warehouse,
+                label: t('kpi.heroWarehouse'),
+                tone: 'info',
+              },
+            ]}
           />
         )}
         {assets && (

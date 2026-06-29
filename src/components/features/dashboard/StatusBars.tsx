@@ -27,17 +27,19 @@ export function StatusBars({ byStatus, statuses, total }: StatusBarsProps) {
     <section className="bg-surface border border-border rounded-xl overflow-hidden">
       <header className="flex items-center justify-between px-5 py-3.5 border-b border-border">
         <div className="flex items-center gap-2.5">
-          <span className="w-7 h-7 rounded-md bg-info/15 text-info inline-flex items-center justify-center flex-shrink-0">
+          <span className="w-6 h-6 lg:w-7 lg:h-7 rounded-md bg-info/15 text-info inline-flex items-center justify-center flex-shrink-0">
             <Icon name="circle-dot" size={14} />
           </span>
-          <h2 className="text-[13px] font-semibold text-text-primary">{t('status.title')}</h2>
+          <h2 className="text-[12px] lg:text-[13px] font-semibold text-text-primary">
+            {t('status.title')}
+          </h2>
         </div>
         <span className="text-[11px] text-text-subtle tabular-nums">
           {t('status.totalCaption', { count: total })}
         </span>
       </header>
 
-      <div className="p-5 flex flex-col gap-3.5">
+      <div className="p-4 lg:p-5 flex flex-col gap-3.5">
         {ASSET_STATUS_IDS.map(id => {
           const status = statusMap.get(id)
           const count = byStatus[id] ?? 0
@@ -59,9 +61,9 @@ export function StatusBars({ byStatus, statuses, total }: StatusBarsProps) {
                   {count}
                 </span>
               </div>
-              {/* 6px gradient track */}
+              {/* 5px gradient track on mobile, 6px on desktop */}
               <div
-                className="w-full h-1.5 rounded-full bg-white/5 overflow-hidden"
+                className="w-full h-[5px] lg:h-1.5 rounded-full bg-white/5 overflow-hidden"
                 aria-hidden="true"
               >
                 <div

@@ -18,20 +18,30 @@ export function LicensePanel({ stats, serverLicenseCount }: LicensePanelProps) {
       data-testid="section-licenses"
     >
       <header className="flex items-center gap-2.5 px-5 py-3.5 border-b border-border">
-        <span className="w-7 h-7 rounded-md bg-violet-500/15 text-violet-300 inline-flex items-center justify-center flex-shrink-0">
+        <span className="w-6 h-6 lg:w-7 lg:h-7 rounded-md bg-violet-500/15 text-violet-300 inline-flex items-center justify-center flex-shrink-0">
           <Icon name="key-round" size={14} />
         </span>
-        <h2 className="text-[13px] font-semibold text-text-primary">{t('license.title')}</h2>
+        <h2 className="text-[12px] lg:text-[13px] font-semibold text-text-primary">
+          {t('license.title')}
+        </h2>
       </header>
 
-      <div className="p-5 flex flex-col gap-4">
-        {/* 42px aggregate total — never a license key */}
+      <div className="p-4 lg:p-5 flex flex-col gap-4">
+        {/* Total — mobile: number + «всего» inline; desktop: stacked */}
         <div>
-          <div className="text-[42px] font-bold leading-none tracking-tight tabular-nums text-text-primary">
-            {stats.total}
+          {/* Mobile: inline number + short label */}
+          <div className="flex items-baseline gap-2 lg:hidden">
+            <div className="text-[36px] font-bold leading-none tracking-tight tabular-nums text-text-primary">
+              {stats.total}
+            </div>
+            <div className="text-[11.5px] text-text-subtle">{t('license.total')}</div>
           </div>
-          <div className="text-[11.5px] text-text-subtle mt-1">
-            {t('license.totalLabel')}
+          {/* Desktop: stacked */}
+          <div className="hidden lg:block">
+            <div className="text-[42px] font-bold leading-none tracking-tight tabular-nums text-text-primary">
+              {stats.total}
+            </div>
+            <div className="text-[11.5px] text-text-subtle mt-1">{t('license.totalLabel')}</div>
           </div>
         </div>
 
@@ -60,7 +70,7 @@ export function LicensePanel({ stats, serverLicenseCount }: LicensePanelProps) {
           </div>
         </div>
 
-        {/* Usage bar */}
+        {/* Violet usage bar */}
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center justify-between">
             <span className="text-[11.5px] text-text-subtle">{t('license.usage')}</span>

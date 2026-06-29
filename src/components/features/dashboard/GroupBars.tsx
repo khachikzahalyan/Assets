@@ -25,17 +25,19 @@ export function GroupBars({ byGroup }: GroupBarsProps) {
     <section className="bg-surface border border-border rounded-xl overflow-hidden">
       <header className="flex items-center justify-between px-5 py-3.5 border-b border-border">
         <div className="flex items-center gap-2.5">
-          <span className="w-7 h-7 rounded-md bg-accent/15 text-accent inline-flex items-center justify-center flex-shrink-0">
+          <span className="w-6 h-6 lg:w-7 lg:h-7 rounded-md bg-accent/15 text-accent inline-flex items-center justify-center flex-shrink-0">
             <Icon name="tags" size={14} />
           </span>
-          <h2 className="text-[13px] font-semibold text-text-primary">{t('groups.title')}</h2>
+          <h2 className="text-[12px] lg:text-[13px] font-semibold text-text-primary">
+            {t('groups.title')}
+          </h2>
         </div>
         <span className="text-[11px] text-text-subtle">
           {t('groups.categoryCaption', { count: ASSET_GROUPS.length })}
         </span>
       </header>
 
-      <div className="p-5 flex flex-col gap-3.5">
+      <div className="p-4 lg:p-5 flex flex-col gap-3.5">
         {ASSET_GROUPS.map(group => {
           const count = groupMap.get(group) ?? 0
           const pct = maxCount > 0 ? (count / maxCount) * 100 : 0
@@ -61,9 +63,9 @@ export function GroupBars({ byGroup }: GroupBarsProps) {
                   {count}
                 </span>
               </div>
-              {/* Gradient progress bar */}
+              {/* 5px gradient track on mobile, 6px on desktop */}
               <div
-                className="w-full h-1.5 rounded-full bg-white/5 overflow-hidden"
+                className="w-full h-[5px] lg:h-1.5 rounded-full bg-white/5 overflow-hidden"
                 aria-hidden="true"
               >
                 <div
