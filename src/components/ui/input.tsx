@@ -13,6 +13,8 @@ export interface InputProps {
   onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void
   /** Optional aria-label when no visible <label> is associated. */
   ariaLabel?: string
+  /** When true, the field shows a red border (required-but-empty signal). Clears on input. */
+  invalid?: boolean
 }
 
 export function Input({
@@ -27,6 +29,7 @@ export function Input({
   id,
   onKeyDown,
   ariaLabel,
+  invalid = false,
 }: InputProps) {
   return (
     <input
@@ -36,10 +39,11 @@ export function Input({
       onChange={e => onChange && onChange(e.target.value)}
       onKeyDown={onKeyDown}
       aria-label={ariaLabel}
+      aria-invalid={invalid || undefined}
       placeholder={placeholder}
       disabled={disabled}
       autoFocus={autoFocus}
-      className={`w-full h-9 px-3 text-sm bg-bg border border-border rounded-lg text-text-primary placeholder:text-text-subtle focus:outline-none focus:border-accent focus:ring-2 focus:ring-[rgba(249,115,22,0.40)] transition-all duration-150 disabled:bg-surface disabled:text-text-subtle ${mono ? 'font-mono tracking-tight' : ''} ${className}`}
+      className={`w-full h-9 px-3 text-sm bg-bg border ${invalid ? 'border-error' : 'border-border'} rounded-lg text-text-primary placeholder:text-text-subtle focus:outline-none focus:border-accent focus:ring-2 focus:ring-[rgba(249,115,22,0.40)] transition-all duration-150 disabled:bg-surface disabled:text-text-subtle ${mono ? 'font-mono tracking-tight' : ''} ${className}`}
     />
   )
 }

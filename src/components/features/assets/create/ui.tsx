@@ -62,6 +62,8 @@ export interface InputProps {
   min?: number | string
   /** Pass-through for number inputs (type="number"). */
   max?: number | string
+  /** When true, the underline turns red (required-but-empty signal). Clears on input. */
+  invalid?: boolean
 }
 
 export function Input({
@@ -78,6 +80,7 @@ export function Input({
   ariaLabel,
   min,
   max,
+  invalid = false,
 }: InputProps) {
   return (
     <input
@@ -87,6 +90,7 @@ export function Input({
       onChange={e => onChange && onChange(e.target.value)}
       onKeyDown={onKeyDown}
       aria-label={ariaLabel}
+      aria-invalid={invalid || undefined}
       autoComplete="off"
       autoCorrect="off"
       autoCapitalize="off"
@@ -96,7 +100,7 @@ export function Input({
       autoFocus={autoFocus}
       min={min}
       max={max}
-      className={`w-full px-0 py-2.5 text-[15px] border-b border-border bg-transparent rounded-none text-text-primary placeholder:text-text-subtle outline-none shadow-none focus:border-accent focus:shadow-[0_2px_8px_rgba(217,119,87,0.1)] disabled:opacity-50 disabled:cursor-not-allowed transition-[border-color,box-shadow] duration-200${mono ? ' font-mono tracking-tight' : ''} ${className}`}
+      className={`w-full px-0 py-2.5 text-[15px] border-b ${invalid ? 'border-error' : 'border-border'} bg-transparent rounded-none text-text-primary placeholder:text-text-subtle outline-none shadow-none focus:border-accent focus:shadow-[0_2px_8px_rgba(217,119,87,0.1)] disabled:opacity-50 disabled:cursor-not-allowed transition-[border-color,box-shadow] duration-200${mono ? ' font-mono tracking-tight' : ''} ${className}`}
     />
   )
 }

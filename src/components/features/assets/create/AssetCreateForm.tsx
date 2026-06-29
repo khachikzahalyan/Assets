@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
+import ReactDOM from 'react-dom'
 import { useTranslation } from 'react-i18next'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import { Field, Input } from './ui'
-import { Icon, Chip } from '@/components/ui'
+import { Icon } from '@/components/ui'
 import type { AssetReferenceData, CreateAssetInput, AssetSpecs } from '@/domain/asset'
 import type { WorkstationLicenseRepository } from '@/domain/license'
 import { CategoryPicker, categoryCapabilities } from './CategoryPicker'
@@ -54,6 +56,7 @@ function MobileSectionTitle({ label }: { label: string }) {
 
 export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatch, submitting, error, onCancel, licenseRepository }: AssetCreateFormProps) {
   const { t } = useTranslation('assets')
+  const isMobile = useIsMobile()
 
   const [subMode, setSubMode] = useState<SubMode>('single')
 
@@ -206,16 +209,6 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
 
   const canSave = categoryChosen && identityComplete && !warrantyInvalid && !groupIncomplete && !submitting && manualKeyValid
 
-  const saveDisabledReason = warrantyInvalid
-    ? t('validation.warrantyBeforePurchase')  // B7: use validation key (shorter prototype wording)
-    : identityMissing.length > 0
-      ? identityMissing[0]!
-      : groupIncomplete
-        ? t('groupMode.incomplete', { total: Math.max(2, quantity), done: rows.length, noun: pluralAssets(Math.max(2, quantity)) })
-        : !manualKeyValid
-            ? t('validation.licenseKeyRequired')
-            : null
-
   // ---- Build inputs ---------------------------------------------------------
   function buildSpecs(): AssetSpecs | null {
     if (!caps?.hasSpecs) return null
@@ -302,6 +295,43 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
   }
 
   // ---- Render ---------------------------------------------------------------
+  // Action bar. On mobile it is portaled to <body> so its `fixed` positioning is
+  // relative to the viewport (the scroll container establishes a containing block
+  // via its entry-animation transform, which would otherwise trap it mid-screen).
+  const footerBar = (
+    <div className="
+      max-lg:fixed max-lg:left-0 max-lg:right-0 max-lg:bottom-0 max-lg:z-50
+      max-lg:pb-[calc(8px_+_env(safe-area-inset-bottom,0px))]
+      px-6 max-lg:px-3 py-4 max-lg:pt-2
+      border-t border-border bg-surface
+      flex items-center justify-end gap-3
+      max-lg:gap-2
+    ">
+      {error && (
+        <p role="alert" className="text-[12px] text-error mr-auto max-lg:hidden">{error}</p>
+      )}
+      <button
+        type="button"
+        onClick={onCancel}
+        className="inline-flex items-center justify-center gap-1.5 px-4 py-2 max-lg:flex-1 max-lg:py-2.5 max-lg:px-3 max-lg:min-h-[44px] text-[15px] max-lg:text-[14px] font-medium text-text-primary bg-surface-2 border border-border rounded-xl transition-all duration-150"
+      >
+        <Icon name="x" size={14} />
+        {t('form.cancel')}
+      </button>
+      <button
+        type="button"
+        disabled={!canSave}
+        onClick={handleSave}
+        className="inline-flex items-center justify-center gap-1.5 px-5 py-2 max-lg:flex-1 max-lg:py-2.5 max-lg:px-3 max-lg:min-h-[44px] text-[15px] max-lg:text-[14px] font-semibold text-white bg-gradient-to-r from-accent to-accent-light rounded-xl shadow-[0_4px_16px_rgba(217,119,87,0.24)] hover:shadow-[0_6px_24px_rgba(217,119,87,0.32)] hover:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+      >
+        <Icon name="save" size={14} />
+        {isGroup
+          ? t('groupMode.createN', { count: rows.length || Math.max(2, quantity), noun: pluralAssets(rows.length || Math.max(2, quantity)) })
+          : t('form.createAsset')}
+      </button>
+    </div>
+  )
+
   return (
     <div className="bg-surface rounded-2xl ring-1 ring-[#2A2F36]/50 overflow-hidden w-full max-w-[1600px] mx-auto">
       {/* B1: In-card header row with AMS pill+title on left, toggle+X on right */}
@@ -372,17 +402,17 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
 
                 {caps.hasTypeField && (
                   <Field label={t('form.type')} required>
-                    <Input id="asset-type" value={typeField} onChange={setTypeField} placeholder={t('placeholders.type')} />
+                    <Input id="asset-type" value={typeField} onChange={setTypeField} placeholder={t('placeholders.type')} invalid={!typeField.trim()} />
                   </Field>
                 )}
 
                 {caps.hasBrandModel && (
                   <div className="grid grid-cols-2 max-md:grid-cols-1 gap-6 max-md:gap-4">
                     <Field label={t('form.brand')} required>
-                      <Input id="asset-brand" value={brand} onChange={setBrand} placeholder={t('placeholders.brand')} />
+                      <Input id="asset-brand" value={brand} onChange={setBrand} placeholder={t('placeholders.brand')} invalid={!brand.trim()} />
                     </Field>
                     <Field label={t('form.model')} required>
-                      <Input id="asset-model" value={model} onChange={setModel} placeholder={t('placeholders.model')} />
+                      <Input id="asset-model" value={model} onChange={setModel} placeholder={t('placeholders.model')} invalid={!model.trim()} />
                     </Field>
                   </div>
                 )}
@@ -400,21 +430,14 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
                   <>
                     <div className={`grid gap-6 max-md:gap-4 ${caps.requiresSerial ? 'grid-cols-2 max-md:grid-cols-1' : 'grid-cols-1'}`}>
                       <Field label={t('form.invCode')} required>
-                        <Input id="asset-inv-code" value={invCode} onChange={setInvCode} placeholder={t('placeholders.invCode')} mono />
+                        <Input id="asset-inv-code" value={invCode} onChange={setInvCode} placeholder={t('placeholders.invCode')} mono invalid={!invCode.trim()} />
                       </Field>
                       {caps.requiresSerial && (
                         <Field label={t('form.serial')} required>
-                          <Input id="asset-serial" value={serial} onChange={setSerial} placeholder={t('placeholders.serial')} mono />
+                          <Input id="asset-serial" value={serial} onChange={setSerial} placeholder={t('placeholders.serial')} mono invalid={!serial.trim()} />
                         </Field>
                       )}
                     </div>
-                    {/* Mobile inline validation hint — identity errors shown near the fields */}
-                    {identityMissing.length > 0 && (
-                      <div className="lg:hidden flex items-start gap-2 bg-warning/[0.07] border border-warning/20 rounded-lg px-3 py-2">
-                        <Icon name="triangle-alert" size={14} className="text-warning shrink-0 mt-0.5" />
-                        <span className="text-[13px] text-warning leading-snug">{identityMissing[0]}</span>
-                      </div>
-                    )}
                   </>
                 )}
 
@@ -490,53 +513,9 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
         </div>
       </div>
 
-      {/* Footer — desktop (lg+): inline in flow; mobile (<lg): pinned to the very bottom.
-          The global bottom nav is hidden on this create route (AppShell), so the bar sits flush. */}
-      <div className="
-        max-lg:fixed max-lg:left-0 max-lg:right-0 max-lg:bottom-0 max-lg:z-50
-        max-lg:pb-[calc(8px_+_env(safe-area-inset-bottom,0px))]
-        px-6 max-lg:px-3 py-4 max-lg:pt-2
-        border-t border-border bg-surface
-        flex items-center justify-between gap-3
-        max-lg:flex-col max-lg:items-stretch max-lg:gap-0
-      ">
-        {/* Hint/error row — desktop: inline left; mobile: compact strip above buttons, hidden when empty */}
-        {(error || saveDisabledReason) && (
-          <div className="max-w-[55%] max-lg:max-w-full max-lg:pt-2 max-lg:pb-0 max-lg:px-0">
-            {error && <p role="alert" className="text-[12px] text-[#FDA4AF]">{error}</p>}
-            {saveDisabledReason && !error && (
-              <Chip color="amber">
-                <Icon name="triangle-alert" size={13} className="shrink-0" />
-                {saveDisabledReason}
-              </Chip>
-            )}
-          </div>
-        )}
-        <div className="flex items-center gap-3 max-lg:gap-2 max-lg:pb-2 max-lg:pt-2 lg:ml-auto">
-          {/* Cancel — prototype style */}
-          <button
-            type="button"
-            onClick={onCancel}
-            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 max-lg:flex-1 max-lg:py-2.5 max-lg:px-3 max-lg:min-h-[44px] text-[15px] max-lg:text-[14px] font-medium text-text-primary hover:text-text-primary bg-[#111315]/50 border border-[#2A2F36]/60 rounded-xl transition-all duration-150"
-          >
-            <Icon name="x" size={14} />
-            {t('form.cancel')}
-          </button>
-          {/* Save — gradient prototype style */}
-          <button
-            type="button"
-            disabled={!canSave}
-            onClick={handleSave}
-            title={saveDisabledReason ?? undefined}
-            className="inline-flex items-center justify-center gap-1.5 px-5 py-2 max-lg:flex-1 max-lg:py-2.5 max-lg:px-3 max-lg:min-h-[44px] text-[15px] max-lg:text-[14px] font-semibold text-white bg-gradient-to-r from-accent to-accent-light rounded-xl shadow-[0_4px_16px_rgba(217,119,87,0.24)] hover:shadow-[0_6px_24px_rgba(217,119,87,0.32)] hover:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-          >
-            <Icon name="save" size={14} />
-            {isGroup
-              ? t('groupMode.createN', { count: rows.length || Math.max(2, quantity), noun: pluralAssets(rows.length || Math.max(2, quantity)) })
-              : t('form.createAsset')}
-          </button>
-        </div>
-      </div>
+      {/* Mobile portals the bar to <body> (escapes the scroll container's containing
+          block); desktop renders it inline in the card flow. */}
+      {isMobile ? ReactDOM.createPortal(footerBar, document.body) : footerBar}
     </div>
   )
 }
