@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
-import { PageHeader, Btn, Icon, ErrorState } from '@/components/ui'
+import { Btn, Icon, ErrorState } from '@/components/ui'
 import {
   WindowsKeysSection,
   SubscriptionsSection,
@@ -302,23 +302,7 @@ export function LicensesPage({
 
   return (
     <div className="space-y-5">
-      <PageHeader
-        icon="key-round"
-        title={t('title')}
-        actions={
-          <Btn
-            variant="primary"
-            size="md"
-            onClick={() => { setAddError(null); setAddOpen(true) }}
-            data-testid="add-subscription-btn"
-          >
-            <Icon name="plus" size={14} />
-            {t('actions.addLicense')}
-          </Btn>
-        }
-      />
-
-      {/* Tab strip + search */}
+      {/* Tab strip + search + add button — one line, no page title */}
       <div className="border-b border-border">
         <div className="flex items-center justify-between gap-3">
           {/* Tab buttons — scrollable on mobile */}
@@ -353,10 +337,10 @@ export function LicensesPage({
             })}
           </div>
 
-          {/* Keys-tab search — desktop only (hidden on mobile, shown below) */}
-          <div className="hidden md:flex items-center gap-2 self-end pb-2 shrink-0">
+          {/* Right cluster — search (keys tab, desktop) + add button, one line */}
+          <div className="flex items-center gap-2 self-end pb-2 shrink-0">
             {activeTab === 'keys' && (
-              <div className="relative">
+              <div className="relative hidden md:block">
                 <Icon name="search" size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-subtle pointer-events-none" />
                 <input
                   value={keySearch}
@@ -367,6 +351,15 @@ export function LicensesPage({
                 />
               </div>
             )}
+            <Btn
+              variant="primary"
+              size="md"
+              onClick={() => { setAddError(null); setAddOpen(true) }}
+              data-testid="add-subscription-btn"
+            >
+              <Icon name="plus" size={14} />
+              {t('actions.addLicense')}
+            </Btn>
           </div>
         </div>
 
