@@ -470,11 +470,16 @@ select:-webkit-autofill {
 /* ── Asset label printing (barcode labels) ── */
 .ams-print-label-root { display: none; }
 @media print {
-  /* Size the printed page to the label itself (not A4). Tune to your label stock. */
-  @page { size: 50mm 30mm; margin: 0; }
+  /* Compact page sized to the asset label. WIDTH matches the owner's 80mm thermal roll
+     (EPSON TM-T20III) so the printer can honor it; HEIGHT 40mm keeps the receipt feed short
+     instead of advancing the whole 297mm roll. Change `size` to match your label stock. */
+  @page { size: 80mm 40mm; margin: 0; }
   html, body { margin: 0; padding: 0; background: #fff; }
-  body > #root { display: none; }
-  .ams-print-label-root { display: block; }
+  /* Hide EVERYTHING except the label print root — the app (#root) AND any open dialog.
+     The preview dialog ALSO portals to <body>, so hiding only #root let the open dialog
+     overlay the print and the label came out blank. */
+  body > *:not(.ams-print-label-root) { display: none !important; }
+  .ams-print-label-root { display: block !important; }
   .ams-label { page-break-after: always; }
   .ams-label:last-child { page-break-after: auto; }
 }

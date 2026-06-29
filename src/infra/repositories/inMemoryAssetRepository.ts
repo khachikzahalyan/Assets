@@ -136,7 +136,9 @@ export class InMemoryAssetRepository implements AssetRepository, AssetWriteRepos
     if (input.serial && await this.isSerialTaken(input.serial)) {
       throw new Error(`Serial already in use: ${input.serial}`)
     }
-    const barcode = await allocateUniqueBarcode((c) => this.isBarcodeTaken(c))
+    const barcode = (input.barcode && !(await this.isBarcodeTaken(input.barcode)))
+      ? input.barcode
+      : await allocateUniqueBarcode((c) => this.isBarcodeTaken(c))
     const id = `a_${++this.seq}`
     const statusId = deriveCreateStatus(input.assignment)
     const asset: Asset = {

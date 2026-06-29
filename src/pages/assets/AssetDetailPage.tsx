@@ -13,7 +13,7 @@ import { LocationCard } from '@/components/features/assets/detail/LocationCard'
 import { AssignmentCard } from '@/components/features/assets/detail/AssignmentCard'
 import { RepairCard } from '@/components/features/assets/detail/RepairCard'
 import { WriteOffModal } from '@/components/features/assets/detail/WriteOffModal'
-import { LabelPrintHost } from '@/components/features/assets/label/LabelPrintHost'
+import { LabelPreviewDialog } from '@/components/features/assets/label/LabelPreviewDialog'
 import { auditToHistoryEvent } from '@/components/features/assets/detail/auditToHistoryEvent'
 import { categoryCapabilities } from '@/components/features/assets/create/CategoryPicker'
 import { deriveDisplayStatus } from '@/components/features/assets/assetFormat'
@@ -610,9 +610,9 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
         />
       )}
 
-      {/* Label print host — portal */}
+      {/* Label preview dialog — portal */}
       {printing && asset.barcode && (
-        <LabelPrintHost assets={[asset]} onAfterPrint={() => setPrinting(false)} />
+        <LabelPreviewDialog assets={[asset]} onClose={() => setPrinting(false)} />
       )}
     </>
   )

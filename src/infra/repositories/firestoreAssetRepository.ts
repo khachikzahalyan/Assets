@@ -240,7 +240,9 @@ export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepo
   async createAsset(input: CreateAssetInput, actor: Actor): Promise<AuditedResult<Asset>> {
     if (await this.isInvCodeTaken(input.invCode)) throw new Error(`Inventory code already in use: ${input.invCode}`)
     if (input.serial && await this.isSerialTaken(input.serial)) throw new Error(`Serial already in use: ${input.serial}`)
-    const barcode = await allocateUniqueBarcode((c) => this.isBarcodeTaken(c))
+    const barcode = (input.barcode && !(await this.isBarcodeTaken(input.barcode)))
+      ? input.barcode
+      : await allocateUniqueBarcode((c) => this.isBarcodeTaken(c))
     const statusId = deriveCreateStatus(input.assignment)
     const ref = doc(collection(this.db, 'assets'))
     const data: Record<string, unknown> = stripUndefinedFs({

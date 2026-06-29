@@ -55,6 +55,9 @@ export interface CreateAssetInput {
   type?: string | null
   invCode: string
   serial: string | null
+  /** Optional pre-generated barcode from the draft preview so the printed label matches the
+   *  preview. If provided AND still free, the repo persists it as-is; otherwise it allocates a fresh one. */
+  barcode?: string
   assignment: AssetAssignment | null
   branchId: string
   deptId: string | null

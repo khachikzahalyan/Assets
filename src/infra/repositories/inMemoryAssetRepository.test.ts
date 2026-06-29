@@ -101,6 +101,12 @@ describe('InMemoryAssetRepository — barcode', () => {
     expect(new Set(codes).size).toBe(3)
     codes.forEach(c => expect(c).toMatch(/^[1-9]\d{8}$/))
   })
+  it('createAsset persists a provided free barcode as-is', async () => {
+    const r = await repo().createAsset({ categoryId:'cat_lap', brand:'Dell', model:'X', type:null, serial:null,
+      assignment:null, branchId:'br_main', deptId:null, invCode:'LAP/95001', barcode:'700000001' },
+      { uid:'u1', role:'asset_admin' as const })
+    expect(r.value.barcode).toBe('700000001')
+  })
   it('findByBarcode + isBarcodeTaken resolve a created barcode', async () => {
     const r = repo()
     const { value } = await r.createAsset({ ...baseInput, invCode: 'LAP/90020' }, actor)

@@ -1,12 +1,13 @@
 /**
- * AssetCreatePage — print-after-create integration test.
+ * AssetCreatePage — draft-preview / commit-on-print integration test.
  *
- * Verifies that after a successful single-asset create:
- *   1. window.print() is called (LabelPrintHost rendered and triggered print).
- *   2. navigate('/assets') is called once the print dialog returns.
- *
- * Navigation is stubbed via a vi.mock on useNavigate so we can assert without
- * needing an actual MemoryRouter history change.
+ * Verifies the deferred-save flow:
+ *   1. Submitting the single form opens the LabelPreviewDialog showing the DRAFT
+ *      label (its invCode appears) but DOES NOT save — repo.createAsset is not
+ *      called yet and window.print() is not fired.
+ *   2. navigate('/assets') is NOT called — user stays on the create form.
+ *   3. Clicking «Печать» inside the dialog COMMITS (repo.createAsset is called)
+ *      and then fires window.print() to print the saved asset.
  */
 import { describe, it, expect, vi, beforeAll, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
@@ -28,8 +29,13 @@ vi.mock('@/lib/firebase', () => ({
   functions: () => ({}),
 }))
 
-// Spy on useNavigate so we can assert calls without an actual router change.
-// The variable is declared at module scope so the factory closure captures it.
+// Stub JsBarcode — jsdom has no SVG rendering; without this stub, Barcode128's
+// useLayoutEffect would call JsBarcode against a jsdom SVG element (no getBBox),
+// which can throw. The component already swallows the error, but the explicit
+// stub makes the intent clear and avoids noise in the test output.
+vi.mock('jsbarcode', () => ({ default: vi.fn() }))
+
+// Spy on useNavigate so we can assert it is NOT called after create.
 const navigateSpy = vi.fn()
 vi.mock('react-router-dom', async (importOriginal) => {
   const mod = await importOriginal<typeof import('react-router-dom')>()
@@ -65,17 +71,15 @@ async function chooseCategory(categoryName: string) {
   fireEvent.click(option)
 }
 
-describe('AssetCreatePage — print-after-create', () => {
+describe('AssetCreatePage — preview-after-create', () => {
   vi.setConfig({ testTimeout: 15000 })
 
-  it('calls window.print and then navigates to /assets after single-asset create', async () => {
-    // Spy on window.print — LabelPrintHost calls this in useLayoutEffect.
+  it('shows a draft preview without saving, then commits + prints on «Печать»', async () => {
     const printSpy = vi.spyOn(window, 'print').mockImplementation(() => {})
 
     const store = createInMemoryAuditStore()
-    // InMemoryAssetRepository.createAsset calls allocateUniqueBarcode, so the
-    // returned asset will have a non-null barcode — LabelPrintHost will render it.
     const repo = new InMemoryAssetRepository([], REF, inMemoryAuditContext(store))
+    const createSpy = vi.spyOn(repo, 'createAsset')
 
     render(
       <I18nextProvider i18n={i18n}>
@@ -111,12 +115,29 @@ describe('AssetCreatePage — print-after-create', () => {
     await waitFor(() => expect(save).not.toBeDisabled())
     fireEvent.click(save)
 
-    // Assert: LabelPrintHost fires window.print() in useLayoutEffect.
+    // Assert: the LabelPreviewDialog is shown — wait for the dialog role to appear.
+    // The dialog is rendered via createPortal into document.body.
+    const dialog = await waitFor(() => screen.getByRole('dialog'))
+
+    // Assert: the DRAFT label is shown (its invCode is rendered inside the dialog).
+    expect(within(dialog).getByText('450/100')).toBeTruthy()
+
+    // Assert: nothing has been saved yet — createAsset was NOT called on submit.
+    expect(createSpy).not.toHaveBeenCalled()
+
+    // Assert: navigate was NOT called with '/assets' — user stays on the create form.
+    expect(navigateSpy).not.toHaveBeenCalledWith('/assets')
+
+    // Assert: window.print was NOT auto-called on submit — only «Печать» triggers printing.
+    expect(printSpy).not.toHaveBeenCalled()
+
+    // Now click «Печать» inside the dialog → commit (createAsset) then print.
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Печать наклейки' }))
+
+    await waitFor(() => expect(createSpy).toHaveBeenCalledTimes(1))
     await waitFor(() => expect(printSpy).toHaveBeenCalled())
 
-    // Assert: onAfterPrint (fired by LabelPrintHost via setTimeout 0) calls navigate.
-    await waitFor(() => expect(navigateSpy).toHaveBeenCalledWith('/assets'))
-
+    createSpy.mockRestore()
     printSpy.mockRestore()
   })
 })
