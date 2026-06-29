@@ -317,12 +317,11 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
 
   return (
     /*
-     * Page root:
-     * Desktop: flex-col h-full p-2 gap-3 overflow-hidden (unchanged)
-     * Mobile:  overflow-y-auto overflow-x-hidden h-auto p-0 gap-3 (§11 spec)
-     *          width/max-width 100% so stat grid reaches both edges symmetrically
+     * Page root: h-full overflow-hidden at ALL widths so stat strip + tab strip
+     * stay pinned and the inner card-grid scrolls independently (both desktop and mobile).
+     * width/max-width 100% on mobile so stat grid reaches both edges symmetrically.
      */
-    <div className="flex flex-col h-full p-2 gap-3 overflow-hidden max-md:overflow-y-auto max-md:overflow-x-hidden max-md:h-auto max-md:p-0 max-md:gap-3 max-md:w-full max-md:max-w-full max-md:box-border">
+    <div className="flex flex-col h-full p-2 gap-3 overflow-hidden max-md:overflow-x-hidden max-md:p-0 max-md:gap-3 max-md:w-full max-md:max-w-full max-md:box-border">
       {/* ── HEADER: stat strip + tab strip + add button ── */}
       <div className="flex flex-col gap-2.5 flex-shrink-0 max-md:w-full max-md:max-w-full max-md:box-border">
         {/*
@@ -441,8 +440,8 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
         </div>
       )}
 
-      {/* Tab body — mobile: height auto (no flex-1 overflow-hidden clamping) */}
-      <div className="flex-1 min-h-0 overflow-hidden max-md:flex-none max-md:min-h-0 max-md:overflow-visible">
+      {/* Tab body — flex-1 min-h-0 overflow-hidden at all widths; inner grid scrolls */}
+      <div className="flex-1 min-h-0 overflow-hidden">
         {activeTab === 'warehouse' && (
           <WarehouseTab
             parts={parts}

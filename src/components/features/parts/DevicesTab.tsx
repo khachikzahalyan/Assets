@@ -119,14 +119,14 @@ export function DevicesTab({
   }
 
   return (
-    /* Mobile: overflow visible so content scrolls with the page (PartsPage handles scroll) */
-    <div className="flex flex-col gap-2.5 max-md:overflow-visible">
+    /* Grid is a bounded scroll region at all widths — PartsPage tab-body is overflow-hidden */
+    <div className="flex flex-col gap-2.5 h-full min-h-0">
 
-      {/* ── Main layout: lg 12-col grid ── */}
-      <div className="lg:grid lg:grid-cols-12 lg:gap-4 flex flex-col gap-4">
+      {/* ── Main layout: lg 12-col grid — flex-1 + auto-rows-fr so grid row fills bounded height ── */}
+      <div className="lg:grid lg:grid-cols-12 lg:auto-rows-fr lg:gap-4 flex flex-col gap-4 flex-1 min-h-0">
 
         {/* LEFT COLUMN (col-span-5): pills + search + 2-col card grid */}
-        <div className="lg:col-span-5 flex flex-col gap-2.5 min-h-0">
+        <div className="lg:col-span-5 flex flex-col gap-2.5 min-h-0 flex-1">
 
           {/* Family filter pills — grid 4-in-row */}
           <div className="grid grid-cols-4 gap-1.5 flex-shrink-0">
@@ -174,7 +174,7 @@ export function DevicesTab({
             </div>
           ) : (
             <div
-              className="flex-1 overflow-y-auto min-h-0 devices-scroll max-md:overflow-visible max-md:flex-none"
+              className="flex-1 overflow-y-auto min-h-0 devices-scroll"
               style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px', alignContent: 'start' }}
             >
               {filtered.map(a => (
