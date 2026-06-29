@@ -10,9 +10,10 @@ export interface RamSlotsProps {
   isServer?: boolean
 }
 
-// Desktop: [DDR-type 5rem] [index 1.5rem] [size 1fr] [remove 2rem]
-// Mobile: [DDR-type 4rem] [index 1.5rem] [size 1fr] [remove 2rem] — tighter fixed col
-const COL_GRID = 'grid grid-cols-[5rem_1.5rem_1fr_2rem] max-md:grid-cols-[4rem_1.5rem_1fr_2rem] gap-x-2 items-center'
+// [DDR-type] [index 1.5rem] [size 1fr] [remove 2rem]
+// The type column must fit «DDR4»/«DDR5» (+ chevron) without truncating, so it
+// stays ~5.25rem on mobile too; the size column (1fr) absorbs the difference.
+const COL_GRID = 'grid grid-cols-[5rem_1.5rem_1fr_2rem] max-md:grid-cols-[5.25rem_1.5rem_1fr_2rem] gap-x-2 items-center'
 
 /** RAM list builder: one global DDR type + auto-numbered size slots + «Добавить». */
 export function RamSlots({ value, onChange, isServer = false }: RamSlotsProps) {

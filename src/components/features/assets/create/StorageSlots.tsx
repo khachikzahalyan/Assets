@@ -28,7 +28,7 @@ export function StorageSlots({ value, onChange }: StorageSlotsProps) {
     <div className="space-y-2">
       {rows.length === 0 && <div className="text-[14px] text-text-subtle italic py-1">Накопители не добавлены</div>}
       {rows.map((r, idx) => (
-        <div key={r._id} className="grid grid-cols-[5rem_1.5rem_1fr_2rem] max-md:grid-cols-[4rem_1.5rem_1fr_2rem] gap-x-2 items-center anim-fade-slide-in">
+        <div key={r._id} className="grid grid-cols-[5rem_1.5rem_1fr_2rem] max-md:grid-cols-[5.25rem_1.5rem_1fr_2rem] gap-x-2 items-center anim-fade-slide-in">
           <MiniDropdown value={r.type} onChange={v => editRow(r._id, { type: v })} options={typeOptions} placeholder="Тип" ariaLabel={`Тип накопителя ${idx + 1}`} />
           <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-surface-2 text-text-tertiary text-[13px] font-semibold ring-1 ring-border" aria-hidden="true">{idx + 1}</span>
           <MiniDropdown value={r.size} onChange={v => editRow(r._id, { size: v })} options={sizeOptions} placeholder="Размер" ariaLabel={`Размер накопителя ${idx + 1}`} />

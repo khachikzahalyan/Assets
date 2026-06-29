@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import ReactDOM from 'react-dom'
 import { Icon } from '@/components/ui'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import { useExclusiveDropdown } from './dropdownBus'
 
 const RU_MONTHS = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь']
@@ -43,10 +44,47 @@ export interface DatePickerProps {
   id?: string
 }
 
+/** Calendar surface wrapper: mobile = bottom sheet (slides up), desktop = anchored popover. */
+function DPPortal({ isMobile, pos, onBackdrop, children }: {
+  isMobile: boolean
+  pos: { top: number; left: number; width: number } | null
+  onBackdrop: () => void
+  children: ReactNode
+}) {
+  if (isMobile) {
+    return (
+      <div
+        data-dp-portal="true"
+        className="fixed inset-0 z-[1000] flex items-end bg-black/60 anim-backdrop-fade"
+        onMouseDown={(e) => { if (e.target === e.currentTarget) onBackdrop() }}
+      >
+        <div
+          data-ams-dropdown="true"
+          className="w-full bg-surface rounded-t-[18px] overflow-hidden pb-[env(safe-area-inset-bottom,0px)] [animation:amsSheetIn_0.22s_ease-out]"
+        >
+          {children}
+        </div>
+      </div>
+    )
+  }
+  if (!pos) return null
+  return (
+    <div
+      data-dp-portal="true"
+      data-ams-dropdown="true"
+      style={{ position: 'fixed', top: pos.top, left: pos.left, width: pos.width, zIndex: 1000 }}
+      className="bg-surface ring-1 ring-border rounded-xl shadow-xl shadow-slate-900/40 anim-fade-slide-in overflow-hidden"
+    >
+      {children}
+    </div>
+  )
+}
+
 /** Themed calendar (dark/orange) matching the AMS brand. Ported from the prototype. */
 export function DatePicker({ value, onChange, min, max, disabled = false, placeholder = 'дд.мм.гггг', showPlusYear = false, id }: DatePickerProps) {
   const [open, setOpen] = useState(false)
   useExclusiveDropdown(open, setOpen)
+  const isMobile = useIsMobile()
   const [pos, setPos] = useState<{ top: number; left: number; width: number } | null>(null)
   const [viewMonth, setViewMonth] = useState<Date>(() => startOfMonth(parseISO(value) || new Date()))
   const [calMode, setCalMode] = useState<'days' | 'months' | 'years'>('days')
@@ -75,6 +113,8 @@ export function DatePicker({ value, onChange, min, max, disabled = false, placeh
     if (!open) { setPos(null); return }
     setViewMonth(startOfMonth(parseISO(value) || new Date()))
     setCalMode('days')
+    // Mobile renders as a bottom sheet — no anchor positioning needed.
+    if (isMobile) return
     updatePos()
     const onChangeWin = () => updatePos()
     window.addEventListener('resize', onChangeWin)
@@ -84,7 +124,7 @@ export function DatePicker({ value, onChange, min, max, disabled = false, placeh
       window.removeEventListener('scroll', onChangeWin, true)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open])
+  }, [open, isMobile])
 
   useEffect(() => {
     if (!open) return
@@ -150,13 +190,8 @@ export function DatePicker({ value, onChange, min, max, disabled = false, placeh
         <Icon name="calendar" size={14} className={`ml-auto shrink-0 transition-colors ${open ? 'text-accent' : 'text-text-subtle'}`} />
       </button>
 
-      {open && pos && ReactDOM.createPortal(
-        <div
-          data-dp-portal="true"
-          data-ams-dropdown="true"
-          style={{ position: 'fixed', top: pos.top, left: pos.left, width: pos.width, zIndex: 1000 }}
-          className="bg-surface ring-1 ring-[#2A2F36]/80 rounded-xl shadow-xl shadow-slate-900/40 anim-fade-slide-in overflow-hidden"
-        >
+      {open && ReactDOM.createPortal(
+        <DPPortal isMobile={isMobile} pos={pos} onBackdrop={() => setOpen(false)}>
           <div className="flex items-center justify-between px-3 pt-3 pb-2">
             <button
               type="button"
@@ -253,7 +288,7 @@ export function DatePicker({ value, onChange, min, max, disabled = false, placeh
             )}
             <button type="button" onClick={handleToday} className="text-[13px] font-semibold text-accent hover:bg-[rgba(249,115,22,0.12)] transition-colors px-2 py-1 rounded">Сегодня</button>
           </div>
-        </div>,
+        </DPPortal>,
         document.body,
       )}
     </div>
