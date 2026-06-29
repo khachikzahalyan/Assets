@@ -686,11 +686,13 @@ select:-webkit-autofill {
     flex-shrink: 0;
   }
 
-  /* ── Content area: scrollable with 12px padding + safe-area bottom.
+  /* ── Content area: scrollable with 12px padding.
+     Bottom padding = 64px (bottom tab bar height) + safe-area so content
+     is never hidden behind the BottomNav bar on iOS/Android.
      Note: pages that go edge-to-edge (assets card list) override this
      via the .app-shell-content-flush modifier applied by AssetsPage. ── */
   .app-shell-content {
-    padding: 12px 12px calc(12px + env(safe-area-inset-bottom, 0px)) !important;
+    padding: 12px 12px calc(64px + env(safe-area-inset-bottom, 0px)) !important;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     flex: 1;
@@ -701,9 +703,9 @@ select:-webkit-autofill {
 
   /* ── Edge-to-edge override for pages (e.g. assets card list): zero side
      padding so the list bleeds to the screen edges, but keep a 12px top gap
-     + safe-area bottom. No negative-margin coupling needed. ── */
+     + bottom tab bar clearance. No negative-margin coupling needed. ── */
   .app-shell-content-flush {
-    padding: 12px 0 calc(12px + env(safe-area-inset-bottom, 0px)) !important;
+    padding: 12px 0 calc(64px + env(safe-area-inset-bottom, 0px)) !important;
   }
 
   /* ── Sidebar drawer: max 85vw so it never covers full screen ── */

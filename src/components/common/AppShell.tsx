@@ -7,6 +7,7 @@ import { TopbarSlotContext } from './TopbarSlotContext'
 import { Sidebar } from './Sidebar'
 import { TopBar } from './TopBar'
 import { SearchPalette } from './SearchPalette'
+import { BottomNav } from './BottomNav'
 
 export interface AppShellProps {
   children: ReactNode
@@ -18,7 +19,6 @@ export function AppShell({ children }: AppShellProps) {
   const navigate = useNavigate()
   const { t } = useTranslation(['common', 'nav'])
 
-  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [topbarNode, setTopbarNode] = useState<ReactNode>(null)
 
@@ -27,11 +27,6 @@ export function AppShell({ children }: AppShellProps) {
   const currentRoute = seg !== '' ? seg : defaultRouteForRole(role)
 
   const onNavigate = (route: string) => navigate('/' + route)
-
-  // Close mobile sidebar on route change
-  useEffect(() => {
-    setSidebarOpen(false)
-  }, [location.pathname])
 
   // Cmd+K / Ctrl+K → open SearchPalette
   useEffect(() => {
@@ -56,39 +51,23 @@ export function AppShell({ children }: AppShellProps) {
     <TopbarSlotContext.Provider value={topbarSlotApi}>
       <div className="app-shell-root app-shell-bg">
         <div className="app-shell-body">
-          {/* Desktop sidebar */}
+          {/* Desktop sidebar — hidden on mobile */}
           <div className="hidden lg:block">
             <Sidebar currentRoute={currentRoute} onNavigate={onNavigate} />
           </div>
-
-          {/* Mobile drawer */}
-          {sidebarOpen && (
-            <>
-              <div
-                className="lg:hidden sidebar-overlay anim-backdrop-fade"
-                onClick={() => setSidebarOpen(false)}
-              />
-              <div className="lg:hidden">
-                <Sidebar
-                  mobile
-                  currentRoute={currentRoute}
-                  onNavigate={(r) => { onNavigate(r); setSidebarOpen(false) }}
-                  onClose={() => setSidebarOpen(false)}
-                />
-              </div>
-            </>
-          )}
 
           {/* Main column */}
           <main className="app-shell-main">
             <TopBar
               breadcrumbs={breadcrumbs}
               customContent={topbarNode ?? undefined}
-              onOpenSidebar={() => setSidebarOpen(true)}
             />
             <div className={`app-shell-content${currentRoute === 'assets' ? ' app-shell-content-flush' : ''}`}>{children}</div>
           </main>
         </div>
+
+        {/* Mobile bottom tab bar — self-hides on lg+ via lg:hidden */}
+        <BottomNav currentRoute={currentRoute} onNavigate={onNavigate} />
       </div>
 
       <SearchPalette

@@ -1,8 +1,9 @@
 /**
- * TopBar — role-gate tests for the notification bell.
+ * TopBar — role-gate tests for the notification bell + hamburger-removal assertion.
  *
+ * The hamburger button was replaced by the mobile BottomNav in the global nav refactor.
  * The bell (NotificationBell) is rendered only when role === 'super_admin' || role === 'asset_admin'.
- * This file asserts the gate works for all 4 AMS roles.
+ * This file asserts both that the burger is gone and that the gate works for all 4 AMS roles.
  *
  * NotificationBell is mocked so this test focuses purely on the TopBar gate logic,
  * not on the bell's internal Firestore behaviour (which is covered by NotificationBell.test.tsx).
@@ -41,12 +42,22 @@ function renderTopBar(role: Role) {
     <I18nextProvider i18n={i18n}>
       <MemoryRouter>
         <AuthProvider initialRole={role}>
-          <TopBar breadcrumbs={['AMS', 'Активы']} onOpenSidebar={() => {}} />
+          {/* onOpenSidebar prop removed — TopBar no longer accepts it */}
+          <TopBar breadcrumbs={['AMS', 'Активы']} />
         </AuthProvider>
       </MemoryRouter>
     </I18nextProvider>,
   )
 }
+
+describe('TopBar — hamburger removed', () => {
+  it('does NOT render a hamburger / open-menu button', () => {
+    renderTopBar('super_admin')
+    expect(document.querySelector('.ams-hamburger')).toBeNull()
+    expect(screen.queryByTitle('Открыть меню')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Открыть меню')).not.toBeInTheDocument()
+  })
+})
 
 describe('TopBar — notification bell role gate', () => {
   it.each(['super_admin', 'asset_admin'] as Role[])(

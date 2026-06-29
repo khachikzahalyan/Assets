@@ -59,7 +59,7 @@ function TestHarness({ initialEntries = ['/dashboard'] }: HarnessProps) {
 describe('AppShell', () => {
   it('default route renders Dashboard page', () => {
     render(<TestHarness initialEntries={['/dashboard']} />)
-    // "Дашборд" appears in both the sidebar nav item and the page header
+    // "Дашборд" appears in the sidebar nav item, BottomNav, and the page header
     const items = screen.getAllByText('Дашборд')
     expect(items.length).toBeGreaterThanOrEqual(1)
   })
@@ -70,8 +70,29 @@ describe('AppShell', () => {
     expect(screen.queryByRole('button', { name: /Ремонты/i })).toBeNull()
     expect(screen.queryByRole('button', { name: /Выдачи/i })).toBeNull()
     expect(screen.queryByRole('button', { name: /Статусы/i })).toBeNull()
-    // A real nav item is still present
-    expect(screen.getByRole('button', { name: /Активы/i })).toBeInTheDocument()
+    // "Активы" now appears in BOTH Sidebar (desktop) and BottomNav (mobile):
+    // use getAllByRole to avoid "multiple elements found" throw.
+    const assetsButtons = screen.getAllByRole('button', { name: /Активы/i })
+    expect(assetsButtons.length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('no hamburger / mobile drawer is present', () => {
+    render(<TestHarness initialEntries={['/dashboard']} />)
+    // Burger button removed — class was "ams-hamburger"
+    expect(document.querySelector('.ams-hamburger')).toBeNull()
+    // Drawer overlay removed
+    expect(document.querySelector('.sidebar-overlay')).toBeNull()
+  })
+
+  it('BottomNav renders primary items for super_admin (e.g. Активы button in nav landmark)', () => {
+    render(<TestHarness initialEntries={['/dashboard']} />)
+    // The BottomNav renders a <nav> landmark.  Within it, find the Активы button.
+    const navEl = document.querySelector('nav')
+    expect(navEl).not.toBeNull()
+    const assetsBtn = Array.from(navEl!.querySelectorAll('button')).find(
+      (b) => b.textContent?.includes('Активы'),
+    )
+    expect(assetsBtn).toBeDefined()
   })
 
   it('Cmd+K opens the SearchPalette', () => {

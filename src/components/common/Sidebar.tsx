@@ -3,24 +3,21 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
 import { navForRole } from '@/config'
 import { Icon } from '@/components/ui/icon'
-import { IconBtn } from '@/components/ui/icon-btn'
 
 // Role-filtered nav is UX only — NOT a security control.
 
 export interface SidebarProps {
   currentRoute: string
   onNavigate: (route: string) => void
-  mobile?: boolean
-  onClose?: () => void
 }
 
-export function Sidebar({ currentRoute, onNavigate, mobile = false, onClose }: SidebarProps) {
+export function Sidebar({ currentRoute, onNavigate }: SidebarProps) {
   const { role } = useAuth()
   const nav = useMemo(() => navForRole(role), [role])
   const { t } = useTranslation(['nav', 'common'])
 
   return (
-    <aside className={mobile ? 'sidebar-drawer anim-drawer-slide' : 'app-shell-sidebar'}>
+    <aside className="app-shell-sidebar">
       {/* Brand row */}
       <div className="flex items-center justify-between px-5 h-16 border-b border-border flex-shrink-0">
         <div className="flex items-center gap-3">
@@ -32,14 +29,6 @@ export function Sidebar({ currentRoute, onNavigate, mobile = false, onClose }: S
             <div className="text-[11px] text-text-subtle -mt-0.5">{t('app.brandSub', { ns: 'common' })}</div>
           </div>
         </div>
-        {mobile && (
-          <IconBtn
-            icon="x"
-            {...(onClose != null ? { onClick: onClose } : {})}
-            size="sm"
-            title={t('actions.close', { ns: 'common' })}
-          />
-        )}
       </div>
 
       {/* Navigation groups */}
