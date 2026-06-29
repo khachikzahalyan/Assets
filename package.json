@@ -26,6 +26,7 @@
     "grant:super-admin": "tsx scripts/grant-super-admin.ts",
     "backfill:category-caps": "tsx scripts/backfill-category-caps.ts",
     "clear:assets": "tsx scripts/clearAssets.ts",
+    "delete:asset": "tsx scripts/deleteAsset.ts",
     "typecheck:scripts": "tsc --noEmit -p tsconfig.scripts.json"
   },
   "dependencies": {

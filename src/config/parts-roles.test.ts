@@ -11,7 +11,6 @@
  */
 import { describe, it, expect } from 'vitest'
 import { routeRoles, canAccess } from './access'
-import { PHASE_STUB_ROUTES } from './nav'
 
 describe('parts route role matrix', () => {
   it('routeRoles("parts") contains exactly super_admin, asset_admin, tech_admin', () => {
@@ -40,9 +39,5 @@ describe('parts route role matrix', () => {
 
   it('employee cannot access /parts', () => {
     expect(canAccess('employee', 'parts')).toBe(false)
-  })
-
-  it('parts is NOT in PHASE_STUB_ROUTES (it is a real shipped route)', () => {
-    expect(PHASE_STUB_ROUTES).not.toContain('parts')
   })
 })

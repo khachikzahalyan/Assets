@@ -4,7 +4,6 @@ import { useAuth } from '@/contexts/AuthContext'
 import { navForRole } from '@/config'
 import { Icon } from '@/components/ui/icon'
 import { IconBtn } from '@/components/ui/icon-btn'
-import { Chip } from '@/components/ui/chip'
 
 // Role-filtered nav is UX only — NOT a security control.
 
@@ -61,9 +60,6 @@ export function Sidebar({ currentRoute, onNavigate, mobile = false, onClose }: S
                 >
                   <Icon name={item.icon} size={18} />
                   <span className="flex-1 truncate">{t(item.labelKey, { ns: 'nav' })}</span>
-                  {item.phase != null && (
-                    <Chip color="gray" size="sm">{t('stub.soon', { ns: 'common' })}</Chip>
-                  )}
                 </button>
               )
             })}

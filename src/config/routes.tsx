@@ -1,13 +1,12 @@
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import { AppShell } from '@/components/common'
 import {
-  DashboardPage, StubPage, LoginPage, AssetsPage, AssetCreatePage, AssetDetailPage,
+  DashboardPage, LoginPage, AssetsPage, AssetCreatePage, AssetDetailPage,
   EmployeesPage, EmployeeCreatePage, EmployeeDetailPage, MyAssetsPage, MyActsPage, ProfilePage,
-  PendingUsersPage, BranchesPage, DepartmentsPage, CategoriesPage, SettingsPage, StatusesPage,
+  PendingUsersPage, BranchesPage, DepartmentsPage, CategoriesPage, SettingsPage,
   AuditPage, LicensesPage, RolesPage, PartsPage, PartsReceivePage, ScanPage,
 } from '@/pages'
 import { RequireAuth, RoleGate } from '@/components/routing'
-import { PHASE_STUB_ROUTES } from './nav'
 import { routeRoles } from './access'
 
 /** Shell layout wrapper — renders the persistent AppShell around routed content. */
@@ -102,9 +101,6 @@ export function AppRoutes() {
           <Route path="/categories" element={
             <RoleGate roles={routeRoles('categories')}><CategoriesPage /></RoleGate>
           } />
-          <Route path="/statuses" element={
-            <RoleGate roles={routeRoles('statuses')}><StatusesPage /></RoleGate>
-          } />
           <Route path="/roles" element={
             <RoleGate roles={routeRoles('roles')}><RolesPage /></RoleGate>
           } />
@@ -143,18 +139,6 @@ export function AppRoutes() {
           <Route path="/parts/new" element={
             <RoleGate roles={routeRoles('parts')}><PartsReceivePage /></RoleGate>
           } />
-
-          {PHASE_STUB_ROUTES.map((id) => (
-            <Route
-              key={id}
-              path={`/${id}`}
-              element={
-                <RoleGate roles={routeRoles(id)}>
-                  <StubPage routeId={id} />
-                </RoleGate>
-              }
-            />
-          ))}
 
           {/* Unknown paths fall to /dashboard; RoleGate there handles role bounce */}
           <Route path="*" element={<Navigate to="/dashboard" replace />} />

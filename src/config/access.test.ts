@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest'
 import { routeRoles, canAccess } from './access'
-import { PHASE_STUB_ROUTES } from './nav'
 import type { RouteId } from './nav'
 
 describe('access map', () => {
@@ -27,10 +26,6 @@ describe('access map', () => {
 })
 
 describe('settings route guard', () => {
-  it('settings is NOT in PHASE_STUB_ROUTES (it is a real route, not a stub)', () => {
-    expect(PHASE_STUB_ROUTES).not.toContain('settings')
-  })
-
   it('routeRoles("settings") is super_admin-only', () => {
     expect(routeRoles('settings')).toEqual(['super_admin'])
   })

@@ -1,8 +1,8 @@
 import type { Role } from './roles'
 
 export type RouteId =
-  | 'dashboard' | 'assets' | 'assignments' | 'repairs' | 'licenses' | 'parts'
-  | 'employees' | 'branches' | 'departments' | 'categories' | 'statuses' | 'roles'
+  | 'dashboard' | 'assets' | 'licenses' | 'parts'
+  | 'employees' | 'branches' | 'departments' | 'categories' | 'roles'
   | 'audit' | 'settings' | 'my-assets' | 'my-acts' | 'profile' | 'pending-users'
   | 'scan'
 
@@ -11,7 +11,6 @@ export interface NavItem {
   labelKey: string
   icon: string
   allow: Role[]
-  phase?: 2 | 3
 }
 
 export interface NavGroup {
@@ -26,8 +25,6 @@ export const ADMIN_NAV: NavGroup[] = [
   ]},
   { id: 'ops', labelKey: 'groups.ops', items: [
     { id: 'assets',      labelKey: 'items.assets',      icon: 'package',          allow: ['super_admin', 'asset_admin', 'tech_admin'] },
-    { id: 'assignments', labelKey: 'items.assignments', icon: 'arrow-right-left', allow: ['super_admin', 'asset_admin'], phase: 3 },
-    { id: 'repairs',     labelKey: 'items.repairs',     icon: 'wrench',           allow: ['super_admin', 'tech_admin'],  phase: 2 },
     { id: 'licenses',    labelKey: 'items.licenses',    icon: 'key-round',        allow: ['super_admin', 'tech_admin'] },
     { id: 'parts',       labelKey: 'items.parts',       icon: 'cpu',              allow: ['super_admin', 'asset_admin', 'tech_admin'] },
   ]},
@@ -38,7 +35,6 @@ export const ADMIN_NAV: NavGroup[] = [
   ]},
   { id: 'catalogs', labelKey: 'groups.catalogs', items: [
     { id: 'categories', labelKey: 'items.categories', icon: 'tags',         allow: ['super_admin'] },
-    { id: 'statuses',   labelKey: 'items.statuses',   icon: 'circle-dot',   allow: ['super_admin'] },
     { id: 'roles',      labelKey: 'items.roles',      icon: 'shield-check', allow: ['super_admin'] },
   ]},
   { id: 'system', labelKey: 'groups.system', items: [
@@ -76,9 +72,3 @@ export function navForRole(role: Role): NavGroup[] {
 export function defaultRouteForRole(role: Role): RouteId {
   return role === 'employee' ? 'my-assets' : 'dashboard'
 }
-
-/** Routes that render a StubPage ("Скоро") — Phase 2/3 features + Phase-1 feature
- *  pages whose own plans haven't landed yet. Single source of truth for the router. */
-export const PHASE_STUB_ROUTES: RouteId[] = [
-  'assignments', 'repairs',
-]

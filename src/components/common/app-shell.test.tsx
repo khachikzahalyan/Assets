@@ -12,8 +12,6 @@ import i18n from '@/lib/i18n'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { AppShell } from './AppShell'
 import { DashboardPage } from '@/pages/dashboard/DashboardPage'
-import { StubPage } from '@/pages/StubPage'
-import { PHASE_STUB_ROUTES } from '@/config'
 
 // Mock Firebase so the module can be imported in jsdom
 vi.mock('@/lib/firebase', () => ({
@@ -49,9 +47,6 @@ function TestHarness({ initialEntries = ['/dashboard'] }: HarnessProps) {
             <Route element={<ShellLayout />}>
               <Route index element={<Navigate to="/dashboard" replace />} />
               <Route path="/dashboard" element={<DashboardPage />} />
-              {PHASE_STUB_ROUTES.map((id) => (
-                <Route key={id} path={`/${id}`} element={<StubPage routeId={id} />} />
-              ))}
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Route>
           </Routes>
@@ -69,15 +64,14 @@ describe('AppShell', () => {
     expect(items.length).toBeGreaterThanOrEqual(1)
   })
 
-  it('clicking a sidebar nav item navigates to the stub page', () => {
+  it('sidebar no longer shows the removed stub/statuses nav items', () => {
     render(<TestHarness initialEntries={['/dashboard']} />)
-    // Find the "Ремонты" button in the sidebar — 'repairs' is still a PHASE_STUB_ROUTE
-    const repairsBtn = screen.getByRole('button', { name: /Ремонты/i })
-    fireEvent.click(repairsBtn)
-    // StubPage for repairs renders its route-specific description (unique to the page body)
-    expect(
-      screen.getByText('Учёт ремонтов и обслуживания: заявки, статусы и история по активам.'),
-    ).toBeInTheDocument()
+    // Removed items must not render
+    expect(screen.queryByRole('button', { name: /Ремонты/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /Выдачи/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /Статусы/i })).toBeNull()
+    // A real nav item is still present
+    expect(screen.getByRole('button', { name: /Активы/i })).toBeInTheDocument()
   })
 
   it('Cmd+K opens the SearchPalette', () => {

@@ -13,7 +13,6 @@ import ruRoles from '@/locales/ru/roles.json'
 import ruBranches from '@/locales/ru/branches.json'
 import ruDepartments from '@/locales/ru/departments.json'
 import ruCategories from '@/locales/ru/categories.json'
-import ruStatuses from '@/locales/ru/statuses.json'
 import ruAudit from '@/locales/ru/audit.json'
 import ruLicenses from '@/locales/ru/licenses.json'
 import ruDashboard from '@/locales/ru/dashboard.json'
@@ -32,7 +31,6 @@ import enRoles from '@/locales/en/roles.json'
 import enBranches from '@/locales/en/branches.json'
 import enDepartments from '@/locales/en/departments.json'
 import enCategories from '@/locales/en/categories.json'
-import enStatuses from '@/locales/en/statuses.json'
 import enAudit from '@/locales/en/audit.json'
 import enLicenses from '@/locales/en/licenses.json'
 import enDashboard from '@/locales/en/dashboard.json'
@@ -51,7 +49,6 @@ import hyRoles from '@/locales/hy/roles.json'
 import hyBranches from '@/locales/hy/branches.json'
 import hyDepartments from '@/locales/hy/departments.json'
 import hyCategories from '@/locales/hy/categories.json'
-import hyStatuses from '@/locales/hy/statuses.json'
 import hyAudit from '@/locales/hy/audit.json'
 import hyLicenses from '@/locales/hy/licenses.json'
 import hyDashboard from '@/locales/hy/dashboard.json'
@@ -64,9 +61,9 @@ export const SUPPORTED_LANGS = ['ru', 'en', 'hy'] as const
 export type AppLang = (typeof SUPPORTED_LANGS)[number]
 
 export const resources = {
-  ru: { common: ruCommon, nav: ruNav, login: ruLogin, 'access-pending': ruAccessPending, assets: ruAssets, employees: ruEmployees, 'pending-users': ruPendingUsers, roles: ruRoles, branches: ruBranches, departments: ruDepartments, categories: ruCategories, statuses: ruStatuses, audit: ruAudit, licenses: ruLicenses, dashboard: ruDashboard, settings: ruSettings, notifications: ruNotifications, parts: ruParts, scan: ruScan },
-  en: { common: enCommon, nav: enNav, login: enLogin, 'access-pending': enAccessPending, assets: enAssets, employees: enEmployees, 'pending-users': enPendingUsers, roles: enRoles, branches: enBranches, departments: enDepartments, categories: enCategories, statuses: enStatuses, audit: enAudit, licenses: enLicenses, dashboard: enDashboard, settings: enSettings, notifications: enNotifications, parts: enParts, scan: enScan },
-  hy: { common: hyCommon, nav: hyNav, login: hyLogin, 'access-pending': hyAccessPending, assets: hyAssets, employees: hyEmployees, 'pending-users': hyPendingUsers, roles: hyRoles, branches: hyBranches, departments: hyDepartments, categories: hyCategories, statuses: hyStatuses, audit: hyAudit, licenses: hyLicenses, dashboard: hyDashboard, settings: hySettings, notifications: hyNotifications, parts: hyParts, scan: hyScan },
+  ru: { common: ruCommon, nav: ruNav, login: ruLogin, 'access-pending': ruAccessPending, assets: ruAssets, employees: ruEmployees, 'pending-users': ruPendingUsers, roles: ruRoles, branches: ruBranches, departments: ruDepartments, categories: ruCategories, audit: ruAudit, licenses: ruLicenses, dashboard: ruDashboard, settings: ruSettings, notifications: ruNotifications, parts: ruParts, scan: ruScan },
+  en: { common: enCommon, nav: enNav, login: enLogin, 'access-pending': enAccessPending, assets: enAssets, employees: enEmployees, 'pending-users': enPendingUsers, roles: enRoles, branches: enBranches, departments: enDepartments, categories: enCategories, audit: enAudit, licenses: enLicenses, dashboard: enDashboard, settings: enSettings, notifications: enNotifications, parts: enParts, scan: enScan },
+  hy: { common: hyCommon, nav: hyNav, login: hyLogin, 'access-pending': hyAccessPending, assets: hyAssets, employees: hyEmployees, 'pending-users': hyPendingUsers, roles: hyRoles, branches: hyBranches, departments: hyDepartments, categories: hyCategories, audit: hyAudit, licenses: hyLicenses, dashboard: hyDashboard, settings: hySettings, notifications: hyNotifications, parts: hyParts, scan: hyScan },
 } as const
 
 void i18n
@@ -77,7 +74,7 @@ void i18n
     fallbackLng: 'ru',
     supportedLngs: SUPPORTED_LANGS as unknown as string[],
     defaultNS: 'common',
-    ns: ['common', 'nav', 'login', 'access-pending', 'assets', 'employees', 'pending-users', 'roles', 'branches', 'departments', 'categories', 'statuses', 'audit', 'licenses', 'dashboard', 'settings', 'notifications', 'parts', 'scan'],
+    ns: ['common', 'nav', 'login', 'access-pending', 'assets', 'employees', 'pending-users', 'roles', 'branches', 'departments', 'categories', 'audit', 'licenses', 'dashboard', 'settings', 'notifications', 'parts', 'scan'],
     interpolation: { escapeValue: false },
     detection: {
       order: ['localStorage', 'navigator'],

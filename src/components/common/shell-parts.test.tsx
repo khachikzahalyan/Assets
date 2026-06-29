@@ -45,15 +45,13 @@ describe('Sidebar (super_admin)', () => {
     expect(screen.getByText('Дашборд')).toBeInTheDocument()
   })
 
-  it('renders a "Скоро" chip for phase routes', () => {
+  it('renders no "Скоро" chips (stub routes were removed)', () => {
     render(
       <Wrapper>
         <Sidebar currentRoute="dashboard" onNavigate={() => undefined} />
       </Wrapper>
     )
-    // Several phase-gated items exist (assignments, repairs, parts, etc.)
-    const soonChips = screen.getAllByText('Скоро')
-    expect(soonChips.length).toBeGreaterThan(0)
+    expect(screen.queryByText('Скоро')).toBeNull()
   })
 })
 

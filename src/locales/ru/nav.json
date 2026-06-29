@@ -1,9 +1,9 @@
 {
   "groups": { "main": "Главное", "ops": "Активы и операции", "org": "Организация", "catalogs": "Справочники", "system": "Система" },
   "items": {
-    "dashboard": "Дашборд", "assets": "Активы", "assignments": "Выдачи", "repairs": "Ремонты",
+    "dashboard": "Дашборд", "assets": "Активы",
     "licenses": "Лицензии", "parts": "Запчасти", "employees": "Сотрудники", "branches": "Филиалы",
-    "departments": "Отделы", "categories": "Категории", "statuses": "Статусы", "roles": "Роли и доступ",
+    "departments": "Отделы", "categories": "Категории", "roles": "Роли и доступ",
     "audit": "Журнал аудита", "settings": "Настройки", "pending-users": "Ожидают доступа",
     "my-assets": "Мои активы", "my-acts": "Мои акты", "profile": "Профиль", "scan": "Сканировать"
   },

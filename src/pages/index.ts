@@ -1,5 +1,4 @@
 // Barrel for all route-level pages, grouped into feature subfolders.
-export * from './StubPage'
 export * from './dashboard/DashboardPage'
 export * from './auth/LoginPage'
 export * from './auth/AccessPendingPage'
@@ -16,7 +15,6 @@ export * from './self-service/ProfilePage'
 export * from './catalogs/BranchesPage'
 export * from './catalogs/DepartmentsPage'
 export * from './catalogs/CategoriesPage'
-export * from './catalogs/StatusesPage'
 export * from './catalogs/RolesPage'
 export * from './settings/SettingsPage'
 export * from './audit/AuditPage'

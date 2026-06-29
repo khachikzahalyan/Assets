@@ -174,7 +174,7 @@ export function DevicesTab({
             </div>
           ) : (
             <div
-              className="flex-1 overflow-y-auto min-h-0 max-md:overflow-visible max-md:flex-none"
+              className="flex-1 overflow-y-auto min-h-0 devices-scroll max-md:overflow-visible max-md:flex-none"
               style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px', alignContent: 'start' }}
             >
               {filtered.map(a => (
