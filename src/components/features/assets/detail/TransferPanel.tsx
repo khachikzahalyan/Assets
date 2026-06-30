@@ -65,9 +65,6 @@ function TransferModeForm({
       {mode === 'employee' && (
         <div className="mt-2 space-y-2">
           <div>
-            <label className="block text-[12px] uppercase tracking-[0.06em] font-semibold text-text-tertiary mb-1">
-              {t('detail.transfer.employeeLabel')}
-            </label>
             <SearchSelect
               value={employeeId}
               onChange={setEmployeeId}
@@ -109,9 +106,6 @@ function TransferModeForm({
 
       {mode === 'branch' && (
         <div className="mt-2">
-          <label className="block text-[12px] uppercase tracking-[0.06em] font-semibold text-text-tertiary mb-1">
-            {t('detail.transfer.branchLabel')}
-          </label>
           <SearchSelect
             value={branchId}
             onChange={setBranchId}
@@ -126,9 +120,6 @@ function TransferModeForm({
 
       {mode === 'department' && (
         <div className="mt-2">
-          <label className="block text-[12px] uppercase tracking-[0.06em] font-semibold text-text-tertiary mb-1">
-            {t('detail.transfer.departmentLabel')}
-          </label>
           <SearchSelect
             value={departmentId}
             onChange={setDepartmentId}
