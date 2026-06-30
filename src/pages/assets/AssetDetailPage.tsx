@@ -493,100 +493,57 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
       )}
 
       {/*
-       * Two-column grid on large screens.
-       * LEFT column (lg:col-span-2): hero + tabs stacked, no gap between them.
-       * RIGHT column (lg:col-span-1): sidebar (assignment / location / repair).
-       * DOM order is hero → tabs → sidebar, so mobile stacking is naturally
-       * hero → tabs → sidebar — no max-md:order-* classes needed.
+       * Four-zone grid on large screens (2 implicit rows × 3 columns).
+       *
+       * ROW 1: HERO (col-span-2) | AssignmentCard (col-span-1)
+       * ROW 2: Tabs (col-span-2) | Location + Repair (col-span-1)
+       *
+       * Row-1 cells use lg:self-stretch so CSS Grid stretches them to the
+       * same row height → HERO and AssignmentCard bottom-edges align exactly,
+       * regardless of which card happens to be taller.
+       * Row-2 cells keep items-start (via the outer grid) — no blank space
+       * grows below the last sidebar card.
+       *
+       * Hero cell is flex-col so DetailHero (flex-1) fills the stretched
+       * height with its bg-surface; the optional print bar stays at the bottom.
+       * AssignmentCard's inner SectionCard has h-full so it fills its cell.
+       *
+       * Mobile (single column, max-md:gap-y-3):
+       *   DOM order: hero | assignment | tabs | location+repair
+       *   max-md:order-* reorders to: hero → tabs → assignment → location+repair
        */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 max-md:gap-3 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-3 lg:gap-x-5 gap-y-[10px] max-md:gap-y-3 items-start">
 
         {/* ---------------------------------------------------------------- */}
-        {/* LEFT column — hero + tabs stacked, 10px gap between them        */}
+        {/* ROW 1, LEFT — HERO block (lg:col-span-2, mobile order 1)        */}
+        {/* flex-col + lg:self-stretch → DetailHero(flex-1) fills row height */}
         {/* ---------------------------------------------------------------- */}
-        <div className="lg:col-span-2 space-y-[10px]">
-
-          {/* HERO */}
-          <div className="space-y-0">
-            <DetailHero
-              asset={asset}
-              category={category}
-              statusRow={statusRow}
-              canWriteOff={canWriteOff && !isDisposed}
-              isDisposed={isDisposed}
-              onWriteOff={onOpenWriteOff}
-              roundedBottom={!asset.barcode}
-            />
-            {asset.barcode && (
-              <div className="flex items-center gap-2 px-5 py-2.5 max-md:px-4 max-md:py-3 rounded-b-2xl overflow-hidden bg-surface border-x border-b border-border">
-                <Btn variant="secondary" size="sm" onClick={() => setPrinting(true)} className="max-md:min-h-[44px]">
-                  <Icon name="printer" size={12} />
-                  {t('label.print')}
-                </Btn>
-              </div>
-            )}
-          </div>
-
-          {/* TAB STRIP + TAB BODY */}
-          <div className="space-y-0">
-            {/* Tabs */}
-            <DetailTabs
-              active={activeTab}
-              onChange={setActiveTab}
-              showSpecs={showSpecs}
-              showDocs={true}
-              addedDate={addedDate}
-            />
-
-            {/* Tab body — WAI-ARIA tabpanel */}
-            <div
-              role="tabpanel"
-              id={`panel-${activeTab}`}
-              aria-labelledby={`tab-${activeTab}`}
-              tabIndex={0}
-              className="bg-surface rounded-b-2xl border-x border-b border-border px-5 sm:px-6 py-5 max-md:px-4 max-md:py-4 lg:min-h-[320px]"
-            >
-              {activeTab === 'specs' && (
-                <div className="space-y-5">
-                  {(caps?.hasSpecs || caps?.hasOemLicense || licenses.length > 0) ? (
-                    <TechSpecsCard
-                      asset={asset}
-                      licenses={licenses}
-                      hasOemLicenseCap={Boolean(caps?.hasOemLicense)}
-                      canManageLicense={canManageLicense}
-                      onAttachLicense={onAttachLicense}
-                      licensePool={licensePool}
-                      licenseBusy={busy}
-                      onOpenParts={() => navigate(`/parts?tab=devices&assetId=${asset.id}`)}
-                    />
-                  ) : (
-                    <p className="text-[13px] text-text-subtle italic">{t('detail.specs.empty')}</p>
-                  )}
-                </div>
-              )}
-
-              {activeTab === 'history' && (
-                <HistoryCard events={historyEvents} />
-              )}
-
-              {activeTab === 'docs' && (
-                <DocumentsTab
-                  acts={acts}
-                  onOpen={onOpenScan}
-                  purchaseDate={asset.purchaseDate ?? null}
-                  warrantyEndsAt={asset.warrantyEndsAt ?? null}
-                />
-              )}
+        <div className="lg:col-span-2 flex flex-col lg:self-stretch">
+          <DetailHero
+            asset={asset}
+            category={category}
+            statusRow={statusRow}
+            canWriteOff={canWriteOff && !isDisposed}
+            isDisposed={isDisposed}
+            onWriteOff={onOpenWriteOff}
+            roundedBottom={!asset.barcode}
+            className="flex-1"
+          />
+          {asset.barcode && (
+            <div className="flex items-center gap-2 px-5 py-2.5 max-md:px-4 max-md:py-3 rounded-b-2xl overflow-hidden bg-surface border-x border-b border-border">
+              <Btn variant="secondary" size="sm" onClick={() => setPrinting(true)} className="max-md:min-h-[44px]">
+                <Icon name="printer" size={12} />
+                {t('label.print')}
+              </Btn>
             </div>
-          </div>
-
-        </div>{/* end LEFT column */}
+          )}
+        </div>
 
         {/* ---------------------------------------------------------------- */}
-        {/* RIGHT column — assignment + location + repair                    */}
+        {/* ROW 1, RIGHT — AssignmentCard (lg:col-span-1, mobile order 3)   */}
+        {/* lg:self-stretch + SectionCard h-full → card fills row height     */}
         {/* ---------------------------------------------------------------- */}
-        <div className="space-y-2">
-          {/* Assignment card */}
+        <div className="max-md:order-3 lg:self-stretch">
           {ref && (
             <AssignmentCard
               asset={asset}
@@ -600,7 +557,67 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
               onCommit={onTransfer}
             />
           )}
+        </div>
 
+        {/* ---------------------------------------------------------------- */}
+        {/* ROW 2, LEFT — Tab strip + Tab body (lg:col-span-2, mobile ord 2)*/}
+        {/* ---------------------------------------------------------------- */}
+        <div className="lg:col-span-2 max-md:order-2 space-y-0">
+          {/* Tabs */}
+          <DetailTabs
+            active={activeTab}
+            onChange={setActiveTab}
+            showSpecs={showSpecs}
+            showDocs={true}
+            addedDate={addedDate}
+          />
+
+          {/* Tab body — WAI-ARIA tabpanel */}
+          <div
+            role="tabpanel"
+            id={`panel-${activeTab}`}
+            aria-labelledby={`tab-${activeTab}`}
+            tabIndex={0}
+            className="bg-surface rounded-b-2xl border-x border-b border-border px-5 sm:px-6 py-5 max-md:px-4 max-md:py-4 lg:min-h-[320px]"
+          >
+            {activeTab === 'specs' && (
+              <div className="space-y-5">
+                {(caps?.hasSpecs || caps?.hasOemLicense || licenses.length > 0) ? (
+                  <TechSpecsCard
+                    asset={asset}
+                    licenses={licenses}
+                    hasOemLicenseCap={Boolean(caps?.hasOemLicense)}
+                    canManageLicense={canManageLicense}
+                    onAttachLicense={onAttachLicense}
+                    licensePool={licensePool}
+                    licenseBusy={busy}
+                    onOpenParts={() => navigate(`/parts?tab=devices&assetId=${asset.id}`)}
+                  />
+                ) : (
+                  <p className="text-[13px] text-text-subtle italic">{t('detail.specs.empty')}</p>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'history' && (
+              <HistoryCard events={historyEvents} />
+            )}
+
+            {activeTab === 'docs' && (
+              <DocumentsTab
+                acts={acts}
+                onOpen={onOpenScan}
+                purchaseDate={asset.purchaseDate ?? null}
+                warrantyEndsAt={asset.warrantyEndsAt ?? null}
+              />
+            )}
+          </div>
+        </div>
+
+        {/* ---------------------------------------------------------------- */}
+        {/* ROW 2, RIGHT — Location + Repair (lg:col-span-1, mobile order 4)*/}
+        {/* ---------------------------------------------------------------- */}
+        <div className="max-md:order-4 space-y-2">
           {/* Location card */}
           {ref && (
             <LocationCard asset={asset} refData={ref} />

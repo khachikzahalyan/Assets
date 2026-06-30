@@ -13,6 +13,9 @@ interface DetailHeroProps {
   onWriteOff: () => void
   /** When true (no print bar follows), apply bottom rounding and full border. */
   roundedBottom?: boolean
+  /** Extra classes on the root div — use `flex-1` when the parent is a flex column
+   *  that needs this card to grow and fill the available height. */
+  className?: string
 }
 
 export function DetailHero({
@@ -23,6 +26,7 @@ export function DetailHero({
   isDisposed,
   onWriteOff,
   roundedBottom = false,
+  className = '',
 }: DetailHeroProps) {
   const { t } = useTranslation('assets')
 
@@ -34,7 +38,7 @@ export function DetailHero({
       roundedBottom
         ? 'rounded-2xl border border-border'
         : 'rounded-t-2xl border border-b-0 border-border'
-    }`}>
+    } ${className}`}>
       <div className="h-1 w-full bg-gradient-to-r from-accent to-accent-light" />
       <div className="p-3.5 sm:p-6">
         <div className="flex items-start gap-4 max-md:gap-3 max-md:flex-wrap">

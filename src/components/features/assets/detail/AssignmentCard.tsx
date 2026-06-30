@@ -139,6 +139,7 @@ export function AssignmentCard({
       icon="user-check"
       iconTone="blue"
       bodyClassName="!p-4 max-md:!p-3.5"
+      className="h-full"
       action={
         !transferOpen && canAssign ? (
           <Btn
