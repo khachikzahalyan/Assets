@@ -493,131 +493,134 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
       )}
 
       {/*
-       * Four-zone grid on large screens (2 implicit rows × 3 columns).
+       * Two-column layout on large screens (lg:grid-cols-3, left=col-span-2).
        *
-       * ROW 1: HERO (col-span-2) | AssignmentCard (col-span-1)
-       * ROW 2: Tabs (col-span-2) | Location + Repair (col-span-1)
+       * LEFT COLUMN  (lg:col-span-2): hero block → tabs.  Always contiguous
+       *   with a 10px gap.  Completely independent of the right column.
        *
-       * Row-1 cells use lg:self-stretch so CSS Grid stretches them to the
-       * same row height → HERO and AssignmentCard bottom-edges align exactly,
-       * regardless of which card happens to be taller.
-       * Row-2 cells keep items-start (via the outer grid) — no blank space
-       * grows below the last sidebar card.
+       * RIGHT COLUMN (lg:col-span-1): AssignmentCard → LocationCard → RepairCard.
+       *   The AssignmentCard wrapper has lg:min-h-[155px] + flex-col + [&>*]:flex-1
+       *   so it stretches to match the hero block's idle height (N=155px).
+       *   When the transfer panel opens, AssignmentCard grows freely below 155px
+       *   in its own column — the left column is completely unaffected.
        *
-       * Hero cell is flex-col so DetailHero (flex-1) fills the stretched
-       * height with its bg-surface; the optional print bar stays at the bottom.
-       * AssignmentCard's inner SectionCard has h-full so it fills its cell.
+       * N=155px derivation: hero card ≈106px (4px accent bar + 1px top border +
+       *   24px pt + ~101px content, border-b-0) + print bar ≈49px (py-2.5=20px +
+       *   h-7 btn=28px + 1px bottom border) = 155px.  AssignmentCard idle ≈151px,
+       *   stretches 4px via flex-1 to meet N.
        *
-       * Mobile (single column, max-md:gap-y-3):
-       *   DOM order: hero | assignment | tabs | location+repair
-       *   max-md:order-* reorders to: hero → tabs → assignment → location+repair
+       * Mobile (single column): DOM order gives hero → tabs → assignment →
+       *   location → repair naturally — no order classes needed.
        */}
       <div className="grid grid-cols-1 lg:grid-cols-3 lg:gap-x-5 gap-y-[10px] max-md:gap-y-3 items-start">
 
         {/* ---------------------------------------------------------------- */}
-        {/* ROW 1, LEFT — HERO block (lg:col-span-2, mobile order 1)        */}
-        {/* flex-col + lg:self-stretch → DetailHero(flex-1) fills row height */}
+        {/* LEFT COLUMN — hero block + tabs (lg:col-span-2)                 */}
+        {/* space-y-[10px] keeps the 10px hero↔tabs gap on all breakpoints  */}
         {/* ---------------------------------------------------------------- */}
-        <div className="lg:col-span-2 flex flex-col lg:self-stretch">
-          <DetailHero
-            asset={asset}
-            category={category}
-            statusRow={statusRow}
-            canWriteOff={canWriteOff && !isDisposed}
-            isDisposed={isDisposed}
-            onWriteOff={onOpenWriteOff}
-            roundedBottom={!asset.barcode}
-            className="flex-1"
-          />
-          {asset.barcode && (
-            <div className="flex items-center gap-2 px-5 py-2.5 max-md:px-4 max-md:py-3 rounded-b-2xl overflow-hidden bg-surface border-x border-b border-border">
-              <Btn variant="secondary" size="sm" onClick={() => setPrinting(true)} className="max-md:min-h-[44px]">
-                <Icon name="printer" size={12} />
-                {t('label.print')}
-              </Btn>
-            </div>
-          )}
-        </div>
+        <div className="lg:col-span-2 space-y-[10px]">
 
-        {/* ---------------------------------------------------------------- */}
-        {/* ROW 1, RIGHT — AssignmentCard (lg:col-span-1, mobile order 3)   */}
-        {/* lg:self-stretch + SectionCard h-full → card fills row height     */}
-        {/* ---------------------------------------------------------------- */}
-        <div className="max-md:order-3 lg:self-stretch">
-          {ref && (
-            <AssignmentCard
+          {/* Hero block — lg:min-h-[155px] aligns its bottom with the idle
+              AssignmentCard (N=155px).  Without a barcode the hero sits at
+              ~107px and the wrapper carries a touch of bottom space — fine. */}
+          <div className="lg:min-h-[155px] flex flex-col">
+            <DetailHero
               asset={asset}
-              refData={ref}
-              caps={caps}
-              canAssign={canAssign && !isDisposed}
-              busy={busy}
-              transferOpen={transferOpen}
-              onOpenTransfer={() => setTransferOpen(true)}
-              onCloseTransfer={() => setTransferOpen(false)}
-              onCommit={onTransfer}
+              category={category}
+              statusRow={statusRow}
+              canWriteOff={canWriteOff && !isDisposed}
+              isDisposed={isDisposed}
+              onWriteOff={onOpenWriteOff}
+              roundedBottom={!asset.barcode}
             />
-          )}
-        </div>
-
-        {/* ---------------------------------------------------------------- */}
-        {/* ROW 2, LEFT — Tab strip + Tab body (lg:col-span-2, mobile ord 2)*/}
-        {/* ---------------------------------------------------------------- */}
-        <div className="lg:col-span-2 max-md:order-2 space-y-0">
-          {/* Tabs */}
-          <DetailTabs
-            active={activeTab}
-            onChange={setActiveTab}
-            showSpecs={showSpecs}
-            showDocs={true}
-            addedDate={addedDate}
-          />
-
-          {/* Tab body — WAI-ARIA tabpanel */}
-          <div
-            role="tabpanel"
-            id={`panel-${activeTab}`}
-            aria-labelledby={`tab-${activeTab}`}
-            tabIndex={0}
-            className="bg-surface rounded-b-2xl border-x border-b border-border px-5 sm:px-6 py-5 max-md:px-4 max-md:py-4 lg:min-h-[320px]"
-          >
-            {activeTab === 'specs' && (
-              <div className="space-y-5">
-                {(caps?.hasSpecs || caps?.hasOemLicense || licenses.length > 0) ? (
-                  <TechSpecsCard
-                    asset={asset}
-                    licenses={licenses}
-                    hasOemLicenseCap={Boolean(caps?.hasOemLicense)}
-                    canManageLicense={canManageLicense}
-                    onAttachLicense={onAttachLicense}
-                    licensePool={licensePool}
-                    licenseBusy={busy}
-                    onOpenParts={() => navigate(`/parts?tab=devices&assetId=${asset.id}`)}
-                  />
-                ) : (
-                  <p className="text-[13px] text-text-subtle italic">{t('detail.specs.empty')}</p>
-                )}
+            {asset.barcode && (
+              <div className="flex items-center gap-2 px-5 py-2.5 max-md:px-4 max-md:py-3 rounded-b-2xl overflow-hidden bg-surface border-x border-b border-border">
+                <Btn variant="secondary" size="sm" onClick={() => setPrinting(true)} className="max-md:min-h-[44px]">
+                  <Icon name="printer" size={12} />
+                  {t('label.print')}
+                </Btn>
               </div>
             )}
+          </div>
 
-            {activeTab === 'history' && (
-              <HistoryCard events={historyEvents} />
-            )}
+          {/* Tab strip + Tab body */}
+          <div className="space-y-0">
+            <DetailTabs
+              active={activeTab}
+              onChange={setActiveTab}
+              showSpecs={showSpecs}
+              showDocs={true}
+              addedDate={addedDate}
+            />
 
-            {activeTab === 'docs' && (
-              <DocumentsTab
-                acts={acts}
-                onOpen={onOpenScan}
-                purchaseDate={asset.purchaseDate ?? null}
-                warrantyEndsAt={asset.warrantyEndsAt ?? null}
-              />
-            )}
+            {/* Tab body — WAI-ARIA tabpanel */}
+            <div
+              role="tabpanel"
+              id={`panel-${activeTab}`}
+              aria-labelledby={`tab-${activeTab}`}
+              tabIndex={0}
+              className="bg-surface rounded-b-2xl border-x border-b border-border px-5 sm:px-6 py-5 max-md:px-4 max-md:py-4 lg:min-h-[320px]"
+            >
+              {activeTab === 'specs' && (
+                <div className="space-y-5">
+                  {(caps?.hasSpecs || caps?.hasOemLicense || licenses.length > 0) ? (
+                    <TechSpecsCard
+                      asset={asset}
+                      licenses={licenses}
+                      hasOemLicenseCap={Boolean(caps?.hasOemLicense)}
+                      canManageLicense={canManageLicense}
+                      onAttachLicense={onAttachLicense}
+                      licensePool={licensePool}
+                      licenseBusy={busy}
+                      onOpenParts={() => navigate(`/parts?tab=devices&assetId=${asset.id}`)}
+                    />
+                  ) : (
+                    <p className="text-[13px] text-text-subtle italic">{t('detail.specs.empty')}</p>
+                  )}
+                </div>
+              )}
+
+              {activeTab === 'history' && (
+                <HistoryCard events={historyEvents} />
+              )}
+
+              {activeTab === 'docs' && (
+                <DocumentsTab
+                  acts={acts}
+                  onOpen={onOpenScan}
+                  purchaseDate={asset.purchaseDate ?? null}
+                  warrantyEndsAt={asset.warrantyEndsAt ?? null}
+                />
+              )}
+            </div>
           </div>
         </div>
 
         {/* ---------------------------------------------------------------- */}
-        {/* ROW 2, RIGHT — Location + Repair (lg:col-span-1, mobile order 4)*/}
+        {/* RIGHT COLUMN — AssignmentCard, LocationCard, RepairCard          */}
+        {/* (lg:col-span-1, stacked with space-y-2)                          */}
+        {/* AssignmentCard wrapper: lg:min-h-[155px] + [&>*]:flex-1 →        */}
+        {/*   card stretches to N in idle, grows freely when transfer opens.  */}
         {/* ---------------------------------------------------------------- */}
-        <div className="max-md:order-4 space-y-2">
+        <div className="space-y-2">
+
+          {/* AssignmentCard — min-height for idle bottom-alignment with hero */}
+          <div className="lg:min-h-[155px] flex flex-col [&>*]:flex-1">
+            {ref && (
+              <AssignmentCard
+                asset={asset}
+                refData={ref}
+                caps={caps}
+                canAssign={canAssign && !isDisposed}
+                busy={busy}
+                transferOpen={transferOpen}
+                onOpenTransfer={() => setTransferOpen(true)}
+                onCloseTransfer={() => setTransferOpen(false)}
+                onCommit={onTransfer}
+              />
+            )}
+          </div>
+
           {/* Location card */}
           {ref && (
             <LocationCard asset={asset} refData={ref} />
