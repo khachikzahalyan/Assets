@@ -21,6 +21,10 @@ export function HistoryCard({ events }: HistoryCardProps) {
       title={t('detail.history.title')}
       icon="history"
       iconTone="cyan"
+      // Desktop: the card fills the tab body and ONLY the event list scrolls —
+      // the header («ИСТОРИЯ»/count) and the «Создан…» line stay fixed.
+      className="lg:h-full lg:flex lg:flex-col lg:min-h-0"
+      bodyClassName="lg:flex-1 lg:min-h-0 lg:flex lg:flex-col"
       action={
         <span className="text-[13px] font-medium text-text-tertiary tabular-nums">
           {n} {pluralRecords(n)}
@@ -28,14 +32,13 @@ export function HistoryCard({ events }: HistoryCardProps) {
       }
     >
       {createdEv && (
-        <div className="mb-3 pb-2.5 border-b border-border text-[12.5px] text-text-secondary">
+        <div className="mb-3 pb-2.5 border-b border-border text-[12.5px] text-text-secondary lg:shrink-0">
           {t('detail.history.created')} · {fmtRuDate(createdEv.date)} · {t('detail.history.added')} {createdEv.actor}
         </div>
       )}
       {others.length > 0 ? (
-        // The tab body (one level up) owns the internal scroll on desktop, so
-        // this list just flows naturally.
-        <ol className="space-y-3">
+        // Only this list scrolls on desktop; the card header above stays put.
+        <ol className="space-y-3 lg:flex-1 lg:min-h-0 lg:overflow-y-auto lg:pr-1">
           {others.map((ev, i) => (
             <HistoryEvent key={ev.id ?? `${ev.date}-${i}`} ev={ev} />
           ))}
