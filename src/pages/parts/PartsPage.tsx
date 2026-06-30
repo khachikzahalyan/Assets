@@ -217,8 +217,8 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
   if (loading) {
     return (
       <div className="flex flex-col h-full p-2 gap-3 overflow-hidden max-md:overflow-y-auto max-md:overflow-x-hidden max-md:h-auto max-md:p-0 max-md:gap-3" aria-hidden="true">
-        {/* Stat strip — REAL icons and REAL labels, shimmer values */}
-        <div className="relative grid grid-cols-4 gap-2.5 max-md:grid-cols-2 max-md:gap-[10px] flex-shrink-0">
+        {/* Stat strip — REAL icons and REAL labels, shimmer values; hidden on mobile (no stat strip) */}
+        <div className="grid grid-cols-4 gap-2.5 flex-shrink-0 max-md:hidden">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="bg-surface border border-border rounded-xl p-3 flex flex-col justify-center min-h-[58px] gap-2.5">
               <div className="h-[10px] w-[55%] rounded anim-skeleton" />
@@ -237,8 +237,10 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
               </div>
             ))}
           </div>
-          {/* add button shimmer (desktop only) */}
+          {/* Desktop add button shimmer */}
           <div className="mr-1 h-8 w-[96px] rounded-lg anim-skeleton max-md:hidden" />
+          {/* Mobile round FAB shimmer */}
+          <div className="md:hidden mr-2 w-9 h-9 rounded-full anim-skeleton flex-shrink-0" />
         </div>
 
         {/* Content region */}
@@ -325,12 +327,12 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
       {/* ── HEADER: stat strip + tab strip + add button ── */}
       <div className="flex flex-col gap-2.5 flex-shrink-0 max-md:w-full max-md:max-w-full max-md:box-border">
         {/*
-         * Stat strip — 4 tiles, always visible
-         * Desktop: grid-cols-4 gap-2.5 relative
-         * Mobile:  grid-cols-2 gap-[10px] relative  (override; prevents sm:grid-cols-4 at 640px)
-         *          position:relative is needed for the center FAB absolute positioning
+         * Stat strip — 4 tiles.
+         * Desktop: grid-cols-4 gap-2.5
+         * Mobile:  hidden (max-md:hidden) — prototype omits the stat strip on mobile
+         *          for a cleaner breadcrumb + tabs layout.
          */}
-        <div className="relative grid grid-cols-4 gap-2.5 max-md:grid-cols-2 max-md:gap-[10px] max-md:w-full max-md:max-w-full max-md:box-border">
+        <div className="grid grid-cols-4 gap-2.5 max-md:hidden">
           <StatTile
             tone="emerald"
             icon="inbox"
@@ -355,24 +357,9 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
             label={t('stats.devices')}
             value={stats.devices}
           />
-          {/*
-           * Center FAB — mobile only (md:hidden).
-           * Sits at the intersection of the 2×2 stat grid (center of the grid's
-           * relative container). Ring uses bg token #111315 (var --color-bg).
-           * Wired to the SAME navigate('/parts/new') as the desktop add button.
-           * §11 spec: 56×56px, radius 50%, orange #F97316, ring shadow 4px bg color.
-           */}
-          <button
-            type="button"
-            className="md:hidden absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-14 h-14 rounded-full bg-accent text-white inline-flex items-center justify-center border-0 p-0 cursor-pointer [box-shadow:0_4px_18px_rgba(249,115,22,0.5),0_0_0_4px_#111315] hover:bg-[#EA580C] active:[transform:translate(-50%,-50%)_scale(0.96)]"
-            onClick={() => navigate('/parts/new')}
-            aria-label={t('actions.add')}
-          >
-            <Icon name="plus" size={22} />
-          </button>
         </div>
 
-        {/* Tab strip + inline add-button on the same border-b line */}
+        {/* Tab strip + add button on the same border-b line */}
         <div className="flex items-center justify-between border-b border-border">
           <div className="flex items-center gap-1" role="tablist">
             {TABS.map(tab => {
@@ -405,9 +392,8 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
             })}
           </div>
           {/*
-           * Desktop inline add button.
-           * Hidden on mobile via max-md:hidden (Tailwind, replaces the isMobile JS flag).
-           * The center FAB in the stat grid handles add on mobile.
+           * Desktop: inline rectangular add button (max-md:hidden).
+           * Mobile: round FAB on the right of the tab strip (md:hidden).
            */}
           <button
             type="button"
@@ -417,6 +403,14 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
           >
             <Icon name="plus" size={14} />
             <span>{t('actions.add')}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/parts/new')}
+            className="md:hidden mr-2 w-[30px] h-[30px] rounded-full bg-accent hover:bg-accent-light text-white inline-flex items-center justify-center border-0 p-0 cursor-pointer transition-colors [box-shadow:0_2px_10px_rgba(232,105,42,0.35)] active:scale-95"
+            aria-label={t('actions.add')}
+          >
+            <Icon name="plus" size={14} />
           </button>
         </div>
       </div>
@@ -441,7 +435,7 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
       )}
 
       {/* Tab body — flex-1 min-h-0 overflow-hidden at all widths; inner grid scrolls. Mobile: allow y-scroll so WarehouseTab history isn't clipped */}
-      <div className="flex-1 min-h-0 overflow-hidden max-md:overflow-y-auto">
+      <div className="flex-1 min-h-0 overflow-hidden max-md:overflow-y-auto max-md:pb-[68px]">
         {activeTab === 'warehouse' && (
           <WarehouseTab
             parts={parts}
