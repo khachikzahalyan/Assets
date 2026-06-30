@@ -142,7 +142,7 @@ describe('CategoriesPage', () => {
     const groupRepo = new InMemoryCategoryGroupRepository([...BASE_GROUPS])
     render(<MemoryRouter><CategoriesPage repository={catRepo} categoryGroupRepository={groupRepo} /></MemoryRouter>)
     await screen.findByText('Laptop')
-    fireEvent.click(screen.getByTitle(/Удалить|Delete|Ջнджел/))
+    fireEvent.click(screen.getByTitle(/Удалить|Delete|Ջնջել/))
     await waitFor(() =>
       expect(screen.getByText(/Нельзя удалить|Cannot delete|Հнарар чэ/)).toBeInTheDocument(),
     )

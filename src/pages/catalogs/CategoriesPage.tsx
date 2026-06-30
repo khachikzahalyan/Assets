@@ -11,7 +11,7 @@ import { useIsMobile } from '@/hooks/useIsMobile'
 import { CatalogTable, ConfirmDeleteDialog, type CatalogColumn } from '@/components/features/catalogs'
 import {
   CategoryFormDialog, type CategoryFormValues,
-  CategoryGroupFormDialog, type CategoryGroupFormValues,
+  CategoryGroupFormDialog,
   CategoryGroupChips,
 } from '@/components/features/categories'
 import { PaginationBar } from '@/components/features/assets/PaginationBar'
@@ -19,6 +19,7 @@ import type { Category, CategoryGroup, CategoryRepository, CategoryGroupReposito
 import { FirestoreCategoryRepository, FirestoreCategoryGroupRepository } from '@/infra/repositories'
 import { EntityInUseError } from '@/domain/shared'
 import { db } from '@/lib/firebase'
+import { useCategoryGroupCrud } from './useCategoryGroupCrud'
 
 const PAGE_SIZE = 10
 
@@ -62,14 +63,6 @@ export function CategoriesPage({ repository, categoryGroupRepository }: Categori
   const [delBusy, setDelBusy]       = useState(false)
   const [page, setPage]             = useState(1)
 
-  // ── Group CRUD state ──────────────────────────────────────────────────────
-  const [groupEditing, setGroupEditing]       = useState<CategoryGroup | 'new' | null>(null)
-  const [groupSubmitting, setGroupSubmitting] = useState(false)
-  const [groupSaveError, setGroupSaveError]   = useState<string | null>(null)
-  const [groupDeleting, setGroupDeleting]     = useState<CategoryGroup | null>(null)
-  const [groupBlockedMsg, setGroupBlockedMsg] = useState<string | null>(null)
-  const [groupDelBusy, setGroupDelBusy]       = useState(false)
-
   // ── Derived ───────────────────────────────────────────────────────────────
   const counts = useMemo<Record<string, number>>(() => {
     const map: Record<string, number> = {}
@@ -103,6 +96,17 @@ export function CategoriesPage({ repository, categoryGroupRepository }: Categori
     finally { setLoad(false) }
   }, [groupRepo, repo, t])
   useEffect(() => { void load() }, [load])
+
+  // ── Group CRUD (hook) ─────────────────────────────────────────────────────
+  const {
+    groupEditing, setGroupEditing,
+    groupSubmitting,
+    groupSaveError, setGroupSaveError,
+    groupDeleting, setGroupDeleting,
+    groupBlockedMsg, setGroupBlockedMsg,
+    groupDelBusy,
+    handleGroupSubmit, askDeleteGroup, confirmDeleteGroup,
+  } = useCategoryGroupCrud(groupRepo, load, setError)
 
   // ── Columns ───────────────────────────────────────────────────────────────
   const columns: CatalogColumn<Category>[] = [
@@ -167,42 +171,6 @@ export function CategoriesPage({ repository, categoryGroupRepository }: Categori
     } finally { setDelBusy(false) }
   }
 
-  // ── Group handlers ────────────────────────────────────────────────────────
-  async function handleGroupSubmit(v: CategoryGroupFormValues) {
-    setGroupSubmitting(true); setGroupSaveError(null)
-    const actor = { uid: user.id, role }
-    try {
-      if (groupEditing && groupEditing !== 'new') {
-        await groupRepo.updateCategoryGroup(groupEditing.id, v, actor)
-      } else {
-        await groupRepo.createCategoryGroup(v, actor)
-      }
-      setGroupEditing(null); await load()
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e)
-      setGroupSaveError(/name already in use/i.test(msg) ? t('validation.nameTaken') : t('validation.saveFailed'))
-    } finally { setGroupSubmitting(false) }
-  }
-
-  async function askDeleteGroup(g: CategoryGroup) {
-    setGroupBlockedMsg(null)
-    try { const n = await groupRepo.countReferences(g.id); if (n > 0) setGroupBlockedMsg(t('groupDelete.inUse', { count: n })) }
-    catch { /* fall through */ }
-    setGroupDeleting(g)
-  }
-
-  async function confirmDeleteGroup() {
-    if (!groupDeleting) return
-    setGroupDelBusy(true)
-    try {
-      await groupRepo.deleteCategoryGroup(groupDeleting.id, { uid: user.id, role })
-      setGroupDeleting(null); setGroupBlockedMsg(null); await load()
-    } catch (e) {
-      if (e instanceof EntityInUseError) setGroupBlockedMsg(t('groupDelete.inUse', { count: e.count }))
-      else { setGroupDeleting(null); setError(t('validation.saveFailed')) }
-    } finally { setGroupDelBusy(false) }
-  }
-
   // ── Render ────────────────────────────────────────────────────────────────
   function renderTableRegion() {
     if (loading) return isMobile
@@ -227,7 +195,7 @@ export function CategoriesPage({ repository, categoryGroupRepository }: Categori
               {/* Row 1: heading + add-subcategory button */}
               <div className="flex items-center justify-between gap-3 px-5 py-3 max-md:px-3">
                 <div className="flex items-center gap-2 min-w-0">
-                  <Icon name="tag" size={16} className="text-text-tertiary flex-shrink-0" />
+                  <Icon name="tags" size={16} className="text-text-tertiary flex-shrink-0" />
                   <h1 className="text-[15px] font-semibold text-text-primary">{t('subcategories')}</h1>
                   {!loading && (
                     <span className="text-[13px] text-text-tertiary tabular-nums">{total}</span>

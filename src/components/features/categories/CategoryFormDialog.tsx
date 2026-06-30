@@ -49,7 +49,7 @@ export function CategoryFormDialog(p: CategoryFormDialogProps) {
 
         <div className="space-y-3">
           {p.submitError && (
-            <p role="alert" className="text-[12px] text-[#FDA4AF] px-1">{p.submitError}</p>
+            <p role="alert" className="text-[12px] text-error px-1">{p.submitError}</p>
           )}
           <Field label={t('form.name')} required>
             <Input value={name} onChange={setName} autoFocus invalid={nameInvalid} />

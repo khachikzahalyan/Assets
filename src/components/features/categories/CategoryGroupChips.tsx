@@ -15,7 +15,7 @@ export interface CategoryGroupChipsProps {
 
 /** Accent classes for the selected chip — uniform primary accent (never rainbow). */
 const ACTIVE_CHIP =
-  'bg-accent/[0.12] border-accent text-accent'
+  'bg-accent/10 border-accent text-accent'
 const IDLE_CHIP =
   'bg-surface-2/50 border-border text-text-secondary hover:border-border-strong hover:text-text-primary'
 
