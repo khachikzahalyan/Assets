@@ -132,10 +132,13 @@ export function DataTable<T>({
         </div>
       </div>
 
-      {/* ── Body rowgroup ─────────────────────────────────────────────────── */}
+      {/* ── Body rowgroup ─────────────────────────────────────────────────────
+          flex:1 1 0 lets rows stretch to fill when they fit; overflowY:auto lets
+          the body scroll instead of clipping the last row when the page-size's
+          rows (each minHeight 58) exceed the available height on shorter viewports. */}
       <div
         role="rowgroup"
-        style={{ display: 'flex', flexDirection: 'column', flex: '1 1 0', minHeight: 0 }}
+        style={{ display: 'flex', flexDirection: 'column', flex: '1 1 0', minHeight: 0, overflowY: 'auto' }}
       >
         {rows.map(row => {
           const key = getRowKey(row)
