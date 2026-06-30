@@ -233,9 +233,9 @@ describe('buildSeedDocs', () => {
   it('category docs satisfy the Category shape', () => {
     const docs = buildSeedDocs({ nowIso: '2026-06-20T00:00:00.000Z' })
     const c = docs.find(d => d.collection === 'categories' && d.id === 'cat_laptop')!
-    const cat = { id: c.id, ...(c.data as object) } as unknown as Category
-    expect(cat.prefix).toBe('LAP')
-    expect(cat.group).toBe('devices')
+    const data = c.data as Record<string, unknown>
+    expect(data.prefix).toBe('LAP')
+    expect(data.group).toBe('devices')
   })
   it('cat_computer doc carries all four capability flags (hasOemLicense/requiresSerial/hasTypeField)', () => {
     const docs = buildSeedDocs({ nowIso: '2026-06-20T00:00:00.000Z' })
