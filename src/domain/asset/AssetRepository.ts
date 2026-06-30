@@ -1,5 +1,5 @@
 import type {
-  Asset, AssetListQuery, CategoryRow, StatusRow, RefRow, EmployeeRow,
+  Asset, AssetListQuery, CategoryRow, CategoryGroupRow, StatusRow, RefRow, EmployeeRow,
   AssetStatusId, AssetAssignment, AssetSpecs,
 } from './types'
 import type { Role } from '@/config/roles'
@@ -13,6 +13,8 @@ export interface AssetReferenceData {
   departments: RefRow[]
   categories: CategoryRow[]
   employees: EmployeeRow[]
+  /** Dynamic top-level category groups — drives GroupTabs; empty array = no tabs rendered. */
+  categoryGroups: CategoryGroupRow[]
 }
 
 /** Catalog rows a self-service (employee) page can read under the tightened rules.

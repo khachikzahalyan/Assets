@@ -4,7 +4,7 @@ import {
   type Firestore, type QueryConstraint, type Transaction,
 } from 'firebase/firestore'
 import type {
-  Asset, AssetListQuery, AssetSort, CategoryRow, StatusRow, RefRow, EmployeeRow,
+  Asset, AssetListQuery, AssetSort, CategoryRow, CategoryGroupRow, StatusRow, RefRow, EmployeeRow,
   AssetStatusId, AssetAssignment, AssetSpecs,
 } from '@/domain/asset'
 import type {
@@ -59,6 +59,18 @@ function toAsset(id: string, d: Record<string, unknown>): Asset {
 }
 
 /**
+ * Maps a raw Firestore categoryGroups document to a CategoryGroupRow.
+ * Fail-safe: missing fields fall back to safe defaults.
+ */
+function mapCategoryGroup(d: Record<string, unknown>): Omit<CategoryGroupRow, 'id'> {
+  return {
+    name: String(d.name ?? ''),
+    lucideIcon: String(d.lucideIcon ?? 'package'),
+    order: Number(d.order ?? 0),
+  }
+}
+
+/**
  * Maps a raw Firestore category document to a CategoryRow.
  *
  * Resolution: the four capability flags (hasSpecs, hasOemLicense, requiresSerial,
@@ -68,11 +80,15 @@ function toAsset(id: string, d: Record<string, unknown>): Asset {
  * heuristic fallback. exactOptionalPropertyTypes is ON — never assign undefined;
  * use conditional spread so the key is absent when not present.
  *
+ * categoryGroupId: resolved from the doc's own field, falling back to the behavior
+ * group string for legacy docs that predate the taxonomy feature (Task 5 migration).
+ *
  * Shared between loadSelfServiceRefData() and fetchReferenceData() to prevent drift.
  */
 function mapCategory(d: Record<string, unknown>): Omit<CategoryRow, 'id'> {
   return {
     name: String(d.name ?? ''),
+    categoryGroupId: String(d.categoryGroupId ?? d.group ?? 'devices'),
     group: (d.group as CategoryRow['group']) ?? 'devices',
     lucideIcon: String(d.lucideIcon ?? 'package'),
     ...(typeof d.hasSpecs === 'boolean' ? { hasSpecs: d.hasSpecs } : {}),
@@ -180,19 +196,23 @@ export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepo
     // former_employees is read fail-soft: if the collection is undeployable/unreachable
     // (e.g. Firestore rules not yet deployed to live), it degrades to an empty list
     // rather than rejecting the entire Promise.all and bricking every page.
+    // categoryGroups is also read fail-soft: a missing or inaccessible collection
+    // degrades to an empty list (no tabs rendered) rather than crashing the create form.
     // Core ref data (statuses, branches, departments, categories, active employees)
     // remain strict — those must succeed for the app to function.
-    const [statuses, branches, departments, categories, activeEmps, formerEmps] = await Promise.all([
+    const [statuses, branches, departments, categories, activeEmps, formerEmps, rawGroups] = await Promise.all([
       this.readCol<StatusRow>('asset_statuses', d => ({ name: String(d.name ?? ''), color: String(d.color ?? 'gray') })),
       this.readCol<RefRow>('branches', d => ({ name: String(d.name ?? '') })),
       this.readCol<RefRow>('departments', d => ({ name: String(d.name ?? '') })),
       this.readCol<CategoryRow>('categories', mapCategory),
       this.readCol<EmployeeRow>('employees', empMap),
       this.readCol<EmployeeRow>('former_employees', empMap).catch(() => [] as EmployeeRow[]),
+      this.readCol<CategoryGroupRow>('categoryGroups', mapCategoryGroup).catch(() => [] as CategoryGroupRow[]),
     ])
     const seen = new Set(activeEmps.map(e => e.id))
     const employees = [...activeEmps, ...formerEmps.filter(e => !seen.has(e.id))]
-    return { statuses, branches, departments, categories, employees }
+    const categoryGroups = [...rawGroups].sort((a, b) => a.order - b.order || a.name.localeCompare(b.name))
+    return { statuses, branches, departments, categories, employees, categoryGroups }
   }
 
   // FIX 7: mapper returns Omit<T,'id'> — no id:'' placeholder needed.

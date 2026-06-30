@@ -17,8 +17,8 @@ export interface CategoryPickerProps {
   categories: CategoryRow[]
   value: string
   onChange: (categoryId: string) => void
-  /** When set, restricts options to a single group (group-tab filter). */
-  group?: 'devices' | 'network' | 'furniture' | null
+  /** When set, restricts options to the selected group tab (filters by categoryGroupId). */
+  categoryGroupId?: string | null
   /** Disables the trigger (e.g. edit mode where category is locked). */
   disabled?: boolean
 }
@@ -33,7 +33,7 @@ interface PortalPos {
  * Searchable combobox category picker matching the prototype CategoryCombobox.
  * Portal-to-body dropdown with search input, keyboard navigation, and a kbd-hint footer.
  */
-export function CategoryPicker({ categories, value, onChange, group, disabled = false }: CategoryPickerProps) {
+export function CategoryPicker({ categories, value, onChange, categoryGroupId, disabled = false }: CategoryPickerProps) {
   const { t } = useTranslation('assets')
 
   const [open, setOpen] = useState(false)
@@ -54,11 +54,11 @@ export function CategoryPicker({ categories, value, onChange, group, disabled = 
     return () => mq.removeEventListener('change', handler)
   }, [])
 
-  // Filter categories by group prop
+  // Filter categories by categoryGroupId prop
   const groupCategories = useMemo(() => {
-    if (!group) return categories
-    return categories.filter(c => c.group === group)
-  }, [categories, group])
+    if (!categoryGroupId) return categories
+    return categories.filter(c => c.categoryGroupId === categoryGroupId)
+  }, [categories, categoryGroupId])
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -119,10 +119,10 @@ export function CategoryPicker({ categories, value, onChange, group, disabled = 
     }
   }, [open])
 
-  // Reset highlight when query/group/open changes
+  // Reset highlight when query/categoryGroupId/open changes
   useEffect(() => {
     setActiveIdx(0)
-  }, [query, open, group])
+  }, [query, open, categoryGroupId])
 
   // Scroll active row into view
   useEffect(() => {

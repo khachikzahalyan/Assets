@@ -13,13 +13,12 @@ import type { AssetReferenceData } from '@/domain/asset'
 // ---------------------------------------------------------------------------
 
 const REF: AssetReferenceData = {
-  statuses:    [],
-  branches:    [{ id: 'br_g', name: 'Филиал Гюмри' }],
-  departments: [],
-  categories:  [],
-  employees:   [
-    { id: 'u_1', firstName: 'Иван', lastName: 'Петров', email: 'ivan@example.test' },
-  ],
+  statuses:       [],
+  branches:       [{ id: 'br_g', name: 'Филиал Гюмри' }],
+  departments:    [],
+  categories:     [],
+  employees:      [{ id: 'u_1', firstName: 'Иван', lastName: 'Петров', email: 'ivan@example.test' }],
+  categoryGroups: [],
 }
 
 function mkLog(over: Partial<AuditLog>): AuditLog {

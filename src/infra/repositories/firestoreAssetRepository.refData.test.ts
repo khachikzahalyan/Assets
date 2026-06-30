@@ -61,12 +61,14 @@ function makeSnap(docs: Array<{ id: string; data: Record<string, unknown> }>) {
   }
 }
 
-/** Set up mockGetDocs for the 6 legs of fetchReferenceData in order:
- *  asset_statuses, branches, departments, categories, employees, former_employees
+/** Set up mockGetDocs for the 7 legs of fetchReferenceData in order:
+ *  asset_statuses, branches, departments, categories, employees, former_employees, categoryGroups
  */
 function mockRefDataLegs({
   formerRejects = false,
   formerDocs = [] as Array<{ id: string; data: Record<string, unknown> }>,
+  groupDocs = [] as Array<{ id: string; data: Record<string, unknown> }>,
+  groupsReject = false,
 } = {}) {
   const statusSnap   = makeSnap([{ id: 'st_1', data: { name: 'Active', color: 'green' } }])
   const branchSnap   = makeSnap([{ id: 'br_1', data: { name: 'HQ' } }])
@@ -87,6 +89,14 @@ function mockRefDataLegs({
     )
   } else {
     mockGetDocs.mockResolvedValueOnce(makeSnap(formerDocs))
+  }
+
+  if (groupsReject) {
+    mockGetDocs.mockRejectedValueOnce(
+      Object.assign(new Error('Missing or insufficient permissions.'), { code: 'permission-denied' }),
+    )
+  } else {
+    mockGetDocs.mockResolvedValueOnce(makeSnap(groupDocs))  // categoryGroups
   }
 }
 
@@ -159,6 +169,30 @@ describe('FirestoreAssetRepository — loadReferenceData resilience', () => {
     const result = await repo.loadReferenceData()
     expect(result.employees).toHaveLength(1)
     expect(result.employees[0]!.id).toBe('emp_1')
+  })
+
+  it('includes categoryGroups sorted by order then name', async () => {
+    mockRefDataLegs({
+      groupDocs: [
+        { id: 'grp_furniture', data: { name: 'Мебель',    lucideIcon: 'armchair', order: 2 } },
+        { id: 'grp_devices',   data: { name: 'Устройства', lucideIcon: 'monitor', order: 0 } },
+        { id: 'grp_network',   data: { name: 'Сетевые',   lucideIcon: 'server',  order: 1 } },
+      ],
+    })
+
+    const ref = await repo.loadReferenceData()
+    expect(ref.categoryGroups).toHaveLength(3)
+    expect(ref.categoryGroups.map(g => g.id)).toEqual(['grp_devices', 'grp_network', 'grp_furniture'])
+  })
+
+  it('tolerates a failed categoryGroups read — resolves with categoryGroups: []', async () => {
+    mockRefDataLegs({ groupsReject: true })
+
+    const ref = await repo.loadReferenceData()
+    expect(ref.categoryGroups).toEqual([])
+    // Core data must still be intact
+    expect(ref.categories).toHaveLength(1)
+    expect(ref.statuses).toHaveLength(1)
   })
 
   it('deduplicates: an employee present in both collections appears only once', async () => {

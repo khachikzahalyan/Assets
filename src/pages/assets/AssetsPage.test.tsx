@@ -46,19 +46,20 @@ const REF: AssetReferenceData = {
     { id: 'dept_it', name: 'IT-отдел' },
   ],
   categories: [
-    { id: 'cat_laptop',  name: 'Ноутбук',  group: 'devices',   lucideIcon: 'laptop' },
-    { id: 'cat_monitor', name: 'Монитор',  group: 'devices',   lucideIcon: 'monitor' },
-    { id: 'cat_chair',   name: 'Кресло',   group: 'furniture', lucideIcon: 'package' },
-    { id: 'cat_switch',  name: 'Коммутатор', group: 'network', lucideIcon: 'network' },
+    { id: 'cat_laptop',  name: 'Ноутбук',    group: 'devices',   categoryGroupId: 'grp_devices',   lucideIcon: 'laptop' },
+    { id: 'cat_monitor', name: 'Монитор',    group: 'devices',   categoryGroupId: 'grp_devices',   lucideIcon: 'monitor' },
+    { id: 'cat_chair',   name: 'Кресло',     group: 'furniture', categoryGroupId: 'grp_furniture', lucideIcon: 'package' },
+    { id: 'cat_switch',  name: 'Коммутатор', group: 'network',   categoryGroupId: 'grp_network',   lucideIcon: 'network' },
   ],
   employees: [
-    { id: 'emp_1', firstName: 'Анна',   lastName: 'Иванова',  email: null },
-    { id: 'emp_2', firstName: 'Дмитрий', lastName: 'Козлов', email: null },
+    { id: 'emp_1', firstName: 'Анна',    lastName: 'Иванова', email: null },
+    { id: 'emp_2', firstName: 'Дмитрий', lastName: 'Козлов',  email: null },
   ],
+  categoryGroups: [],
 }
 
 const EMPTY_REF: AssetReferenceData = {
-  statuses: [], branches: [], departments: [], categories: [], employees: [],
+  statuses: [], branches: [], departments: [], categories: [], employees: [], categoryGroups: [],
 }
 
 const ASSETS: Asset[] = [

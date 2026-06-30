@@ -83,11 +83,12 @@ const ref: AssetReferenceData = {
   branches:    [{ id: 'br_1', name: 'HQ' }, { id: 'br_2', name: 'West' }],
   departments: [],
   categories: [
-    { id: 'cat_laptop', name: 'Laptop',  group: 'devices',   lucideIcon: 'laptop' },
-    { id: 'cat_router', name: 'Router',  group: 'network',   lucideIcon: 'router' },
-    { id: 'cat_desk',   name: 'Desk',    group: 'furniture', lucideIcon: 'table-2' },
+    { id: 'cat_laptop', name: 'Laptop', group: 'devices',   categoryGroupId: 'grp_devices',   lucideIcon: 'laptop' },
+    { id: 'cat_router', name: 'Router', group: 'network',   categoryGroupId: 'grp_network',   lucideIcon: 'router' },
+    { id: 'cat_desk',   name: 'Desk',   group: 'furniture', categoryGroupId: 'grp_furniture', lucideIcon: 'table-2' },
   ],
-  employees: [],
+  employees:      [],
+  categoryGroups: [],
 }
 
 function makeLicense(id: string, lifecycle: 'active' | 'retired', assignment: 'employee' | 'device' | 'unassigned'): WorkstationLicense {

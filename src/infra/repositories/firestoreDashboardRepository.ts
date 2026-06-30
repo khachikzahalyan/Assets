@@ -56,16 +56,18 @@ export class FirestoreDashboardRepository implements DashboardRepository {
       this.readCol<RefRow>('branches', d => ({ name: String(d.name ?? '') })),
       this.readCol<CategoryRow>('categories', d => ({
         name: String(d.name ?? ''),
+        categoryGroupId: String(d.categoryGroupId ?? d.group ?? 'devices'),
         group: (d.group as CategoryRow['group']) ?? 'devices',
         lucideIcon: String(d.lucideIcon ?? 'package'),
       })),
     ])
     return {
-      statuses: [] as StatusRow[],
+      statuses:       [] as StatusRow[],
       branches,
-      departments: [],
+      departments:    [],
       categories,
-      employees: [] as EmployeeRow[],
+      employees:      [] as EmployeeRow[],
+      categoryGroups: [],
     }
   }
 

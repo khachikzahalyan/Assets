@@ -15,7 +15,9 @@ import type { Asset, AssetReferenceData } from '@/domain/asset'
 const REF: AssetReferenceData = {
   statuses: [{ id: 'st_assigned', name: 'Выдано', color: 'green' }],
   branches: [], departments: [],
-  categories: [{ id: 'c', name: 'Ноутбук', group: 'devices', lucideIcon: 'laptop' }], employees: [],
+  categories: [{ id: 'c', name: 'Ноутбук', group: 'devices', categoryGroupId: 'grp_devices', lucideIcon: 'laptop' }],
+  employees: [],
+  categoryGroups: [],
 }
 function ctx() {
   return { user: { id: 'uid_1', name: 'И', email: 'i@x.com', role: 'employee' as const, initials: 'И', avatarColor: '' },

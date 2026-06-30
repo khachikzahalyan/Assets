@@ -45,12 +45,16 @@ const REF: AssetReferenceData = {
   ],
   branches: [{ id: 'b_main', name: 'Головной офис' }],
   departments: [{ id: 'd1', name: 'IT' }],
+  categoryGroups: [
+    { id: 'grp_devices',   name: 'Устройства', lucideIcon: 'monitor-smartphone', order: 0 },
+    { id: 'grp_furniture', name: 'Мебель',      lucideIcon: 'armchair',           order: 1 },
+  ],
   categories: [
     // No explicit hasOemLicense / hasSpecs / requiresSerial — taxonomy must supply them
-    { id: 'cat_computer', name: 'Компьютер', group: 'devices', lucideIcon: 'monitor' },
-    { id: 'cat_monitor',  name: 'Монитор',   group: 'devices', lucideIcon: 'monitor' },
+    { id: 'cat_computer', name: 'Компьютер', group: 'devices',   categoryGroupId: 'grp_devices',   lucideIcon: 'monitor' },
+    { id: 'cat_monitor',  name: 'Монитор',   group: 'devices',   categoryGroupId: 'grp_devices',   lucideIcon: 'monitor' },
     // Furniture — hasTypeField from doc mirrors taxonomy; no other overrides
-    { id: 'cat_desk',     name: 'Стол',      group: 'furniture', lucideIcon: 'armchair', hasTypeField: true },
+    { id: 'cat_desk',     name: 'Стол',      group: 'furniture', categoryGroupId: 'grp_furniture', lucideIcon: 'armchair', hasTypeField: true },
   ],
   employees: [{ id: 'e1', firstName: 'Иван', lastName: 'Петров', email: null }],
 }

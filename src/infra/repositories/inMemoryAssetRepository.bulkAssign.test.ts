@@ -14,8 +14,9 @@ const REF: AssetReferenceData = {
   ],
   branches: [{ id: 'br_main', name: 'HQ' }],
   departments: [],
-  categories: [{ id: 'cat_laptop', name: 'Laptop', group: 'devices', lucideIcon: 'laptop' }],
+  categories: [{ id: 'cat_laptop', name: 'Laptop', group: 'devices', categoryGroupId: 'grp_devices', lucideIcon: 'laptop' }],
   employees: [{ id: 'emp_x', firstName: 'Ara', lastName: 'Petrosyan', email: 'ara@example.test' }],
+  categoryGroups: [],
 }
 
 const INITIAL_ASSETS: Asset[] = [

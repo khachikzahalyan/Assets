@@ -12,8 +12,9 @@ const REF: AssetReferenceData = {
   statuses: [],
   branches: [{ id: 'b_main', name: 'HQ' }],
   departments: [],
-  categories: [{ id: 'cat_computer', name: 'Computer', group: 'devices', lucideIcon: 'monitor' }],
-  employees: [],
+  categories: [{ id: 'cat_computer', name: 'Computer', group: 'devices', categoryGroupId: 'grp_devices', lucideIcon: 'monitor' }],
+  employees:      [],
+  categoryGroups: [],
 }
 
 const baseAsset = {

@@ -72,8 +72,9 @@ const REF: AssetReferenceData = {
   ],
   branches: [{ id: 'br_main', name: 'Головной офис' }],
   departments: [{ id: 'dept_1', name: 'IT' }],
-  categories: [{ id: 'cat_1', name: 'Ноутбук', lucideIcon: 'laptop', group: 'devices' as const }],
-  employees: [],
+  categories: [{ id: 'cat_1', name: 'Ноутбук', lucideIcon: 'laptop', group: 'devices' as const, categoryGroupId: 'grp_devices' }],
+  employees:      [],
+  categoryGroups: [],
 }
 
 function makeAsset(over: Partial<Asset> = {}): Asset {

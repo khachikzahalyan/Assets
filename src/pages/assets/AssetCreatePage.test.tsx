@@ -29,8 +29,11 @@ const REF: AssetReferenceData = {
   ],
   branches: [{ id: 'b_main', name: 'Головной офис' }],
   departments: [{ id: 'd1', name: 'IT' }],
+  categoryGroups: [
+    { id: 'grp_devices', name: 'Устройства', lucideIcon: 'monitor-smartphone', order: 0 },
+  ],
   categories: [
-    { id: 'cat_laptop', name: 'Ноутбук', group: 'devices', lucideIcon: 'laptop' },
+    { id: 'cat_laptop', name: 'Ноутбук', group: 'devices', categoryGroupId: 'grp_devices', lucideIcon: 'laptop' },
   ],
   employees: [{ id: 'e1', firstName: 'Иван', lastName: 'Петров', email: null }],
 }

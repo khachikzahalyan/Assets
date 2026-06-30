@@ -121,7 +121,7 @@ function renderPage({
   const empRepo = new InMemoryEmployeeRepository(employees, [], makeAuditCtx())
   const assetRepo = new InMemoryAssetRepository(
     [],
-    { statuses: [], branches: [], departments: [], categories: [], employees: [] },
+    { statuses: [], branches: [], departments: [], categories: [], employees: [], categoryGroups: [] },
     makeAuditCtx(),
   )
 

@@ -87,11 +87,13 @@ const REF: AssetReferenceData = {
       id: 'cat_laptop',
       name: 'Ноутбук',
       group: 'devices',
+      categoryGroupId: 'grp_devices',
       lucideIcon: 'laptop',
       hasOemLicense: true,
     },
   ],
-  employees: [],
+  employees:      [],
+  categoryGroups: [],
 }
 
 // ---------------------------------------------------------------------------

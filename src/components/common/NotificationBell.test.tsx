@@ -17,7 +17,7 @@ const base: Asset = {
 function temp(id: string, expiresAt: string, tempKind: 'audit' | 'intern', invCode: string): Asset {
   return { ...base, id, invCode, assignment: { mode: 'temporary', isTemporary: true, tempKind, expiresAt } }
 }
-const EMPTY_REF: AssetReferenceData = { statuses: [], branches: [], departments: [], categories: [], employees: [] }
+const EMPTY_REF: AssetReferenceData = { statuses: [], branches: [], departments: [], categories: [], employees: [], categoryGroups: [] }
 function stubRepo(assets: Asset[]): AssetRepository {
   return {
     listAssets: vi.fn().mockResolvedValue(assets),

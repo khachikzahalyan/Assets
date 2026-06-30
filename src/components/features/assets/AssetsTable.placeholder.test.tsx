@@ -19,11 +19,12 @@ import type { Asset } from '@/domain/asset'
 
 // ── Minimal ref fixture ───────────────────────────────────────────────────────
 const REF: AssetReferenceData = {
-  statuses:    [{ id: 'st_warehouse', name: 'На складе', color: 'gray' }],
-  branches:    [{ id: 'br_main', name: 'Главный офис' }],
-  departments: [],
-  categories:  [{ id: 'cat_laptop', name: 'Ноутбук', group: 'devices', lucideIcon: 'laptop' }],
-  employees:   [],
+  statuses:       [{ id: 'st_warehouse', name: 'На складе', color: 'gray' }],
+  branches:       [{ id: 'br_main', name: 'Главный офис' }],
+  departments:    [],
+  categories:     [{ id: 'cat_laptop', name: 'Ноутбук', group: 'devices', categoryGroupId: 'grp_devices', lucideIcon: 'laptop' }],
+  employees:      [],
+  categoryGroups: [],
 }
 
 // ── Asset factory ─────────────────────────────────────────────────────────────

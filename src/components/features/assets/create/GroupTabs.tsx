@@ -1,32 +1,22 @@
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@/components/ui'
-import type { CategoryRow } from '@/domain/asset'
-
-export type CategoryGroup = 'devices' | 'network' | 'furniture'
-
-export const CATEGORY_GROUPS: { id: CategoryGroup; lucideIcon: string }[] = [
-  { id: 'devices', lucideIcon: 'monitor-smartphone' },
-  { id: 'network', lucideIcon: 'server' },
-  { id: 'furniture', lucideIcon: 'armchair' },
-]
+import type { CategoryRow, CategoryGroupRow } from '@/domain/asset'
 
 /** Active chip styling — uniform accent (our primary color) for every group. */
 const ACTIVE_CHIP = 'bg-accent/[0.12] border-accent ring-1 ring-accent/15'
 
 export interface GroupTabsProps {
+  /** Dynamic top-level groups loaded from Firestore via loadReferenceData(). */
+  categoryGroups: CategoryGroupRow[]
   categories: CategoryRow[]
-  selected: CategoryGroup | null
-  onSelect: (g: CategoryGroup) => void
+  /** The id of the currently selected CategoryGroupRow (or null if none). */
+  selected: string | null
+  onSelect: (id: string) => void
 }
 
-/** Group pills (Устройства / Сетевые устройства / Мебель) with live counts. */
-export function GroupTabs({ categories, selected, onSelect }: GroupTabsProps) {
+/** Group pills — driven by dynamic categoryGroups from loadReferenceData(). */
+export function GroupTabs({ categoryGroups, categories, selected, onSelect }: GroupTabsProps) {
   const { t } = useTranslation('assets')
-  const label: Record<CategoryGroup, string> = {
-    devices: t('groups.devices'),
-    network: t('groups.networkShort'),
-    furniture: t('groups.furniture'),
-  }
   // Desktop: 3-col grid. Mobile: single-row horizontal scroll strip with nowrap pills
   return (
     <div
@@ -34,9 +24,9 @@ export function GroupTabs({ categories, selected, onSelect }: GroupTabsProps) {
       aria-label={t('form.category')}
       className="grid grid-cols-3 gap-2 max-md:grid-cols-none max-md:flex max-md:flex-row max-md:overflow-x-auto max-md:gap-2 max-md:pb-0.5"
     >
-      {CATEGORY_GROUPS.map(g => {
+      {categoryGroups.map(g => {
         const active = selected === g.id
-        const count = categories.filter(c => c.group === g.id).length
+        const count = categories.filter(c => c.categoryGroupId === g.id).length
         return (
           <button
             key={g.id}
@@ -50,7 +40,7 @@ export function GroupTabs({ categories, selected, onSelect }: GroupTabsProps) {
                 : 'bg-surface border-border text-text-primary hover:border-border-strong hover:bg-surface-2'}`}
           >
             <Icon name={g.lucideIcon} size={15} className={active ? 'text-accent' : 'text-text-subtle'} />
-            <span className="text-[15px] font-medium tracking-tight truncate max-md:truncate-none text-text-primary">{label[g.id]}</span>
+            <span className="text-[15px] font-medium tracking-tight truncate max-md:truncate-none text-text-primary">{g.name}</span>
             <span className={`text-[14px] tabular-nums font-semibold shrink-0${active ? ' text-text-primary' : ' text-text-subtle'}`}>{count}</span>
           </button>
         )

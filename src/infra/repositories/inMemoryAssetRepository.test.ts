@@ -3,9 +3,9 @@ import { InMemoryAssetRepository } from './inMemoryAssetRepository'
 import type { Asset, CategoryRow, StatusRow, RefRow } from '@/domain/asset'
 
 const cats: CategoryRow[] = [
-  { id: 'cat_laptop', name: 'Ноутбук', group: 'devices', lucideIcon: 'laptop' },
-  { id: 'cat_server', name: 'Сервер', group: 'network', lucideIcon: 'server' },
-  { id: 'cat_desk', name: 'Стол', group: 'furniture', lucideIcon: 'table-2' },
+  { id: 'cat_laptop', name: 'Ноутбук', group: 'devices',   categoryGroupId: 'grp_devices',   lucideIcon: 'laptop' },
+  { id: 'cat_server', name: 'Сервер',  group: 'network',   categoryGroupId: 'grp_network',   lucideIcon: 'server' },
+  { id: 'cat_desk',   name: 'Стол',    group: 'furniture', categoryGroupId: 'grp_furniture', lucideIcon: 'table-2' },
 ]
 const statuses: StatusRow[] = [
   { id: 'st_warehouse', name: 'На складе', color: 'gray' },
@@ -24,7 +24,7 @@ const assets: Asset[] = [
 ]
 
 function repo() {
-  return new InMemoryAssetRepository(assets, { statuses, branches, departments: [], categories: cats, employees: [] })
+  return new InMemoryAssetRepository(assets, { statuses, branches, departments: [], categories: cats, employees: [], categoryGroups: [] })
 }
 
 describe('InMemoryAssetRepository.listAssets', () => {

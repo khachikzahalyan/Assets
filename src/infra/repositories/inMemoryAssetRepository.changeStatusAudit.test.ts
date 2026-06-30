@@ -17,8 +17,9 @@ const REF: AssetReferenceData = {
   ],
   branches: [{ id: 'br_gyumri', name: 'Филиал Гюмри' }],
   departments: [],
-  categories: [{ id: 'cat_laptop', name: 'Laptop', group: 'devices', lucideIcon: 'laptop' }],
+  categories: [{ id: 'cat_laptop', name: 'Laptop', group: 'devices', categoryGroupId: 'grp_devices', lucideIcon: 'laptop' }],
   employees: [],
+  categoryGroups: [],
 }
 
 const ACTOR = { uid: 'u1', role: 'asset_admin' as const }

@@ -82,7 +82,21 @@ export interface Asset {
 
 /** Reference rows resolved alongside assets so the table can render names. */
 export interface RefRow { id: string; name: string }
+
+/** A top-level category group (e.g. Устройства, Сетевые устройства, Мебель). */
+export interface CategoryGroupRow extends RefRow {
+  lucideIcon: string
+  /** Display order in GroupTabs (ascending). */
+  order: number
+}
+
 export interface CategoryRow extends RefRow {
+  /** FK → CategoryGroupRow.id — used by GroupTabs and CategoryPicker to filter subcategories. */
+  categoryGroupId: string
+  /**
+   * Behavior discriminator — drives capability derivation (specs, serial, OEM license, etc.).
+   * MUST remain 'devices' | 'network' | 'furniture'; DO NOT route capabilities through categoryGroupId.
+   */
   group: 'devices' | 'network' | 'furniture'
   lucideIcon: string
   /** When true, the asset-create form renders the OEM License Key section. */

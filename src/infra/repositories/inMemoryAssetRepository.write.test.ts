@@ -5,8 +5,9 @@ import type { AssetReferenceData, Asset } from '@/domain/asset'
 
 const REF: AssetReferenceData = {
   statuses: [], branches: [{ id: 'b_main', name: 'HQ' }], departments: [],
-  categories: [{ id: 'cat_laptop', name: 'Laptop', group: 'devices', lucideIcon: 'laptop' }],
+  categories: [{ id: 'cat_laptop', name: 'Laptop', group: 'devices', categoryGroupId: 'grp_devices', lucideIcon: 'laptop' }],
   employees: [{ id: 'e1', firstName: 'A', lastName: 'B', email: null }],
+  categoryGroups: [],
 }
 const ACTOR = { uid: 'u1', role: 'asset_admin' as const }
 
@@ -159,7 +160,7 @@ describe('changeStatus — all 5 transfer modes persist assignment verbatim, one
 
 describe('listAssetsForEmployee', () => {
   it('returns only assets whose assignment.employeeId matches', async () => {
-    const ref: AssetReferenceData = { statuses: [], branches: [], departments: [], categories: [], employees: [] }
+    const ref: AssetReferenceData = { statuses: [], branches: [], departments: [], categories: [], employees: [], categoryGroups: [] }
     const assets: Asset[] = [
       { id: 'a_1', categoryId: 'c', brand: null, model: null, invCode: '1', serial: null,
         statusId: 'st_assigned', assignment: { mode: 'employee', employeeId: 'uid_1' }, branchId: 'b', deptId: null,

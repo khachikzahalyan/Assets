@@ -68,11 +68,12 @@ function refData(): AssetReferenceData {
       { id: 'dept_1', name: 'ИТ-отдел' },
     ],
     categories: [
-      { id: 'cat_laptop', name: 'Ноутбук', group: 'devices', lucideIcon: 'laptop' },
+      { id: 'cat_laptop', name: 'Ноутбук', group: 'devices', categoryGroupId: 'grp_devices', lucideIcon: 'laptop' },
     ],
     employees: [
       { id: 'e_1', firstName: 'Иван', lastName: 'Петров', email: 'ivan@example.test' },
     ],
+    categoryGroups: [],
   }
 }
 

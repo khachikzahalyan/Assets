@@ -9,7 +9,7 @@ import type { WorkstationLicenseRepository } from '@/domain/license'
 import { CategoryPicker, categoryCapabilities } from './CategoryPicker'
 import { QuickAssignment, type QAValue } from './QuickAssignment'
 import { HEAD_OFFICE_BRANCH_ID } from '@/domain/asset/transferRules'
-import { GroupTabs, type CategoryGroup } from './GroupTabs'
+import { GroupTabs } from './GroupTabs'
 import { SpecsPanel } from './SpecsPanel'
 import { ConditionWarranty, type ConditionWarrantyValue } from './ConditionWarranty'
 import { GroupStepper, type GroupRow } from './GroupStepper'
@@ -62,7 +62,7 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
 
   // Identity
   const [categoryId, setCategoryId] = useState('')
-  const [group, setGroup] = useState<CategoryGroup | null>(null)
+  const [categoryGroupId, setCategoryGroupId] = useState<string | null>(null)
   const [brand, setBrand] = useState('')
   const [model, setModel] = useState('')
   const [typeField, setTypeField] = useState('')
@@ -114,13 +114,13 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
   function handleCategoryChange(id: string) {
     setCategoryId(id)
     const c = refData.categories.find(x => x.id === id)
-    if (c) setGroup(c.group)
+    if (c) setCategoryGroupId(c.categoryGroupId)
     resetDependentFields()
   }
 
-  function handleGroupTab(g: CategoryGroup) {
-    setGroup(g)
-    if (selectedCategory && selectedCategory.group !== g) {
+  function handleGroupTab(id: string) {
+    setCategoryGroupId(id)
+    if (selectedCategory && selectedCategory.categoryGroupId !== id) {
       setCategoryId('')
       resetDependentFields()
     }
@@ -152,7 +152,7 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
     const devicesCat = cats.find(c => c.group === 'devices')
     const defaultCat = oemCat ?? devicesCat ?? cats[0]!
     setCategoryId(defaultCat.id)
-    setGroup(defaultCat.group)
+    setCategoryGroupId(defaultCat.categoryGroupId)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -385,13 +385,13 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
         {/* LEFT column — borderless section matching prototype .ams-sec-asset */}
         <section className="max-md:px-[14px] px-6 py-5 lg:border-r lg:border-[#2A2F36]/80 max-w-full overflow-x-hidden">
           <div className="space-y-4">
-            <GroupTabs categories={refData.categories} selected={group} onSelect={handleGroupTab} />
+            <GroupTabs categoryGroups={refData.categoryGroups} categories={refData.categories} selected={categoryGroupId} onSelect={handleGroupTab} />
 
             <CategoryPicker
               categories={refData.categories}
               value={categoryId}
               onChange={handleCategoryChange}
-              group={group}
+              categoryGroupId={categoryGroupId}
             />
 
             {caps && (

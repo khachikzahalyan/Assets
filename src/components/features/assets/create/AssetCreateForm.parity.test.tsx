@@ -14,10 +14,15 @@ const REF: AssetReferenceData = {
   ],
   branches: [{ id: 'b_main', name: 'Головной офис' }],
   departments: [{ id: 'd1', name: 'IT' }],
+  categoryGroups: [
+    { id: 'grp_devices',   name: 'Устройства',   lucideIcon: 'monitor-smartphone', order: 0 },
+    { id: 'grp_network',   name: 'Сетевые уст.', lucideIcon: 'server',             order: 1 },
+    { id: 'grp_furniture', name: 'Мебель',        lucideIcon: 'armchair',           order: 2 },
+  ],
   categories: [
-    { id: 'cat_laptop', name: 'Ноутбук', group: 'devices', lucideIcon: 'laptop', hasOemLicense: true, hasSpecs: true, requiresSerial: true },
-    { id: 'cat_router', name: 'Маршрутизатор', group: 'network', lucideIcon: 'router', requiresSerial: true },
-    { id: 'cat_desk', name: 'Стол', group: 'furniture', lucideIcon: 'armchair', hasTypeField: true, requiresSerial: false },
+    { id: 'cat_laptop', name: 'Ноутбук',        group: 'devices',   categoryGroupId: 'grp_devices',   lucideIcon: 'laptop',  hasOemLicense: true, hasSpecs: true, requiresSerial: true },
+    { id: 'cat_router', name: 'Маршрутизатор',  group: 'network',   categoryGroupId: 'grp_network',   lucideIcon: 'router',  requiresSerial: true },
+    { id: 'cat_desk',   name: 'Стол',           group: 'furniture', categoryGroupId: 'grp_furniture', lucideIcon: 'armchair', hasTypeField: true, requiresSerial: false },
   ],
   employees: [{ id: 'e1', firstName: 'Иван', lastName: 'Петров', email: null }],
 }

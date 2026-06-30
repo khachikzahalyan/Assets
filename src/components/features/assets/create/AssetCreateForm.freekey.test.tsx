@@ -29,11 +29,15 @@ const REF: AssetReferenceData = {
   ],
   branches: [{ id: 'b_main', name: 'Головной офис' }],
   departments: [{ id: 'd1', name: 'IT' }],
+  categoryGroups: [
+    { id: 'grp_devices', name: 'Устройства', lucideIcon: 'monitor-smartphone', order: 0 },
+  ],
   categories: [
     {
       id: 'cat_laptop',
       name: 'Ноутбук',
       group: 'devices',
+      categoryGroupId: 'grp_devices',
       lucideIcon: 'laptop',
       hasOemLicense: true,
     },
@@ -41,6 +45,7 @@ const REF: AssetReferenceData = {
       id: 'cat_monitor',
       name: 'Монитор',
       group: 'devices',
+      categoryGroupId: 'grp_devices',
       lucideIcon: 'monitor',
       hasOemLicense: false,
     },
