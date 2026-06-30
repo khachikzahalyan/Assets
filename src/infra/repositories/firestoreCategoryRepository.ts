@@ -44,6 +44,7 @@ export class FirestoreCategoryRepository implements CategoryRepository {
     const snap = await getDocs(collection(this.db, 'categories'))
     let rows = snap.docs.map(d => toCategory(d.id, d.data() as Record<string, unknown>))
     if (query.group && query.group !== 'all') rows = rows.filter(c => c.group === query.group)
+    if (query.categoryGroupId) rows = rows.filter(c => c.categoryGroupId === query.categoryGroupId)
     const search = (query.search ?? '').trim().toLowerCase()
     if (search) {
       rows = rows.filter(c => c.name.toLowerCase().includes(search))
@@ -75,16 +76,17 @@ export class FirestoreCategoryRepository implements CategoryRepository {
   async createCategory(input: CreateCategoryInput, actor: Actor): Promise<AuditedResult<Category>> {
     if (await this.isNameTaken(input.name)) throw new Error(`Name already in use: ${input.name}`)
     const ref = doc(collection(this.db, 'categories'))
-    const data: Record<string, unknown> = {
+    const data: Record<string, unknown> = stripUndefinedFs({
       name: input.name.trim(),
       group: input.group,
+      categoryGroupId: input.categoryGroupId,
       hasSpecs: input.hasSpecs,
       lucideIcon: input.lucideIcon ?? 'package',
       createdBy: actor.uid,
       updatedBy: actor.uid,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
-    }
+    })
     const r = await withAudit(this.audit,
       {
         entityType: 'category', entityId: ref.id, action: 'created',

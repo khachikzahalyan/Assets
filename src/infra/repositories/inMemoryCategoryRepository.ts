@@ -21,6 +21,7 @@ export class InMemoryCategoryRepository implements CategoryRepository {
     const search = (query.search ?? '').trim().toLowerCase()
     return this.categories.filter(c => {
       if (query.group && query.group !== 'all' && c.group !== query.group) return false
+      if (query.categoryGroupId && c.categoryGroupId !== query.categoryGroupId) return false
       if (search) {
         if (!c.name.toLowerCase().includes(search)) return false
       }
