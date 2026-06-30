@@ -1,8 +1,9 @@
 import { useState, useMemo, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { EmptyState, Icon, MobileSheet } from '@/components/ui'
+import { EmptyState, Icon } from '@/components/ui'
 import { DeviceGridCard } from './DeviceGridCard'
 import { InstalledDetailPanel } from './InstalledDetailPanel'
+import { DeviceDetailMobileView } from './DeviceDetailMobileView'
 import type { Part, PartsAsset, UpgradeSlot, PartMovement } from '@/domain/part/types'
 import { assetFamilyOf } from '@/domain/part/partStock'
 
@@ -28,8 +29,8 @@ type FamilyFilter = 'all' | 'desktop' | 'laptop' | 'server'
 const FAMILIES: Array<{ id: FamilyFilter; labelKey: string; labelFallback: string }> = [
   { id: 'all',     labelKey: 'devices.familyAll',     labelFallback: 'Все'    },
   { id: 'desktop', labelKey: 'devices.familyDesktop',  labelFallback: 'ПК'     },
-  { id: 'laptop',  labelKey: 'devices.familyLaptop',   labelFallback: 'Ноут'   },
-  { id: 'server',  labelKey: 'devices.familyServer',   labelFallback: 'Сервер' },
+  { id: 'laptop',  labelKey: 'devices.familyLaptop',   labelFallback: 'Ноутбуки' },
+  { id: 'server',  labelKey: 'devices.familyServer',   labelFallback: 'Серверы' },
 ]
 
 /**
@@ -128,8 +129,8 @@ export function DevicesTab({
         {/* LEFT COLUMN (col-span-5): pills + search + 2-col card grid */}
         <div className="lg:col-span-5 flex flex-col gap-2.5 min-h-0 flex-1">
 
-          {/* Family filter pills — grid 4-in-row */}
-          <div className="grid grid-cols-4 gap-1.5 flex-shrink-0">
+          {/* Family filter pills — grid 4-in-row (desktop) / flex overflow-x-auto (mobile) */}
+          <div className="grid grid-cols-4 gap-1.5 flex-shrink-0 max-md:flex max-md:gap-[7px] max-md:overflow-x-auto max-md:pl-0" style={{ scrollbarWidth: 'none' }}>
             {FAMILIES.map(f => {
               const active = family === f.id
               return (
@@ -139,9 +140,10 @@ export function DevicesTab({
                   onClick={() => setFamily(f.id)}
                   className={
                     'h-7 w-full rounded-md text-[14px] font-medium border transition-colors inline-flex items-center justify-center ' +
+                    'max-md:rounded-full max-md:h-auto max-md:py-[7px] max-md:px-5 max-md:whitespace-nowrap max-md:flex-shrink-0 ' +
                     (active
                       ? 'bg-accent border-accent text-white'
-                      : 'bg-surface border-border text-text-tertiary hover:text-text-primary hover:border-[#3A3F46]')
+                      : 'bg-surface border-border text-text-tertiary hover:text-text-primary hover:border-[#3A3F46] max-md:border-white/10')
                   }
                 >
                   {t(f.labelKey, f.labelFallback)}
@@ -167,7 +169,7 @@ export function DevicesTab({
             />
           </div>
 
-          {/* 2-col device card grid — gap 8px desktop, 6px mobile per §11 spec */}
+          {/* Device card list: 2-col grid on desktop, full-width 1-col on mobile */}
           {filtered.length === 0 ? (
             <div className="px-3 py-6 text-[14px] text-text-subtle text-center">
               {t('devices.emptyFiltered')}
@@ -175,13 +177,19 @@ export function DevicesTab({
           ) : (
             <div
               className="flex-1 overflow-y-auto min-h-0 devices-scroll"
-              style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px', alignContent: 'start' }}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
+                gap: '8px',
+                alignContent: 'start',
+              }}
             >
               {filtered.map(a => (
                 <DeviceGridCard
                   key={a.id}
                   asset={a}
                   selected={selectedId === a.id}
+                  isMobile={isMobile}
                   onSelect={() => handleSelect(a.id)}
                 />
               ))}
@@ -200,31 +208,18 @@ export function DevicesTab({
         </div>
       </div>
 
-      {/* Mobile: installed detail bottom-sheet */}
-      {isMobile && (
-        <MobileSheet
-          open={mobileDetailId !== null}
-          onClose={() => setMobileDetailId(null)}
-          title={
-            mobileDetailAsset
-              ? `${mobileDetailAsset.id} — ${t('device.tabInstalled', 'Установлено')}`
-              : ''
-          }
-        >
-          {mobileDetailAsset && (
-            <div className="px-4 py-3">
-              <InstalledDetailPanel
-                asset={mobileDetailAsset}
-                onUninstall={(slot, idx) => {
-                  setMobileDetailId(null)
-                  onUninstall(mobileDetailAsset, slot, idx)
-                }}
-                movements={movements}
-                parts={parts}
-              />
-            </div>
-          )}
-        </MobileSheet>
+      {/* Mobile: full-screen slide-in device detail (replaces former MobileSheet) */}
+      {isMobile && mobileDetailId !== null && mobileDetailAsset && (
+        <DeviceDetailMobileView
+          asset={mobileDetailAsset}
+          onBack={() => setMobileDetailId(null)}
+          onUninstall={(slot, idx) => {
+            setMobileDetailId(null)
+            onUninstall(mobileDetailAsset, slot, idx)
+          }}
+          movements={movements}
+          parts={parts}
+        />
       )}
     </div>
   )

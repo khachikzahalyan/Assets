@@ -16,6 +16,8 @@ export interface DeviceGridCardProps {
   selected: boolean
   /** hasBroken: true when any installed SKU on this asset has broken stock > 0 */
   hasBroken?: boolean
+  /** isMobile: true on ≤767px — renders a full-width horizontal list card with chevron */
+  isMobile?: boolean
   onSelect: () => void
 }
 
@@ -24,7 +26,7 @@ export interface DeviceGridCardProps {
  * Layout from prototype parts.html lines 2876-2945.
  * No action buttons — actions live in the right detail panel.
  */
-export function DeviceGridCard({ asset, selected, hasBroken = false, onSelect }: DeviceGridCardProps) {
+export function DeviceGridCard({ asset, selected, hasBroken = false, isMobile = false, onSelect }: DeviceGridCardProps) {
   const { t } = useTranslation('parts')
 
   const family = assetFamilyOf(asset.categoryId) ?? 'desktop'
@@ -52,6 +54,62 @@ export function DeviceGridCard({ asset, selected, hasBroken = false, onSelect }:
 
   const cardBg = selected ? 'bg-white/10' : 'bg-surface hover:bg-white/[0.05]'
 
+  /* ── Mobile: full-width horizontal list card ─────────────────────────────
+   * Layout (per owner screenshot):
+   *   Row 1: [N комп. chip (emerald/amber)] [Сервисное badge if applicable]
+   *   Row 2: [category icon 32px] [device name + invCode·type subtitle] [chevron-right]
+   * ─────────────────────────────────────────────────────────────────────── */
+  if (isMobile) {
+    const chipTone = hasBroken
+      ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+      : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+
+    return (
+      <button
+        type="button"
+        aria-pressed={selected}
+        onClick={onSelect}
+        className={`${cardBg} border rounded-xl px-4 py-3 cursor-pointer transition-colors w-full text-left flex flex-col gap-2 ${selected ? 'border-accent' : 'border-border'}`}
+      >
+        {/* Row 1: component count chip + service badge */}
+        <div className="flex items-center gap-1.5">
+          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11.5px] font-medium border ${chipTone}`}>
+            <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${dotColor}`} />
+            {totalComponents}&nbsp;{t('devices.compShort', 'комп.')}
+          </span>
+          {isService && (
+            <span className="inline-flex items-center gap-0.5 text-[10.5px] font-medium bg-violet-500/10 text-violet-300 border border-violet-500/30 rounded-full px-2 py-0.5 flex-shrink-0">
+              <Icon name="wrench" size={9} />
+              {t('device.service')}
+            </span>
+          )}
+        </div>
+        {/* Row 2: category icon + name/subtitle + chevron */}
+        <div className="flex items-center gap-3">
+          <span
+            className="w-8 h-8 rounded-lg inline-flex items-center justify-center flex-shrink-0"
+            style={catColor ? { backgroundColor: catColor.bg, color: catColor.icon } : undefined}
+          >
+            <Icon name={iconName} size={15} />
+          </span>
+          <div className="flex-1 min-w-0">
+            <div
+              className="text-[13.5px] font-semibold text-text-primary leading-tight truncate"
+              title={asset.name}
+            >
+              {asset.name}
+            </div>
+            <div className="text-[11.5px] text-text-subtle mt-0.5 truncate">
+              <span className="font-mono">{asset.id}</span>&nbsp;·&nbsp;{catLabel}
+            </div>
+          </div>
+          <Icon name="chevron-right" size={16} className="text-text-subtle flex-shrink-0" />
+        </div>
+      </button>
+    )
+  }
+
+  /* ── Desktop: compact 2-col grid card (unchanged) ───────────────────── */
   return (
     <button
       type="button"
@@ -64,17 +122,15 @@ export function DeviceGridCard({ asset, selected, hasBroken = false, onSelect }:
       <div className="flex items-start justify-between gap-1">
         {/* category icon square — colours from the Assets category palette */}
         <span
-          className="w-9 h-9 rounded-lg inline-flex items-center justify-center flex-shrink-0 max-md:w-7 max-md:h-7"
+          className="w-9 h-9 rounded-lg inline-flex items-center justify-center flex-shrink-0"
           style={catColor ? { backgroundColor: catColor.bg, color: catColor.icon } : undefined}
         >
-          {/* icon svg: 16px desktop → 13px mobile */}
-          <Icon name={iconName} size={16} className="max-md:!w-[13px] max-md:!h-[13px]" />
+          <Icon name={iconName} size={16} />
         </span>
         {/* status dot + component counter */}
         <div className="flex items-center gap-1 pt-0.5 flex-shrink-0">
           <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${dotColor}`} />
-          {/* component count: 13px desktop, 11.5px mobile */}
-          <span className="text-[13px] text-text-subtle tabular-nums whitespace-nowrap max-md:text-[11.5px]">
+          <span className="text-[13px] text-text-subtle tabular-nums whitespace-nowrap">
             {totalComponents}&nbsp;{t('devices.compShort', 'комп.')}
           </span>
           {isService && (
@@ -85,15 +141,15 @@ export function DeviceGridCard({ asset, selected, hasBroken = false, onSelect }:
           )}
         </div>
       </div>
-      {/* name + subtitle — name: 15px desktop, 12px mobile; inv-code: 13px desktop, 11.5px mobile */}
-      <div className="mt-2 min-w-0 max-md:mt-1">
+      {/* name + subtitle */}
+      <div className="mt-2 min-w-0">
         <div
-          className="text-[15px] font-medium text-text-primary leading-tight truncate max-md:text-[12px]"
+          className="text-[15px] font-medium text-text-primary leading-tight truncate"
           title={asset.name}
         >
           {asset.name}
         </div>
-        <div className="text-[13px] text-text-subtle mt-0.5 truncate max-md:text-[11.5px]">
+        <div className="text-[13px] text-text-subtle mt-0.5 truncate">
           {asset.id}&nbsp;·&nbsp;{catLabel}
         </div>
       </div>
