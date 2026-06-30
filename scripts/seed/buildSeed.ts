@@ -9,7 +9,7 @@
 // sentinel plus real createdAt/updatedAt timestamps (the runner converts the ISO
 // strings emitted here into Admin SDK Timestamps before writing).
 import {
-  STATUS_SEED, BRANCH_SEED, DEPARTMENT_SEED, CORE_CATEGORY_SEED,
+  STATUS_SEED, BRANCH_SEED, DEPARTMENT_SEED, CATEGORY_GROUP_SEED, CORE_CATEGORY_SEED,
   buildAllCategorySeed, PART_SEED, type CategorySeed,
 } from './referenceData'
 
@@ -43,10 +43,17 @@ export function buildSeedDocs(opts: BuildSeedOptions): SeedDoc[] {
   for (const d of DEPARTMENT_SEED) {
     docs.push({ collection: 'departments', id: d.id, data: { name: d.name, ...stamp } })
   }
+  // Top-level groups (UI «Категория»). id === behavior so categories link via group value.
+  for (const g of CATEGORY_GROUP_SEED) {
+    docs.push({ collection: 'categoryGroups', id: g.id, data: {
+      name: g.name, behavior: g.behavior, lucideIcon: g.lucideIcon,
+      color: g.color, order: g.order, ...stamp } })
+  }
   const cats: CategorySeed[] = opts.allCategories ? buildAllCategorySeed() : CORE_CATEGORY_SEED
   for (const c of cats) {
+    // categoryGroupId === group: the seeded groups use id === behavior literal.
     docs.push({ collection: 'categories', id: c.id, data: {
-      name: c.name, group: c.group, prefix: c.prefix,
+      name: c.name, group: c.group, categoryGroupId: c.group, prefix: c.prefix,
       hasSpecs: c.hasSpecs, hasOemLicense: c.hasOemLicense,
       requiresSerial: c.requiresSerial, hasTypeField: c.hasTypeField,
       lucideIcon: c.lucideIcon, ...stamp } })

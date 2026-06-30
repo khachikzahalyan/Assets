@@ -10,6 +10,10 @@ export interface BranchSeed {
   id: string; name: string; type: 'branch' | 'warehouse'; city: string | null; address: string | null
 }
 export interface DepartmentSeed { id: string; name: string }
+export interface CategoryGroupSeed {
+  id: string; name: string; behavior: 'devices' | 'network' | 'furniture';
+  lucideIcon: string; color: string; order: number
+}
 export interface CategorySeed {
   id: string; name: string; group: 'devices' | 'network' | 'furniture'; prefix: string;
   hasSpecs: boolean; hasOemLicense: boolean; requiresSerial: boolean; hasTypeField: boolean;
@@ -38,6 +42,18 @@ export const DEPARTMENT_SEED: DepartmentSeed[] = [
   { id: 'dep_finance', name: 'Финансы'  },
   { id: 'dep_legal',   name: 'Юристы'   },
   { id: 'dep_ops',     name: 'Операции' },
+]
+
+// --- Top-level category groups (UI «Категория»). The 3 seeded groups have
+// id === behavior literal (devices/network/furniture) so existing `categories` and
+// `assets` need NO value migration — a category's `categoryGroupId` simply equals its
+// `group`. Colors/icons mirror the current CategoriesPage GROUP_CHIP (devices=blue,
+// network=green, furniture=amber). Operators may add custom groups later (e.g. «Самокат»,
+// behavior 'devices') via the UI; those get generated ids.
+export const CATEGORY_GROUP_SEED: CategoryGroupSeed[] = [
+  { id: 'devices',   name: 'Устройства',         behavior: 'devices',   lucideIcon: 'cpu',      color: 'blue',  order: 0 },
+  { id: 'network',   name: 'Сетевые устройства', behavior: 'network',   lucideIcon: 'network',  color: 'green', order: 1 },
+  { id: 'furniture', name: 'Мебель',             behavior: 'furniture', lucideIcon: 'armchair', color: 'amber', order: 2 },
 ]
 
 // --- Curated core category set (default). Explicit, hand-assigned unique prefixes.

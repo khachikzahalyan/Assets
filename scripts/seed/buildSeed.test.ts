@@ -287,6 +287,42 @@ describe('buildSeedDocs', () => {
   })
 })
 
+describe('category groups (two-level taxonomy)', () => {
+  it('emits 3 categoryGroups docs with id === behavior literal', () => {
+    const docs = buildSeedDocs({ nowIso: '2026-06-20T00:00:00.000Z' })
+    const groups = docs.filter(d => d.collection === 'categoryGroups')
+    expect(groups.map(g => g.id)).toEqual(['devices', 'network', 'furniture'])
+    for (const g of groups) {
+      const data = g.data as Record<string, unknown>
+      // id === behavior so categories link via group value with no asset migration
+      expect(data.behavior).toBe(g.id)
+      expect(typeof data.name).toBe('string')
+      expect((data.name as string).length).toBeGreaterThan(0)
+      expect(typeof data.lucideIcon).toBe('string')
+      expect(['blue', 'green', 'amber']).toContain(data.color)
+      expect(typeof data.order).toBe('number')
+      expect(data.createdBy).toBe('system')
+    }
+  })
+  it('seeded groups use blue/green/amber to match the page GROUP_CHIP', () => {
+    const docs = buildSeedDocs({ nowIso: 'x' })
+    const byId = (id: string) =>
+      docs.find(d => d.collection === 'categoryGroups' && d.id === id)!.data as Record<string, unknown>
+    expect(byId('devices').color).toBe('blue')
+    expect(byId('network').color).toBe('green')
+    expect(byId('furniture').color).toBe('amber')
+  })
+  it('every category doc carries categoryGroupId === its group (no asset migration)', () => {
+    const docs = buildSeedDocs({ nowIso: 'x', allCategories: true })
+    const cats = docs.filter(d => d.collection === 'categories')
+    expect(cats.length).toBeGreaterThan(100)
+    for (const c of cats) {
+      const data = c.data as Record<string, unknown>
+      expect(data.categoryGroupId).toBe(data.group)
+    }
+  })
+})
+
 describe('emitted docs round-trip through InMemory repositories', () => {
   it('categories list cleanly', async () => {
     const docs = buildSeedDocs({ nowIso: '2026-06-20T00:00:00.000Z' })
