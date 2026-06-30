@@ -3,12 +3,6 @@ import { useTranslation } from 'react-i18next'
 import type { Asset } from '@/domain/asset'
 import { SectionCard, Icon, Btn } from '@/components/ui'
 
-const SEVERITY_OPTIONS = [
-  { id: 'low',    labelKey: 'detail.repair.severityLow',    activeCls: 'bg-sky-500/10 text-sky-300 ring-sky-500/30'    },
-  { id: 'medium', labelKey: 'detail.repair.severityMedium', activeCls: 'bg-amber-500/10 text-amber-300 ring-amber-500/30' },
-  { id: 'high',   labelKey: 'detail.repair.severityHigh',   activeCls: 'bg-rose-500/10 text-rose-300 ring-rose-500/30'   },
-]
-
 interface RepairCardProps {
   asset: Asset
   canRepair: boolean
@@ -27,14 +21,13 @@ export function RepairCard({
   const { t } = useTranslation('assets')
   const [showForm, setShowForm] = useState(false)
   const [reason, setReason]     = useState('')
-  const [severity, setSeverity] = useState<string | null>(null)
 
   if (!canRepair) return null
 
   const isInRepair = asset.statusId === 'st_repair'
 
-  function openForm() { setShowForm(true); setReason(''); setSeverity(null) }
-  function closeForm() { setShowForm(false); setReason(''); setSeverity(null) }
+  function openForm() { setShowForm(true); setReason('') }
+  function closeForm() { setShowForm(false); setReason('') }
 
   function handleConfirm() {
     const trimmed = reason.trim()
@@ -105,29 +98,6 @@ export function RepairCard({
               <div className="absolute bottom-2 right-2.5 text-[12px] text-text-subtle tabular-nums select-none">
                 {reason.length}/300
               </div>
-            </div>
-          </div>
-
-          {/* Severity (visual-only, optional) */}
-          <div>
-            <p className="text-[12px] text-text-tertiary uppercase tracking-widest mb-1">
-              {t('detail.repair.severityLabel')}
-            </p>
-            <div className="grid grid-cols-3 gap-1.5">
-              {SEVERITY_OPTIONS.map(s => (
-                <button
-                  key={s.id}
-                  type="button"
-                  onClick={() => setSeverity(severity === s.id ? null : s.id)}
-                  className={`py-1.5 max-md:py-3 rounded-lg text-[12px] ring-1 transition-all
-                    ${severity === s.id
-                      ? s.activeCls
-                      : 'bg-surface-2 text-text-tertiary ring-transparent hover:bg-border hover:text-text-primary'
-                    }`}
-                >
-                  {t(s.labelKey)}
-                </button>
-              ))}
             </div>
           </div>
 

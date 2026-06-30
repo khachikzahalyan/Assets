@@ -153,7 +153,8 @@ export function AssignmentCard({
         ) : undefined
       }
     >
-      {renderAssignment()}
+      {/* Current assignee — hidden while transferring (redundant there, saves height) */}
+      {!transferOpen && renderAssignment()}
 
       {transferOpen && (
         <TransferPanel
