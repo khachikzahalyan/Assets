@@ -379,6 +379,15 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // ---- /barcodes/{code} — uniqueness lock for asset barcodes ----
+    // Created (once) when an asset reserves its barcode. Immutable; never updated.
+    match /barcodes/{code} {
+      allow read:   if isAnyAdmin();
+      allow create: if isSuperAdmin() || isAssetAdmin();
+      allow update: if false;
+      allow delete: if isSuperAdmin();
+    }
+
     // ---- Catch-all: deny everything not matched above ----
     match /{document=**} {
       allow read, write: if false;

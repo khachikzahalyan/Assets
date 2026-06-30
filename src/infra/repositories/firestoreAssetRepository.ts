@@ -1,5 +1,6 @@
 import {
-  collection, getDocs, getDoc, doc, query as fsQuery, where, orderBy, limit, serverTimestamp,
+  collection, getDocs, getDoc, doc, query as fsQuery, where, orderBy, limit,
+  serverTimestamp, runTransaction,
   type Firestore, type QueryConstraint, type Transaction,
 } from 'firebase/firestore'
 import type {
@@ -13,7 +14,7 @@ import type {
 } from '@/domain/asset'
 import type { UpgradeComponent, UpgradeEvent } from '@/domain/asset'
 import { deriveCreateStatus, isSpecTracked, SPEC_KEY } from '@/domain/asset'
-import { allocateUniqueBarcode } from '@/domain/asset/barcode'
+import { generateBarcodeCandidate } from '@/domain/asset/barcode'
 import { HEAD_OFFICE_BRANCH_ID } from '@/domain/asset/transferRules'
 import { firestoreAuditContext, withAudit } from '@/lib/audit'
 import type { AuditedResult, AuditLog } from '@/domain/audit'
@@ -237,14 +238,32 @@ export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepo
     return snap.docs.some(d => d.id !== exceptId)
   }
 
+  /** Atomically reserves a unique barcode by creating its /barcodes/{code} lock doc in a
+   *  transaction. Two concurrent reservations of the same code can't both commit. Tries
+   *  `preferred` first (if given), then random candidates. */
+  private async reserveBarcode(assetId: string, preferred?: string): Promise<string> {
+    const candidates = (preferred ? [preferred] : []).concat(
+      Array.from({ length: 20 }, () => generateBarcodeCandidate()),
+    )
+    for (const code of candidates) {
+      const lockRef = doc(this.db, 'barcodes', code)
+      const ok = await runTransaction(this.db, async (txn) => {
+        const snap = await txn.get(lockRef)
+        if (snap.exists()) return false
+        txn.set(lockRef, { assetId, createdAt: serverTimestamp() })
+        return true
+      })
+      if (ok) return code
+    }
+    throw new Error('Could not reserve a unique barcode after multiple attempts')
+  }
+
   async createAsset(input: CreateAssetInput, actor: Actor): Promise<AuditedResult<Asset>> {
     if (await this.isInvCodeTaken(input.invCode)) throw new Error(`Inventory code already in use: ${input.invCode}`)
     if (input.serial && await this.isSerialTaken(input.serial)) throw new Error(`Serial already in use: ${input.serial}`)
-    const barcode = (input.barcode && !(await this.isBarcodeTaken(input.barcode)))
-      ? input.barcode
-      : await allocateUniqueBarcode((c) => this.isBarcodeTaken(c))
-    const statusId = deriveCreateStatus(input.assignment)
     const ref = doc(collection(this.db, 'assets'))
+    const barcode = await this.reserveBarcode(ref.id, input.barcode)
+    const statusId = deriveCreateStatus(input.assignment)
     const data: Record<string, unknown> = stripUndefinedFs({
       categoryId: input.categoryId, brand: input.brand, model: input.model,
       type: input.type,
