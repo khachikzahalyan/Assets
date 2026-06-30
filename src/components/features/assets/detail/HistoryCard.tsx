@@ -33,7 +33,9 @@ export function HistoryCard({ events }: HistoryCardProps) {
         </div>
       )}
       {others.length > 0 ? (
-        <ol className="space-y-3">
+        // Desktop: cap the list height and scroll INSIDE it so the page itself
+        // stays put. Mobile keeps the natural page scroll.
+        <ol className="space-y-3 lg:max-h-[calc(100dvh-360px)] lg:overflow-y-auto lg:pr-1">
           {others.map((ev, i) => (
             <HistoryEvent key={ev.id ?? `${ev.date}-${i}`} ev={ev} />
           ))}
