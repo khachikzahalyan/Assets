@@ -1,9 +1,11 @@
 {
   "title": "Categories",
+  "subcategories": "Subcategories",
   "create": "Add category",
+  "createSubcategory": "Add subcategory",
   "empty": {
-    "title": "No categories yet",
-    "desc": "Add the first category"
+    "title": "No subcategories yet",
+    "desc": "Add the first subcategory"
   },
   "filter": {
     "all": "All",
@@ -16,7 +18,7 @@
     "furniture": "Furniture"
   },
   "col": {
-    "name": "Name",
+    "name": "Subcategory",
     "group": "Group",
     "specs": "Specs"
   },
@@ -25,8 +27,8 @@
     "no": "No"
   },
   "form": {
-    "createTitle": "New category",
-    "editTitle": "Edit category",
+    "createTitle": "New subcategory",
+    "editTitle": "Edit subcategory",
     "name": "Name",
     "group": "Group",
     "hasSpecs": "Track specs (CPU/RAM/SSD/GPU)",
@@ -35,12 +37,27 @@
     "cancel": "Cancel",
     "pickGroup": "Select group"
   },
+  "groupForm": {
+    "createTitle": "New category",
+    "editTitle": "Edit category",
+    "name": "Name",
+    "icon": "Icon",
+    "save": "Save",
+    "cancel": "Cancel"
+  },
   "delete": {
+    "title": "Delete subcategory?",
+    "confirm": "Delete",
+    "cancel": "Cancel",
+    "body": "This cannot be undone.",
+    "inUse": "Cannot delete: {{count}} asset(s) reference this subcategory."
+  },
+  "groupDelete": {
     "title": "Delete category?",
     "confirm": "Delete",
     "cancel": "Cancel",
     "body": "This cannot be undone.",
-    "inUse": "Cannot delete: {{count}} asset(s) reference this category."
+    "inUse": "Category has subcategories ({{count}}) — remove them first"
   },
   "validation": {
     "required": "Required",

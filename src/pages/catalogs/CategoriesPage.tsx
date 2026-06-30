@@ -9,35 +9,51 @@ import {
 } from '@/components/ui'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { CatalogTable, ConfirmDeleteDialog, type CatalogColumn } from '@/components/features/catalogs'
-import { CategoryFormDialog, type CategoryFormValues } from '@/components/features/categories'
+import {
+  CategoryFormDialog, type CategoryFormValues,
+  CategoryGroupFormDialog, type CategoryGroupFormValues,
+  CategoryGroupChips,
+} from '@/components/features/categories'
 import { PaginationBar } from '@/components/features/assets/PaginationBar'
-import type { Category, CategoryRepository } from '@/domain/category'
-import { FirestoreCategoryRepository } from '@/infra/repositories'
+import type { Category, CategoryGroup, CategoryRepository, CategoryGroupRepository } from '@/domain/category'
+import { FirestoreCategoryRepository, FirestoreCategoryGroupRepository } from '@/infra/repositories'
 import { EntityInUseError } from '@/domain/shared'
 import { db } from '@/lib/firebase'
 
-const GROUP_ORDER = ['devices', 'network', 'furniture'] as const
-// Match the Assets list page size so PAGE_SIZE rows fill the same height without
-// scrolling (12 rows overflowed the available height on standard viewports).
 const PAGE_SIZE = 10
 
-export interface CategoriesPageProps { repository?: CategoryRepository }
+export interface CategoriesPageProps {
+  repository?: CategoryRepository
+  categoryGroupRepository?: CategoryGroupRepository
+}
 
-export function CategoriesPage({ repository }: CategoriesPageProps) {
+export function CategoriesPage({ repository, categoryGroupRepository }: CategoriesPageProps) {
   const { t } = useTranslation('categories')
   const { user, role } = useAuth()
+  const isMobile = useIsMobile()
+
   const defaultRepo = useMemo<CategoryRepository>(
     () => new FirestoreCategoryRepository(db()),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   )
-  const repo = repository ?? defaultRepo
+  const defaultGroupRepo = useMemo<CategoryGroupRepository>(
+    () => new FirestoreCategoryGroupRepository(db()),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  )
+  const repo      = repository ?? defaultRepo
+  const groupRepo = categoryGroupRepository ?? defaultGroupRepo
   const canMutate = role === 'super_admin'
-  const isMobile = useIsMobile()
 
-  const [rows, setRows]             = useState<Category[]>([])
-  const [loading, setLoad]          = useState(true)
-  const [error, setError]           = useState<string | null>(null)
+  // ── Data ─────────────────────────────────────────────────────────────────
+  const [groups, setGroups]                   = useState<CategoryGroup[]>([])
+  const [rows, setRows]                       = useState<Category[]>([])
+  const [loading, setLoad]                    = useState(true)
+  const [error, setError]                     = useState<string | null>(null)
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null)
+
+  // ── Subcategory CRUD state ────────────────────────────────────────────────
   const [editing, setEditing]       = useState<Category | 'new' | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [saveError, setSaveError]   = useState<string | null>(null)
@@ -46,19 +62,49 @@ export function CategoriesPage({ repository }: CategoriesPageProps) {
   const [delBusy, setDelBusy]       = useState(false)
   const [page, setPage]             = useState(1)
 
+  // ── Group CRUD state ──────────────────────────────────────────────────────
+  const [groupEditing, setGroupEditing]       = useState<CategoryGroup | 'new' | null>(null)
+  const [groupSubmitting, setGroupSubmitting] = useState(false)
+  const [groupSaveError, setGroupSaveError]   = useState<string | null>(null)
+  const [groupDeleting, setGroupDeleting]     = useState<CategoryGroup | null>(null)
+  const [groupBlockedMsg, setGroupBlockedMsg] = useState<string | null>(null)
+  const [groupDelBusy, setGroupDelBusy]       = useState(false)
+
+  // ── Derived ───────────────────────────────────────────────────────────────
+  const counts = useMemo<Record<string, number>>(() => {
+    const map: Record<string, number> = {}
+    for (const c of rows) map[c.categoryGroupId] = (map[c.categoryGroupId] ?? 0) + 1
+    return map
+  }, [rows])
+
+  const selectedGroup = useMemo(
+    () => groups.find(g => g.id === selectedGroupId) ?? null,
+    [groups, selectedGroupId],
+  )
+
+  const filtered = useMemo(
+    () => rows.filter(c => c.categoryGroupId === selectedGroupId).sort((a, b) => a.name.localeCompare(b.name)),
+    [rows, selectedGroupId],
+  )
+  const total    = filtered.length
+  const pageRows = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+
+  // ── Load ─────────────────────────────────────────────────────────────────
   const load = useCallback(async () => {
     setLoad(true); setError(null)
-    try { setRows(await repo.listCategories()) }
-    catch { setError(t('validation.saveFailed')) }
+    try {
+      const [gs, cs] = await Promise.all([groupRepo.listCategoryGroups(), repo.listCategories()])
+      setGroups(gs)
+      setRows(cs)
+      setSelectedGroupId(prev =>
+        prev !== null && gs.some(g => g.id === prev) ? prev : (gs[0]?.id ?? null),
+      )
+    } catch { setError(t('validation.saveFailed')) }
     finally { setLoad(false) }
-  }, [repo, t])
+  }, [groupRepo, repo, t])
   useEffect(() => { void load() }, [load])
 
-  // Group → chip colour (devices/network/furniture).
-  const GROUP_CHIP: Record<string, 'blue' | 'green' | 'amber'> = {
-    devices: 'blue', network: 'green', furniture: 'amber',
-  }
-
+  // ── Columns ───────────────────────────────────────────────────────────────
   const columns: CatalogColumn<Category>[] = [
     {
       key: 'name',
@@ -72,13 +118,6 @@ export function CategoriesPage({ repository }: CategoriesPageProps) {
       ),
     },
     {
-      key: 'group',
-      header: t('col.group'),
-      render: c => (
-        <Chip color={GROUP_CHIP[c.group] ?? 'gray'}>{t(`group.${c.group}`)}</Chip>
-      ),
-    },
-    {
       key: 'specs',
       header: t('col.specs'),
       render: c => (
@@ -89,50 +128,30 @@ export function CategoriesPage({ repository }: CategoriesPageProps) {
     },
   ]
 
-  // Sorted rows: group order then alphabetical name.
-  const ordered = useMemo(
-    () =>
-      [...rows].sort((a, b) => {
-        const ga = GROUP_ORDER.indexOf(a.group as (typeof GROUP_ORDER)[number])
-        const gb = GROUP_ORDER.indexOf(b.group as (typeof GROUP_ORDER)[number])
-        if (ga !== gb) return ga - gb
-        return a.name.localeCompare(b.name)
-      }),
-    [rows],
-  )
-
-  const total = ordered.length
-  const pageRows = ordered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
-
-  function openEdit(cat: Category) {
-    setSaveError(null)
-    setEditing(cat)
-  }
+  // ── Subcategory handlers ──────────────────────────────────────────────────
+  function openEdit(cat: Category) { setSaveError(null); setEditing(cat) }
 
   async function handleSubmit(v: CategoryFormValues) {
+    if (!selectedGroupId || !selectedGroup) return
     setSubmitting(true); setSaveError(null)
+    const actor = { uid: user.id, role }
     try {
       if (editing && editing !== 'new') {
-        await repo.updateCategory(editing.id, v, { uid: user.id, role })
+        await repo.updateCategory(editing.id, { ...v, categoryGroupId: selectedGroupId, group: selectedGroup.behavior }, actor)
       } else {
-        await repo.createCategory(v, { uid: user.id, role })
+        await repo.createCategory({ ...v, group: selectedGroup.behavior, categoryGroupId: selectedGroupId }, actor)
       }
-      setEditing(null)
-      setPage(1)
-      await load()
+      setEditing(null); setPage(1); await load()
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e)
-      if (/name already in use/i.test(msg)) setSaveError(t('validation.nameTaken'))
-      else setSaveError(t('validation.saveFailed'))
+      setSaveError(/name already in use/i.test(msg) ? t('validation.nameTaken') : t('validation.saveFailed'))
     } finally { setSubmitting(false) }
   }
 
   async function askDelete(cat: Category) {
     setBlockedMsg(null)
-    try {
-      const count = await repo.countReferences(cat.id)
-      if (count > 0) setBlockedMsg(t('delete.inUse', { count }))
-    } catch { /* fall through; confirmDelete re-guards */ }
+    try { const n = await repo.countReferences(cat.id); if (n > 0) setBlockedMsg(t('delete.inUse', { count: n })) }
+    catch { /* fall through; confirmDelete re-guards */ }
     setDeleting(cat)
   }
 
@@ -141,39 +160,60 @@ export function CategoriesPage({ repository }: CategoriesPageProps) {
     setDelBusy(true)
     try {
       await repo.deleteCategory(deleting.id, { uid: user.id, role })
-      setDeleting(null); setBlockedMsg(null)
-      setPage(1)
-      await load()
+      setDeleting(null); setBlockedMsg(null); setPage(1); await load()
     } catch (e) {
       if (e instanceof EntityInUseError) setBlockedMsg(t('delete.inUse', { count: e.count }))
       else { setDeleting(null); setError(t('validation.saveFailed')) }
     } finally { setDelBusy(false) }
   }
 
+  // ── Group handlers ────────────────────────────────────────────────────────
+  async function handleGroupSubmit(v: CategoryGroupFormValues) {
+    setGroupSubmitting(true); setGroupSaveError(null)
+    const actor = { uid: user.id, role }
+    try {
+      if (groupEditing && groupEditing !== 'new') {
+        await groupRepo.updateCategoryGroup(groupEditing.id, v, actor)
+      } else {
+        await groupRepo.createCategoryGroup(v, actor)
+      }
+      setGroupEditing(null); await load()
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e)
+      setGroupSaveError(/name already in use/i.test(msg) ? t('validation.nameTaken') : t('validation.saveFailed'))
+    } finally { setGroupSubmitting(false) }
+  }
+
+  async function askDeleteGroup(g: CategoryGroup) {
+    setGroupBlockedMsg(null)
+    try { const n = await groupRepo.countReferences(g.id); if (n > 0) setGroupBlockedMsg(t('groupDelete.inUse', { count: n })) }
+    catch { /* fall through */ }
+    setGroupDeleting(g)
+  }
+
+  async function confirmDeleteGroup() {
+    if (!groupDeleting) return
+    setGroupDelBusy(true)
+    try {
+      await groupRepo.deleteCategoryGroup(groupDeleting.id, { uid: user.id, role })
+      setGroupDeleting(null); setGroupBlockedMsg(null); await load()
+    } catch (e) {
+      if (e instanceof EntityInUseError) setGroupBlockedMsg(t('groupDelete.inUse', { count: e.count }))
+      else { setGroupDeleting(null); setError(t('validation.saveFailed')) }
+    } finally { setGroupDelBusy(false) }
+  }
+
+  // ── Render ────────────────────────────────────────────────────────────────
   function renderTableRegion() {
     if (loading) return isMobile
       ? <CardListSkeleton rows={6} variant="catalog" />
-      : (
-        <TableSkeleton
-          rows={PAGE_SIZE}
-          columns={4}
-          gridTemplate="minmax(160px,2fr) 1fr 1fr 80px"
-          lastColAction
-        />
-      )
+      : <TableSkeleton rows={PAGE_SIZE} columns={3} gridTemplate="minmax(160px,2fr) 1fr 80px" lastColAction />
     if (error) return <ErrorState onRetry={load} />
-    if (rows.length === 0) return (
+    if (!selectedGroupId || filtered.length === 0) return (
       <EmptyState icon="tags" title={t('empty.title')} description={t('empty.desc')} />
     )
     return (
-      <CatalogTable
-        rows={pageRows}
-        columns={columns}
-        canMutate={canMutate}
-        onEdit={openEdit}
-        onDelete={askDelete}
-        minRows={PAGE_SIZE}
-      />
+      <CatalogTable rows={pageRows} columns={columns} canMutate={canMutate} onEdit={openEdit} onDelete={askDelete} minRows={PAGE_SIZE} />
     )
   }
 
@@ -184,35 +224,49 @@ export function CategoriesPage({ repository }: CategoriesPageProps) {
           flushMobile
           toolbar={
             <>
+              {/* Row 1: heading + add-subcategory button */}
               <div className="flex items-center justify-between gap-3 px-5 py-3 max-md:px-3">
                 <div className="flex items-center gap-2 min-w-0">
-                  <Icon name="tags" size={16} className="text-text-tertiary flex-shrink-0" />
-                  <h1 className="text-[15px] font-semibold text-text-primary">{t('title')}</h1>
+                  <Icon name="tag" size={16} className="text-text-tertiary flex-shrink-0" />
+                  <h1 className="text-[15px] font-semibold text-text-primary">{t('subcategories')}</h1>
                   {!loading && (
                     <span className="text-[13px] text-text-tertiary tabular-nums">{total}</span>
                   )}
                 </div>
                 {canMutate && (
-                  <Btn
-                    variant="primary"
-                    size="md"
-                    onClick={() => { setSaveError(null); setEditing('new') }}
-                  >
-                    <Icon name="plus" size={14} />{t('create')}
+                  <Btn variant="primary" size="md" onClick={() => { setSaveError(null); setEditing('new') }}>
+                    <Icon name="plus" size={14} />{t('createSubcategory')}
                   </Btn>
                 )}
               </div>
+              <div className="border-t border-border" />
+              {/* Row 2: group chips */}
+              {loading ? (
+                <div className="flex flex-wrap gap-2 px-5 py-3 max-md:px-3">
+                  {[80, 100, 72].map(w => (
+                    <div key={w} style={{ width: w }} className="h-8 rounded-full bg-surface-2 animate-pulse" />
+                  ))}
+                </div>
+              ) : (
+                <div className="px-5 py-3 max-md:px-3">
+                  <CategoryGroupChips
+                    groups={groups}
+                    counts={counts}
+                    selectedId={selectedGroupId ?? ''}
+                    onSelect={id => { setSelectedGroupId(id); setPage(1) }}
+                    onEdit={g => { setGroupSaveError(null); setGroupEditing(g) }}
+                    onDelete={askDeleteGroup}
+                    onAdd={() => { setGroupSaveError(null); setGroupEditing('new') }}
+                    canMutate={canMutate}
+                  />
+                </div>
+              )}
               <div className="border-t border-border" />
             </>
           }
           pagination={
             !loading && !error && total > PAGE_SIZE ? (
-              <PaginationBar
-                page={page}
-                pageSize={PAGE_SIZE}
-                total={total}
-                onPage={setPage}
-              />
+              <PaginationBar page={page} pageSize={PAGE_SIZE} total={total} onPage={setPage} />
             ) : undefined
           }
         >
@@ -234,6 +288,22 @@ export function CategoriesPage({ repository }: CategoriesPageProps) {
         confirmLabel={t('delete.confirm')} cancelLabel={t('delete.cancel')}
         blockedMessage={blockedMsg} busy={delBusy}
         onConfirm={confirmDelete} onCancel={() => { setDeleting(null); setBlockedMsg(null) }}
+      />
+
+      {groupEditing !== null && (
+        <CategoryGroupFormDialog
+          open
+          initial={groupEditing !== 'new' ? groupEditing : null}
+          submitting={groupSubmitting} submitError={groupSaveError}
+          onSubmit={handleGroupSubmit} onCancel={() => setGroupEditing(null)}
+        />
+      )}
+      <ConfirmDeleteDialog
+        open={groupDeleting !== null}
+        title={t('groupDelete.title')} body={t('groupDelete.body')}
+        confirmLabel={t('groupDelete.confirm')} cancelLabel={t('groupDelete.cancel')}
+        blockedMessage={groupBlockedMsg} busy={groupDelBusy}
+        onConfirm={confirmDeleteGroup} onCancel={() => { setGroupDeleting(null); setGroupBlockedMsg(null) }}
       />
     </>
   )
