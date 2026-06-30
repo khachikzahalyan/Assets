@@ -2,9 +2,10 @@ import { useState, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { Icon, ErrorState, Chip } from '@/components/ui'
-import { StatTile } from '@/components/features/parts'
+import { StatTile, PartsReceiveMobileForm } from '@/components/features/parts'
 import { PART_CATEGORY_META, categoryTint, variantRank } from '@/components/features/parts/partsTokens'
 import { useParts } from '@/hooks/useParts'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import { workingStock, deriveStock } from '@/domain/part/partStock'
 import type { Part } from '@/domain/part/types'
 import type { PartRepository, PartWriteRepository } from '@/domain/part/PartRepository'
@@ -36,6 +37,7 @@ export function PartsReceivePage({ repository }: PartsReceivePageProps = {}) {
   const repo = repository ?? defaultRepo
 
   const { ref, loading, error, reload, receiveParts } = useParts(repo)
+  const isMobile = useIsMobile()
 
   const [qtys, setQtys] = useState<Record<string, string>>({})
   const [ramDdr, setRamDdr] = useState('DDR4')
@@ -325,6 +327,28 @@ export function PartsReceivePage({ repository }: PartsReceivePageProps = {}) {
     )
   }
 
+  // ── Mobile branch (≤767px) ──────────────────────────────────────────────
+  if (isMobile) {
+    return (
+      <PartsReceiveMobileForm
+        partsByCategory={partsByCategory}
+        visibleCats={visibleCats}
+        qtys={qtys}
+        bumpQty={bumpQty}
+        ramDdr={ramDdr}
+        setRamDdr={setRamDdr}
+        totalQty={totalQty}
+        canSubmit={canSubmit}
+        submitting={submitting}
+        submitError={submitError}
+        onDismissError={() => setSubmitError(null)}
+        onSubmit={() => { void handleSubmit() }}
+        onCancel={handleCancel}
+      />
+    )
+  }
+
+  // ── Desktop branch (≥768px — unchanged) ─────────────────────────────────
   return (
     <div className="flex flex-col h-full gap-2.5">
       {/* Fixed top: back button + stat strip (do not scroll) */}
