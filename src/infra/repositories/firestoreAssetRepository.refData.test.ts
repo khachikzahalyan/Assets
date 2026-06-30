@@ -197,23 +197,13 @@ describe('FirestoreAssetRepository — loadReferenceData resilience', () => {
 
   it('deduplicates: an employee present in both collections appears only once', async () => {
     // emp_1 exists in both collections (e.g. an un-cleaned archive doc)
-    const statusSnap = makeSnap([{ id: 'st_1', data: { name: 'Active', color: 'green' } }])
-    const branchSnap = makeSnap([{ id: 'br_1', data: { name: 'HQ' } }])
-    const deptSnap   = makeSnap([{ id: 'dep_1', data: { name: 'IT' } }])
-    const catSnap    = makeSnap([{ id: 'cat_1', data: { name: 'PC', group: 'devices', lucideIcon: 'monitor' } }])
-    const empSnap    = makeSnap([{ id: 'emp_1', data: { firstName: 'Alice', lastName: 'Smith', email: 'a@x.com', departmentId: null, position: null } }])
-    const formerSnap = makeSnap([
-      { id: 'emp_1', data: { firstName: 'Alice', lastName: 'Smith', email: 'a@x.com', departmentId: null, position: null } },
-      { id: 'ex_2',  data: { firstName: 'Carol', lastName: 'Li',    email: 'c@x.com', departmentId: null, position: null } },
-    ])
-
-    mockGetDocs
-      .mockResolvedValueOnce(statusSnap)
-      .mockResolvedValueOnce(branchSnap)
-      .mockResolvedValueOnce(deptSnap)
-      .mockResolvedValueOnce(catSnap)
-      .mockResolvedValueOnce(empSnap)
-      .mockResolvedValueOnce(formerSnap)
+    mockRefDataLegs({
+      formerDocs: [
+        { id: 'emp_1', data: { firstName: 'Alice', lastName: 'Smith', email: 'a@x.com', departmentId: null, position: null } },
+        { id: 'ex_2',  data: { firstName: 'Carol', lastName: 'Li',    email: 'c@x.com', departmentId: null, position: null } },
+      ],
+      groupDocs: [], // 7th leg — explicit empty categoryGroups
+    })
 
     const ref = await repo.loadReferenceData()
     const ids = ref.employees.map(e => e.id)

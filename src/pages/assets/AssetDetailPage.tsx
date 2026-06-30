@@ -487,6 +487,9 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
 
   return (
     <>
+      {/* lg: fill .app-shell-content height so the page never causes a page scrollbar.
+          Mobile: natural block flow unchanged (no fixed heights). */}
+      <div className="lg:h-full lg:flex lg:flex-col lg:min-h-0">
       {/* Action error banner */}
       {actionError && (
         <p role="alert" className="mb-3 text-[12px] text-[#FDA4AF] px-1">{actionError}</p>
@@ -512,18 +515,20 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
        * Mobile (single column): DOM order gives hero → tabs → assignment →
        *   location → repair naturally — no order classes needed.
        */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 lg:gap-x-5 gap-y-[10px] max-md:gap-y-3 items-start">
+      {/* Grid: on lg: fills remaining height (flex-1) and stretches columns to row height */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 lg:gap-x-5 gap-y-[10px] max-md:gap-y-3 items-start lg:items-stretch lg:flex-1 lg:min-h-0">
 
         {/* ---------------------------------------------------------------- */}
         {/* LEFT COLUMN — hero block + tabs (lg:col-span-2)                 */}
         {/* space-y-[10px] keeps the 10px hero↔tabs gap on all breakpoints  */}
         {/* ---------------------------------------------------------------- */}
-        <div className="lg:col-span-2 space-y-[10px]">
+        {/* Left column: flex-col so hero stays fixed and tab area fills remaining height */}
+        <div className="lg:col-span-2 space-y-[10px] lg:flex lg:flex-col lg:min-h-0">
 
           {/* Hero block — lg:min-h-[155px] aligns its bottom with the idle
               AssignmentCard (N=155px).  Without a barcode the hero sits at
               ~107px and the wrapper carries a touch of bottom space — fine. */}
-          <div className="lg:min-h-[155px] flex flex-col">
+          <div className="lg:min-h-[155px] flex flex-col lg:flex-shrink-0">
             <DetailHero
               asset={asset}
               category={category}
@@ -543,8 +548,8 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
             )}
           </div>
 
-          {/* Tab strip + Tab body */}
-          <div className="space-y-0">
+          {/* Tab strip + Tab body: fills remaining left-column height on lg: */}
+          <div className="space-y-0 lg:flex lg:flex-col lg:flex-1 lg:min-h-0">
             <DetailTabs
               active={activeTab}
               onChange={setActiveTab}
@@ -559,7 +564,7 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
               id={`panel-${activeTab}`}
               aria-labelledby={`tab-${activeTab}`}
               tabIndex={0}
-              className="bg-surface rounded-b-2xl border-x border-b border-border px-5 sm:px-6 py-5 max-md:px-4 max-md:py-4 lg:min-h-[320px]"
+              className="bg-surface rounded-b-2xl border-x border-b border-border px-5 sm:px-6 py-5 max-md:px-4 max-md:py-4 lg:flex-1 lg:min-h-0 lg:overflow-y-auto"
             >
               {activeTab === 'specs' && (
                 <div className="space-y-5">
@@ -602,7 +607,8 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
         {/* AssignmentCard wrapper: lg:min-h-[155px] + [&>*]:flex-1 →        */}
         {/*   card stretches to N in idle, grows freely when transfer opens.  */}
         {/* ---------------------------------------------------------------- */}
-        <div className="space-y-2">
+        {/* Right column: internal scroll if sidebar grows taller than viewport (e.g. transfer panel) */}
+        <div className="space-y-2 lg:min-h-0 lg:overflow-y-auto">
 
           {/* AssignmentCard — min-height for idle bottom-alignment with hero */}
           <div className="lg:min-h-[155px] flex flex-col [&>*]:flex-1">
@@ -637,6 +643,7 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
         </div>
 
       </div>
+      </div>{/* /lg:h-full flex wrapper */}
 
       {/* Write-off modal — portal */}
       {writeOffOpen && (

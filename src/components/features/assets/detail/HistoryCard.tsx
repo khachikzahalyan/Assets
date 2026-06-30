@@ -33,9 +33,9 @@ export function HistoryCard({ events }: HistoryCardProps) {
         </div>
       )}
       {others.length > 0 ? (
-        // Desktop: cap the list height and scroll INSIDE it so the page itself
-        // stays put. Mobile keeps the natural page scroll.
-        <ol className="space-y-3 lg:max-h-[calc(100dvh_-_360px)] lg:overflow-y-auto lg:pr-1">
+        // The tab body (one level up) owns the internal scroll on desktop, so
+        // this list just flows naturally.
+        <ol className="space-y-3">
           {others.map((ev, i) => (
             <HistoryEvent key={ev.id ?? `${ev.date}-${i}`} ev={ev} />
           ))}
