@@ -17,7 +17,9 @@ import { EntityInUseError } from '@/domain/shared'
 import { db } from '@/lib/firebase'
 
 const GROUP_ORDER = ['devices', 'network', 'furniture'] as const
-const PAGE_SIZE = 12
+// Match the Assets list page size so PAGE_SIZE rows fill the same height without
+// scrolling (12 rows overflowed the available height on standard viewports).
+const PAGE_SIZE = 10
 
 export interface CategoriesPageProps { repository?: CategoryRepository }
 

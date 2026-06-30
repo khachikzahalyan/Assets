@@ -10,7 +10,7 @@ import { FirestoreBranchRepository } from '@/infra/repositories'
 import { EntityInUseError } from '@/domain/shared'
 import { db } from '@/lib/firebase'
 
-const PAGE_SIZE = 15
+const PAGE_SIZE = 10  // consistent with the other list pages so rows fill without scrolling
 
 export interface BranchesPageProps { repository?: BranchRepository }
 
