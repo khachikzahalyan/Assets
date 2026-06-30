@@ -4,6 +4,8 @@ import { Icon, Chip } from '@/components/ui'
 import { PartCard } from './PartCard'
 import { CategoryChipStrip } from './CategoryChipStrip'
 import { HistoryPanel } from './HistoryPanel'
+import { WarehouseSizedDetail } from './WarehouseSizedDetail'
+import { WarehouseMobileDetail } from './WarehouseMobileDetail'
 import type { Part, PartMovement, PartStock } from '@/domain/part/types'
 import { PART_CATEGORY_META, categoryTint, categoryIcon } from './partsTokens'
 import { deriveStock } from '@/domain/part/partStock'
@@ -152,7 +154,7 @@ export function WarehouseTab({
       }
       return (
         <ul className="divide-y divide-border flex-shrink-0">
-          <li className="flex items-center gap-3 px-5 py-3 hover:bg-[#22272E]/60 transition-colors">
+          <li className="flex items-center gap-3 px-5 py-3 max-md:px-3 max-md:py-2 hover:bg-[#22272E]/60 transition-colors">
             <span className={`w-8 h-8 rounded-lg ${tint.iconBg} ${tint.iconText} inline-flex items-center justify-center flex-shrink-0`}>
               <Icon name={icon} size={14} />
             </span>
@@ -162,14 +164,8 @@ export function WarehouseTab({
               </div>
             </div>
             <div className="flex items-center gap-1.5 flex-shrink-0">
-              <Chip color="green" size="sm" dot>
-                {totalWorking} шт
-              </Chip>
-              {totalBroken > 0 && (
-                <Chip color="red" size="sm" dot>
-                  {totalBroken} шт
-                </Chip>
-              )}
+              <Chip color="green" size="sm" dot>{totalWorking} шт</Chip>
+              {totalBroken > 0 && <Chip color="red" size="sm" dot>{totalBroken} шт</Chip>}
             </div>
           </li>
         </ul>
@@ -186,7 +182,7 @@ export function WarehouseTab({
           return (
             <li
               key={sku.id}
-              className="flex items-center gap-3 px-5 py-3 hover:bg-[#22272E]/60 transition-colors"
+              className="flex items-center gap-3 px-5 py-3 max-md:px-3 max-md:py-2 hover:bg-[#22272E]/60 transition-colors"
             >
               <span className={`w-8 h-8 rounded-lg ${tint.iconBg} ${tint.iconText} inline-flex items-center justify-center flex-shrink-0`}>
                 <Icon name={icon} size={14} />
@@ -200,14 +196,8 @@ export function WarehouseTab({
                 </div>
               </div>
               <div className="flex items-center gap-1.5 flex-shrink-0">
-                <Chip color="green" size="sm" dot>
-                  {s.onHand} шт
-                </Chip>
-                {s.broken > 0 && (
-                  <Chip color="red" size="sm" dot>
-                    {s.broken} шт
-                  </Chip>
-                )}
+                <Chip color="green" size="sm" dot>{s.onHand} шт</Chip>
+                {s.broken > 0 && <Chip color="red" size="sm" dot>{s.broken} шт</Chip>}
               </div>
             </li>
           )
@@ -236,19 +226,42 @@ export function WarehouseTab({
 
   /* ──────────────────────── MOBILE LAYOUT ──────────────────────── */
   if (isMobile) {
+    const isAgg = AGG_CATS.has(selectedCatId)
+    const isGpu = selectedCatId === 'gpu'
+
     return (
-      /* flex-col gap-3; right panel (renderRightPanel) gets min-h-[360px] per §11 spec */
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col pb-[68px]">
         <CategoryChipStrip
           skusByCategory={skusByCategory}
           selectedId={selectedCatId}
           onSelect={handleCatSelect}
           stockMap={stockMap}
         />
-        {/* Wrapper gives the right/history panel its mobile minimum height */}
-        <div className="min-h-[360px]">
-          {renderRightPanel()}
-        </div>
+        {isAgg ? (
+          /* Sized categories: SSD / HDD / M.2 / ОЗУ — per-size rows */
+          <WarehouseSizedDetail
+            categoryId={selectedCatId}
+            skus={selectedSkus}
+            stockMap={stockMap}
+            onInstall={onInstall}
+          />
+        ) : isGpu ? (
+          /* GPU: reuse existing right panel (shows GPU empty state / GPU SKU rows) */
+          <div className="px-3.5 pt-2">{renderRightPanel()}</div>
+        ) : (
+          /* Single-pos: PSU / Cooler — header + ИСТОРИЯ overline + history card */
+          <WarehouseMobileDetail
+            catId={selectedCatId}
+            skus={selectedSkus}
+            stockOf={stockOf}
+            catMeta={selectedCatMeta}
+            onInstall={onInstall}
+            movements={movements}
+            skuIds={selectedSkuIds}
+            parts={parts}
+            remainingAfterMap={remainingAfterMap}
+          />
+        )}
       </div>
     )
   }
@@ -281,3 +294,4 @@ export function WarehouseTab({
     </div>
   )
 }
+

@@ -2,7 +2,8 @@ import { useRef, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@/components/ui'
 import type { Part } from '@/domain/part/types'
-import { PART_CATEGORY_META } from './partsTokens'
+import { workingStock } from '@/domain/part/partStock'
+import { PART_CATEGORY_META, categoryTint } from './partsTokens'
 
 export interface CategoryChipStripProps {
   skusByCategory: Record<string, Part[]>
@@ -65,19 +66,20 @@ export function CategoryChipStrip({
   return (
     <div
       ref={stripRef}
-      className="flex gap-2 overflow-x-auto py-1 px-1"
+      className="flex gap-[7px] overflow-x-auto py-3 px-3.5 border-b border-border"
       style={{ scrollbarWidth: 'none' }}
       role="tablist"
       aria-label={t('tabs.warehouse')}
     >
-      {PART_CATEGORY_META.map((cat) => {
+      {PART_CATEGORY_META.filter(cat => cat.id !== 'gpu').map((cat) => {
         const catSkus = skusByCategory[cat.id] ?? []
-        /* Sum onHand from stockMap if available, else fall back to Part.onHand */
+        /* Sum working stock (onHand − broken) from stockMap if available, else fall back to Part.onHand */
         const total = catSkus.reduce((sum, s) => {
           const entry = stockMap[s.id]
-          return sum + (entry ? entry.onHand : s.onHand)
+          return sum + (entry ? workingStock(entry) : s.onHand)
         }, 0)
         const isSelected = selectedId === cat.id
+        const tint = categoryTint(cat.id)
 
         return (
           <button
@@ -88,16 +90,18 @@ export function CategoryChipStrip({
             aria-selected={isSelected}
             onClick={() => handleClick(cat.id)}
             className={`
-              inline-flex items-center gap-1 px-2.5 h-7 rounded-full whitespace-nowrap
-              flex-shrink-0 text-[14px] font-semibold transition-all duration-150 border
+              inline-flex items-center gap-[5px] px-3 py-1.5 rounded-full whitespace-nowrap
+              flex-shrink-0 text-[12px] font-bold transition-all duration-150 border-[1.5px]
               ${isSelected
-                ? 'bg-[#F97316]/15 border-[#F97316]/40 text-text-primary'
-                : 'bg-surface border-border text-text-secondary'}
+                ? 'bg-accent/15 border-accent/40 text-text-primary'
+                : 'bg-transparent border-border text-text-subtle hover:border-border-strong'}
             `}
           >
-            <Icon name={cat.icon} size={13} />
+            <span className={isSelected ? 'text-text-primary' : tint.iconText}>
+              <Icon name={cat.icon} size={10} />
+            </span>
             <span>{cat.label}</span>
-            <span className="text-[12px] tabular-nums px-1 rounded-full bg-surface-2 text-text-tertiary">
+            <span className={`text-[11px] font-bold tabular-nums ${isSelected ? 'text-text-secondary' : 'text-text-subtle'}`}>
               {total}
             </span>
           </button>

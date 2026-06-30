@@ -177,7 +177,7 @@ export function HistoryPanel({
   return (
     <div>
       {/* ── Metrics strip ── */}
-      <div className="px-5 py-2.5 border-t border-border flex items-center gap-3 flex-shrink-0 bg-bg">
+      <div className="px-5 py-2.5 max-md:px-3 max-md:py-1.5 border-t border-border flex items-center gap-3 flex-shrink-0 bg-bg">
         <span className="text-[13px] uppercase tracking-wider text-text-subtle font-semibold">
           {t('warehouse.history')}
         </span>
@@ -191,9 +191,9 @@ export function HistoryPanel({
         </div>
       </div>
 
-      {/* ── Event-type filter chips — mirrors prototype lines 2058-2122 (desktop) ── */}
+      {/* ── Event-type filter chips — mirrors prototype lines 2058-2122 (desktop only) ── */}
       {(receiveCnt > 0 || installCnt > 0 || uninstallCnt > 0 || moveCnt > 0) && (
-        <div className="px-5 py-2 border-t border-border flex flex-wrap items-center gap-1">
+        <div className="max-md:hidden px-5 py-2 border-t border-border flex flex-wrap items-center gap-1">
           {receiveCnt > 0 && (
             <button
               type="button"
@@ -296,7 +296,7 @@ export function HistoryPanel({
           <div ref={scrollRef}>
             <ul
               className="ams-stock-history-list divide-y divide-border border-t border-border flex-shrink-0"
-              style={{ minHeight: 'min(700px, 62vh)' }}
+              style={isMobile ? undefined : { minHeight: 'min(700px, 62vh)' }}
             >
               {visibleRows.map((mv, i) => {
                 const dt = resolveDisplayType(mv)
@@ -372,7 +372,7 @@ export function HistoryPanel({
                 return (
                   <li
                     key={mv.id ?? i}
-                    className="flex items-center gap-3 px-5 h-[56px] flex-shrink-0 hover:bg-[#111315]/60 transition-colors max-md:h-auto max-md:py-3 max-md:flex-wrap"
+                    className="flex items-center gap-3 px-5 h-[56px] flex-shrink-0 hover:bg-[#111315]/60 transition-colors max-md:h-auto max-md:py-2 max-md:gap-2 max-md:px-3 max-md:flex-wrap"
                   >
                     <span className={`w-2 h-2 rounded-full flex-shrink-0 ${dotColor}`} />
                     <div className="flex items-center gap-1.5 min-w-0 flex-1">
@@ -382,16 +382,16 @@ export function HistoryPanel({
                         </span>
                       )}
                       <div className="min-w-0 flex-1">
-                        <div className="text-[15.5px] text-text-secondary truncate">
+                        <div className="text-[15.5px] max-md:text-[14px] text-text-secondary truncate">
                           {skuLabel}
                         </div>
-                        <div className="text-[14px] text-text-subtle mt-0.5 leading-tight flex items-center gap-1.5 min-w-0">
+                        <div className="text-[14px] max-md:text-[12.5px] text-text-subtle mt-0.5 leading-tight flex items-center gap-1.5 min-w-0">
                           {subline}
                         </div>
                       </div>
                     </div>
                     <div className="flex-shrink-0">{actionChip}</div>
-                    <div className="text-[14px] font-medium text-text-tertiary tabular-nums whitespace-nowrap flex-shrink-0 w-[88px] text-right max-md:hidden">
+                    <div className="text-[14px] font-medium text-text-tertiary tabular-nums whitespace-nowrap flex-shrink-0 w-[88px] text-right">
                       {fmtPartsDate(mv.at)}
                     </div>
                   </li>
