@@ -9,7 +9,6 @@ export interface Category {
   id: string
   name: string
   group: CategoryGroup
-  prefix: string
   hasSpecs: boolean
   lucideIcon: string
   createdAt: string

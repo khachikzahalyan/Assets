@@ -7,7 +7,6 @@ import type { Category, CategoryGroup } from '@/domain/category'
 export interface CategoryFormValues {
   name: string
   group: CategoryGroup
-  prefix: string
   hasSpecs: boolean
   lucideIcon: string
 }
@@ -15,7 +14,6 @@ export interface CategoryFormValues {
 export interface CategoryFormDialogProps {
   open: boolean
   initial?: Category | null
-  prefixLocked?: boolean
   submitting?: boolean
   submitError?: string | null
   onSubmit: (v: CategoryFormValues) => void
@@ -25,10 +23,9 @@ export interface CategoryFormDialogProps {
 export function CategoryFormDialog(p: CategoryFormDialogProps) {
   const { t } = useTranslation('categories')
 
-  const [name, setName] = useState(p.initial?.name ?? '')
-  const [group, setGroup] = useState<string>(p.initial?.group ?? CATEGORY_GROUPS[0])
-  const [prefix, setPrefix] = useState(p.initial?.prefix ?? '')
-  const [hasSpecs, setHasSpecs] = useState(p.initial?.hasSpecs ?? false)
+  const [name, setName]             = useState(p.initial?.name ?? '')
+  const [group, setGroup]           = useState<string>(p.initial?.group ?? CATEGORY_GROUPS[0])
+  const [hasSpecs, setHasSpecs]     = useState(p.initial?.hasSpecs ?? false)
   const [lucideIcon, setLucideIcon] = useState(p.initial?.lucideIcon ?? '')
 
   const [touched, setTouched] = useState(false)
@@ -36,18 +33,15 @@ export function CategoryFormDialog(p: CategoryFormDialogProps) {
   if (!p.open) return null
 
   const nameError = touched && !name.trim() ? t('validation.required') : null
-  const prefixError = touched && !prefix.trim() ? t('validation.required') : null
 
   const groupOptions = CATEGORY_GROUPS.map(g => ({ value: g, label: t(`group.${g}`) }))
 
   function submit() {
     setTouched(true)
     if (!name.trim()) return
-    if (!prefix.trim()) return
     p.onSubmit({
       name: name.trim(),
       group: group as CategoryGroup,
-      prefix: prefix.trim(),
       hasSpecs,
       lucideIcon: lucideIcon.trim() || 'package',
     })
@@ -92,23 +86,6 @@ export function CategoryFormDialog(p: CategoryFormDialogProps) {
             </Field>
           </div>
 
-          {/* prefix — textbox #1 */}
-          <div>
-            <Field label={t('form.prefix')} required>
-              <Input
-                value={prefix}
-                onChange={setPrefix}
-                disabled={!!p.prefixLocked}
-              />
-            </Field>
-            {p.prefixLocked && (
-              <p className="mt-1 text-[11px] text-text-subtle">{t('form.prefixLocked')}</p>
-            )}
-            {!p.prefixLocked && prefixError && (
-              <p className="mt-1 text-[12px] text-[#FDA4AF]">{prefixError}</p>
-            )}
-          </div>
-
           {/* hasSpecs — native checkbox, NOT a textbox role */}
           <div className="flex items-center gap-2 pt-1">
             <input
@@ -126,7 +103,7 @@ export function CategoryFormDialog(p: CategoryFormDialogProps) {
             </label>
           </div>
 
-          {/* lucideIcon — textbox #2 */}
+          {/* lucideIcon — textbox #1 */}
           <div>
             <Field label={t('form.icon')}>
               <Input value={lucideIcon} onChange={setLucideIcon} />

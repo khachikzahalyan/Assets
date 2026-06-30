@@ -7,7 +7,7 @@ import type {
   Category, CategoryGroup, CategoryListQuery,
   CategoryRepository, CreateCategoryInput, UpdateCategoryInput,
 } from '@/domain/category'
-import { EntityInUseError, PrefixLockedError } from '@/domain/shared'
+import { EntityInUseError } from '@/domain/shared'
 import { firestoreAuditContext, withAudit } from '@/lib/audit'
 import type { AuditedResult } from '@/domain/audit'
 
@@ -24,7 +24,6 @@ function toCategory(id: string, d: Record<string, unknown>): Category {
     id,
     name: String(d.name ?? ''),
     group: (d.group as CategoryGroup) ?? 'devices',
-    prefix: String(d.prefix ?? ''),
     hasSpecs: Boolean(d.hasSpecs),
     lucideIcon: String(d.lucideIcon ?? 'package'),
     createdAt: toIso(d.createdAt),
@@ -46,9 +45,7 @@ export class FirestoreCategoryRepository implements CategoryRepository {
     if (query.group && query.group !== 'all') rows = rows.filter(c => c.group === query.group)
     const search = (query.search ?? '').trim().toLowerCase()
     if (search) {
-      rows = rows.filter(c =>
-        [c.name, c.prefix].filter(Boolean).join(' ').toLowerCase().includes(search),
-      )
+      rows = rows.filter(c => c.name.toLowerCase().includes(search))
     }
     return rows.sort((a, b) => a.name.localeCompare(b.name, 'ru'))
   }
@@ -65,13 +62,6 @@ export class FirestoreCategoryRepository implements CategoryRepository {
     return snap.docs.some(d => d.id !== exceptId)
   }
 
-  async isPrefixTaken(prefix: string, exceptId?: string): Promise<boolean> {
-    const snap = await getDocs(fsQuery(
-      collection(this.db, 'categories'), where('prefix', '==', prefix.trim()), limit(2),
-    ))
-    return snap.docs.some(d => d.id !== exceptId)
-  }
-
   private async anyWhere(col: string, field: string, id: string): Promise<number> {
     const snap = await getDocs(fsQuery(collection(this.db, col), where(field, '==', id), limit(1)))
     return snap.empty ? 0 : 1
@@ -83,12 +73,10 @@ export class FirestoreCategoryRepository implements CategoryRepository {
 
   async createCategory(input: CreateCategoryInput, actor: Actor): Promise<AuditedResult<Category>> {
     if (await this.isNameTaken(input.name)) throw new Error(`Name already in use: ${input.name}`)
-    if (await this.isPrefixTaken(input.prefix)) throw new Error(`Prefix already in use: ${input.prefix}`)
     const ref = doc(collection(this.db, 'categories'))
     const data: Record<string, unknown> = {
       name: input.name.trim(),
       group: input.group,
-      prefix: input.prefix.trim(),
       hasSpecs: input.hasSpecs,
       lucideIcon: input.lucideIcon ?? 'package',
       createdBy: actor.uid,
@@ -100,7 +88,7 @@ export class FirestoreCategoryRepository implements CategoryRepository {
       {
         entityType: 'category', entityId: ref.id, action: 'created',
         actorUid: actor.uid, actorRole: actor.role,
-        after: { id: ref.id, name: input.name.trim(), prefix: input.prefix.trim() },
+        after: { id: ref.id, name: input.name.trim() },
       },
       async (txn) => { (txn as unknown as Transaction).set(ref, data); return { value: undefined as unknown as void } },
     )
@@ -113,22 +101,12 @@ export class FirestoreCategoryRepository implements CategoryRepository {
     const before = await this.getCategory(id)
     if (!before) throw new Error(`Category not found: ${id}`)
 
-    // PREFIX-LOCK: check BEFORE entering withAudit so no audit row is written on failure
-    if (patch.prefix !== undefined && patch.prefix.trim() !== before.prefix) {
-      const count = await this.countReferences(id)
-      if (count > 0) throw new PrefixLockedError(id, count)
-    }
-
     if (patch.name && await this.isNameTaken(patch.name, id)) throw new Error(`Name already in use: ${patch.name}`)
-    if (patch.prefix !== undefined && patch.prefix.trim() !== before.prefix && await this.isPrefixTaken(patch.prefix, id)) {
-      throw new Error(`Prefix already in use: ${patch.prefix}`)
-    }
 
     const ref = doc(this.db, 'categories', id)
     const fields = stripUndefinedFs({
       ...patch,
       ...(patch.name !== undefined ? { name: patch.name.trim() } : {}),
-      ...(patch.prefix !== undefined ? { prefix: patch.prefix.trim() } : {}),
       updatedBy: actor.uid,
       updatedAt: serverTimestamp(),
     })
@@ -136,7 +114,7 @@ export class FirestoreCategoryRepository implements CategoryRepository {
       {
         entityType: 'category', entityId: id, action: 'updated',
         actorUid: actor.uid, actorRole: actor.role,
-        before: { name: before.name, prefix: before.prefix },
+        before: { name: before.name },
         after: patch as Record<string, unknown>,
       },
       async (txn) => { (txn as unknown as Transaction).set(ref, fields, { merge: true }); return { value: undefined as unknown as void } },
