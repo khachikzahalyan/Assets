@@ -302,21 +302,23 @@ export function TransferPanel({ asset: _asset, refData, caps, busy, onCommit, on
         ))}
       </div>
 
-      {/* Per-mode form — key forces remount on mode change for animation */}
-      {mode && (
-        <TransferModeForm
-          key={mode}
-          mode={mode}
-          refData={refData}
-          caps={caps}
-          employeeId={employeeId} setEmployeeId={setEmployeeId}
-          branchId={branchId}     setBranchId={setBranchId}
-          departmentId={departmentId} setDepartmentId={setDepartmentId}
-          tempKind={tempKind}     setTempKind={setTempKind}
-          returnDate={returnDate} setReturnDate={setReturnDate}
-          workMode={workMode}     setWorkMode={setWorkMode}
-        />
-      )}
+      {/* Per-mode form — reserved slot prevents right-column jump when mode is picked */}
+      <div className="lg:min-h-[88px]">
+        {mode && (
+          <TransferModeForm
+            key={mode}
+            mode={mode}
+            refData={refData}
+            caps={caps}
+            employeeId={employeeId} setEmployeeId={setEmployeeId}
+            branchId={branchId}     setBranchId={setBranchId}
+            departmentId={departmentId} setDepartmentId={setDepartmentId}
+            tempKind={tempKind}     setTempKind={setTempKind}
+            returnDate={returnDate} setReturnDate={setReturnDate}
+            workMode={workMode}     setWorkMode={setWorkMode}
+          />
+        )}
+      </div>
 
       {/* Footer: Cancel + Commit */}
       <div className="mt-3 flex gap-2 pt-1">

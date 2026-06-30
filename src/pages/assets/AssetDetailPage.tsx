@@ -349,13 +349,13 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
        * Mobile order: hero (order-1) → sidebar (order-2) → tabs/specs (order-3).
        * Desktop: standard lg:grid-cols-3 layout.
        */
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start" aria-hidden="true">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 max-md:gap-3 items-start" aria-hidden="true">
 
         {/* Hero card — order-1 on mobile; self-contained card matching <DetailHero> */}
         <div className="lg:col-span-2 space-y-0 max-md:order-1">
           <div className="bg-surface rounded-2xl border border-border overflow-hidden">
             <div className="h-1 w-full anim-skeleton opacity-50" />
-            <div className="p-5 sm:p-6">
+            <div className="p-3.5 sm:p-6">
               <div className="flex items-start gap-4 max-md:flex-wrap">
                 <div className="w-12 h-12 rounded-xl anim-skeleton flex-shrink-0" />
                 <div className="flex-1 min-w-0 space-y-2">
@@ -371,8 +371,8 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
           </div>
         </div>
 
-        {/* RIGHT column — 3 sidebar cards; order-2 on mobile */}
-        <div className="space-y-4 max-md:order-2 lg:row-span-2">
+        {/* RIGHT column — 3 sidebar cards; order-3 on mobile (below tab content) */}
+        <div className="space-y-4 max-md:order-3 lg:row-span-2">
           {Array.from({ length: 3 }).map((_, cardIdx) => (
             <div key={cardIdx} className="bg-surface border border-border rounded-xl overflow-hidden">
               <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-border">
@@ -390,10 +390,10 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
           ))}
         </div>
 
-        {/* Tab strip + panel — order-3 on mobile */}
-        <div className="lg:col-span-2 space-y-0 max-md:order-3">
+        {/* Tab strip + panel — order-2 on mobile (above sidebar) */}
+        <div className="lg:col-span-2 space-y-0 max-md:order-2">
           {/* Tab strip — shimmer (not interactive during loading) */}
-          <div className="bg-surface border-x border-border px-5 flex items-center gap-1 h-[44px]">
+          <div className="bg-surface border-x border-t max-md:rounded-t-2xl border-border px-5 flex items-center gap-1 h-[44px]">
             {Array.from({ length: 3 }).map((_, i) => (
               <div key={i} className="flex items-center gap-1.5 px-3 py-3 flex-shrink-0">
                 <div className="w-[14px] h-[14px] rounded anim-skeleton flex-shrink-0" />
@@ -403,7 +403,7 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
           </div>
 
           {/* Tab panel body */}
-          <div className="bg-surface rounded-b-2xl border-x border-b border-border px-5 sm:px-6 py-5">
+          <div className="bg-surface rounded-b-2xl border-x border-b border-border px-5 sm:px-6 py-5 max-md:px-4 max-md:py-4">
             {/* Card header — shimmer (no real text/icon/button) */}
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2.5">
@@ -417,7 +417,7 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
             </div>
 
             {/* Spec tiles — shimmer (category-dependent, DB) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-bg border border-border">
                   <div className="w-9 h-9 rounded-lg anim-skeleton flex-shrink-0" />
@@ -494,11 +494,12 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
 
       {/*
        * Two-column grid on large screens.
-       * Mobile order: hero (order-1) → sidebar / assignment (order-2) → tabs/specs (order-3).
+       * Mobile order: hero (order-1) → tabs/content (order-2) → sidebar (order-3).
+       * This matches the prototype's mobile reading order: hero → specs → assignment/location.
        * We use a flat grid with max-md:order-* on three wrappers to achieve this without
        * duplicating DOM nodes.
        */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 max-md:gap-3 items-start">
 
         {/* ---------------------------------------------------------------- */}
         {/* HERO — always first on both desktop and mobile                   */}
@@ -514,8 +515,8 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
             onWriteOff={onOpenWriteOff}
           />
           {asset.barcode && (
-            <div className="flex items-center gap-2 px-5 py-2.5 bg-surface border-x border-b border-border">
-              <Btn variant="secondary" size="sm" onClick={() => setPrinting(true)}>
+            <div className="flex items-center gap-2 px-5 py-2.5 max-md:px-4 max-md:py-3 max-md:rounded-b-2xl max-md:overflow-hidden bg-surface border-x border-b border-border">
+              <Btn variant="secondary" size="sm" onClick={() => setPrinting(true)} className="max-md:min-h-[44px]">
                 <Icon name="printer" size={12} />
                 {t('label.print')}
               </Btn>
@@ -525,9 +526,9 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
 
         {/* ---------------------------------------------------------------- */}
         {/* RIGHT column — assignment + location + repair                    */}
-        {/* Mobile: order-2 (appears between hero and tab panel)             */}
+        {/* Mobile: order-3 (below tab content — natural reading order)      */}
         {/* ---------------------------------------------------------------- */}
-        <div className="space-y-3 max-md:order-2 lg:row-span-2">
+        <div className="space-y-3 max-md:order-3 lg:row-span-2">
           {/* Assignment card */}
           {ref && (
             <AssignmentCard
@@ -559,9 +560,9 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
         </div>
 
         {/* ---------------------------------------------------------------- */}
-        {/* TAB STRIP + TAB BODY — mobile: order-3 (below sidebar)           */}
+        {/* TAB STRIP + TAB BODY — mobile: order-2 (above sidebar)           */}
         {/* ---------------------------------------------------------------- */}
-        <div className="lg:col-span-2 space-y-0 max-md:order-3">
+        <div className="lg:col-span-2 space-y-0 max-md:order-2">
           {/* Tabs */}
           <DetailTabs
             active={activeTab}
@@ -577,7 +578,7 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
             id={`panel-${activeTab}`}
             aria-labelledby={`tab-${activeTab}`}
             tabIndex={0}
-            className="bg-surface rounded-b-2xl border-x border-b border-border px-5 sm:px-6 py-5"
+            className="bg-surface rounded-b-2xl border-x border-b border-border px-5 sm:px-6 py-5 max-md:px-4 max-md:py-4 lg:min-h-[320px]"
           >
             {activeTab === 'specs' && (
               <div className="space-y-5">
