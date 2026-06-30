@@ -48,7 +48,7 @@ export function RepairCard({
   // ---------------------------------------------------------------------------
 
   return (
-    <SectionCard title={t('detail.repair.title')} icon="wrench" iconTone="orange">
+    <SectionCard title={t('detail.repair.title')} icon="wrench" iconTone="orange" bodyClassName="!p-4 max-md:!p-3.5">
       {isInRepair ? (
         // State: in-repair alert + return button
         <div className="space-y-3">
@@ -76,7 +76,7 @@ export function RepairCard({
         <button
           type="button"
           onClick={openForm}
-          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-border text-[14px] text-text-primary hover:border-amber-500/30 hover:text-amber-300 hover:bg-amber-500/10 transition-colors"
+          className="w-full flex items-center justify-center gap-2 py-2 rounded-xl border border-dashed border-border text-[14px] text-text-primary hover:border-amber-500/30 hover:text-amber-300 hover:bg-amber-500/10 transition-colors"
         >
           <Icon name="wrench" size={13} />
           {t('detail.repair.sendToRepair')}
@@ -88,7 +88,7 @@ export function RepairCard({
           <div>
             <label
               htmlFor="repair-reason"
-              className="block text-[12px] text-text-tertiary uppercase tracking-widest mb-1.5"
+              className="block text-[12px] text-text-tertiary uppercase tracking-widest mb-1"
             >
               {t('detail.repair.reasonLabel')}
             </label>
@@ -110,7 +110,7 @@ export function RepairCard({
 
           {/* Severity (visual-only, optional) */}
           <div>
-            <p className="text-[12px] text-text-tertiary uppercase tracking-widest mb-1.5">
+            <p className="text-[12px] text-text-tertiary uppercase tracking-widest mb-1">
               {t('detail.repair.severityLabel')}
             </p>
             <div className="grid grid-cols-3 gap-1.5">
@@ -137,7 +137,7 @@ export function RepairCard({
               type="button"
               onClick={closeForm}
               disabled={busy}
-              className="flex-1 py-2 rounded-xl text-[14px] border border-border text-text-primary hover:bg-surface-2 transition-colors disabled:opacity-50"
+              className="flex-1 py-1.5 max-md:py-2 rounded-xl text-[14px] border border-border text-text-primary hover:bg-surface-2 transition-colors disabled:opacity-50"
             >
               {t('detail.repair.cancel')}
             </button>
@@ -145,7 +145,7 @@ export function RepairCard({
               type="button"
               onClick={handleConfirm}
               disabled={!reason.trim() || busy}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-[14px] bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-sm"
+              className="flex-1 flex items-center justify-center gap-1.5 py-1.5 max-md:py-2 rounded-xl text-[14px] bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-sm"
             >
               {busy
                 ? <Icon name="loader-circle" size={13} className="animate-spin" />

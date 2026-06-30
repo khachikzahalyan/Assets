@@ -138,6 +138,7 @@ export function AssignmentCard({
       title={t('detail.assignment.title')}
       icon="user-check"
       iconTone="blue"
+      bodyClassName="!p-4 max-md:!p-3.5"
       action={
         !transferOpen && canAssign ? (
           <Btn

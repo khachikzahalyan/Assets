@@ -285,7 +285,7 @@ export function TransferPanel({ asset: _asset, refData, caps, busy, onCommit, on
       </div>
 
       {/* Per-mode form — reserved slot prevents right-column jump when mode is picked */}
-      <div className="lg:min-h-[88px]">
+      <div className="lg:min-h-[64px]">
         {mode && (
           <TransferModeForm
             key={mode}
@@ -303,12 +303,12 @@ export function TransferPanel({ asset: _asset, refData, caps, busy, onCommit, on
       </div>
 
       {/* Footer: Cancel + Commit */}
-      <div className="mt-3 flex gap-2 pt-1">
+      <div className="mt-2 flex gap-2 pt-0.5">
         <button
           type="button"
           onClick={onCancel}
           disabled={busy}
-          className="flex-1 flex items-center justify-center py-2 rounded-xl text-[14px] font-medium border border-border text-text-primary hover:bg-surface-2 transition-colors disabled:opacity-50"
+          className="flex-1 flex items-center justify-center py-1.5 max-md:py-2 rounded-xl text-[14px] font-medium border border-border text-text-primary hover:bg-surface-2 transition-colors disabled:opacity-50"
         >
           {t('detail.transfer.cancel')}
         </button>
@@ -316,7 +316,7 @@ export function TransferPanel({ asset: _asset, refData, caps, busy, onCommit, on
           type="button"
           onClick={handleCommit}
           disabled={!isValid || busy}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-[14px] bg-accent text-white hover:bg-accent-hover disabled:opacity-35 disabled:cursor-not-allowed transition-all shadow-sm"
+          className="flex-1 flex items-center justify-center gap-1.5 py-1.5 max-md:py-2 rounded-xl text-[14px] bg-accent text-white hover:bg-accent-hover disabled:opacity-35 disabled:cursor-not-allowed transition-all shadow-sm"
         >
           {busy
             ? <Icon name="loader-circle" size={14} className="animate-spin" />

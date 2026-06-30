@@ -585,7 +585,7 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
         {/* ---------------------------------------------------------------- */}
         {/* RIGHT column — assignment + location + repair                    */}
         {/* ---------------------------------------------------------------- */}
-        <div className="space-y-3">
+        <div className="space-y-2">
           {/* Assignment card */}
           {ref && (
             <AssignmentCard
