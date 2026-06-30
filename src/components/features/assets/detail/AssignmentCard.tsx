@@ -39,8 +39,8 @@ export function AssignmentCard({
   function renderAssignment() {
     if (!ass || ass.mode === 'warehouse') {
       return (
-        <div className="flex items-center gap-3 p-3 rounded-xl bg-surface-2 ring-1 ring-border">
-          <div className="w-10 h-10 rounded-full bg-border text-text-tertiary flex items-center justify-center shrink-0">
+        <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-surface-2 ring-1 ring-border">
+          <div className="w-9 h-9 rounded-full bg-border text-text-tertiary flex items-center justify-center shrink-0">
             <Icon name="warehouse" size={16} />
           </div>
           <div className="min-w-0 flex-1">
@@ -60,9 +60,9 @@ export function AssignmentCard({
       const subline = [emp?.position, dept?.name].filter(Boolean).join(' · ')
       const ac = avatarColor(ass.employeeId)
       return (
-        <div className="flex items-center gap-3 p-3 rounded-xl bg-surface-2 ring-1 ring-border">
+        <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-surface-2 ring-1 ring-border">
           <div
-            className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-white text-[13px] font-bold"
+            className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-white text-[13px] font-bold"
             style={{ backgroundColor: ac }}
           >
             {initials(empName)}
@@ -79,8 +79,8 @@ export function AssignmentCard({
     if (ass.mode === 'department') {
       const dept = refData.departments.find(d => d.id === ass.departmentId)
       return (
-        <div className="flex items-center gap-3 p-3 rounded-xl bg-surface-2 ring-1 ring-border">
-          <div className="w-10 h-10 rounded-full bg-amber-500/15 text-amber-300 flex items-center justify-center shrink-0">
+        <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-surface-2 ring-1 ring-border">
+          <div className="w-9 h-9 rounded-full bg-amber-500/15 text-amber-300 flex items-center justify-center shrink-0">
             <Icon name="layout-list" size={16} />
           </div>
           <div className="min-w-0 flex-1">
@@ -94,8 +94,8 @@ export function AssignmentCard({
     if (ass.mode === 'branch') {
       const br = refData.branches.find(b => b.id === ass.branchId)
       return (
-        <div className="flex items-center gap-3 p-3 rounded-xl bg-surface-2 ring-1 ring-border">
-          <div className="w-10 h-10 rounded-full bg-teal-500/15 text-teal-300 flex items-center justify-center shrink-0">
+        <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-surface-2 ring-1 ring-border">
+          <div className="w-9 h-9 rounded-full bg-teal-500/15 text-teal-300 flex items-center justify-center shrink-0">
             <Icon name="git-branch" size={16} />
           </div>
           <div className="min-w-0 flex-1">
@@ -111,8 +111,8 @@ export function AssignmentCard({
         ? t('detail.transfer.kindAudit')
         : t('detail.transfer.kindIntern')
       return (
-        <div className="flex items-center gap-3 p-3 rounded-xl bg-rose-500/10 ring-1 ring-rose-500/30">
-          <div className="w-10 h-10 rounded-full bg-rose-500/15 text-rose-300 flex items-center justify-center shrink-0">
+        <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-rose-500/10 ring-1 ring-rose-500/30">
+          <div className="w-9 h-9 rounded-full bg-rose-500/15 text-rose-300 flex items-center justify-center shrink-0">
             <Icon name="timer" size={16} />
           </div>
           <div className="min-w-0 flex-1">
@@ -153,8 +153,8 @@ export function AssignmentCard({
         ) : undefined
       }
     >
-      {/* Current assignee — hidden while transferring (redundant there, saves height) */}
-      {!transferOpen && renderAssignment()}
+      {/* Current assignee — always visible (stays put when opening transfer) */}
+      {renderAssignment()}
 
       {transferOpen && (
         <TransferPanel
