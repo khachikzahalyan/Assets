@@ -502,9 +502,9 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 max-md:gap-3 items-start">
 
         {/* ---------------------------------------------------------------- */}
-        {/* LEFT column — hero + tabs stacked (no gap between them)          */}
+        {/* LEFT column — hero + tabs stacked, 10px gap between them        */}
         {/* ---------------------------------------------------------------- */}
-        <div className="lg:col-span-2 space-y-0">
+        <div className="lg:col-span-2 space-y-[10px]">
 
           {/* HERO */}
           <div className="space-y-0">
@@ -515,9 +515,10 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
               canWriteOff={canWriteOff && !isDisposed}
               isDisposed={isDisposed}
               onWriteOff={onOpenWriteOff}
+              roundedBottom={!asset.barcode}
             />
             {asset.barcode && (
-              <div className="flex items-center gap-2 px-5 py-2.5 max-md:px-4 max-md:py-3 max-md:rounded-b-2xl max-md:overflow-hidden bg-surface border-x border-b border-border">
+              <div className="flex items-center gap-2 px-5 py-2.5 max-md:px-4 max-md:py-3 rounded-b-2xl overflow-hidden bg-surface border-x border-b border-border">
                 <Btn variant="secondary" size="sm" onClick={() => setPrinting(true)} className="max-md:min-h-[44px]">
                   <Icon name="printer" size={12} />
                   {t('label.print')}
