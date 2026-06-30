@@ -564,7 +564,11 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
               id={`panel-${activeTab}`}
               aria-labelledby={`tab-${activeTab}`}
               tabIndex={0}
-              className="bg-surface rounded-b-2xl border-x border-b border-border px-5 sm:px-6 py-5 max-md:px-4 max-md:py-4 lg:flex-1 lg:min-h-0 lg:overflow-y-auto"
+              className={`bg-surface rounded-b-2xl border-x border-b border-border px-5 sm:px-6 py-5 max-md:px-4 max-md:py-4${
+                // Only История needs to fill + scroll internally (it can be long).
+                // Specs/Docs keep their natural height — no flex stretch.
+                activeTab === 'history' ? ' lg:flex-1 lg:min-h-0 lg:overflow-y-auto' : ''
+              }`}
             >
               {activeTab === 'specs' && (
                 <div className="space-y-5">
