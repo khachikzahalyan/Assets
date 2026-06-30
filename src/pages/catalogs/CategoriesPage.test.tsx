@@ -9,7 +9,7 @@ import type { Category } from '@/domain/category'
 vi.mock('@/contexts/AuthContext', () => ({ useAuth: () => ({ user: { id: 'u_super' }, role: 'super_admin' }) }))
 
 const seed = (): Category[] => [
-  { id: 'c1', name: 'Laptop', group: 'devices', hasSpecs: true, lucideIcon: 'laptop', createdAt: 't', updatedAt: 't' },
+  { id: 'c1', name: 'Laptop', group: 'devices', categoryGroupId: 'devices', hasSpecs: true, lucideIcon: 'laptop', createdAt: 't', updatedAt: 't' },
 ]
 
 describe('CategoriesPage', () => {

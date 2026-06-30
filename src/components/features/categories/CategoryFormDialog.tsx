@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Btn, Field, Input, Select, DIALOG_BACKDROP, MODAL_SHEET } from '@/components/ui'
-import { CATEGORY_GROUPS } from '@/domain/category'
-import type { Category, CategoryGroup } from '@/domain/category'
+import { CATEGORY_GROUP_BEHAVIORS } from '@/domain/category'
+import type { Category, CategoryGroupBehavior } from '@/domain/category'
 
 export interface CategoryFormValues {
   name: string
-  group: CategoryGroup
+  group: CategoryGroupBehavior
   hasSpecs: boolean
   lucideIcon: string
 }
@@ -24,7 +24,7 @@ export function CategoryFormDialog(p: CategoryFormDialogProps) {
   const { t } = useTranslation('categories')
 
   const [name, setName]             = useState(p.initial?.name ?? '')
-  const [group, setGroup]           = useState<string>(p.initial?.group ?? CATEGORY_GROUPS[0])
+  const [group, setGroup]           = useState<string>(p.initial?.group ?? CATEGORY_GROUP_BEHAVIORS[0])
   const [hasSpecs, setHasSpecs]     = useState(p.initial?.hasSpecs ?? false)
   const [lucideIcon, setLucideIcon] = useState(p.initial?.lucideIcon ?? '')
 
@@ -34,14 +34,14 @@ export function CategoryFormDialog(p: CategoryFormDialogProps) {
 
   const nameError = touched && !name.trim() ? t('validation.required') : null
 
-  const groupOptions = CATEGORY_GROUPS.map(g => ({ value: g, label: t(`group.${g}`) }))
+  const groupOptions = CATEGORY_GROUP_BEHAVIORS.map(g => ({ value: g, label: t(`group.${g}`) }))
 
   function submit() {
     setTouched(true)
     if (!name.trim()) return
     p.onSubmit({
       name: name.trim(),
-      group: group as CategoryGroup,
+      group: group as CategoryGroupBehavior,
       hasSpecs,
       lucideIcon: lucideIcon.trim() || 'package',
     })

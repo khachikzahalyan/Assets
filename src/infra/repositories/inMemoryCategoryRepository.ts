@@ -49,6 +49,7 @@ export class InMemoryCategoryRepository implements CategoryRepository {
       id,
       name: input.name.trim(),
       group: input.group,
+      categoryGroupId: input.categoryGroupId ?? input.group,
       hasSpecs: input.hasSpecs,
       lucideIcon: input.lucideIcon ?? 'package',
       createdAt: now,

@@ -1,17 +1,20 @@
-import type { Category, CategoryGroup, CategoryListQuery } from './types'
+import type { Category, CategoryListQuery } from './types'
+import type { CategoryGroupBehavior } from './categoryGroup-types'
 import type { Actor } from '@/domain/asset'
 import type { AuditedResult } from '@/domain/audit'
 
 export interface CreateCategoryInput {
   name: string
-  group: CategoryGroup
+  group: CategoryGroupBehavior
+  categoryGroupId?: string
   hasSpecs: boolean
   lucideIcon?: string
 }
 
 export interface UpdateCategoryInput {
   name?: string
-  group?: CategoryGroup
+  group?: CategoryGroupBehavior
+  categoryGroupId?: string
   hasSpecs?: boolean
   lucideIcon?: string
 }

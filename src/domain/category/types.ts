@@ -1,14 +1,12 @@
-export const CATEGORY_GROUPS = ['devices', 'network', 'furniture'] as const
-export type CategoryGroup = (typeof CATEGORY_GROUPS)[number]
-
-export function isCategoryGroup(v: string): v is CategoryGroup {
-  return (CATEGORY_GROUPS as readonly string[]).includes(v)
-}
+import type { CategoryGroupBehavior } from './categoryGroup-types'
 
 export interface Category {
   id: string
   name: string
-  group: CategoryGroup
+  /** Inherited capability behavior class (drives `categoryCapabilities.ts`). */
+  group: CategoryGroupBehavior
+  /** FK to the parent CategoryGroup record (display grouping). */
+  categoryGroupId: string
   hasSpecs: boolean
   lucideIcon: string
   createdAt: string
@@ -16,6 +14,7 @@ export interface Category {
 }
 
 export interface CategoryListQuery {
-  group?: CategoryGroup | 'all'
+  group?: CategoryGroupBehavior | 'all'
+  categoryGroupId?: string
   search?: string
 }

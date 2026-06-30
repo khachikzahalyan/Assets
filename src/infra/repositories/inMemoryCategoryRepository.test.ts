@@ -6,8 +6,8 @@ import type { Category } from '@/domain/category'
 
 const actor = { uid: 'u', role: 'super_admin' as const }
 const seed = (): Category[] => [
-  { id: 'c1', name: 'Laptop', group: 'devices', hasSpecs: true, lucideIcon: 'laptop', createdAt: 't', updatedAt: 't' },
-  { id: 'c2', name: 'Chair', group: 'furniture', hasSpecs: false, lucideIcon: 'armchair', createdAt: 't', updatedAt: 't' },
+  { id: 'c1', name: 'Laptop', group: 'devices', categoryGroupId: 'devices', hasSpecs: true, lucideIcon: 'laptop', createdAt: 't', updatedAt: 't' },
+  { id: 'c2', name: 'Chair', group: 'furniture', categoryGroupId: 'furniture', hasSpecs: false, lucideIcon: 'armchair', createdAt: 't', updatedAt: 't' },
 ]
 
 describe('InMemoryCategoryRepository', () => {

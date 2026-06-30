@@ -4,7 +4,7 @@ import {
 } from 'firebase/firestore'
 import type { Actor } from '@/domain/asset'
 import type {
-  Category, CategoryGroup, CategoryListQuery,
+  Category, CategoryGroupBehavior, CategoryListQuery,
   CategoryRepository, CreateCategoryInput, UpdateCategoryInput,
 } from '@/domain/category'
 import { EntityInUseError } from '@/domain/shared'
@@ -23,7 +23,8 @@ function toCategory(id: string, d: Record<string, unknown>): Category {
   return {
     id,
     name: String(d.name ?? ''),
-    group: (d.group as CategoryGroup) ?? 'devices',
+    group: (d.group as CategoryGroupBehavior) ?? 'devices',
+    categoryGroupId: String(d.categoryGroupId ?? d.group ?? 'devices'),
     hasSpecs: Boolean(d.hasSpecs),
     lucideIcon: String(d.lucideIcon ?? 'package'),
     createdAt: toIso(d.createdAt),
