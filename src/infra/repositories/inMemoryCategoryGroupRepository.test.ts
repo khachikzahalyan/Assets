@@ -83,4 +83,31 @@ describe('InMemoryCategoryGroupRepository', () => {
     expect(store.logs.length).toBe(1)
     expect(store.logs[0]!.action).toBe('deleted')
   })
+
+  it('createCategoryGroup assigns sequential order defaults for multiple groups', async () => {
+    const repo = new InMemoryCategoryGroupRepository([])
+    const { value: g1 } = await repo.createCategoryGroup({ name: 'Group A' }, actor)
+    const { value: g2 } = await repo.createCategoryGroup({ name: 'Group B' }, actor)
+    expect(g1.order).toBe(0)  // groups.length was 0 at time of creation
+    expect(g2.order).toBe(1)  // groups.length was 1 after g1 pushed
+    expect(g2.order).toBeGreaterThan(g1.order)
+  })
+
+  it('updateCategoryGroup renames a group and rejects duplicate name', async () => {
+    const store = createInMemoryAuditStore()
+    const data = seed()
+    const repo = new InMemoryCategoryGroupRepository(data, {}, inMemoryAuditContext(store))
+
+    const { value } = await repo.updateCategoryGroup('g1', { name: 'Electronics' }, actor)
+    expect(value.name).toBe('Electronics')
+    expect(store.logs.length).toBe(1)
+    expect(store.logs[0]!.action).toBe('updated')
+
+    // Renaming g2 to the same name as g1 should be rejected
+    await expect(
+      repo.updateCategoryGroup('g2', { name: 'Electronics' }, actor),
+    ).rejects.toThrow('Name already in use')
+    // Audit count must not grow on a rejected update
+    expect(store.logs.length).toBe(1)
+  })
 })

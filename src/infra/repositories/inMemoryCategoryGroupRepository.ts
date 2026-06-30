@@ -7,6 +7,7 @@ import { EntityInUseError } from '@/domain/shared'
 import {
   withAudit, type AuditContext, createInMemoryAuditStore, inMemoryAuditContext,
 } from '@/lib/audit'
+import { stripUndefined } from './inMemoryUtils'
 
 interface CategoryGroupRefs {
   categories?: { categoryGroupId?: string }[]
@@ -106,8 +107,4 @@ export class InMemoryCategoryGroupRepository implements CategoryGroupRepository 
       async () => { this.groups.splice(idx, 1); return { value: { id } } },
     )
   }
-}
-
-function stripUndefined<T extends object>(o: T): Partial<T> {
-  return Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined)) as Partial<T>
 }

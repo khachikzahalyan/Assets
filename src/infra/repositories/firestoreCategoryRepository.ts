@@ -10,14 +10,7 @@ import type {
 import { EntityInUseError } from '@/domain/shared'
 import { firestoreAuditContext, withAudit } from '@/lib/audit'
 import type { AuditedResult } from '@/domain/audit'
-
-function toIso(v: unknown): string {
-  if (typeof v === 'string') return v
-  if (v && typeof (v as { toDate?: () => Date }).toDate === 'function') {
-    return (v as { toDate: () => Date }).toDate().toISOString()
-  }
-  return new Date(0).toISOString()
-}
+import { toIso, stripUndefinedFs } from './firestoreUtils'
 
 function toCategory(id: string, d: Record<string, unknown>): Category {
   return {
@@ -30,10 +23,6 @@ function toCategory(id: string, d: Record<string, unknown>): Category {
     createdAt: toIso(d.createdAt),
     updatedAt: toIso(d.updatedAt),
   }
-}
-
-function stripUndefinedFs(o: Record<string, unknown>): Record<string, unknown> {
-  return Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined))
 }
 
 export class FirestoreCategoryRepository implements CategoryRepository {

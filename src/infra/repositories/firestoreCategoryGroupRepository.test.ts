@@ -12,7 +12,7 @@ import { EntityInUseError } from '@/domain/shared'
 // ---------------------------------------------------------------------------
 // vi.hoisted — declare mocks before the vi.mock() factory runs
 // ---------------------------------------------------------------------------
-const { mockGetDocs, mockCollection, mockDoc, mockGetDoc, mockWhere, mockLimit, mockFsQuery } =
+const { mockGetDocs, mockCollection, mockDoc, mockGetDoc, mockWhere, mockLimit, mockFsQuery, mockTxnSet } =
   vi.hoisted(() => ({
     mockGetDocs: vi.fn(),
     mockCollection: vi.fn((_db: unknown, name: string) => ({ __col: name })),
@@ -21,6 +21,7 @@ const { mockGetDocs, mockCollection, mockDoc, mockGetDoc, mockWhere, mockLimit, 
     mockWhere: vi.fn((...args: unknown[]) => ({ __where: args })),
     mockLimit: vi.fn((n: number) => ({ __limit: n })),
     mockFsQuery: vi.fn((_col: unknown, ...constraints: unknown[]) => ({ __query: constraints })),
+    mockTxnSet: vi.fn(),
   }))
 
 // ---------------------------------------------------------------------------
@@ -45,9 +46,9 @@ vi.mock('@/lib/audit', () => ({
   withAudit: vi.fn(async (
     _ctx: unknown,
     _spec: unknown,
-    mutate: (txn: { set: () => void; delete: () => void }) => Promise<{ value: unknown }>,
+    mutate: (txn: { set: (...a: unknown[]) => void; delete: () => void }) => Promise<{ value: unknown }>,
   ) => {
-    const result = await mutate({ set: vi.fn(), delete: vi.fn() })
+    const result = await mutate({ set: mockTxnSet, delete: vi.fn() })
     return { ...result, auditId: 'fake-audit-id' }
   }),
 }))
@@ -99,6 +100,8 @@ describe('FirestoreCategoryGroupRepository', () => {
   it('createCategoryGroup: isNameTaken query → empty → write → readback', async () => {
     // isNameTaken getDocs → empty
     mockGetDocs.mockResolvedValueOnce(makeSnap([]))
+    // listCategoryGroups getDocs → empty (no existing groups → order defaults to 0)
+    mockGetDocs.mockResolvedValueOnce(makeSnap([]))
     // readback getDoc after withAudit
     mockGetDoc.mockResolvedValueOnce(makeDocSnap('grp_new', {
       name: 'Network', behavior: 'network', lucideIcon: 'package', color: 'gray', order: 0,
@@ -113,6 +116,57 @@ describe('FirestoreCategoryGroupRepository', () => {
     expect(auditId).toBe('fake-audit-id')
     expect(mockWhere).toHaveBeenCalledWith('name', '==', 'Network')
     expect(mockLimit).toHaveBeenCalledWith(2) // isNameTaken uses limit(2)
+    expect(mockTxnSet).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ order: 0 }),
+    )
+  })
+
+  it('createCategoryGroup: order defaults to list length when existing groups present', async () => {
+    // isNameTaken getDocs → empty
+    mockGetDocs.mockResolvedValueOnce(makeSnap([]))
+    // listCategoryGroups getDocs → 2 existing groups (nextOrder = 2)
+    mockGetDocs.mockResolvedValueOnce(makeSnap([
+      { id: 'g1', data: { name: 'A', behavior: 'devices', lucideIcon: 'package', color: 'gray', order: 0 } },
+      { id: 'g2', data: { name: 'B', behavior: 'devices', lucideIcon: 'package', color: 'gray', order: 1 } },
+    ]))
+    // readback getDoc
+    mockGetDoc.mockResolvedValueOnce(makeDocSnap('grp_new', {
+      name: 'Network', behavior: 'network', lucideIcon: 'package', color: 'gray', order: 2,
+      createdAt: 't', updatedAt: 't',
+    }))
+
+    const repo = new FirestoreCategoryGroupRepository(fakeDb)
+    await repo.createCategoryGroup({ name: 'Network' }, actor)
+    expect(mockTxnSet).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ order: 2 }),
+    )
+  })
+
+  it('updateCategoryGroup: merge-set payload includes the patched field', async () => {
+    // getCategoryGroup getDoc (before state)
+    mockGetDoc.mockResolvedValueOnce(makeDocSnap('g1', {
+      name: 'Old Name', behavior: 'devices', lucideIcon: 'monitor', color: 'blue', order: 0,
+      createdAt: 't', updatedAt: 't',
+    }))
+    // isNameTaken getDocs → empty (new name is available)
+    mockGetDocs.mockResolvedValueOnce(makeSnap([]))
+    // readback getDoc after withAudit
+    mockGetDoc.mockResolvedValueOnce(makeDocSnap('g1', {
+      name: 'New Name', behavior: 'devices', lucideIcon: 'monitor', color: 'blue', order: 0,
+      createdAt: 't', updatedAt: 't',
+    }))
+
+    const repo = new FirestoreCategoryGroupRepository(fakeDb)
+    const { value, auditId } = await repo.updateCategoryGroup('g1', { name: 'New Name' }, actor)
+    expect(value.name).toBe('New Name')
+    expect(auditId).toBe('fake-audit-id')
+    expect(mockTxnSet).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ name: 'New Name' }),
+      { merge: true },
+    )
   })
 
   it('countReferences queries categories collection where categoryGroupId == id', async () => {

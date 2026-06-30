@@ -10,14 +10,7 @@ import type {
 import { EntityInUseError } from '@/domain/shared'
 import { firestoreAuditContext, withAudit } from '@/lib/audit'
 import type { AuditedResult } from '@/domain/audit'
-
-function toIso(v: unknown): string {
-  if (typeof v === 'string') return v
-  if (v && typeof (v as { toDate?: () => Date }).toDate === 'function') {
-    return (v as { toDate: () => Date }).toDate().toISOString()
-  }
-  return new Date(0).toISOString()
-}
+import { toIso, stripUndefinedFs } from './firestoreUtils'
 
 function toCategoryGroup(id: string, d: Record<string, unknown>): CategoryGroup {
   return {
@@ -30,10 +23,6 @@ function toCategoryGroup(id: string, d: Record<string, unknown>): CategoryGroup 
     createdAt: toIso(d.createdAt),
     updatedAt: toIso(d.updatedAt),
   }
-}
-
-function stripUndefinedFs(o: Record<string, unknown>): Record<string, unknown> {
-  return Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined))
 }
 
 export class FirestoreCategoryGroupRepository implements CategoryGroupRepository {
@@ -74,13 +63,14 @@ export class FirestoreCategoryGroupRepository implements CategoryGroupRepository
     input: CreateCategoryGroupInput, actor: Actor,
   ): Promise<AuditedResult<CategoryGroup>> {
     if (await this.isNameTaken(input.name)) throw new Error(`Name already in use: ${input.name}`)
+    const nextOrder = input.order ?? (await this.listCategoryGroups()).length
     const ref = doc(collection(this.db, 'categoryGroups'))
     const data: Record<string, unknown> = stripUndefinedFs({
       name: input.name.trim(),
       behavior: input.behavior ?? 'devices',
       lucideIcon: input.lucideIcon ?? 'package',
       color: input.color ?? 'gray',
-      order: input.order ?? 0,
+      order: nextOrder,
       createdBy: actor.uid,
       updatedBy: actor.uid,
       createdAt: serverTimestamp(),
@@ -108,7 +98,7 @@ export class FirestoreCategoryGroupRepository implements CategoryGroupRepository
     const before = await this.getCategoryGroup(id)
     if (!before) throw new Error(`CategoryGroup not found: ${id}`)
 
-    if (patch.name && await this.isNameTaken(patch.name, id)) {
+    if (patch.name !== undefined && await this.isNameTaken(patch.name, id)) {
       throw new Error(`Name already in use: ${patch.name}`)
     }
 

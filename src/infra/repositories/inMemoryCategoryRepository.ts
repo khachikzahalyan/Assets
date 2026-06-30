@@ -5,6 +5,7 @@ import type {
 import type { Actor } from '@/domain/asset'
 import { EntityInUseError } from '@/domain/shared'
 import { withAudit, type AuditContext, createInMemoryAuditStore, inMemoryAuditContext } from '@/lib/audit'
+import { stripUndefined } from './inMemoryUtils'
 
 interface CategoryRefs {
   assets?: { categoryId?: string }[]
@@ -110,8 +111,4 @@ export class InMemoryCategoryRepository implements CategoryRepository {
       async () => { this.categories.splice(idx, 1); return { value: { id } } },
     )
   }
-}
-
-function stripUndefined<T extends object>(o: T): Partial<T> {
-  return Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined)) as Partial<T>
 }
