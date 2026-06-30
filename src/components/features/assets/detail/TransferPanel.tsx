@@ -4,7 +4,7 @@ import type { Asset, AssetReferenceData } from '@/domain/asset'
 import type { CategoryCapabilities } from '@/components/features/assets/create/CategoryPicker'
 import type { TransferPatch, TransferTarget } from '@/domain/asset/transferRules'
 import { buildTransferPatch } from '@/domain/asset/transferRules'
-import { Icon, Select } from '@/components/ui'
+import { Icon } from '@/components/ui'
 import { DatePicker } from '@/components/features/assets/create/DatePicker'
 import { SearchSelect } from '@/components/features/assets/create/SearchSelect'
 import { ModeTile } from './ModeTile'
@@ -148,10 +148,13 @@ function TransferModeForm({
               <label className="block text-[12px] uppercase tracking-[0.06em] font-semibold text-text-tertiary mb-1">
                 {t('detail.transfer.kindLabel')}
               </label>
-              <Select
+              <SearchSelect
                 value={tempKind}
                 onChange={setTempKind}
                 placeholder={t('detail.transfer.kindPlaceholder')}
+                searchPlaceholder={t('placeholders.recipientSearch')}
+                ariaLabel={t('detail.transfer.kindLabel')}
+                title={t('detail.transfer.kindLabel')}
                 options={[
                   { value: 'audit', label: t('detail.transfer.kindAudit') },
                   { value: 'intern', label: t('detail.transfer.kindIntern') },
@@ -170,29 +173,8 @@ function TransferModeForm({
               />
             </div>
           </div>
-          {caps?.isLaptop && (
-            <div>
-              <label className="block text-[12px] uppercase tracking-[0.06em] font-semibold text-text-tertiary mb-1">
-                {t('detail.transfer.workModeLabel')}
-              </label>
-              <div className="flex items-center gap-1 h-8 max-md:h-11 bg-bg border border-border rounded-lg overflow-hidden">
-                {(['office', 'remote'] as const).map((wm, i) => (
-                  <button
-                    key={wm}
-                    type="button"
-                    onClick={() => setWorkMode(wm)}
-                    className={`flex-1 h-full text-[13px] font-medium transition-colors ${i > 0 ? 'border-l border-border' : ''}
-                      ${workMode === wm
-                        ? 'bg-accent text-white'
-                        : 'text-text-tertiary hover:text-text-primary hover:bg-surface-2'
-                      }`}
-                  >
-                    {wm === 'office' ? t('detail.transfer.workModeOffice') : t('detail.transfer.workModeRemote')}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* Work mode is intentionally omitted for temporary transfers — it is
+              always «Основной» (office), set automatically in handleCommit. */}
         </div>
       )}
     </div>

@@ -288,11 +288,11 @@ describe('AssetDetailPage — TransferPanel flow', () => {
     const tempTile = await screen.findByRole('button', { name: 'Временно' })
     fireEvent.click(tempTile)
 
-    // Act: select kind «Аудитор» from the Select in the temporary form.
+    // Act: open the SearchSelect and pick kind «Аудитор».
     // TransferPanel initialises returnDate to todayStr, so once tempKind is set the
     // form is valid (returnDate >= todayStr is satisfied).
-    const selectEl = await screen.findByRole('combobox')
-    fireEvent.change(selectEl, { target: { value: 'audit' } })
+    fireEvent.click(await screen.findByRole('combobox'))
+    fireEvent.click(await screen.findByRole('option', { name: 'Аудитор' }))
 
     // Assert: commit button is now enabled
     await waitFor(() => {
