@@ -494,41 +494,97 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
 
       {/*
        * Two-column grid on large screens.
-       * Mobile order: hero (order-1) → tabs/content (order-2) → sidebar (order-3).
-       * This matches the prototype's mobile reading order: hero → specs → assignment/location.
-       * We use a flat grid with max-md:order-* on three wrappers to achieve this without
-       * duplicating DOM nodes.
+       * LEFT column (lg:col-span-2): hero + tabs stacked, no gap between them.
+       * RIGHT column (lg:col-span-1): sidebar (assignment / location / repair).
+       * DOM order is hero → tabs → sidebar, so mobile stacking is naturally
+       * hero → tabs → sidebar — no max-md:order-* classes needed.
        */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 max-md:gap-3 items-start">
 
         {/* ---------------------------------------------------------------- */}
-        {/* HERO — always first on both desktop and mobile                   */}
+        {/* LEFT column — hero + tabs stacked (no gap between them)          */}
         {/* ---------------------------------------------------------------- */}
-        <div className="lg:col-span-2 space-y-0 max-md:order-1">
-          {/* Hero */}
-          <DetailHero
-            asset={asset}
-            category={category}
-            statusRow={statusRow}
-            canWriteOff={canWriteOff && !isDisposed}
-            isDisposed={isDisposed}
-            onWriteOff={onOpenWriteOff}
-          />
-          {asset.barcode && (
-            <div className="flex items-center gap-2 px-5 py-2.5 max-md:px-4 max-md:py-3 max-md:rounded-b-2xl max-md:overflow-hidden bg-surface border-x border-b border-border">
-              <Btn variant="secondary" size="sm" onClick={() => setPrinting(true)} className="max-md:min-h-[44px]">
-                <Icon name="printer" size={12} />
-                {t('label.print')}
-              </Btn>
+        <div className="lg:col-span-2 space-y-0">
+
+          {/* HERO */}
+          <div className="space-y-0">
+            <DetailHero
+              asset={asset}
+              category={category}
+              statusRow={statusRow}
+              canWriteOff={canWriteOff && !isDisposed}
+              isDisposed={isDisposed}
+              onWriteOff={onOpenWriteOff}
+            />
+            {asset.barcode && (
+              <div className="flex items-center gap-2 px-5 py-2.5 max-md:px-4 max-md:py-3 max-md:rounded-b-2xl max-md:overflow-hidden bg-surface border-x border-b border-border">
+                <Btn variant="secondary" size="sm" onClick={() => setPrinting(true)} className="max-md:min-h-[44px]">
+                  <Icon name="printer" size={12} />
+                  {t('label.print')}
+                </Btn>
+              </div>
+            )}
+          </div>
+
+          {/* TAB STRIP + TAB BODY */}
+          <div className="space-y-0">
+            {/* Tabs */}
+            <DetailTabs
+              active={activeTab}
+              onChange={setActiveTab}
+              showSpecs={showSpecs}
+              showDocs={true}
+              addedDate={addedDate}
+            />
+
+            {/* Tab body — WAI-ARIA tabpanel */}
+            <div
+              role="tabpanel"
+              id={`panel-${activeTab}`}
+              aria-labelledby={`tab-${activeTab}`}
+              tabIndex={0}
+              className="bg-surface rounded-b-2xl border-x border-b border-border px-5 sm:px-6 py-5 max-md:px-4 max-md:py-4 lg:min-h-[320px]"
+            >
+              {activeTab === 'specs' && (
+                <div className="space-y-5">
+                  {(caps?.hasSpecs || caps?.hasOemLicense || licenses.length > 0) ? (
+                    <TechSpecsCard
+                      asset={asset}
+                      licenses={licenses}
+                      hasOemLicenseCap={Boolean(caps?.hasOemLicense)}
+                      canManageLicense={canManageLicense}
+                      onAttachLicense={onAttachLicense}
+                      licensePool={licensePool}
+                      licenseBusy={busy}
+                      onOpenParts={() => navigate(`/parts?tab=devices&assetId=${asset.id}`)}
+                    />
+                  ) : (
+                    <p className="text-[13px] text-text-subtle italic">{t('detail.specs.empty')}</p>
+                  )}
+                </div>
+              )}
+
+              {activeTab === 'history' && (
+                <HistoryCard events={historyEvents} />
+              )}
+
+              {activeTab === 'docs' && (
+                <DocumentsTab
+                  acts={acts}
+                  onOpen={onOpenScan}
+                  purchaseDate={asset.purchaseDate ?? null}
+                  warrantyEndsAt={asset.warrantyEndsAt ?? null}
+                />
+              )}
             </div>
-          )}
-        </div>
+          </div>
+
+        </div>{/* end LEFT column */}
 
         {/* ---------------------------------------------------------------- */}
         {/* RIGHT column — assignment + location + repair                    */}
-        {/* Mobile: order-3 (below tab content — natural reading order)      */}
         {/* ---------------------------------------------------------------- */}
-        <div className="space-y-3 max-md:order-3 lg:row-span-2">
+        <div className="space-y-3">
           {/* Assignment card */}
           {ref && (
             <AssignmentCard
@@ -559,60 +615,6 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
           />
         </div>
 
-        {/* ---------------------------------------------------------------- */}
-        {/* TAB STRIP + TAB BODY — mobile: order-2 (above sidebar)           */}
-        {/* ---------------------------------------------------------------- */}
-        <div className="lg:col-span-2 space-y-0 max-md:order-2">
-          {/* Tabs */}
-          <DetailTabs
-            active={activeTab}
-            onChange={setActiveTab}
-            showSpecs={showSpecs}
-            showDocs={true}
-            addedDate={addedDate}
-          />
-
-          {/* Tab body — WAI-ARIA tabpanel */}
-          <div
-            role="tabpanel"
-            id={`panel-${activeTab}`}
-            aria-labelledby={`tab-${activeTab}`}
-            tabIndex={0}
-            className="bg-surface rounded-b-2xl border-x border-b border-border px-5 sm:px-6 py-5 max-md:px-4 max-md:py-4 lg:min-h-[320px]"
-          >
-            {activeTab === 'specs' && (
-              <div className="space-y-5">
-                {(caps?.hasSpecs || caps?.hasOemLicense || licenses.length > 0) ? (
-                  <TechSpecsCard
-                    asset={asset}
-                    licenses={licenses}
-                    hasOemLicenseCap={Boolean(caps?.hasOemLicense)}
-                    canManageLicense={canManageLicense}
-                    onAttachLicense={onAttachLicense}
-                    licensePool={licensePool}
-                    licenseBusy={busy}
-                    onOpenParts={() => navigate(`/parts?tab=devices&assetId=${asset.id}`)}
-                  />
-                ) : (
-                  <p className="text-[13px] text-text-subtle italic">{t('detail.specs.empty')}</p>
-                )}
-              </div>
-            )}
-
-            {activeTab === 'history' && (
-              <HistoryCard events={historyEvents} />
-            )}
-
-            {activeTab === 'docs' && (
-              <DocumentsTab
-                acts={acts}
-                onOpen={onOpenScan}
-                purchaseDate={asset.purchaseDate ?? null}
-                warrantyEndsAt={asset.warrantyEndsAt ?? null}
-              />
-            )}
-          </div>
-        </div>
       </div>
 
       {/* Write-off modal — portal */}
