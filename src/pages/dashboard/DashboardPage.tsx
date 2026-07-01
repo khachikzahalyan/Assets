@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
-import { PageHeader, ErrorState } from '@/components/ui'
+import { ErrorState } from '@/components/ui'
 import {
   StatCard,
   StatusBars,
@@ -38,9 +38,6 @@ export function DashboardPage({ repo }: DashboardPageProps) {
   if (loading) {
     return (
       <div className="space-y-5" aria-busy="true">
-        {/* Header */}
-        <div className="h-9 w-[220px] rounded-xl anim-skeleton" />
-
         {/* ROW 1: 5 KPI card shimmers — 2-col on mobile, 5-col on desktop */}
         <div className="grid grid-cols-2 gap-2 lg:grid-cols-5 lg:gap-3">
           {Array.from({ length: 5 }).map((_, i) => (
@@ -157,8 +154,6 @@ export function DashboardPage({ repo }: DashboardPageProps) {
 
   return (
     <div className="space-y-5">
-      <PageHeader icon="layout-dashboard" title={t('title')} />
-
       {error && (
         <div data-testid="dashboard-error">
           <ErrorState onRetry={reload} />
