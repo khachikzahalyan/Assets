@@ -95,7 +95,7 @@ export function DataTable<T>({
     <div
       role="table"
       aria-label={ariaLabel}
-      style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%' }}
+      style={{ display: 'flex', flexDirection: 'column', width: '100%' }}
     >
       {/* ── Sticky header rowgroup ─────────────────────────────────────────── */}
       <div
@@ -133,9 +133,12 @@ export function DataTable<T>({
       </div>
 
       {/* ── Body rowgroup ─────────────────────────────────────────────────── */}
+      {/* Content-driven height (NO flex:1/height:100% — those collapse the table
+          to 0 when a consumer like CatalogTable has no bounded-height parent).
+          Consistent list height comes from a shared minRows/PAGE_SIZE, not flex. */}
       <div
         role="rowgroup"
-        style={{ display: 'flex', flexDirection: 'column', flex: '1 1 0', minHeight: 0 }}
+        style={{ display: 'flex', flexDirection: 'column' }}
       >
         {rows.map(row => {
           const key = getRowKey(row)
@@ -166,7 +169,6 @@ export function DataTable<T>({
                   display: 'grid',
                   gridTemplateColumns,
                   alignItems: 'center',
-                  flex: '1 1 0',
                   minHeight: 58,
                 }}
               >
@@ -210,7 +212,6 @@ export function DataTable<T>({
             aria-hidden="true"
             data-testid={placeholderTestId}
             style={{
-              flex: '1 1 0',
               minHeight: 58,
               borderTop: '1px solid rgba(42,47,54,0.35)',
               pointerEvents: 'none',
