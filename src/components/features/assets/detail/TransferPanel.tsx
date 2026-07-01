@@ -83,7 +83,7 @@ function TransferModeForm({
               <label className="block text-[12px] uppercase tracking-[0.06em] font-semibold text-text-tertiary mb-1">
                 {t('detail.transfer.workModeLabel')}
               </label>
-              <div className="flex items-center gap-1 h-8 max-md:h-11 bg-bg border border-border rounded-lg overflow-hidden">
+              <div className="flex items-center gap-1 h-8 max-md:h-9 bg-bg border border-border rounded-lg overflow-hidden">
                 {(['office', 'remote'] as const).map((wm, i) => (
                   <button
                     key={wm}
@@ -272,12 +272,8 @@ export function TransferPanel({ asset: _asset, refData, caps, busy, onCommit, on
 
   return (
     <div className={`anim-fade-slide-in ${mobileInline ? '' : 'mt-2 border-t border-border pt-2'}`}>
-      {/* Divider header — desktop: side-dividers; mobile-inline: centered overline */}
-      {mobileInline ? (
-        <p className="text-center text-[10px] font-bold tracking-[1.3px] uppercase text-text-tertiary mb-[13px]">
-          {t('detail.transfer.title')}
-        </p>
-      ) : (
+      {/* Divider header — desktop only (side-dividers). Mobile hides it entirely. */}
+      {!mobileInline && (
         <div className="flex items-center gap-3 mb-2">
           <div className="flex-1 h-px bg-surface-2" />
           <span className="text-[12px] text-text-tertiary uppercase tracking-widest whitespace-nowrap">
@@ -326,7 +322,7 @@ export function TransferPanel({ asset: _asset, refData, caps, busy, onCommit, on
           disabled={busy}
           className={`flex items-center justify-center border border-border text-text-primary hover:bg-surface-2 transition-colors disabled:opacity-50
             ${mobileInline
-              ? 'flex-none px-5 py-3 rounded-[10px] text-[13px] font-semibold'
+              ? 'flex-none px-4 py-2 rounded-lg text-[13px] font-semibold'
               : 'flex-1 py-1.5 max-md:py-2 rounded-xl text-[14px] font-medium'
             }`}
         >
@@ -338,7 +334,7 @@ export function TransferPanel({ asset: _asset, refData, caps, busy, onCommit, on
           disabled={!isValid || busy}
           className={`flex-1 flex items-center justify-center gap-1.5 bg-accent text-white hover:bg-accent-hover disabled:opacity-35 disabled:cursor-not-allowed transition-all shadow-sm
             ${mobileInline
-              ? 'py-3 rounded-[10px] text-[13.5px] font-bold'
+              ? 'py-2 rounded-lg text-[13px] font-semibold'
               : 'py-1.5 max-md:py-2 rounded-xl text-[14px]'
             }`}
         >

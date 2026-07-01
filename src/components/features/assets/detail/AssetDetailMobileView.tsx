@@ -115,20 +115,27 @@ export function AssetDetailMobileView({
     if (!hasSpecsFlag && activeTab === 'specs') setActiveTab('history')
   }, [hasSpecsFlag, activeTab])
 
-  // Bottom sections (Назначение / Местонахождение / Ремонт) hidden on История tab.
-  const showBottomSections = activeTab !== 'history'
+  // Bottom sections (Назначение / Местонахождение / Ремонт) show ONLY on the
+  // «Тех. характеристики» tab — hidden on both История and Документы.
+  const showBottomSections = activeTab === 'specs'
 
   return (
-    <>
+    /*
+     * Viewport-locked column: the topbar (52px) + bottom nav (64px) frame the
+     * page, so the view fills the remaining height and ONLY its inner region
+     * scrolls — the hero + tab strip stay fixed (prototype behaviour). This
+     * component renders on mobile only, so no max-md gating is needed.
+     */
+    <div className="flex flex-col h-[calc(100dvh-128px)] overflow-hidden">
       {/* Action error banner */}
       {actionError && (
-        <p role="alert" className="mx-3.5 mt-2 text-[12px] text-rose-300 px-1">
+        <p role="alert" className="mx-3.5 mt-2 text-[12px] text-rose-300 px-1 flex-shrink-0">
           {actionError}
         </p>
       )}
 
-      {/* ① HERO — dedicated mobile layout, 14px side gutters */}
-      <div className="px-3.5 pt-3.5">
+      {/* ① HERO — fixed (does not scroll) */}
+      <div className="px-3.5 pt-1 flex-shrink-0">
         <DetailHeroMobile
           asset={asset}
           category={category}
@@ -140,8 +147,8 @@ export function AssetDetailMobileView({
         />
       </div>
 
-      {/* ② TABS — sticky behaviour is provided by max-md: classes inside DetailTabs */}
-      <div className="mt-3">
+      {/* ② TABS — fixed */}
+      <div className="mt-3 flex-shrink-0">
         <DetailTabs
           active={activeTab}
           onChange={setActiveTab}
@@ -151,63 +158,65 @@ export function AssetDetailMobileView({
         />
       </div>
 
-      {/* ③ TAB BODY — rendered directly (no card wrapper; cards live inside each child) */}
-      <div
-        role="tabpanel"
-        id={`panel-${activeTab}`}
-        aria-labelledby={`tab-${activeTab}`}
-        tabIndex={0}
-        className="px-3.5 pt-3"
-      >
-        {activeTab === 'specs' && (
-          <TechSpecsCard
-            asset={asset}
-            licenses={licenses}
-            hasOemLicenseCap={Boolean(caps?.hasOemLicense)}
-            canManageLicense={canManageLicense}
-            onAttachLicense={onAttachLicense}
-            licensePool={licensePool}
-            licenseBusy={busy}
-            bare
-          />
-        )}
-        {activeTab === 'history' && <HistoryCard events={historyEvents} />}
-        {activeTab === 'docs' && (
-          <DocumentsTab
-            acts={acts}
-            onOpen={onOpenScan}
-            purchaseDate={asset.purchaseDate ?? null}
-            warrantyEndsAt={asset.warrantyEndsAt ?? null}
-          />
+      {/* ③ SCROLL REGION — the only scroller: tab body + bottom sections */}
+      <div className="flex-1 min-h-0 overflow-y-auto">
+        <div
+          role="tabpanel"
+          id={`panel-${activeTab}`}
+          aria-labelledby={`tab-${activeTab}`}
+          tabIndex={0}
+          className="px-3.5 pt-3"
+        >
+          {activeTab === 'specs' && (
+            <TechSpecsCard
+              asset={asset}
+              licenses={licenses}
+              hasOemLicenseCap={Boolean(caps?.hasOemLicense)}
+              canManageLicense={canManageLicense}
+              onAttachLicense={onAttachLicense}
+              licensePool={licensePool}
+              licenseBusy={busy}
+              bare
+            />
+          )}
+          {activeTab === 'history' && <HistoryCard events={historyEvents} mobileBare />}
+          {activeTab === 'docs' && (
+            <DocumentsTab
+              acts={acts}
+              onOpen={onOpenScan}
+              purchaseDate={asset.purchaseDate ?? null}
+              warrantyEndsAt={asset.warrantyEndsAt ?? null}
+            />
+          )}
+        </div>
+
+        {/* ④ ⑤ ⑥ BOTTOM SECTIONS — only on «Тех. характеристики» */}
+        {showBottomSections && (
+          <div className="px-3.5 pb-6 space-y-2.5 mt-3">
+            {/* ④ НАЗНАЧЕНИЕ — mobile-only inline-always-open card (prototype §857–931) */}
+            <AssignmentCardMobile
+              asset={asset}
+              refData={refData}
+              caps={caps}
+              canAssign={canAssign && !isDisposed}
+              busy={busy}
+              onCommit={onTransfer}
+            />
+
+            {/* ⑤ МЕСТОНАХОЖДЕНИЕ */}
+            <LocationCard asset={asset} refData={refData} />
+
+            {/* ⑥ РЕМОНТ — RepairCard returns null when canRepair=false */}
+            <RepairCard
+              asset={asset}
+              canRepair={canRepair && !isDisposed}
+              busy={busy}
+              onSendToRepair={onSendToRepair}
+              onReturnFromRepair={onReturnFromRepair}
+            />
+          </div>
         )}
       </div>
-
-      {/* ④ ⑤ ⑥ BOTTOM SECTIONS — hidden when История tab is active */}
-      {showBottomSections && (
-        <div className="px-3.5 pb-20 space-y-2.5 mt-3">
-          {/* ④ НАЗНАЧЕНИЕ — mobile-only inline-always-open card (prototype §857–931) */}
-          <AssignmentCardMobile
-            asset={asset}
-            refData={refData}
-            caps={caps}
-            canAssign={canAssign && !isDisposed}
-            busy={busy}
-            onCommit={onTransfer}
-          />
-
-          {/* ⑤ МЕСТОНАХОЖДЕНИЕ */}
-          <LocationCard asset={asset} refData={refData} />
-
-          {/* ⑥ РЕМОНТ — RepairCard returns null when canRepair=false */}
-          <RepairCard
-            asset={asset}
-            canRepair={canRepair && !isDisposed}
-            busy={busy}
-            onSendToRepair={onSendToRepair}
-            onReturnFromRepair={onReturnFromRepair}
-          />
-        </div>
-      )}
 
       {/* Write-off modal (portal) */}
       {writeOffOpen && (
@@ -223,6 +232,6 @@ export function AssetDetailMobileView({
       {printing && asset.barcode && (
         <LabelPreviewDialog assets={[asset]} onClose={onClosePrint} />
       )}
-    </>
+    </div>
   )
 }

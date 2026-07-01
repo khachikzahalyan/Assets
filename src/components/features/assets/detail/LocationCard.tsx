@@ -26,9 +26,10 @@ export function LocationCard({ asset, refData }: LocationCardProps) {
             : <span className="text-[14px] text-text-subtle">—</span>
           }
         </div>
-        {/* Mobile: 30px icon box (prototype §941–946) */}
+        {/* Mobile: icon box matches the SectionCard header box (26px) so the
+            value text aligns under the «МЕСТОНАХОЖДЕНИЕ» title in one column. */}
         <div className="md:hidden flex items-center gap-2.5">
-          <div className="w-[30px] h-[30px] rounded-[9px] bg-emerald-500/10 flex items-center justify-center shrink-0">
+          <div className="w-[26px] h-[26px] rounded-md bg-emerald-500/10 flex items-center justify-center shrink-0">
             <Icon name="building-2" size={13} className="text-emerald-300" />
           </div>
           {branch

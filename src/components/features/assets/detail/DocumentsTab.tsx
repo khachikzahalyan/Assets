@@ -113,7 +113,9 @@ export function DocumentsTab({ acts, onOpen, purchaseDate, warrantyEndsAt }: Doc
       )}
 
       {acts.length === 0 ? (
-        <EmptyState icon="file-x" title={t('detail.docs.empty')} />
+        <div className="max-md:hidden">
+          <EmptyState icon="file-x" title={t('detail.docs.empty')} />
+        </div>
       ) : (
         <ul className="space-y-2">
           {acts.map(act => (
@@ -133,7 +135,7 @@ export function DocumentsTab({ acts, onOpen, purchaseDate, warrantyEndsAt }: Doc
           ))}
         </ul>
       )}
-      <div className="mt-4 pt-4 border-t border-border">
+      <div className="mt-4 pt-4 border-t border-border max-md:hidden">
         <button
           disabled
           className="w-full flex items-center justify-center gap-2 h-10 max-md:h-12 rounded-lg border-2 border-dashed border-border text-text-subtle text-[14px] opacity-60 cursor-not-allowed"
