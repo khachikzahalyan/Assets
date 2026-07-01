@@ -21,18 +21,23 @@ export function AssetLabel({ asset }: AssetLabelProps) {
       style={{
         width: '100%', padding: '3mm', boxSizing: 'border-box',
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        gap: '2mm', breakInside: 'avoid', overflow: 'hidden', color: '#000', background: '#fff',
+        gap: '3mm', breakInside: 'avoid', overflow: 'hidden', color: '#000', background: '#fff',
       }}
     >
-      {/* Order matches the owner's target label: inventory code on top, barcode below. */}
-      <div style={{ fontSize: '16pt', fontWeight: 700, lineHeight: 1.05, letterSpacing: '0.5px' }}>
-        {asset.invCode}
-      </div>
+      {/* Order matches the owner's target label (image #22): barcode on top, inventory code centered below. */}
       {asset.barcode ? (
         <div style={{ width: '100%' }}>
           <Barcode128 value={asset.barcode} />
         </div>
       ) : null}
+      <div
+        style={{
+          width: '100%', textAlign: 'center',
+          fontSize: '16pt', fontWeight: 700, lineHeight: 1.05, letterSpacing: '0.5px',
+        }}
+      >
+        {asset.invCode}
+      </div>
     </div>
   )
 }

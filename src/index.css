@@ -493,8 +493,12 @@ select:-webkit-autofill {
      The preview dialog ALSO portals to <body>, so hiding only #root let the open dialog
      overlay the print and the label came out blank. */
   body > *:not(.ams-print-label-root) { display: none !important; }
-  .ams-print-label-root { display: block !important; }
-  .ams-label { page-break-after: always; }
+  /* Pin the label to a fixed 80mm width (the thermal roll width). Some printer drivers
+     (EPSON TM-T20III) ignore `@page size` and feed a full-sheet page, which left the label
+     small and shoved into the top-left corner. Forcing 80mm makes the printed label fill the
+     roll edge-to-edge no matter what page size the driver reports. */
+  .ams-print-label-root { display: block !important; width: 80mm; margin: 0 auto; }
+  .ams-label { width: 80mm; page-break-after: always; }
   .ams-label:last-child { page-break-after: auto; }
 }
 

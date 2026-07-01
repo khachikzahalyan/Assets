@@ -19,8 +19,8 @@ export interface LabelPreviewDialogProps {
  *
  * Shows each AssetLabel scaled up 2× for on-screen readability (the physical
  * label is ~50×30mm, which is tiny on a monitor at 1:1). Clicking «Печать»
- * mounts LabelPrintHost, which fires window.print() and then unmounts itself
- * — the dialog stays open so the user can print again or close manually.
+ * mounts LabelPrintHost, which fires window.print(); once the browser print
+ * dialog returns (Print OR Cancel) the whole preview dialog auto-closes.
  *
  * Desktop: centred modal. Mobile ≤767px: bottom-sheet (via DIALOG_BACKDROP +
  * MODAL_SHEET shared constants). ESC and backdrop click call onClose.
@@ -65,9 +65,14 @@ export function LabelPreviewDialog({ assets, onClose, onPrint }: LabelPreviewDia
   return createPortal(
     <>
       {/* LabelPrintHost renders into body portal and triggers window.print();
-          only mounted once there are committed assets to print, then onAfterPrint clears them. */}
+          only mounted once there are committed assets to print. After the browser print
+          dialog returns (whether the user hit Print or Cancel), we clear the print assets
+          AND close this preview dialog — the owner wants the whole flow to dismiss itself. */}
       {printAssets.length > 0 && (
-        <LabelPrintHost assets={printAssets} onAfterPrint={() => setPrintAssets([])} />
+        <LabelPrintHost
+          assets={printAssets}
+          onAfterPrint={() => { setPrintAssets([]); onClose() }}
+        />
       )}
 
       <div
