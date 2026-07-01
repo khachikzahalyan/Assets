@@ -1,4 +1,4 @@
-import { useLayoutEffect } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import type { Asset } from '@/domain/asset/types'
 import { AssetLabel } from './AssetLabel'
@@ -15,7 +15,15 @@ export interface LabelPrintHostProps {
  * multiple → a sheet. window.print is wrapped so jsdom/tests don't throw.
  */
 export function LabelPrintHost({ assets, onAfterPrint }: LabelPrintHostProps) {
+  const startedRef = useRef(false)
   useLayoutEffect(() => {
+    // StrictMode (dev) double-invokes effects. Without this guard window.print() fired TWICE
+    // → two stacked browser print dialogs → the user had to press Cancel twice to dismiss both.
+    // The old cleanup also cleared the finish timer between the two invocations, so the preview
+    // never auto-closed. Guard so the whole print flow runs exactly once.
+    if (startedRef.current) return
+    startedRef.current = true
+
     let done = false
     const finish = () => { if (!done) { done = true; onAfterPrint() } }
     try {
@@ -23,8 +31,9 @@ export function LabelPrintHost({ assets, onAfterPrint }: LabelPrintHostProps) {
     } catch {
       // jsdom: window.print not implemented — ignore.
     }
-    const id = window.setTimeout(finish, 0)
-    return () => window.clearTimeout(id)
+    // window.print() is blocking in Chrome (returns after Print OR Cancel), so this fires right
+    // after the dialog closes → onAfterPrint clears the labels and closes the preview dialog.
+    window.setTimeout(finish, 0)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
