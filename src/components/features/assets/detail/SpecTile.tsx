@@ -29,12 +29,13 @@ export function SpecTile({ icon, label, value, accent, badge, badgeAccent, value
   const badgeTone = TILE_ACCENT[badgeAccent ?? accent] ?? TILE_ACCENT['slate']!
 
   return (
-    <div className="bg-bg border border-border rounded-lg p-3 flex items-center gap-3">
-      <div className={`w-9 h-9 rounded-lg inline-flex items-center justify-center shrink-0 ${tone.bg} ${tone.text}`}>
-        <Icon name={icon} size={18} />
+    <div className="bg-bg border border-border rounded-lg p-3 flex items-center gap-3 max-md:p-[10px] max-md:gap-[9px]">
+      <div className={`w-9 h-9 max-md:w-7 max-md:h-7 rounded-lg inline-flex items-center justify-center shrink-0 ${tone.bg} ${tone.text}`}>
+        <Icon name={icon} size={18} className="max-md:hidden" />
+        <Icon name={icon} size={13} className="md:hidden" />
       </div>
       <div className="min-w-0">
-        <p className="text-[10px] tracking-widest text-text-subtle uppercase mb-0.5">{label}</p>
+        <p className="text-[10px] max-md:text-[8.5px] tracking-widest max-md:tracking-[0.7px] max-md:font-bold text-text-subtle uppercase mb-0.5">{label}</p>
         {slots && slots.length > 0 ? (
           // Multi-drive layout: all drives in ONE row (badge chip + capacity each), wrapping if needed
           <div className="flex items-center gap-x-3 gap-y-1 flex-wrap">
@@ -49,7 +50,7 @@ export function SpecTile({ icon, label, value, accent, badge, badgeAccent, value
                       {slot.badge}
                     </span>
                   )}
-                  <p className="text-[13px] text-text-primary">{slot.value}</p>
+                  <p className="text-[13px] max-md:text-[12px] max-md:font-semibold text-text-primary">{slot.value}</p>
                 </div>
               )
             })}
@@ -64,7 +65,7 @@ export function SpecTile({ icon, label, value, accent, badge, badgeAccent, value
                 {badge}
               </span>
             )}
-            <p className={`text-[13px] ${valueClassName ?? 'text-text-primary'}`}>{value}</p>
+            <p className={`text-[13px] max-md:text-[12px] max-md:font-semibold ${valueClassName ?? 'text-text-primary'}`}>{value}</p>
           </div>
         )}
       </div>

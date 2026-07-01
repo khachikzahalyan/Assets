@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useIsMobile } from '@/hooks/useIsMobile'
+import { AssetDetailMobileView } from '@/components/features/assets/detail/AssetDetailMobileView'
 import {
   PageHeader, ErrorState, EmptyState,
 } from '@/components/ui'
@@ -72,6 +74,7 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
   const { user, role } = useAuth()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const isMobile = useIsMobile()
 
   const actor = useMemo(() => ({ uid: user.id, role }), [user.id, role])
 
@@ -475,6 +478,48 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
           ))}
         </div>
       </div>
+    )
+  }
+
+  // ---- Mobile branch (≤767px) — rendered before the desktop JSX ----
+  // isMobile returns false under jsdom (no matchMedia) so existing tests render the
+  // desktop branch unchanged.
+  if (isMobile) {
+    return (
+      <AssetDetailMobileView
+        asset={asset}
+        category={category}
+        statusRow={statusRow}
+        caps={caps}
+        refData={ref!}
+        acts={acts}
+        historyEvents={historyEvents}
+        licenses={licenses}
+        licensePool={licensePool}
+        hasSpecsFlag={hasSpecsFlag}
+        canWriteOff={canWriteOff}
+        canAssign={canAssign}
+        canRepair={canRepair}
+        isDisposed={isDisposed}
+        canManageLicense={canManageLicense}
+        busy={busy}
+        actionError={actionError}
+        transferOpen={transferOpen}
+        writeOffOpen={writeOffOpen}
+        printing={printing}
+        onOpenTransfer={() => setTransferOpen(true)}
+        onCloseTransfer={() => setTransferOpen(false)}
+        onTransfer={onTransfer}
+        onWriteOff={onOpenWriteOff}
+        onCloseWriteOff={() => setWriteOffOpen(false)}
+        onConfirmWriteOff={onConfirmWriteOff}
+        onSendToRepair={onSendToRepair}
+        onReturnFromRepair={onReturnFromRepair}
+        onOpenScan={onOpenScan}
+        onAttachLicense={onAttachLicense}
+        {...(asset.barcode ? { onPrint: () => setPrinting(true) } : {})}
+        onClosePrint={() => setPrinting(false)}
+      />
     )
   }
 

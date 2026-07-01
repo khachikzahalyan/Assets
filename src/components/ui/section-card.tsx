@@ -50,11 +50,12 @@ export function SectionCard({
         <header className="flex items-center justify-between px-5 py-3.5 max-md:px-3.5 max-md:py-3 border-b border-border">
           <div className="flex items-center gap-2.5">
             {icon && (
-              <span className={`w-7 h-7 rounded-md inline-flex items-center justify-center ${iconTone ? ICON_TONES[iconTone] : 'bg-surface-2 text-text-tertiary'}`}>
-                <Icon name={icon} size={14} />
+              <span className={`w-7 h-7 max-md:w-[26px] max-md:h-[26px] rounded-md inline-flex items-center justify-center ${iconTone ? ICON_TONES[iconTone] : 'bg-surface-2 text-text-tertiary'}`}>
+                <Icon name={icon} size={14} className="max-md:hidden" />
+                <Icon name={icon} size={12} className="md:hidden" />
               </span>
             )}
-            <h2 className="text-[13px] font-bold uppercase tracking-[0.04em] text-text-primary">{title}</h2>
+            <h2 className="text-[13px] max-md:text-[10px] font-bold uppercase tracking-[0.04em] max-md:tracking-[1.4px] text-text-primary max-md:text-text-secondary">{title}</h2>
           </div>
           {action && <div className="flex items-center gap-2">{action}</div>}
         </header>

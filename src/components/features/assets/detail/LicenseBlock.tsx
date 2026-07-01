@@ -32,6 +32,13 @@ interface LicenseBlockProps {
   pool?: { id: string; name: string; vendor: string | null }[]
   /** @deprecated No longer used */
   busy?: boolean
+  /**
+   * Mobile compact mode — renders a single horizontal row inside the spec tile
+   * grid (col-span-2). Shows 30px white MS-logo box + "OEM — name" + amber badge.
+   * Desktop LicenseBlock is unaffected; this prop is only passed from TechSpecsCard's
+   * bare mode (mobile only).
+   */
+  compact?: boolean
 }
 
 // ---------------------------------------------------------------------------
@@ -63,6 +70,7 @@ export function LicenseBlock({
   onAttach: _onAttach,
   pool: _pool,
   busy: _busy,
+  compact = false,
 }: LicenseBlockProps) {
   const { t } = useTranslation('assets')
   const { role } = useAuth()
@@ -130,6 +138,28 @@ export function LicenseBlock({
     } catch {
       setCopyError(true)
     }
+  }
+
+  // ---- COMPACT mode (mobile only — inside spec tile grid) -----------------
+  if (compact) {
+    const licName = lic ? lic.name : 'Windows'
+    return (
+      <div className="flex items-center gap-2.5">
+        {/* White MS-logo box — 30px */}
+        <div className="w-[30px] h-[30px] rounded-lg bg-white flex items-center justify-center shrink-0">
+          <svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="1"  y="1"  width="10" height="10" fill="#F25022"/>
+            <rect x="13" y="1"  width="10" height="10" fill="#7FBA00"/>
+            <rect x="1"  y="13" width="10" height="10" fill="#00A4EF"/>
+            <rect x="13" y="13" width="10" height="10" fill="#FFB900"/>
+          </svg>
+        </div>
+        <span className="text-[13px] font-bold text-text-primary flex-1 truncate">OEM — {licName}</span>
+        <span className="shrink-0 bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[10px] font-bold rounded-md px-2 py-0.5">
+          OEM
+        </span>
+      </div>
+    )
   }
 
   // ---- STATE 1 & 2: Bound license (Retail or OEM) -------------------------

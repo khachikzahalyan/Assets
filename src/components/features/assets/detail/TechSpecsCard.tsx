@@ -23,6 +23,13 @@ interface TechSpecsCardProps {
   licenseBusy?: boolean
   /** When provided, renders the «Открыть Запчасти →» button in the parts footer row. */
   onOpenParts?: () => void
+  /**
+   * Mobile-only bare mode (passed from AssetDetailMobileView).
+   * When true: renders WITHOUT the SectionCard wrapper, header/title, copy button,
+   * and parts-note footer — just the tile grid + a standalone license card.
+   * Desktop always receives bare=false (the default).
+   */
+  bare?: boolean
 }
 
 export function TechSpecsCard({
@@ -36,6 +43,7 @@ export function TechSpecsCard({
   licensePool,
   licenseBusy = false,
   onOpenParts,
+  bare = false,
 }: TechSpecsCardProps) {
   const { t } = useTranslation('assets')
   const [copied, setCopied] = useState(false)
@@ -74,6 +82,51 @@ export function TechSpecsCard({
   // Show the "empty specs" placeholder only when there is nothing at all to render.
   const showEmptyPlaceholder = lines.length === 0 && licenses.length === 0 && !hasAttachAffordance && !hasOemLicenseCap
 
+  // ── BARE MODE (mobile only) ─────────────────────────────────────────────
+  // No SectionCard, no header, no copy button, no parts-note footer.
+  // License block renders as a full-width compact row inside the same spec grid
+  // (grid-column: span 2) — matching the prototype's OEM tile placement.
+  if (bare) {
+    return (
+      <div>
+        {showEmptyPlaceholder ? (
+          <p className="text-[13px] text-text-subtle italic">{t('detail.specs.empty')}</p>
+        ) : (
+          <div className="grid grid-cols-2 gap-2">
+            {lines.map((line, idx) => (
+              <SpecTile
+                key={`${line.labelKey}-${idx}`}
+                icon={line.icon}
+                label={t(line.labelKey)}
+                value={line.value}
+                accent={line.accent}
+                {...(line.badge          !== undefined ? { badge:          line.badge }          : {})}
+                {...(line.badgeAccent    !== undefined ? { badgeAccent:    line.badgeAccent }    : {})}
+                {...(line.valueClassName !== undefined ? { valueClassName: line.valueClassName } : {})}
+                {...(line.slots          !== undefined ? { slots:          line.slots }          : {})}
+              />
+            ))}
+            {showLicenseSection && (
+              /* Full-width OEM compact row — matches prototype §682–688 (grid-column:1/-1). */
+              <div className="col-span-2 bg-surface border border-border rounded-[10px] px-[13px] py-[10px]">
+                <LicenseBlock
+                  asset={asset}
+                  licenses={licenses}
+                  canManage={canManageLicense}
+                  busy={licenseBusy}
+                  compact
+                  {...(onAttachLicense ? { onAttach: onAttachLicense } : {})}
+                  {...(licensePool ? { pool: licensePool } : {})}
+                />
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // ── DESKTOP / FULL MODE ──────────────────────────────────────────────────
   return (
     <SectionCard title={t('detail.specs.title')} icon="cpu" iconTone="violet" action={copyBtn}>
       {showEmptyPlaceholder ? (
@@ -81,7 +134,7 @@ export function TechSpecsCard({
       ) : (
         <>
           {lines.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-2">
               {lines.map((line, idx) => (
                 <SpecTile
                   key={`${line.labelKey}-${idx}`}

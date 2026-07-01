@@ -14,10 +14,10 @@ export function ModeTile({ icon, label, selected, onClick }: ModeTileProps) {
       type="button"
       onClick={onClick}
       aria-pressed={selected}
-      className="group flex flex-col items-center gap-1 py-0.5 rounded-xl transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+      className="group flex flex-col items-center gap-1 max-md:gap-[5px] py-0.5 rounded-xl transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
     >
       <div
-        className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-150
+        className={`w-10 h-10 max-md:w-[46px] max-md:h-[46px] rounded-full flex items-center justify-center transition-all duration-150
           ${selected
             ? 'bg-accent ring-2 ring-accent/40 ring-offset-2 ring-offset-surface shadow-[0_4px_14px_rgba(249,115,22,0.35)]'
             : 'bg-surface-2 border border-border group-hover:border-accent/40'}`}
@@ -29,7 +29,7 @@ export function ModeTile({ icon, label, selected, onClick }: ModeTileProps) {
         />
       </div>
       <span
-        className={`text-[12px] leading-tight text-center transition-colors duration-150 ${selected ? 'text-text-primary font-semibold' : 'text-text-tertiary group-hover:text-text-primary'}`}
+        className={`text-[12px] max-md:text-[10.5px] leading-tight text-center transition-colors duration-150 ${selected ? 'text-text-primary font-semibold' : 'text-text-tertiary group-hover:text-text-primary'}`}
       >
         {label}
       </span>

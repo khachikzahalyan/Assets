@@ -18,10 +18,21 @@ export function LocationCard({ asset, refData }: LocationCardProps) {
   return (
     <SectionCard title={t('detail.location.title')} icon="map-pin" iconTone="green">
       <div className="space-y-3">
-        <div className="flex items-center gap-2">
+        {/* Desktop: inline icon */}
+        <div className="max-md:hidden flex items-center gap-2">
           <Icon name="building-2" size={14} className="text-lime-400" />
           {branch
             ? <span className="text-[14px] text-[#E2E8F0]">{branch.name}</span>
+            : <span className="text-[14px] text-text-subtle">—</span>
+          }
+        </div>
+        {/* Mobile: 30px icon box (prototype §941–946) */}
+        <div className="md:hidden flex items-center gap-2.5">
+          <div className="w-[30px] h-[30px] rounded-[9px] bg-emerald-500/10 flex items-center justify-center shrink-0">
+            <Icon name="building-2" size={13} className="text-emerald-300" />
+          </div>
+          {branch
+            ? <span className="text-[14px] font-semibold text-text-primary">{branch.name}</span>
             : <span className="text-[14px] text-text-subtle">—</span>
           }
         </div>

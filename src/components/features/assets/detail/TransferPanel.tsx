@@ -183,9 +183,17 @@ export interface TransferPanelProps {
   busy: boolean
   onCommit: (patch: TransferPatch) => void
   onCancel: () => void
+  /**
+   * When true the panel is rendered inline/always-visible on mobile
+   * (AssignmentCardMobile). «Отмена» resets the picker selection to null
+   * instead of calling onCancel (which would close the panel on desktop).
+   * Also removes the border-t / mt-2 wrapper padding.
+   * Desktop panels never set this — only AssignmentCardMobile.
+   */
+  mobileInline?: boolean
 }
 
-export function TransferPanel({ asset: _asset, refData, caps, busy, onCommit, onCancel }: TransferPanelProps) {
+export function TransferPanel({ asset: _asset, refData, caps, busy, onCommit, onCancel, mobileInline = false }: TransferPanelProps) {
   const { t } = useTranslation('assets')
   const todayStr = todayISO()
 
@@ -251,19 +259,36 @@ export function TransferPanel({ asset: _asset, refData, caps, busy, onCommit, on
     setWorkMode('office')
   }
 
-  return (
-    <div className="mt-2 border-t border-border pt-2 anim-fade-slide-in">
-      {/* Divider header */}
-      <div className="flex items-center gap-3 mb-2">
-        <div className="flex-1 h-px bg-surface-2" />
-        <span className="text-[12px] text-text-tertiary uppercase tracking-widest whitespace-nowrap">
-          {t('detail.transfer.title')}
-        </span>
-        <div className="flex-1 h-px bg-surface-2" />
-      </div>
+  // Mobile-inline only: «Отмена» resets target selection without closing the panel
+  function handleReset() {
+    setMode(null)
+    setEmployeeId('')
+    setBranchId('')
+    setDepartmentId('')
+    setTempKind('')
+    setReturnDate(todayStr)
+    setWorkMode('office')
+  }
 
-      {/* Mode tiles row — mobile: 2-col grid, last tile spans full row to avoid orphaned half-row */}
-      <div className="grid grid-cols-5 gap-1.5 max-md:grid-cols-2 max-md:[&>*:last-child]:col-span-2">
+  return (
+    <div className={`anim-fade-slide-in ${mobileInline ? '' : 'mt-2 border-t border-border pt-2'}`}>
+      {/* Divider header — desktop: side-dividers; mobile-inline: centered overline */}
+      {mobileInline ? (
+        <p className="text-center text-[10px] font-bold tracking-[1.3px] uppercase text-text-tertiary mb-[13px]">
+          {t('detail.transfer.title')}
+        </p>
+      ) : (
+        <div className="flex items-center gap-3 mb-2">
+          <div className="flex-1 h-px bg-surface-2" />
+          <span className="text-[12px] text-text-tertiary uppercase tracking-widest whitespace-nowrap">
+            {t('detail.transfer.title')}
+          </span>
+          <div className="flex-1 h-px bg-surface-2" />
+        </div>
+      )}
+
+      {/* Mode tiles row — 5 tiles in one row on all sizes; tighter gap on desktop-mobile */}
+      <div className={`grid grid-cols-5 ${mobileInline ? 'gap-1 mb-[13px]' : 'gap-1.5 max-md:gap-1'}`}>
         {TRANSFER_MODES.map(m => (
           <ModeTile
             key={m.id}
@@ -294,12 +319,16 @@ export function TransferPanel({ asset: _asset, refData, caps, busy, onCommit, on
       </div>
 
       {/* Footer: Cancel + Commit */}
-      <div className="mt-2 flex gap-2 pt-0.5">
+      <div className={`flex pt-0.5 ${mobileInline ? 'mt-0 gap-[10px]' : 'mt-2 gap-2'}`}>
         <button
           type="button"
-          onClick={onCancel}
+          onClick={mobileInline ? handleReset : onCancel}
           disabled={busy}
-          className="flex-1 flex items-center justify-center py-1.5 max-md:py-2 rounded-xl text-[14px] font-medium border border-border text-text-primary hover:bg-surface-2 transition-colors disabled:opacity-50"
+          className={`flex items-center justify-center border border-border text-text-primary hover:bg-surface-2 transition-colors disabled:opacity-50
+            ${mobileInline
+              ? 'flex-none px-5 py-3 rounded-[10px] text-[13px] font-semibold'
+              : 'flex-1 py-1.5 max-md:py-2 rounded-xl text-[14px] font-medium'
+            }`}
         >
           {t('detail.transfer.cancel')}
         </button>
@@ -307,7 +336,11 @@ export function TransferPanel({ asset: _asset, refData, caps, busy, onCommit, on
           type="button"
           onClick={handleCommit}
           disabled={!isValid || busy}
-          className="flex-1 flex items-center justify-center gap-1.5 py-1.5 max-md:py-2 rounded-xl text-[14px] bg-accent text-white hover:bg-accent-hover disabled:opacity-35 disabled:cursor-not-allowed transition-all shadow-sm"
+          className={`flex-1 flex items-center justify-center gap-1.5 bg-accent text-white hover:bg-accent-hover disabled:opacity-35 disabled:cursor-not-allowed transition-all shadow-sm
+            ${mobileInline
+              ? 'py-3 rounded-[10px] text-[13.5px] font-bold'
+              : 'py-1.5 max-md:py-2 rounded-xl text-[14px]'
+            }`}
         >
           {busy
             ? <Icon name="loader-circle" size={14} className="animate-spin" />
