@@ -33,51 +33,58 @@ const ACCENT: Record<
     number: string
     label: string
     hoverBorder: string
-    /** Mobile compact card tinted background (non-featured). */
-    mobileBg: string
-    /** Mobile compact card border color (non-featured). */
-    mobileBorder: string
+    /** Tinted gradient card background (from-X/15 → to-X/[0.06]) — every card. */
+    cardBg: string
+    /** Accent card border colour. */
+    cardBorder: string
+    /** Soft corner glow colour. */
+    glow: string
   }
 > = {
   orange: {
-    iconBox:      'bg-accent/15 text-accent',
-    number:       'text-text-primary',
-    label:        'text-accent',
-    hoverBorder:  'hover:border-accent/50',
-    mobileBg:     'bg-accent/[0.06]',
-    mobileBorder: 'border-accent/20',
+    iconBox:     'bg-accent/15 text-accent',
+    number:      'text-text-primary',
+    label:       'text-accent',
+    hoverBorder: 'hover:border-accent/50',
+    cardBg:      'from-accent/15 to-accent/[0.06]',
+    cardBorder:  'border-accent/30',
+    glow:        'bg-accent/20',
   },
   green: {
-    iconBox:      'bg-success/15 text-success',
-    number:       'text-success',
-    label:        'text-text-subtle',
-    hoverBorder:  'hover:border-success/40',
-    mobileBg:     'bg-success/[0.06]',
-    mobileBorder: 'border-success/20',
+    iconBox:     'bg-success/15 text-success',
+    number:      'text-success',
+    label:       'text-success',
+    hoverBorder: 'hover:border-success/50',
+    cardBg:      'from-success/15 to-success/[0.06]',
+    cardBorder:  'border-success/30',
+    glow:        'bg-success/20',
   },
   blue: {
-    iconBox:      'bg-info/15 text-info',
-    number:       'text-info',
-    label:        'text-text-subtle',
-    hoverBorder:  'hover:border-info/40',
-    mobileBg:     'bg-info/[0.06]',
-    mobileBorder: 'border-info/20',
+    iconBox:     'bg-info/15 text-info',
+    number:      'text-info',
+    label:       'text-info',
+    hoverBorder: 'hover:border-info/50',
+    cardBg:      'from-info/15 to-info/[0.06]',
+    cardBorder:  'border-info/30',
+    glow:        'bg-info/20',
   },
   violet: {
-    iconBox:      'bg-violet-500/15 text-violet-300',
-    number:       'text-violet-300',
-    label:        'text-text-subtle',
-    hoverBorder:  'hover:border-violet-500/40',
-    mobileBg:     'bg-violet-500/[0.06]',
-    mobileBorder: 'border-violet-500/20',
+    iconBox:     'bg-violet-500/15 text-violet-300',
+    number:      'text-violet-300',
+    label:       'text-violet-300',
+    hoverBorder: 'hover:border-violet-500/50',
+    cardBg:      'from-violet-500/15 to-violet-500/[0.06]',
+    cardBorder:  'border-violet-500/30',
+    glow:        'bg-violet-500/20',
   },
   amber: {
-    iconBox:      'bg-warning/15 text-warning',
-    number:       'text-warning',
-    label:        'text-text-subtle',
-    hoverBorder:  'hover:border-warning/40',
-    mobileBg:     'bg-warning/[0.06]',
-    mobileBorder: 'border-warning/20',
+    iconBox:     'bg-warning/15 text-warning',
+    number:      'text-warning',
+    label:       'text-warning',
+    hoverBorder: 'hover:border-warning/50',
+    cardBg:      'from-warning/15 to-warning/[0.06]',
+    cardBorder:  'border-warning/30',
+    glow:        'bg-warning/20',
   },
 }
 
@@ -103,22 +110,18 @@ export function StatCard({
         'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent',
         // Featured spans full 2-col width on mobile, reverts to 1 col on desktop
         featured && 'col-span-2 lg:col-span-1',
-        // Background + border
-        featured
-          ? 'bg-gradient-to-br from-accent/15 to-accent/[0.06] border-accent/30'
-          : cn(cls.mobileBg, cls.mobileBorder, 'lg:bg-surface lg:border-border'),
+        // Background + border — every card gets its own accent gradient
+        'bg-gradient-to-br', cls.cardBg, cls.cardBorder,
         cls.hoverBorder,
         // Padding: denser on mobile
         'p-3 lg:p-[18px]',
       )}
     >
-      {/* Soft radial glow — featured only */}
-      {featured && (
-        <span
-          className="absolute -top-6 -right-6 w-28 h-28 rounded-full bg-accent/20 blur-2xl pointer-events-none"
-          aria-hidden="true"
-        />
-      )}
+      {/* Soft radial glow — accent-tinted, every card */}
+      <span
+        className={cn('absolute -top-6 -right-6 w-28 h-28 rounded-full blur-2xl pointer-events-none', cls.glow)}
+        aria-hidden="true"
+      />
 
       {/* ── FEATURED CARD ─────────────────────────────────────────
           Single DOM tree, responsive layout via Tailwind:
@@ -173,47 +176,32 @@ export function StatCard({
       )}
 
       {/* ── NON-FEATURED CARD ─────────────────────────────────────
-          Single DOM tree, responsive layout:
-          · mobile (<lg):  [icon(24px) + label] / [value(22px)]
-          · desktop (≥lg): [icon(32px)] / [value(32px)] / [label]
-          Value is rendered ONCE so tests find exactly one element.
-          Label renders at two positions (mobile inline, desktop below)
-          via `lg:hidden` / `hidden lg:block` — acceptable since no test
-          queries label text for these cards.                        */}
+          Same vertical arrangement as the featured «Всего активов» card
+          on every breakpoint: icon plaque / big number / label.        */}
       {!featured && (
         <div className="relative flex flex-col gap-2">
-          {/* Top row: icon + label(mobile) / icon-only(desktop) */}
-          <div className="flex items-center gap-1.5">
-            <span
+          <span
+            className={cn(
+              'w-8 h-8 rounded-[9px] inline-flex items-center justify-center flex-shrink-0',
+              cls.iconBox,
+            )}
+            aria-hidden="true"
+          >
+            <Icon name={icon} size={15} />
+          </span>
+          <div className="min-w-0">
+            <div
               className={cn(
-                'inline-flex items-center justify-center flex-shrink-0',
-                // 24px on mobile, 32px on desktop
-                'w-6 h-6 lg:w-8 lg:h-8',
-                'rounded-[7px] lg:rounded-[9px]',
-                cls.iconBox,
+                'text-[28px] lg:text-[32px] font-bold leading-none tracking-tight tabular-nums',
+                cls.number,
               )}
-              aria-hidden="true"
             >
-              <Icon name={icon} size={12} />
-            </span>
-            {/* Label next to icon — mobile only */}
-            <div className={cn('text-[11px] leading-tight truncate lg:hidden', cls.label)}>
+              {value ?? '—'}
+            </div>
+            <div className={cn('text-[11px] lg:text-[11.5px] mt-0.5 leading-tight truncate', cls.label)}>
               {label}
             </div>
           </div>
-
-          {/* Number — 22px on mobile, 32px on desktop */}
-          <div
-            className={cn(
-              'text-[22px] lg:text-[32px] font-bold leading-none tracking-tight tabular-nums',
-              cls.number,
-            )}
-          >
-            {value ?? '—'}
-          </div>
-
-          {/* Label below number — desktop only */}
-          <div className={cn('text-[11.5px] hidden lg:block', cls.label)}>{label}</div>
         </div>
       )}
     </Link>
