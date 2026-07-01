@@ -1,6 +1,7 @@
 import {
   LayoutDashboard,
   ScanLine,
+  Barcode,
   Package,
   Wifi,
   Briefcase,
@@ -253,6 +254,7 @@ const REGISTRY: Record<string, LucideIcon> = {
   'clipboard-list': ClipboardList,
   'gamepad-2': Gamepad2,
   'scan-line': ScanLine,
+  barcode: Barcode,
   wifi: Wifi,
   briefcase: Briefcase,
 }

@@ -47,7 +47,7 @@ export function SectionCard({
       style={{ boxShadow: '0 1px 2px rgba(0,0,0,0.4),0 4px 12px rgba(0,0,0,0.25)' }}
     >
       {!noHeader && (
-        <header className="flex items-center justify-between px-5 py-3.5 border-b border-border">
+        <header className="flex items-center justify-between px-5 py-3.5 max-md:px-3.5 max-md:py-3 border-b border-border">
           <div className="flex items-center gap-2.5">
             {icon && (
               <span className={`w-7 h-7 rounded-md inline-flex items-center justify-center ${iconTone ? ICON_TONES[iconTone] : 'bg-surface-2 text-text-tertiary'}`}>
@@ -59,7 +59,7 @@ export function SectionCard({
           {action && <div className="flex items-center gap-2">{action}</div>}
         </header>
       )}
-      <div className={`p-5 ${bodyClassName}`}>{children}</div>
+      <div className={`p-5 max-md:p-3.5 ${bodyClassName}`}>{children}</div>
     </section>
   )
 }

@@ -2,7 +2,8 @@ import { useTranslation } from 'react-i18next'
 import type { Asset, CategoryRow, StatusRow } from '@/domain/asset'
 import { assetTitle, STATUS_CHIP_COLOR } from '@/components/features/assets/assetFormat'
 import { CATEGORY_COLOR } from '@/components/features/assets/categoryColors'
-import { Btn, Chip, Icon } from '@/components/ui'
+import { Chip, Icon } from '@/components/ui'
+import { CHIP_PALETTE, CHIP_DOT } from '@/components/ui/chip'
 
 interface DetailHeroProps {
   asset: Asset
@@ -11,6 +12,8 @@ interface DetailHeroProps {
   canWriteOff: boolean
   isDisposed: boolean
   onWriteOff: () => void
+  /** When provided (asset has a barcode), renders a «Печать наклейки» button in the action cluster. */
+  onPrint?: () => void
   /** When true (no print bar follows), apply bottom rounding and full border. */
   roundedBottom?: boolean
   /** Extra classes on the root div — use `flex-1` when the parent is a flex column
@@ -25,6 +28,7 @@ export function DetailHero({
   canWriteOff,
   isDisposed,
   onWriteOff,
+  onPrint,
   roundedBottom = false,
   className = '',
 }: DetailHeroProps) {
@@ -67,16 +71,37 @@ export function DetailHero({
               )}
             </div>
           </div>
-          {/* Status + write-off: flows after title on mobile (flex-wrap), stays inline on desktop */}
+          {/* Status + actions — all three share one height (h-8 desktop / h-11 mobile),
+              same padding/rounding/text so they read as a uniform control row.
+              Flows after title on mobile (flex-wrap), stays inline on desktop. */}
           <div className="shrink-0 flex gap-2 items-center max-md:w-full max-md:mt-0.5">
-            <Chip color={STATUS_CHIP_COLOR[statusRow.id] ?? 'gray'} dot>
+            <span
+              className={`inline-flex items-center gap-1.5 h-8 max-md:h-11 px-2.5 rounded-lg text-[13px] font-semibold border ${
+                CHIP_PALETTE[STATUS_CHIP_COLOR[statusRow.id] ?? 'gray']
+              }`}
+            >
+              <span className={`w-1.5 h-1.5 rounded-full ${CHIP_DOT[STATUS_CHIP_COLOR[statusRow.id] ?? 'gray']}`} />
               {statusRow.name}
-            </Chip>
+            </span>
+            {onPrint && (
+              <button
+                type="button"
+                onClick={onPrint}
+                className="inline-flex items-center gap-1.5 h-8 max-md:h-11 px-2.5 rounded-lg text-[13px] font-semibold text-accent bg-accent/10 border border-accent/30 hover:bg-accent/15 hover:border-accent/50 transition-colors"
+              >
+                <Icon name="barcode" size={14} />
+                {t('label.print')}
+              </button>
+            )}
             {!isDisposed && canWriteOff && (
-              <Btn variant="danger" size="sm" onClick={onWriteOff} className="max-md:ml-auto max-md:min-h-[44px]">
-                <Icon name="archive-x" size={12} />
+              <button
+                type="button"
+                onClick={onWriteOff}
+                className="inline-flex items-center gap-1.5 h-8 max-md:h-11 px-2.5 rounded-lg text-[13px] font-semibold text-rose-300 bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500/15 hover:border-rose-500/50 transition-colors max-md:ml-auto"
+              >
+                <Icon name="archive-x" size={13} />
                 {t('detail.hero.writeOff')}
-              </Btn>
+              </button>
             )}
           </div>
         </div>

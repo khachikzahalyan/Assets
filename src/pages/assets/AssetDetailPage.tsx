@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
-  PageHeader, ErrorState, EmptyState, Btn, Icon,
+  PageHeader, ErrorState, EmptyState,
 } from '@/components/ui'
 import { DetailHero } from '@/components/features/assets/detail/DetailHero'
 import { DetailTabs, type TabId } from '@/components/features/assets/detail/DetailTabs'
@@ -525,10 +525,10 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
         {/* Left column: flex-col so hero stays fixed and tab area fills remaining height */}
         <div className="lg:col-span-2 space-y-[10px] lg:flex lg:flex-col lg:min-h-0">
 
-          {/* Hero block — lg:min-h-[155px] aligns its bottom with the idle
-              AssignmentCard (N=155px).  Without a barcode the hero sits at
-              ~107px and the wrapper carries a touch of bottom space — fine. */}
-          <div className="lg:min-h-[155px] flex flex-col lg:flex-shrink-0">
+          {/* Hero block — hugs its own content (~108px). The print action now
+              lives inside the hero cluster (no bottom bar), so we no longer
+              reserve extra height here; the 10px gap to the tabs stays exact. */}
+          <div className="flex flex-col lg:flex-shrink-0">
             <DetailHero
               asset={asset}
               category={category}
@@ -536,16 +536,9 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
               canWriteOff={canWriteOff && !isDisposed}
               isDisposed={isDisposed}
               onWriteOff={onOpenWriteOff}
-              roundedBottom={!asset.barcode}
+              roundedBottom
+              {...(asset.barcode ? { onPrint: () => setPrinting(true) } : {})}
             />
-            {asset.barcode && (
-              <div className="flex items-center gap-2 px-5 py-2.5 max-md:px-4 max-md:py-3 rounded-b-2xl overflow-hidden bg-surface border-x border-b border-border">
-                <Btn variant="secondary" size="sm" onClick={() => setPrinting(true)} className="max-md:min-h-[44px]">
-                  <Icon name="printer" size={12} />
-                  {t('label.print')}
-                </Btn>
-              </div>
-            )}
           </div>
 
           {/* Tab strip + Tab body: fills remaining left-column height on lg: */}
