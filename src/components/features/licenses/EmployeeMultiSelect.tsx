@@ -88,7 +88,7 @@ export function EmployeeMultiSelect({
   const panelNode = open ? (
     <>
       <div
-        onMouseDown={() => setOpen(false)}
+        onClick={() => setOpen(false)}
         style={{ position: 'fixed', inset: 0, zIndex: 300 }}
       />
       <div
@@ -103,7 +103,7 @@ export function EmployeeMultiSelect({
           maxHeight: 280,
           animation: 'modalPop 200ms cubic-bezier(.22,1,.36,1) both',
         }}
-        onMouseDown={e => e.stopPropagation()}
+        onClick={e => e.stopPropagation()}
         role="listbox"
         aria-multiselectable="true"
         aria-label={t('multiselect.placeholder')}

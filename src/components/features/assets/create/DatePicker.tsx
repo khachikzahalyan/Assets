@@ -56,7 +56,7 @@ function DPPortal({ isMobile, pos, onBackdrop, children }: {
       <div
         data-dp-portal="true"
         className="fixed inset-0 z-[1000] flex items-end bg-black/60 anim-backdrop-fade"
-        onMouseDown={(e) => { if (e.target === e.currentTarget) onBackdrop() }}
+        onClick={(e) => { if (e.target === e.currentTarget) onBackdrop() }}
       >
         <div
           data-ams-dropdown="true"
@@ -128,17 +128,17 @@ export function DatePicker({ value, onChange, min, max, disabled = false, placeh
 
   useEffect(() => {
     if (!open) return
-    const onDocDown = (e: MouseEvent) => {
+    const onDocClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement
       const inRoot = rootRef.current?.contains(target)
       const inPortal = target.closest?.('[data-dp-portal]')
       if (!inRoot && !inPortal) setOpen(false)
     }
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
-    document.addEventListener('mousedown', onDocDown)
+    document.addEventListener('click', onDocClick)
     document.addEventListener('keydown', onKey)
     return () => {
-      document.removeEventListener('mousedown', onDocDown)
+      document.removeEventListener('click', onDocClick)
       document.removeEventListener('keydown', onKey)
     }
   }, [open])

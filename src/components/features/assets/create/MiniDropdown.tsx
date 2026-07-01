@@ -69,8 +69,8 @@ export function MiniDropdown({ value, onChange, options, placeholder = 'Выбе
       if (t.closest?.('[data-mini-portal="true"]')) return
       closePanel(false)
     }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
+    document.addEventListener('click', handler)
+    return () => document.removeEventListener('click', handler)
   }, [open, closePanel])
 
   const onTriggerKey = (e: React.KeyboardEvent) => {

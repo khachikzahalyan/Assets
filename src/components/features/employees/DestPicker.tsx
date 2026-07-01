@@ -142,6 +142,10 @@ export function DestPicker({
   useEffect(() => {
     if (!open) return
     const onOutsideClick = (e: MouseEvent | TouchEvent) => {
+      const target = e.target as HTMLElement | null
+      // Clicks inside the nested DatePicker calendar (portaled to body as a
+      // sibling) must not close this popover.
+      if (target?.closest?.('[data-dp-portal]')) return
       if (
         wrapRef.current &&
         !wrapRef.current.contains(e.target as Node) &&
@@ -154,14 +158,12 @@ export function DestPicker({
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setOpen(false)
     }
-    document.addEventListener('mousedown', onOutsideClick)
-    document.addEventListener('touchstart', onOutsideClick)
+    document.addEventListener('click', onOutsideClick)
     document.addEventListener('keydown', onKey)
     window.addEventListener('scroll', updatePos, true)
     window.addEventListener('resize', updatePos)
     return () => {
-      document.removeEventListener('mousedown', onOutsideClick)
-      document.removeEventListener('touchstart', onOutsideClick)
+      document.removeEventListener('click', onOutsideClick)
       document.removeEventListener('keydown', onKey)
       window.removeEventListener('scroll', updatePos, true)
       window.removeEventListener('resize', updatePos)

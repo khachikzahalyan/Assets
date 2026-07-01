@@ -66,7 +66,7 @@ export function AddSubscriptionModal({
     <div
       className={DIALOG_BACKDROP_BLUR}
       style={{ animation: 'backdropFade 160ms ease both' }}
-      onMouseDown={e => { if (e.target === e.currentTarget) onClose() }}
+      onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
       <div
         className={`relative w-full max-w-lg bg-surface rounded-xl shadow-2xl shadow-black/60 border border-border overflow-hidden flex flex-col max-h-[90vh] ${MODAL_SHEET}`}

@@ -47,7 +47,7 @@ export function MobileSheet({ open, onClose, title, children }: MobileSheetProps
     <div
       className="fixed inset-0 z-[9000] flex flex-col justify-end"
       style={{ backgroundColor: 'rgba(0,0,0,0.65)' }}
-      onPointerDown={e => {
+      onClick={e => {
         // close if the backdrop itself (not the panel) was tapped
         if (e.target === e.currentTarget) onClose()
       }}
@@ -61,7 +61,7 @@ export function MobileSheet({ open, onClose, title, children }: MobileSheetProps
           boxSizing: 'border-box',
         }}
         // prevent backdrop tap from firing when tapping panel
-        onPointerDown={e => e.stopPropagation()}
+        onClick={e => e.stopPropagation()}
       >
         {/* Pull-handle */}
         <div

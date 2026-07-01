@@ -87,7 +87,7 @@ export function SelectMini({ label, leadingIcon, value, onChange, options, sheet
 
     function onScroll() { updatePos() }
     function onResize() { updatePos() }
-    function onMouseDown(e: MouseEvent) {
+    function onDocClick(e: MouseEvent) {
       const t = e.target as Node | null
       const inTrigger = triggerRef.current?.contains(t) ?? false
       const inPortal = t instanceof Element && t.closest('[data-sm-portal="true"]') !== null
@@ -99,12 +99,12 @@ export function SelectMini({ label, leadingIcon, value, onChange, options, sheet
 
     window.addEventListener('scroll', onScroll, true)
     window.addEventListener('resize', onResize)
-    document.addEventListener('mousedown', onMouseDown)
+    document.addEventListener('click', onDocClick)
     document.addEventListener('keydown', onKey)
     return () => {
       window.removeEventListener('scroll', onScroll, true)
       window.removeEventListener('resize', onResize)
-      document.removeEventListener('mousedown', onMouseDown)
+      document.removeEventListener('click', onDocClick)
       document.removeEventListener('keydown', onKey)
     }
   }, [open, isMobile])

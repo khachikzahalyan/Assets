@@ -56,8 +56,8 @@ export function SpecCombobox({ value, onChange, suggestions, placeholder, id }: 
       if (t.closest?.('[data-spec-portal="true"]')) return
       setOpen(false); setActiveIdx(-1)
     }
-    document.addEventListener('mousedown', onDown)
-    return () => document.removeEventListener('mousedown', onDown)
+    document.addEventListener('click', onDown)
+    return () => document.removeEventListener('click', onDown)
   }, [open])
 
   const pick = (s: string) => { onChange(s); setOpen(false); setActiveIdx(-1) }
