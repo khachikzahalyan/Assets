@@ -108,10 +108,17 @@ export function WindowsKeysSection({
   const [toast, setToast] = useState<string | null>(null)
   const clearToast = useCallback(() => setToast(null), [])
 
-  // Filter to only OEM-style keys (device-assignable), exclude retired+employee
+  // Filter to device-assignable keys (exclude retired + employee-assigned) AND
+  // only those where a manual key was actually entered. OEM licenses created
+  // keyless (key «вшит»/absent → masked '—') belong to the activation pool, NOT
+  // this table. An OEM license whose key was activated later DOES qualify here.
   const keyRows = useMemo(() => {
-    return licenses.filter(lic => licenseStatus(lic) !== null)
-  }, [licenses])
+    return licenses.filter(lic => {
+      if (licenseStatus(lic) === null) return false
+      const masked = maskedKeys[lic.id]
+      return Boolean(masked) && masked !== '—'
+    })
+  }, [licenses, maskedKeys])
 
   const counts = useMemo(() => ({
     in_use: keyRows.filter(l => licenseStatus(l) === 'in_use').length,
