@@ -539,7 +539,8 @@ describe('resolveUpgradeCurrent', () => {
     expect(slots.map(s => s.kind)).toEqual(['ram', 'storage', 'cooler', 'battery'])
     const battery = slots.find(s => s.kind === 'battery')
     expect(battery?.replaced).toBe(true)
-    expect(battery?.spec).toBe('Дополнительный АКБ')
+    // single-slot replaced → spec cleared so it renders «Заменено» (detail in История)
+    expect(battery?.spec).toBe('')
     // untouched slots stay factory
     expect(slots.find(s => s.kind === 'cooler')?.replaced).toBeFalsy()
   })
@@ -552,5 +553,35 @@ describe('resolveUpgradeCurrent', () => {
     const rams = resolveUpgradeCurrent('cat_laptop', specs, explicit).filter(s => s.kind === 'ram')
     expect(rams).toHaveLength(2)
     expect(rams[1]?.spec).toBe('32 ГБ DDR5')
+  })
+
+  it('single-slot battery NEVER duplicates: replaced shows ONE «Заменено» row', () => {
+    // The bug: installing onto the empty factory battery slot pushed a 2nd slot,
+    // so the list showed factory battery + the installed one. A single-slot kind
+    // must collapse to one row.
+    const explicit: UpgradeSlot[] = [
+      { kind: 'battery', spec: '', replaced: false },               // factory
+      { kind: 'battery', spec: 'Блок питания', replaced: false },   // installed alongside (the bug)
+    ]
+    const batteries = resolveUpgradeCurrent('cat_laptop', specs, explicit).filter(s => s.kind === 'battery')
+    expect(batteries).toHaveLength(1)
+    expect(batteries[0]?.replaced).toBe(true)   // → renders «Заменено»
+    expect(batteries[0]?.spec).toBe('')         // spec cleared; detail lives in История
+  })
+
+  it('untouched single-slot battery stays one factory row', () => {
+    const batteries = resolveUpgradeCurrent('cat_laptop', specs, [
+      { kind: 'battery', spec: '', replaced: false },
+    ]).filter(s => s.kind === 'battery')
+    expect(batteries).toHaveLength(1)
+    expect(batteries[0]?.replaced).toBe(false)  // → renders «Заводской»
+  })
+
+  it('server PSU stays multi-slot (rule is single-slot only)', () => {
+    const psus = resolveUpgradeCurrent('cat_server', { ram: '32 ГБ ECC' }, [
+      { kind: 'psu', spec: 'PSU A', replaced: true },
+      { kind: 'psu', spec: 'PSU B', replaced: false },
+    ]).filter(s => s.kind === 'psu')
+    expect(psus.length).toBeGreaterThanOrEqual(2)
   })
 })

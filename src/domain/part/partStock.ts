@@ -293,5 +293,27 @@ export function resolveUpgradeCurrent(
   for (const [kind, arr] of byKind) {
     for (let i = rank.get(kind) ?? 0; i < arr.length; i++) merged.push({ ...arr[i]! })
   }
-  return merged
+
+  // Single-slot kinds (laptop battery; non-server PSU/cooler) collapse to EXACTLY
+  // ONE row: «Заменено» (spec cleared) once the part was ever replaced/installed,
+  // else the factory row. Replacing 10× never yields 10 rows — the full history
+  // lives in the «История» tab. Multi-slot kinds (RAM, storage, server PSU/cooler)
+  // keep every row.
+  const family = assetFamilyOf(categoryId)
+  const out: UpgradeSlot[] = []
+  const seenSingle = new Set<string>()
+  for (const slot of merged) {
+    if (!slotIsSingle(slot.kind, family)) { out.push(slot); continue }
+    if (seenSingle.has(slot.kind)) continue
+    seenSingle.add(slot.kind)
+    const stored = byKind.get(slot.kind) ?? []
+    const touched = stored.some(s => s.replaced === true || (typeof s.spec === 'string' && s.spec.trim() !== ''))
+    if (!touched) { out.push({ kind: slot.kind, spec: '', replaced: false }); continue }
+    const installedAt = stored.reduce<string | undefined>(
+      (acc, s) => (s.installedAt && (!acc || s.installedAt > acc) ? s.installedAt : acc),
+      undefined,
+    )
+    out.push({ kind: slot.kind, spec: '', replaced: true, ...(installedAt ? { installedAt } : {}) })
+  }
+  return out
 }
