@@ -98,7 +98,7 @@ interface RenderOpts {
 
 function renderSection({
   licenses = [],
-  maskedKeys = {},
+  maskedKeys,
   auditMap = {},
   assetNameMap = {},
   canReveal = true,
@@ -107,18 +107,25 @@ function renderSection({
   onActivated,
 }: RenderOpts = {}) {
   const resolvedRepo = wRepo ?? makeWRepoStub()
+  // The table lists ONLY licenses whose key was entered (a masked key is present).
+  // Keyless OEM licenses («вшит»/absent) belong to the activation pool and are
+  // excluded. So by default every fixture gets a masked key; tests that exercise
+  // the keyless path pass an explicit maskedKeys map.
+  const resolvedMasked = maskedKeys ?? Object.fromEntries(
+    licenses.map(l => [l.id, '****-****-****-0000'] as const),
+  )
   render(
     <I18nextProvider i18n={i18n}>
       <WindowsKeysSection
         licenses={licenses}
         keylessAssets={[]}
-        maskedKeys={maskedKeys}
         auditMap={auditMap}
         assetNameMap={assetNameMap}
         canReveal={canReveal}
         actor={ACTOR}
         wRepo={resolvedRepo}
         search={search}
+        maskedKeys={resolvedMasked}
         {...(onActivated ? { onActivated } : {})}
       />
     </I18nextProvider>,
@@ -290,8 +297,9 @@ describe('WindowsKeysSection', () => {
     expect(screen.queryByText(RAW)).toBeNull()
   })
 
-  it('row shows fallback "—" when no masked key entry exists for the license', () => {
-    // Arrange — no maskedKeys entry for lic_1
+  it('keyless license (no masked key) is excluded — belongs to the activation pool', () => {
+    // Arrange — a license whose key was never entered (masked absent). Under the
+    // "show only keyed licenses" rule this row must NOT appear in the table.
     const lic = makeLicense({
       id: 'lic_nomask',
       assignmentType: 'device',
@@ -299,12 +307,13 @@ describe('WindowsKeysSection', () => {
       lifecycleStatus: 'active',
     })
 
-    // Act
+    // Act — explicit empty maskedKeys (no key for lic_nomask)
     renderSection({ licenses: [lic], maskedKeys: {} })
 
-    // Assert
-    const row = screen.getByTestId('key-row-lic_nomask')
-    expect(row.textContent).toContain('—')
+    // Assert — not rendered under in_use nor free filter
+    expect(screen.queryByTestId('key-row-lic_nomask')).toBeNull()
+    fireEvent.click(screen.getByTestId('filter-free'))
+    expect(screen.queryByTestId('key-row-lic_nomask')).toBeNull()
   })
 
   // ── 4. Activate button ──────────────────────────────────────────────────────
