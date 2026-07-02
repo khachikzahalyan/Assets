@@ -261,10 +261,27 @@ export function AssetsPage({ repository }: AssetsPageProps) {
     )
   }
 
+  // Pagination element — desktop renders it in the ListCard's pinned Zone 3;
+  // mobile (prototype file 1) renders it INSIDE the scroll region right after
+  // the rows. Same element, two CSS-gated mounts.
+  const paginationEl =
+    !loading && !error && displayed.length > 0 ? (
+      <PaginationBar
+        page={page}
+        pageSize={PAGE_SIZE}
+        total={totalCount}
+        onPage={setPage}
+      />
+    ) : undefined
+
   return (
     <ListPageShell flushMobile>
       <ListCard
-        flushMobile
+        /* Mobile: lock the card to the viewport (topbar 52 + content pt 12 +
+           bottom nav 64 = 128) so the header stack stays fixed and only the list
+           scrolls. Small 10px side gutters (owner request) — the card keeps its
+           rounding/border instead of the previous edge-to-edge flushMobile look. */
+        className="max-md:h-[calc(100dvh-128px)] max-md:mx-[10px]"
         toolbar={
           <>
             {/* Row 1: Group tabs + Search + Import + Export + Create */}
@@ -314,18 +331,29 @@ export function AssetsPage({ repository }: AssetsPageProps) {
           </>
         }
         pagination={
-          /* Pagination — only rendered when there are rows; gate matches old renderBody() behavior */
-          !loading && !error && displayed.length > 0 ? (
-            <PaginationBar
-              page={page}
-              pageSize={PAGE_SIZE}
-              total={totalCount}
-              onPage={setPage}
-            />
+          /* Desktop-only pinned pagination (Zone 3); mobile copy lives inside the scroller */
+          paginationEl !== undefined ? (
+            <div className="max-md:hidden">{paginationEl}</div>
           ) : undefined
         }
       >
-        {renderTableRegion()}
+        {/* Mobile: outer scroll container — single scroller for rows + pagination.
+            Desktop: plain h-full pass-through preserving the table's height contract. */}
+        <div className="h-full max-md:overflow-y-auto max-md:flex max-md:flex-col">
+          {/* Mobile: INNER flex-fill wrapper — grows to push pagination to the bottom
+              of the scroll container on tall phones (no dead space). flex-shrink-0 means
+              that when content (rows × natural height) exceeds the container, INNER stays
+              at its natural content size and the OUTER scroll container scrolls instead of
+              items squishing.
+              Desktop: h-full block pass-through — AssetsTable's height:100% resolves
+              against this wrapper which is 100% of the scroll container (= Zone-2 height). */}
+          <div className="h-full max-md:h-auto max-md:grow max-md:shrink-0 max-md:flex max-md:flex-col">
+            {renderTableRegion()}
+          </div>
+          {paginationEl !== undefined && (
+            <div className="md:hidden">{paginationEl}</div>
+          )}
+        </div>
       </ListCard>
     </ListPageShell>
   )

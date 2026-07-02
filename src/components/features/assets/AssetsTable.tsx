@@ -137,10 +137,12 @@ export function AssetsTable({
 
   return (
     <>
-    {/* ── Mobile card list (< 768px) — padded with placeholder slots to minRows
-        (10) so the block height and paginator position are constant; the
-        page-level wrapper (AssetsPage Zone-2 div) is the single scroller ── */}
-    {isMobile && <div className="flex flex-col">
+    {/* ── Mobile card list (< 768px) — flex-fill within Zone-2 so the block
+        grows on tall phones (no dead space below paginator) and overflows
+        naturally on short phones (OUTER scroll container scrolls). All rows
+        and placeholder slots use flexGrow:1 + flexShrink:0 with their natural
+        height as the minimum — identical to the desktop row fill contract. ── */}
+    {isMobile && <div className="flex flex-col grow shrink-0">
       {rows.map(a => {
         const cat          = categoryMap.get(a.categoryId)
         const categoryName = cat?.name ?? ''
@@ -166,6 +168,7 @@ export function AssetsTable({
             cat={cat}
             catColor={catColor}
             isFocused={focusId === a.id}
+            outerStyle={{ flexGrow: 1, flexShrink: 0 }}
             {...(onRowClick !== undefined ? { onRowClick } : {})}
           />
         )
@@ -179,6 +182,7 @@ export function AssetsTable({
           key={`__mph_${i}`}
           aria-hidden="true"
           data-testid="asset-card-placeholder"
+          style={{ flexGrow: 1, flexShrink: 0 }}
           className="relative px-[14px] py-[7px] border-b border-border border-l-[3px] border-l-transparent pointer-events-none last:border-b-0"
         >
           {/* invisible replica of the card's text column → identical row height */}
