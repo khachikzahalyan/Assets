@@ -67,12 +67,14 @@ export function NotificationBell({ repository, onSelect }: NotificationBellProps
       ) setOpen(false)
     }
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
-    document.addEventListener('click', onOutside)
+    document.addEventListener('mousedown', onOutside)
+    document.addEventListener('touchstart', onOutside)
     document.addEventListener('keydown', onKey)
     window.addEventListener('scroll', updatePos, true)
     window.addEventListener('resize', updatePos)
     return () => {
-      document.removeEventListener('click', onOutside)
+      document.removeEventListener('mousedown', onOutside)
+      document.removeEventListener('touchstart', onOutside)
       document.removeEventListener('keydown', onKey)
       window.removeEventListener('scroll', updatePos, true)
       window.removeEventListener('resize', updatePos)

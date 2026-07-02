@@ -141,7 +141,8 @@ export function DatePopover({
   const calendarNode = open ? (
     <>
       <div
-        onClick={() => setOpen(false)}
+        onMouseDown={() => setOpen(false)}
+        onTouchStart={() => setOpen(false)}
         style={{ position: 'fixed', inset: 0, zIndex: 300 }}
       />
       <div
@@ -155,7 +156,7 @@ export function DatePopover({
           right: pos.right != null ? pos.right : 'auto',
           animation: 'modalPop 200ms cubic-bezier(.22,1,.36,1) both',
         }}
-        onClick={e => e.stopPropagation()}
+        onMouseDown={e => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-label={t('datePopover.aria')}
