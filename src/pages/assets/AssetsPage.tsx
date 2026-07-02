@@ -340,8 +340,10 @@ export function AssetsPage({ repository }: AssetsPageProps) {
         }
       >
         {/* Mobile: outer scroll container — single scroller for rows + pagination.
-            Desktop: plain h-full pass-through preserving the table's height contract. */}
-        <div className="h-full max-md:overflow-y-auto max-md:flex max-md:flex-col">
+            flex-1/min-h-0 (Zone-2 is a flex col) gives it Zone-2's exact height —
+            h-full percentages failed to resolve here and left a dead band under
+            the paginator. Desktop: same exact-height pass-through. */}
+        <div className="flex-1 min-h-0 max-md:overflow-y-auto max-md:flex max-md:flex-col">
           {/* Mobile: INNER flex-fill wrapper — grows to push pagination to the bottom
               of the scroll container on tall phones (no dead space). flex-shrink-0 means
               that when content (rows × natural height) exceeds the container, INNER stays

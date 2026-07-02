@@ -53,8 +53,11 @@ export function ListCard({ toolbar, children, pagination, className, flushMobile
       {/* Zone 1: toolbar / filter bar — never shrinks */}
       <div className="flex-shrink-0">{toolbar}</div>
 
-      {/* Zone 2: body fill — grows to consume all remaining height */}
-      <div className="flex-1 min-h-0 overflow-hidden">{children}</div>
+      {/* Zone 2: body fill — grows to consume all remaining height.
+          flex-col so the region child gets an exact flex-derived height
+          (percentage h-full alone can fail to resolve through this chain,
+          which left a dead band under the mobile paginator). */}
+      <div className="flex-1 min-h-0 overflow-hidden flex flex-col">{children}</div>
 
       {/* Zone 3: pagination — never shrinks; omitted when not provided */}
       {pagination !== undefined && (
