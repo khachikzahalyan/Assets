@@ -29,6 +29,9 @@ export function BottomNav({ currentRoute, onNavigate }: BottomNavProps) {
         // Horizontal scroll strip — all items reachable by swiping left↔right.
         'flex items-stretch gap-1 overflow-x-auto no-scrollbar px-2',
         'pt-2',
+        // Fixed total height = the 64px (+ safe-area) clearance reserved by
+        // .app-shell-content's bottom padding → content ends exactly at nav top.
+        'h-[calc(64px_+_env(safe-area-inset-bottom,_0px))]',
         // Safe-area bottom — Tailwind arbitrary value, underscores → spaces in CSS output:
         // pb: calc(6px + env(safe-area-inset-bottom, 0px))
         'pb-[calc(6px_+_env(safe-area-inset-bottom,_0px))]',

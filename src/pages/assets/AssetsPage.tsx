@@ -277,11 +277,13 @@ export function AssetsPage({ repository }: AssetsPageProps) {
   return (
     <ListPageShell flushMobile>
       <ListCard
-        /* Mobile: lock the card to the viewport (topbar 52 + content pt 12 +
-           bottom nav 64 = 128) so the header stack stays fixed and only the list
-           scrolls. Small 10px side gutters (owner request) — the card keeps its
-           rounding/border instead of the previous edge-to-edge flushMobile look. */
-        className="max-md:h-[calc(100dvh-128px)] max-md:mx-[10px]"
+        /* Mobile: the card stretches to the exact bottom of the content area
+           (= BottomNav top) via the flex chain .app-shell-content-flush →
+           ListPageShell(flex-1) → ListCard(flex-1 base) — no dvh math (the old
+           calc(100dvh-128px) left a dead band above the BottomNav on some
+           devices). Header stack stays fixed, only the list scrolls.
+           10px side gutters (owner request). */
+        className="max-md:mx-[10px]"
         toolbar={
           <>
             {/* Row 1: Group tabs + Search + Import + Export + Create */}

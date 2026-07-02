@@ -38,7 +38,10 @@ export function ListCard({ toolbar, children, pagination, className, flushMobile
   return (
     <div
       className={[
-        'bg-surface rounded-lg border border-border shadow-sm shadow-black/30',
+        // overflow-hidden clips zone 1/3 backgrounds (tab strip, pagination) to the
+        // card radius so every corner shares the same rounding. Safe: all popovers
+        // inside (SelectMini etc.) render via portal to document.body.
+        'bg-surface rounded-lg border border-border shadow-sm shadow-black/30 overflow-hidden',
         'flex flex-col flex-1 min-h-0',
         flushMobile ? 'max-md:rounded-none max-md:border-x-0 max-md:border-b-0' : '',
         className ?? '',
@@ -93,7 +96,10 @@ export function ListPageShell({ header, children, className, flushMobile = false
     <div
       className={[
         'w-full h-full flex flex-col min-h-0 gap-2',
-        flushMobile ? 'max-md:gap-0' : '',
+        // flushMobile pages render inside the flex-column .app-shell-content-flush:
+        // flex-1 stretches the shell (and the ListCard inside) to the exact bottom
+        // of the content area — no viewport (dvh) math.
+        flushMobile ? 'max-md:gap-0 max-md:flex-1 max-md:min-h-0' : '',
         className ?? '',
       ]
         .filter(Boolean)
