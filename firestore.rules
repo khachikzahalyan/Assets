@@ -218,6 +218,14 @@ service cloud.firestore {
       allow read: if isSignedIn();
       allow write: if isSuperAdmin();
     }
+    // Category groups (managed taxonomy) — same access model as /categories: any
+    // signed-in user reads; only super_admin mutates. Read by the /assets/new group
+    // step (Устройства / Сетевые устройства / Мебель). Without this rule the catch-all
+    // denies the read and the group step silently vanishes (fail-soft → empty list).
+    match /categoryGroups/{id} {
+      allow read: if isSignedIn();
+      allow write: if isSuperAdmin();
+    }
     // Departments are reference/catalog data (§5): super_admin only may mutate.
     match /departments/{id} {
       allow read: if isSignedIn();
