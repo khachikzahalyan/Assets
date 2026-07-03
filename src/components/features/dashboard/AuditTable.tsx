@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import type { DashboardAuditRow } from '@/domain/dashboard'
 import { Icon } from '@/components/ui/icon'
+import { RoleIcon } from '@/components/ui/RoleIcon'
 import { cn } from '@/lib/utils'
 
 // ── Badge colours ─────────────────────────────────────────────────────────────
@@ -30,14 +31,6 @@ function actionTone(action: string): BadgeTone {
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-function actorInitials(name: string): string {
-  const parts = name.trim().split(/\s+/)
-  const first = parts[0] ?? ''
-  const second = parts[1] ?? ''
-  if (first && second) return (first.charAt(0) + second.charAt(0)).toUpperCase()
-  return name.slice(0, 2).toUpperCase()
-}
 
 function formatShortTime(iso: string, now = new Date()): string {
   const d = new Date(iso)
@@ -114,7 +107,6 @@ export function AuditTable({ rows }: AuditTableProps) {
           rows.map(row => {
             const tone = actionTone(row.action)
             const badgeCls = BADGE_CLS[tone]
-            const initials = actorInitials(row.actorName)
 
             return (
               <div key={row.id} className="px-5 py-3">
@@ -132,12 +124,7 @@ export function AuditTable({ rows }: AuditTableProps) {
                     {row.targetLabel}
                   </span>
                   <div className="flex items-center gap-2 min-w-0">
-                    <span
-                      className="w-6 h-6 rounded-full bg-surface-2 flex-shrink-0 inline-flex items-center justify-center text-[9px] font-bold text-text-tertiary"
-                      aria-hidden="true"
-                    >
-                      {initials}
-                    </span>
+                    <RoleIcon role="employee" size={24} className="flex-shrink-0" />
                     <span className="text-[12px] text-text-secondary truncate">
                       {row.actorName}
                     </span>

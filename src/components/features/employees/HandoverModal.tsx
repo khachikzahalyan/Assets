@@ -12,7 +12,7 @@ import ReactDOM from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { Icon, Btn, MODAL_BACKDROP_ABS, MODAL_SHEET } from '@/components/ui'
 import { useModalA11y } from '@/components/ui/useModalA11y'
-import { employeeInitials, employeeAvatarColor } from './employeeFormat'
+import { RoleIcon } from '@/components/ui/RoleIcon'
 import { DestPicker } from './DestPicker'
 import type { Destination } from './DestPicker'
 
@@ -145,8 +145,6 @@ export function HandoverModal({
   }
 
   const empName = `${emp.firstName} ${emp.lastName}`
-  const avatarCls = employeeAvatarColor(emp.id)
-  const initials = employeeInitials(emp.firstName, emp.lastName)
 
   // ── Step indicator strip ─────────────────────────────────────────────────
   const StepIndicator = () => (
@@ -250,11 +248,7 @@ export function HandoverModal({
           }`}
         >
           {/* Avatar */}
-          <span
-            className={`w-10 h-10 rounded-full ${avatarCls} text-white text-[15px] font-bold flex items-center justify-center shrink-0`}
-          >
-            {initials}
-          </span>
+          <RoleIcon role="employee" size={40} className="shrink-0" />
           {/* Title block */}
           <div className="flex-1 min-w-0">
             <div className="text-[17px] font-bold text-text-primary tracking-tight leading-tight">

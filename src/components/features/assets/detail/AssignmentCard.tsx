@@ -3,7 +3,7 @@ import type { Asset, AssetReferenceData } from '@/domain/asset'
 import type { CategoryCapabilities } from '@/components/features/assets/create/CategoryPicker'
 import type { TransferPatch } from '@/domain/asset/transferRules'
 import { SectionCard, Icon, Btn } from '@/components/ui'
-import { avatarColor, initials } from './detailFormat'
+import { RoleIcon } from '@/components/ui/RoleIcon'
 import { TransferPanel } from './TransferPanel'
 
 interface AssignmentCardProps {
@@ -58,15 +58,9 @@ export function AssignmentCard({
         : undefined
       const empName = emp ? [emp.firstName, emp.lastName].filter(Boolean).join(' ') : '—'
       const subline = [emp?.position, dept?.name].filter(Boolean).join(' · ')
-      const ac = avatarColor(ass.employeeId)
       return (
         <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-surface-2 ring-1 ring-border">
-          <div
-            className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-white text-[13px] font-bold"
-            style={{ backgroundColor: ac }}
-          >
-            {initials(empName)}
-          </div>
+          <RoleIcon role="employee" size={36} className="flex-shrink-0" />
           <div className="min-w-0 flex-1">
             <p className="text-[15px] text-text-primary truncate">{empName}</p>
             {subline && <p className="text-[12px] text-text-tertiary truncate">{subline}</p>}

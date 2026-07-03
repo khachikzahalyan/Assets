@@ -11,8 +11,8 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Icon, Btn } from '@/components/ui'
+import { RoleIcon } from '@/components/ui/RoleIcon'
 import { EmployeeModalShell } from './EmployeeModalShell'
-import { employeeInitials, employeeAvatarColor } from './employeeFormat'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -160,8 +160,6 @@ export function AssetPickerSheet({
 
   const count = cart.size
   const empName = `${emp.firstName} ${emp.lastName}`
-  const avatarCls = employeeAvatarColor(emp.id)
-  const initials = employeeInitials(emp.firstName, emp.lastName)
   const group = groupId ? ASSET_GROUP_BY_ID[groupId] : null
 
   const toggle = (id: string) => {
@@ -230,11 +228,7 @@ export function AssetPickerSheet({
       <div className="px-6 pt-5 pb-4 border-b border-border">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 min-w-0">
-            <span
-              className={`w-10 h-10 rounded-full ${avatarCls} text-white text-[14px] font-bold flex items-center justify-center shrink-0`}
-            >
-              {initials}
-            </span>
+            <RoleIcon role="employee" size={40} className="shrink-0" />
             <div className="min-w-0">
               <div className="text-[17px] font-bold text-text-primary tracking-tight truncate">
                 {t('picker.title')} {empName}

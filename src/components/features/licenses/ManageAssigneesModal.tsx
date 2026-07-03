@@ -6,8 +6,9 @@ import { useState, useEffect, useMemo, useRef } from 'react'
 import ReactDOM from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { IconBtn, Icon, DIALOG_BACKDROP_BLUR, MODAL_SHEET } from '@/components/ui'
+import { RoleIcon } from '@/components/ui/RoleIcon'
 import type { Employee } from '@/domain/employee'
-import { avatarColorFor, initialsOf, pluralEmp } from './licenseHelpers'
+import { pluralEmp } from './licenseHelpers'
 
 const MANAGE_TITLE_ID = 'manage-assignees-modal-title'
 
@@ -131,15 +132,7 @@ export function ManageAssigneesModal({
                     isSel ? 'bg-accent/10 hover:bg-accent/15' : 'hover:bg-surface-2'
                   }`}
                 >
-                  <span
-                    className={[
-                      'w-8 h-8 rounded-full text-white text-[12px] font-bold inline-flex items-center justify-center flex-shrink-0',
-                      avatarColorFor(e.id),
-                    ].join(' ')}
-                    aria-hidden="true"
-                  >
-                    {initialsOf(e.firstName, e.lastName)}
-                  </span>
+                  <RoleIcon role="employee" size={32} className="flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="text-[13.5px] font-semibold text-text-primary truncate">{fullName}</div>
                     <div className="text-[12px] text-text-subtle font-mono truncate">{e.email}</div>

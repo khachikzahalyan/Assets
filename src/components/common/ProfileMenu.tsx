@@ -37,7 +37,10 @@ export function ProfileMenu() {
         className="ams-profile-trigger inline-flex items-center gap-2 h-9 pl-1 pr-2.5 rounded-lg hover:bg-surface-2 transition-colors"
         title={user.name}
       >
-        <Avatar user={user} size="sm" />
+        {/* Mobile (prototype): 28px rounded-square avatar, no chevron. Desktop unchanged. */}
+        <span className="inline-flex max-md:[&>span]:rounded-lg">
+          <Avatar user={user} size="sm" role={role} />
+        </span>
         <span className="ams-profile-name-text hidden sm:flex flex-col items-start leading-tight">
           <span className="text-[12px] font-semibold text-text-primary truncate max-w-[120px]">{user.name}</span>
           <span className="inline-flex items-center gap-0.5 text-[10px] text-text-subtle">
@@ -45,7 +48,7 @@ export function ProfileMenu() {
               {t(`roles.${role}`, { ns: 'nav' })}
             </span>
         </span>
-        <Icon name="chevron-down" size={12} className="text-text-subtle" />
+        <Icon name="chevron-down" size={12} className="text-text-subtle max-md:hidden" />
       </button>
 
       {open && (
@@ -56,7 +59,7 @@ export function ProfileMenu() {
           {/* User header */}
           <div className="flex items-center gap-3 px-3.5 py-3 border-b border-border">
             <div className="ams-profile-dropdown-avatar flex-shrink-0">
-              <Avatar user={user} size="md" />
+              <Avatar user={user} size="md" role={role} />
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-[13px] font-semibold text-text-primary truncate">{user.name}</div>

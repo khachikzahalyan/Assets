@@ -6,8 +6,8 @@ import { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react'
 import ReactDOM from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@/components/ui'
+import { RoleIcon } from '@/components/ui/RoleIcon'
 import type { Employee } from '@/domain/employee'
-import { avatarColorFor, initialsOf } from './licenseHelpers'
 
 export interface EmployeeMultiSelectProps {
   employees: Employee[]
@@ -196,13 +196,9 @@ export function EmployeeMultiSelect({
                 <span
                   key={id}
                   title={`${emp.firstName} ${emp.lastName}`}
-                  className={[
-                    'w-6 h-6 rounded-full text-white text-[10px] font-bold inline-flex items-center justify-center flex-shrink-0 ring-1 ring-surface',
-                    avatarColorFor(id),
-                    i > 0 ? '-ml-1.5' : '',
-                  ].join(' ')}
+                  className={`inline-flex flex-shrink-0 rounded-full ring-1 ring-surface${i > 0 ? ' -ml-1.5' : ''}`}
                 >
-                  {initialsOf(emp.firstName, emp.lastName)}
+                  <RoleIcon role="employee" size={24} />
                 </span>
               )
             })}

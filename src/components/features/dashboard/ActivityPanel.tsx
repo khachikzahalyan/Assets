@@ -3,31 +3,8 @@ import { useTranslation } from 'react-i18next'
 import type { AssignmentActivityRow } from '@/domain/dashboard'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Icon } from '@/components/ui/icon'
+import { RoleIcon } from '@/components/ui/RoleIcon'
 import { cn } from '@/lib/utils'
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-function getInitials(name: string | null): string {
-  if (!name) return '?'
-  const parts = name.trim().split(/\s+/)
-  const first = parts[0] ?? ''
-  const second = parts[1] ?? ''
-  if (first && second) return (first.charAt(0) + second.charAt(0)).toUpperCase()
-  return name.slice(0, 2).toUpperCase()
-}
-
-const AVATAR_GRADIENTS = [
-  'from-accent to-accent/50',
-  'from-info to-info/50',
-  'from-success to-success/50',
-  'from-warning to-warning/50',
-  'from-violet-500 to-violet-400/50',
-] as const
-
-function avatarGradient(name: string | null): string {
-  if (!name) return AVATAR_GRADIENTS[0]
-  return AVATAR_GRADIENTS[name.charCodeAt(0) % AVATAR_GRADIENTS.length] ?? AVATAR_GRADIENTS[0]
-}
 
 function relativeTime(iso: string, now = new Date()): string {
   const d = new Date(iso)
@@ -69,8 +46,6 @@ export function ActivityPanel({ rows }: ActivityPanelProps) {
           <>
             <div className="flex flex-col gap-0.5">
               {rows.map((row, idx) => {
-                const initials = getInitials(row.recipientName)
-                const grad = avatarGradient(row.recipientName)
                 const subtitle = [row.recipientName, row.assetLabel]
                   .filter(Boolean)
                   .join(' · ')
@@ -83,17 +58,8 @@ export function ActivityPanel({ rows }: ActivityPanelProps) {
                       idx === 0 && 'bg-success/[0.04]',
                     )}
                   >
-                    {/* Gradient initials avatar — 30px */}
-                    <span
-                      className={cn(
-                        'w-[30px] h-[30px] rounded-full flex-shrink-0 inline-flex items-center justify-center',
-                        'bg-gradient-to-br text-[10px] font-bold text-white leading-none',
-                        grad,
-                      )}
-                      aria-hidden="true"
-                    >
-                      {initials}
-                    </span>
+                    {/* Role-based avatar — 30px */}
+                    <RoleIcon role="employee" size={30} className="flex-shrink-0" />
                     <div className="flex-1 min-w-0">
                       <div className="text-[12.5px] text-text-primary leading-snug">
                         {t(`activity.${row.action}`)}

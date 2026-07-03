@@ -4,7 +4,7 @@ import type { Asset, AssetReferenceData } from '@/domain/asset'
 import type { CategoryCapabilities } from '@/components/features/assets/create/CategoryPicker'
 import type { TransferPatch } from '@/domain/asset/transferRules'
 import { Icon } from '@/components/ui'
-import { avatarColor, initials } from './detailFormat'
+import { RoleIcon } from '@/components/ui/RoleIcon'
 import { TransferPanel } from './TransferPanel'
 
 /**
@@ -90,15 +90,9 @@ export function AssignmentCardMobile({
         : undefined
       const empName = emp ? [emp.firstName, emp.lastName].filter(Boolean).join(' ') : '—'
       const subline = [emp?.position, dept?.name].filter(Boolean).join(' · ')
-      const ac = avatarColor(ass.employeeId)
       return (
         <div className={`${baseCard} ${innerPad}`}>
-          <div
-            className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 text-white text-[12px] font-extrabold"
-            style={{ backgroundColor: ac }}
-          >
-            {initials(empName)}
-          </div>
+          <RoleIcon role="employee" size={36} className="flex-shrink-0" />
           <div className="min-w-0 flex-1">
             <p className="text-[13.5px] font-bold text-text-primary truncate leading-tight">{empName}</p>
             {subline && <p className="text-[11px] text-text-tertiary truncate">{subline}</p>}
