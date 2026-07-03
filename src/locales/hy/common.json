@@ -5,5 +5,6 @@
   "lang": { "title": "Interface language", "ru": "Русский", "en": "English", "hy": "Հայերեն" },
   "states": { "emptyTitle": "Nothing here yet", "errorTitle": "Something went wrong", "errorDesc": "Try refreshing the page or repeat the action in a few seconds." },
   "breadcrumb": { "root": "AMS", "personal": "My workspace" },
-  "roleSwitcher": { "label": "View as…", "dev": "DEV" }
+  "roleSwitcher": { "label": "View as…", "dev": "DEV" },
+  "pagination": { "prev": "Նախորդ էջ", "next": "Հաջորդ էջ", "shown": "Ցուցադրված {{from}}–{{to}} / {{total}}", "shownBold": "Ցուցադրված <0>{{from}}–{{to}}</0> / <1>{{total}}</1>" }
 }

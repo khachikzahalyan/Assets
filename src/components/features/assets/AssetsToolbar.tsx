@@ -14,6 +14,16 @@ export interface AssetsToolbarProps {
   onNavigateCreate: () => void
 }
 
+/**
+ * Assets page toolbar — group tabs + search + action buttons.
+ *
+ * Desktop (≥768px): single flex row: [tabs | search | import | export | create]
+ * Mobile (<768px): two stacked rows:
+ *   Row 1 — tab strip (bg-surface-2, border-b)  — full-bleed, px-[14px]
+ *   Row 2 — search input + square add button     — bg-bg, px-[14px] py-[7px]
+ *
+ * Import/Export buttons remain hidden on mobile (max-md:hidden, unchanged).
+ */
 export function AssetsToolbar({
   query,
   onChange,
@@ -35,21 +45,45 @@ export function AssetsToolbar({
   const activeGroup = query.group ?? 'all'
 
   return (
-    <div className="flex items-center justify-between gap-2.5 flex-wrap px-5 py-2 max-md:flex-col max-md:items-stretch max-md:gap-2 max-md:px-3 max-md:py-2">
-      {/* Row 1: Group tabs (scrollable on mobile) */}
-      <GroupTabs
-        tabs={groupTabs}
-        selected={activeGroup}
-        onSelect={g => onChange({ group: g as AssetGroupFilter })}
-        counts={groupCounts}
-      />
+    <div
+      className={[
+        // Desktop: single horizontal flex row with padding
+        'flex items-center justify-between gap-2.5 flex-wrap px-5 py-2',
+        // Mobile: vertical column, no outer padding (each row has its own)
+        'max-md:flex-col max-md:items-stretch max-md:gap-0 max-md:p-0',
+      ].join(' ')}
+    >
+      {/* ── Row 1: Group tabs ──────────────────────────────────────────────────
+          Desktop: bare flex item (no extra bg/border).
+          Mobile:  full-bleed bg-surface-2 strip with bottom border.               */}
+      <div className="max-md:bg-surface-2 max-md:border-b max-md:border-border max-md:px-[14px] max-md:w-full">
+        <GroupTabs
+          tabs={groupTabs}
+          selected={activeGroup}
+          onSelect={g => onChange({ group: g as AssetGroupFilter })}
+          counts={groupCounts}
+        />
+      </div>
 
-      {/* Row 2 on mobile / right side on desktop: search + action buttons */}
-      <div className="flex items-center gap-2 flex-1 ml-auto justify-end max-md:ml-0 max-md:flex-none max-md:w-full max-md:gap-2">
-        {/* Search */}
+      {/* ── Row 2: Search + actions ────────────────────────────────────────────
+          Desktop: right-aligned flex row that fills remaining space.
+          Mobile:  full-width bg-bg row with 14px horizontal padding.               */}
+      <div
+        className={[
+          'flex items-center gap-2 flex-1 ml-auto justify-end',
+          'max-md:ml-0 max-md:flex-none max-md:w-full max-md:gap-[8px]',
+          'max-md:bg-bg max-md:px-[14px] max-md:py-[7px]',
+        ].join(' ')}
+      >
+        {/* Search input */}
         <div className="w-full max-w-[280px] max-md:max-w-none max-md:flex-1">
           <div className="relative">
-            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-subtle pointer-events-none">
+            <span
+              className={[
+                'absolute top-1/2 -translate-y-1/2 text-text-subtle pointer-events-none',
+                'left-2.5 max-md:left-[10px]',
+              ].join(' ')}
+            >
               <Icon name="search" size={13} />
             </span>
             <input
@@ -59,8 +93,17 @@ export function AssetsToolbar({
               value={query.search ?? ''}
               onChange={e => onChange({ search: e.target.value })}
               placeholder={t('search')}
-              className="w-full h-8 pl-8 pr-3 text-[13.5px] bg-surface border border-border rounded-lg text-text-primary placeholder:text-text-subtle focus:outline-none focus:border-accent-light focus:ring-2 focus:ring-accent-light/15 transition-all duration-150"
               aria-label={t('search')}
+              className={[
+                // Desktop
+                'w-full h-8 pl-8 pr-3 text-[13.5px] bg-surface border border-border rounded-lg',
+                'text-text-primary placeholder:text-text-subtle',
+                'focus:outline-none focus:border-accent-light focus:ring-2 focus:ring-accent-light/15',
+                'transition-all duration-150',
+                // Mobile overrides
+                'max-md:h-auto max-md:rounded-[9px] max-md:py-[9px] max-md:pl-[30px] max-md:pr-[12px]',
+                'max-md:text-[11.5px] max-md:caret-accent',
+              ].join(' ')}
             />
           </div>
         </div>
@@ -90,7 +133,7 @@ export function AssetsToolbar({
           <span>{t('export.xlsx')}</span>
         </button>
 
-        {/* Create — role-gated; compact on mobile (icon-only 80×32 orange btn) */}
+        {/* Create — role-gated */}
         {canMutate && (
           <>
             {/* Desktop: full label button */}
@@ -98,14 +141,22 @@ export function AssetsToolbar({
               <Icon name="plus" size={13} />
               {t('toolbar.create')}
             </Btn>
-            {/* Mobile: icon-only 80×32 orange button */}
+            {/* Mobile: 36×36px square accent button with shadow */}
             <button
               type="button"
               onClick={onNavigateCreate}
               aria-label={t('toolbar.create')}
-              className="md:hidden w-[80px] h-[32px] min-w-[80px] shrink-0 rounded-[8px] bg-accent text-white inline-flex items-center justify-center transition-colors duration-150 hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(249,115,22,0.40)]"
+              className={[
+                'md:hidden',
+                'w-[36px] h-[36px] min-w-[36px] flex-shrink-0',
+                'rounded-[9px] bg-accent text-white',
+                'inline-flex items-center justify-center',
+                'shadow-[0_2px_10px] shadow-accent/35',
+                'transition-colors duration-150 hover:bg-accent-hover',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40',
+              ].join(' ')}
             >
-              <Icon name="plus" size={16} />
+              <Icon name="plus" size={15} />
             </button>
           </>
         )}

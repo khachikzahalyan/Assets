@@ -57,12 +57,18 @@ export function AuditPage({ repository }: AuditPageProps) {
       <>
         {ref && <AuditTable rows={rows} ref={ref} />}
         <div className="flex items-center justify-between pt-4 border-t border-border mt-2">
-          <span className="text-[12px] text-text-subtle">{t('pagination.page', { page })}</span>
+          <span className="text-[12px] text-text-subtle max-md:text-[11.5px]">{t('pagination.page', { page })}</span>
           <div className="flex items-center gap-2">
-            <Btn variant="secondary" size="sm" disabled={!hasPrev} onClick={prev} aria-label={t('pagination.prev')}>
+            <Btn
+              variant="secondary" size="sm" disabled={!hasPrev} onClick={prev} aria-label={t('pagination.prev')}
+              className="max-md:w-[28px] max-md:h-[28px] max-md:rounded-[7px] max-md:border max-md:border-border max-md:p-0"
+            >
               <Icon name="chevron-right" size={13} className="rotate-180" />
             </Btn>
-            <Btn variant="secondary" size="sm" disabled={!hasNext} onClick={next} aria-label={t('pagination.next')}>
+            <Btn
+              variant="secondary" size="sm" disabled={!hasNext} onClick={next} aria-label={t('pagination.next')}
+              className="max-md:w-[28px] max-md:h-[28px] max-md:rounded-[7px] max-md:border max-md:border-border max-md:p-0"
+            >
               <Icon name="chevron-right" size={13} />
             </Btn>
           </div>

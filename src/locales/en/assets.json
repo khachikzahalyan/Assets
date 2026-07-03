@@ -183,8 +183,7 @@
     "reset": "Reset",
     "sort": "Sort",
     "status": "Status",
-    "temp": "Temporarily issued",
-    "tempShort": "Temporary"
+    "temp": "Temporarily issued"
   },
   "form": {
     "addUpgrade": "Add upgrade",

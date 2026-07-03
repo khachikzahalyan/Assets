@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
 import { PageHeader, SectionCard, Btn, Icon, EmptyState, LoadingState, ErrorState, CardListSkeleton } from '@/components/ui'
 import { useIsMobile } from '@/hooks/useIsMobile'
-import { CatalogTable, ConfirmDeleteDialog, type CatalogColumn } from '@/components/features/catalogs'
+import { CatalogTable, CatalogPagination, ConfirmDeleteDialog, type CatalogColumn } from '@/components/features/catalogs'
 import { DepartmentFormDialog, type DepartmentFormValues } from '@/components/features/departments'
 import type { Department, DepartmentRepository } from '@/domain/department'
 import { FirestoreDepartmentRepository } from '@/infra/repositories'
@@ -46,8 +46,6 @@ export function DepartmentsPage({ repository }: DepartmentsPageProps) {
   useEffect(() => { void load() }, [load])
 
   const total = rows.length
-  const from = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1
-  const to = Math.min(page * PAGE_SIZE, total)
   const pageRows = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   const columns: CatalogColumn<Department>[] = [
@@ -94,16 +92,14 @@ export function DepartmentsPage({ repository }: DepartmentsPageProps) {
           rows={pageRows} columns={columns} canMutate={canMutate}
           onEdit={d => { setSaveError(null); setEditing(d) }}
           onDelete={askDelete}
+          mobileIcon={() => (
+            <span className="w-[28px] h-[28px] rounded-[8px] inline-flex items-center justify-center flex-shrink-0 bg-sky-500/15 text-sky-300" aria-hidden="true">
+              <Icon name="network" size={14} />
+            </span>
+          )}
+          mobileMinRows={PAGE_SIZE}
         />
-        {total > PAGE_SIZE && (
-          <div className="flex items-center justify-between pt-4 border-t border-border mt-2">
-            <span className="text-[12px] text-text-subtle">{t('pagination.range', { from, to, total })}</span>
-            <div className="flex gap-2">
-              <Btn variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}><Icon name="chevron-right" size={13} className="rotate-180" /></Btn>
-              <Btn variant="secondary" size="sm" disabled={to >= total} onClick={() => setPage(p => p + 1)}><Icon name="chevron-right" size={13} /></Btn>
-            </div>
-          </div>
-        )}
+        <CatalogPagination page={page} pageSize={PAGE_SIZE} total={total} onPage={setPage} />
       </>
     )
   }

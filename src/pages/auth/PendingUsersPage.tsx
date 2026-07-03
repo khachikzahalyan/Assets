@@ -11,6 +11,7 @@ import type { PendingUser, UserRepository, AssignRoleInput } from '@/domain/user
 import type { Role } from '@/config/roles'
 import { ROLE_IDS } from '@/config/roles'
 import { createDefaultUserRepository } from '@/infra/repositories'
+import { PendingUserRowMobile } from '@/components/features/users'
 
 export interface PendingUsersPageProps {
   repository?: UserRepository
@@ -346,35 +347,15 @@ export function PendingUsersPage({ repository }: PendingUsersPageProps) {
     }
 
     if (isMobile) {
-      /* Mobile card list */
       return (
-        <div className="divide-y divide-border">
+        <div className="flex flex-col">
           {pendingUsers.map(pu => (
-            <div key={pu.id} className="px-3 py-3 flex flex-col gap-1.5">
-              {/* Row 1: avatar + name */}
-              <div className="flex items-center gap-2">
-                <span className="w-7 h-7 rounded-full bg-surface-2 border border-border text-text-subtle inline-flex items-center justify-center flex-shrink-0">
-                  <Icon name="user" size={13} />
-                </span>
-                <span className="text-[13px] font-medium text-text-primary truncate">
-                  {pu.displayName || pu.email}
-                </span>
-              </div>
-              {/* Row 2: email */}
-              <p className="text-[12px] text-text-tertiary truncate pl-0.5">{pu.email}</p>
-              {/* Row 3: sign-in date */}
-              <p className="text-[11.5px] text-text-subtle pl-0.5">{formatDate(pu.createdAt)}</p>
-              {/* Full-width assign button */}
-              <Btn
-                size="sm"
-                variant="primary"
-                onClick={() => setDialogUser(pu)}
-                className="w-full mt-0.5"
-              >
-                <Icon name="user-plus" size={13} />
-                {t('assign')}
-              </Btn>
-            </div>
+            <PendingUserRowMobile
+              key={pu.id}
+              pu={pu}
+              formattedDate={formatDate(pu.createdAt)}
+              onAssign={() => setDialogUser(pu)}
+            />
           ))}
         </div>
       )

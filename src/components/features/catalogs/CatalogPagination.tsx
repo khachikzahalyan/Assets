@@ -1,7 +1,7 @@
-import { useTranslation, Trans } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
 import { Pagination } from '@/components/ui'
 
-export interface PaginationBarProps {
+export interface CatalogPaginationProps {
   page: number
   pageSize: number
   total: number
@@ -9,15 +9,13 @@ export interface PaginationBarProps {
 }
 
 /**
- * Assets pagination bar — thin i18n adapter over ui/Pagination.
+ * Catalog pagination bar — thin i18n adapter over ui/Pagination.
  *
- * Builds the localised "Показано X–Y из Z" info node (with bolded numbers via Trans)
- * and passes it alongside aria strings to the generic Pagination component.
- *
- * All layout/behaviour logic lives in ui/Pagination (the canonical etalon).
+ * Mirrors features/assets/PaginationBar exactly but uses the `common`
+ * namespace so catalog pages do not pull in the assets namespace.
  */
-export function PaginationBar({ page, pageSize, total, onPage }: PaginationBarProps) {
-  const { t } = useTranslation('assets')
+export function CatalogPagination({ page, pageSize, total, onPage }: CatalogPaginationProps) {
+  const { t } = useTranslation('common')
 
   const from = total === 0 ? 0 : (page - 1) * pageSize + 1
   const to = Math.min(total, page * pageSize)
@@ -25,7 +23,7 @@ export function PaginationBar({ page, pageSize, total, onPage }: PaginationBarPr
   const info = (
     <Trans
       i18nKey="pagination.shownBold"
-      ns="assets"
+      ns="common"
       values={{ from, to, total }}
       components={[
         <span key="from-to" className="font-semibold text-text-secondary" />,

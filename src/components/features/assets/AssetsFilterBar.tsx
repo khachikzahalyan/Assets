@@ -129,12 +129,22 @@ export function AssetsFilterBar({
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-2 px-5 py-2 max-md:flex-nowrap max-md:overflow-x-auto max-md:gap-[6px] max-md:px-3 max-md:py-2 no-scrollbar max-md:scroll-fade-x">
+    <div
+      className={[
+        // Desktop: wrapping flex row with padding
+        'flex flex-wrap items-center gap-2 px-5 py-2',
+        // Mobile: horizontal scroll strip, prototype padding (pt-0 since search row above provides rhythm)
+        'max-md:flex-nowrap max-md:overflow-x-auto max-md:gap-[6px]',
+        'max-md:px-[14px] max-md:pt-0 max-md:pb-[6px]',
+        'no-scrollbar max-md:scroll-fade-x',
+      ].join(' ')}
+    >
       {/* Status */}
       <SelectMini
         id="assets-status"
         label={t('filters.status')}
         leadingIcon="circle-dot"
+        leadingIconMobile="alert-circle"
         value={query.statusId ?? 'all'}
         onChange={v => onChange({ statusId: v })}
         options={statusOptions}
@@ -145,6 +155,7 @@ export function AssetsFilterBar({
         id="assets-branch"
         label={t('filters.branch')}
         leadingIcon="building"
+        leadingIconMobile="house"
         value={query.branchId ?? 'all'}
         onChange={v => onChange({ branchId: v })}
         options={branchOptions}
@@ -161,13 +172,13 @@ export function AssetsFilterBar({
         subtitle={t('sort.viewSubtitle')}
       />
 
-      {/* Temp toggle */}
+      {/* Temp toggle — desktop only; the prototype's mobile filter row is exactly
+          3 chips (Статус/Филиал/Вид), so this is hidden on mobile. */}
       <button
         type="button"
         onClick={onToggleTemp}
         className={[
-          'inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-[13px] font-semibold tracking-tight transition-all duration-150 shrink-0',
-          'max-md:h-[30px] max-md:px-[10px] max-md:text-[12px]',
+          'inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-[13px] font-semibold tracking-tight transition-all duration-150 shrink-0 max-md:hidden',
           showTemp
             ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-500/25 ring-1 ring-emerald-700/15'
             : 'bg-surface text-text-primary border border-border hover:border-border-strong hover:bg-bg',
@@ -179,9 +190,7 @@ export function AssetsFilterBar({
           size={13}
           className={showTemp ? 'text-white' : 'text-text-tertiary'}
         />
-        {/* Full label on desktop; short label on mobile (≤767px) */}
-        <span className="max-md:hidden">{t('filters.temp')}</span>
-        <span className="hidden max-md:inline">{t('filters.tempShort')}</span>
+        <span>{t('filters.temp')}</span>
         <span
           aria-hidden="true"
           className={[
@@ -193,12 +202,15 @@ export function AssetsFilterBar({
         </span>
       </button>
 
-      {/* Reset — pushed to the far right (ml-auto on desktop, shrink-0 on mobile) */}
+      {/* Reset — desktop only (prototype mobile row has no reset chip) */}
       {dirty && (
         <button
           type="button"
           onClick={handleReset}
-          className="ml-auto inline-flex items-center gap-1 h-8 px-2.5 rounded-lg text-[13px] font-semibold text-text-primary hover:text-text-primary hover:bg-surface-2 transition-colors duration-150 max-md:shrink-0 max-md:ml-0 max-md:h-[30px] max-md:px-[8px] max-md:text-[12px]"
+          className={[
+            'ml-auto inline-flex items-center gap-1 h-8 px-2.5 rounded-lg text-[13px] font-semibold max-md:hidden',
+            'text-text-primary hover:text-text-primary hover:bg-surface-2 transition-colors duration-150',
+          ].join(' ')}
         >
           <Icon name="x" size={12} />
           {t('filters.reset')}

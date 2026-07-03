@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
 import { cn } from '@/lib/utils'
 import {
-  PageHeader, SectionCard, Btn, Icon, EmptyState, LoadingState, ErrorState, Field, Select, Input, Chip,
+  PageHeader, SectionCard, Btn, Icon, EmptyState, LoadingState, ErrorState, Field, Select, Input,
   CardListSkeleton, DataTable,
   DIALOG_BACKDROP, MODAL_SHEET,
 } from '@/components/ui'
@@ -14,6 +14,7 @@ import type { Role } from '@/config/roles'
 import { ROLE_IDS } from '@/config/roles'
 import { RoleIcon } from '@/components/ui/RoleIcon'
 import { createDefaultUserRepository } from '@/infra/repositories'
+import { RoleRowMobile } from '@/components/features/users'
 
 export interface RolesPageProps { repository?: UserRepository }
 
@@ -230,37 +231,19 @@ export function RolesPage({ repository }: RolesPageProps) {
     if (filtered.length === 0) return <EmptyState icon="shield-check" title={t('empty.title')} description={t('empty.desc')} />
     if (isMobile) {
       return (
-        // ── Mobile card list ────────────────────────────────────────────────────
-        <div className="flex flex-col divide-y divide-border">
-          {filtered.map(u => {
-            const isSelf = u.id === user.id
-            return (
-              <div key={u.id} className={`flex items-start justify-between gap-3 py-3 px-1 ${isSelf ? 'bg-accent/5' : ''}`}>
-                <div className="flex items-start gap-2 min-w-0 flex-1">
-                  <span className="w-8 h-8 min-w-[32px] rounded-full bg-surface-2 border border-border text-text-subtle inline-flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <Icon name="user" size={14} />
-                  </span>
-                  <div className="min-w-0 flex-1 space-y-0.5">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-[13.5px] font-medium text-text-primary truncate">{u.displayName || u.email}</span>
-                      {isSelf && <span className="text-[10px] px-1.5 py-0.5 rounded bg-accent/15 text-accent flex-shrink-0">{t('you')}</span>}
-                    </div>
-                    <div className="text-[12px] text-text-subtle truncate">{u.email}</div>
-                    <div className="flex items-center gap-2 pt-0.5 flex-wrap">
-                      <Chip color="gray"><RoleIcon role={u.role} size={16} className="shrink-0 mr-0.5" />{roleLabel(u.role)}</Chip>
-                      <span className="text-[12px] text-text-tertiary">{t(`status.${u.status}`)}</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex-shrink-0 self-center">
-                  <Btn size="sm" variant="secondary" onClick={() => setDialogUser(u)}>
-                    <Icon name="shield-check" size={13} />
-                    {t('change')}
-                  </Btn>
-                </div>
-              </div>
-            )
-          })}
+        <div className="flex flex-col">
+          {filtered.map(u => (
+            <RoleRowMobile
+              key={u.id}
+              u={u}
+              isSelf={u.id === user.id}
+              roleLabel={roleLabel(u.role)}
+              statusLabel={t(`status.${u.status}`)}
+              youLabel={t('you')}
+              changeLabel={t('change')}
+              onChangeRole={() => setDialogUser(u)}
+            />
+          ))}
         </div>
       )
     }

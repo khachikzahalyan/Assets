@@ -8,13 +8,12 @@ import {
   TableSkeleton, CardListSkeleton,
 } from '@/components/ui'
 import { useIsMobile } from '@/hooks/useIsMobile'
-import { CatalogTable, ConfirmDeleteDialog, type CatalogColumn } from '@/components/features/catalogs'
+import { CatalogTable, CatalogPagination, ConfirmDeleteDialog, type CatalogColumn } from '@/components/features/catalogs'
 import {
   CategoryFormDialog, type CategoryFormValues,
   CategoryGroupFormDialog,
   CategoryGroupChips,
 } from '@/components/features/categories'
-import { PaginationBar } from '@/components/features/assets/PaginationBar'
 import type { Category, CategoryGroup, CategoryRepository, CategoryGroupRepository } from '@/domain/category'
 import { FirestoreCategoryRepository, FirestoreCategoryGroupRepository } from '@/infra/repositories'
 import { EntityInUseError } from '@/domain/shared'
@@ -181,7 +180,16 @@ export function CategoriesPage({ repository, categoryGroupRepository }: Categori
       <EmptyState icon="tags" title={t('empty.title')} description={t('empty.desc')} />
     )
     return (
-      <CatalogTable rows={pageRows} columns={columns} canMutate={canMutate} onEdit={openEdit} onDelete={askDelete} minRows={PAGE_SIZE} />
+      <CatalogTable
+        rows={pageRows} columns={columns} canMutate={canMutate} onEdit={openEdit} onDelete={askDelete}
+        minRows={PAGE_SIZE}
+        mobileIcon={() => (
+          <span className="w-[28px] h-[28px] rounded-[8px] inline-flex items-center justify-center flex-shrink-0 bg-surface-2 text-text-tertiary" aria-hidden="true">
+            <Icon name="tags" size={14} />
+          </span>
+        )}
+        mobileMinRows={PAGE_SIZE}
+      />
     )
   }
 
@@ -233,8 +241,8 @@ export function CategoriesPage({ repository, categoryGroupRepository }: Categori
             </>
           }
           pagination={
-            !loading && !error && total > PAGE_SIZE ? (
-              <PaginationBar page={page} pageSize={PAGE_SIZE} total={total} onPage={setPage} />
+            !loading && !error && total > 0 ? (
+              <CatalogPagination page={page} pageSize={PAGE_SIZE} total={total} onPage={setPage} />
             ) : undefined
           }
         >

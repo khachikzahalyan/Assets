@@ -180,10 +180,16 @@ export function ViewPopover({
         onClick={() => setOpen(v => !v)}
         className={triggerClass}
       >
+        {/* Desktop icon; mobile swaps to the prototype's plain list icon */}
         <Icon
           name="list-filter"
           size={12}
-          className={!isDefault ? 'text-accent-light' : 'text-text-subtle'}
+          className={`max-md:hidden ${!isDefault ? 'text-accent-light' : 'text-text-subtle'}`}
+        />
+        <Icon
+          name="list"
+          size={11}
+          className={`md:hidden ${!isDefault ? 'text-accent-light' : 'text-text-subtle'}`}
         />
         <span
           className={[

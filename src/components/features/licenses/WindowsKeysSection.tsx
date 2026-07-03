@@ -18,7 +18,9 @@ import type { Actor } from '@/domain/asset'
 import type { WorkstationLicenseRepository } from '@/domain/license'
 import { KeyDetailsModal } from './KeyDetailsModal'
 import { ActivateKeyModal, type KeylessAsset } from './ActivateKeyModal'
+import { KeyRowMobile } from './KeyRowMobile'
 import { LicensesPagination } from './LicensesPagination'
+import { MobileListPlaceholders } from '@/components/ui'
 import { fmtDate } from './licenseHelpers'
 import { revealLicenseKey } from '@/lib/licenses/revealKey'
 
@@ -304,12 +306,17 @@ export function WindowsKeysSection({
   return (
     <>
       <section
-        className="bg-surface border border-border rounded-xl shadow-sm shadow-black/30 overflow-hidden flex flex-col"
+        /* max-md:flex-1: inside the mobile flush flex chain the card stretches to the
+           BottomNav (like /assets ListCard); the rows area absorbs the space and the
+           pagination pins to the card bottom. Desktop keeps natural height.
+           max-md:rounded-t-none/border-t-0/!mt-0: fuses with the page tab+search
+           header above into ONE visual card (assets etalon). */
+        className="bg-surface border border-border rounded-xl shadow-sm shadow-black/30 overflow-hidden flex flex-col max-md:flex-1 max-md:min-h-0 max-md:rounded-t-none max-md:border-t-0 max-md:!mt-0"
         aria-label={t('keys.sectionTitle')}
       >
-        {/* Section header */}
-        <header className="flex items-center justify-between px-5 py-2.5 border-b border-border max-md:flex-col max-md:items-start max-md:gap-1.5 max-md:py-3">
-          <div className="flex items-center gap-2.5">
+        {/* Section header — mobile hides the icon+title (owner request), keeps only the filter chips */}
+        <header className="flex items-center justify-between px-5 py-2.5 border-b border-border max-md:px-[14px] max-md:py-2">
+          <div className="flex items-center gap-2.5 max-md:hidden">
             <span className="w-7 h-7 rounded-md bg-surface-2 text-violet-400 inline-flex items-center justify-center">
               <Icon name="key-round" size={14} />
             </span>
@@ -323,7 +330,8 @@ export function WindowsKeysSection({
         </header>
 
         {rows.length === 0 ? (
-          <div className="flex flex-col items-center justify-center px-6 py-12 text-center">
+          /* max-md:flex-1 keeps the empty state vertically centered in the stretched card */
+          <div className="flex flex-col items-center justify-center px-6 py-12 text-center max-md:flex-1">
             <span className="w-12 h-12 rounded-xl bg-surface-2 text-text-subtle inline-flex items-center justify-center mb-3">
               <Icon name="key-round" size={20} />
             </span>
@@ -333,64 +341,36 @@ export function WindowsKeysSection({
         ) : (
           <div className="flex flex-col flex-1 min-h-0">
             {isMobile ? (
-              /* ── Mobile card list ─────────────────────────────────────────── */
-              <div className="divide-y divide-border">
+              /* ── Mobile card list — same fill contract as AssetsTable mobile:
+                    rows + dashed placeholder slots pad to PAGE_SIZE, every slot
+                    flexGrow:1 so the block fills the card and the paginator
+                    stays pinned at a constant position. ── */
+              <div className="flex-1 min-h-0 flex flex-col">
                 {pageRows.map(lic => {
                   const isFree = licenseStatus(lic) === 'free'
                   const masked = maskedKeys[lic.id] ?? '—'
                   const assetId = lic.assignedToAssetId ?? null
                   const entry = assetId ? (assetNameMap[assetId] ?? null) : null
-                  const displayName = entry ? entry.name : (assetId ?? '—')
-                  const displayInvCode = entry ? entry.invCode : null
                   return (
-                    <div
+                    <KeyRowMobile
                       key={lic.id}
-                      data-testid={`key-row-${lic.id}`}
-                      onClick={() => setDetailsId(lic.id)}
-                      className="px-4 py-3 flex flex-col gap-1.5 cursor-pointer hover:bg-surface-2 transition-colors"
-                    >
-                      {/* Row 1: masked key (font-mono) */}
-                      <span className="font-mono text-[13px] text-text-primary tracking-tight">{masked}</span>
-                      {/* Row 2: version + status chip */}
-                      <div className="flex items-center gap-2">
-                        <span className="text-[12.5px] text-text-secondary">{lic.name}</span>
-                        {isFree
-                          ? <Chip color="green" dot>{t('keys.statusFree')}</Chip>
-                          : <Chip color="blue" dot>{t('keys.statusInUse')}</Chip>
-                        }
-                      </div>
-                      {/* Row 3: asset name */}
-                      {isFree ? (
-                        <div className="text-[12px] text-text-tertiary">
-                          {lic.retiredAt
-                            ? t('keys.freedOn', { date: fmtDate(lic.retiredAt, 'ru') })
-                            : lic.assignedAt
-                            ? t('keys.freedOn', { date: fmtDate(lic.assignedAt, 'ru') })
-                            : '—'}
-                        </div>
-                      ) : (
-                        <div className="leading-tight">
-                          <div className="text-[12.5px] text-text-primary font-semibold">{displayName}</div>
-                          {displayInvCode && (
-                            <div className="font-mono text-[11.5px] text-text-tertiary">{displayInvCode}</div>
-                          )}
-                        </div>
-                      )}
-                      {/* Full-width activate button — FREE keys only */}
-                      {showAction && (
-                        <button
-                          type="button"
-                          onClick={e => { e.stopPropagation(); setActivatingId(lic.id) }}
-                          data-testid={`activate-btn-${lic.id}`}
-                          className="mt-1 w-full h-8 rounded-lg text-[13px] font-semibold text-accent-light border border-accent/30 bg-accent/10 hover:bg-accent/20 transition-colors inline-flex items-center justify-center gap-1.5"
-                        >
-                          <Icon name="zap" size={13} />
-                          {t('keys.activate')}
-                        </button>
-                      )}
-                    </div>
+                      lic={lic}
+                      masked={masked}
+                      isFree={isFree}
+                      assetName={entry?.name ?? null}
+                      assetInvCode={entry?.invCode ?? null}
+                      showAction={showAction}
+                      onRowClick={() => setDetailsId(lic.id)}
+                      onActivate={e => { e.stopPropagation(); setActivatingId(lic.id) }}
+                      outerStyle={{ flexGrow: 1, flexShrink: 0 }}
+                    />
                   )
                 })}
+                {/* Placeholder slots — mirror AssetsTable's mobile placeholders exactly */}
+                <MobileListPlaceholders
+                  count={Math.max(0, PAGE_SIZE - pageRows.length)}
+                  dataTestId="key-card-placeholder"
+                />
               </div>
             ) : (
               /* ── Desktop DataTable ────────────────────────────────────────── */

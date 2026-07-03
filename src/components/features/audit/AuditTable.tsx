@@ -6,6 +6,7 @@ import type { DataTableColumn } from '@/components/ui'
 import { AuditDiff } from './AuditDiff'
 import { formatAuditTs, resolveActorName, entityLink } from './auditFormat'
 import type { AuditLog, AuditLogReferenceData } from '@/domain/audit'
+import { AuditRowMobile } from './AuditRowMobile'
 
 export interface AuditTableProps {
   rows: AuditLog[]
@@ -119,67 +120,18 @@ export function AuditTable({ rows, ref: refData }: AuditTableProps) {
   ], [t, i18n.language, expanded, navigate, refData.actors])
 
   if (isMobile) {
-    // ── Mobile card list ────────────────────────────────────────────────────────
+    // ── Mobile card list via AuditRowMobile (wraps ui/MobileListRow) ────────
     return (
-      <div className="flex flex-col divide-y divide-border">
-        {rows.map(log => {
-          const isOpen = expanded === log.id
-          const link = entityLink(log)
-          return (
-            <div key={log.id}>
-              <button
-                type="button"
-                onClick={() => setExpanded(isOpen ? null : log.id)}
-                className="w-full text-left px-1 py-3 hover:bg-[#1A1D21] active:bg-[#1A1D21] transition-colors duration-100"
-              >
-                {/* Row 1: time + entity chip */}
-                <div className="flex items-center justify-between gap-2 mb-1">
-                  <span className="font-mono text-[11px] text-text-tertiary whitespace-nowrap">
-                    {formatAuditTs(log.at, i18n.language)}
-                  </span>
-                  <div className="flex items-center gap-1.5 flex-shrink-0">
-                    <Chip>
-                      {t(`entity.${log.entityType}`, { defaultValue: log.entityType })}
-                    </Chip>
-                    <Icon
-                      name="chevron-right"
-                      size={13}
-                      className={`text-text-subtle ${isOpen ? 'rotate-90 transition-transform' : 'transition-transform'}`}
-                    />
-                  </div>
-                </div>
-                {/* Row 2: actor + action */}
-                <div className="flex items-center gap-2 text-[12.5px]">
-                  <span className="text-text-primary font-medium truncate flex-1 min-w-0">
-                    {resolveActorName(log.actorUid, refData.actors)}
-                  </span>
-                  <span className="text-text-tertiary flex-shrink-0">
-                    {t(`action.${log.action}`, { defaultValue: log.action })}
-                  </span>
-                </div>
-                {/* Row 3: entity id */}
-                <div className="mt-0.5">
-                  {link != null ? (
-                    <span
-                      role="link"
-                      onClick={e => { e.stopPropagation(); navigate(link) }}
-                      className="font-mono text-[11px] text-accent-light underline"
-                    >
-                      {log.entityId}
-                    </span>
-                  ) : (
-                    <span className="font-mono text-[11px] text-text-subtle">{log.entityId}</span>
-                  )}
-                </div>
-              </button>
-              {isOpen && (
-                <div className="bg-[#15181C] px-2 py-2 border-t border-border">
-                  <AuditDiff log={log} />
-                </div>
-              )}
-            </div>
-          )
-        })}
+      <div className="flex flex-col">
+        {rows.map(log => (
+          <AuditRowMobile
+            key={log.id}
+            log={log}
+            refData={refData}
+            isOpen={expanded === log.id}
+            onToggle={() => setExpanded(expanded === log.id ? null : log.id)}
+          />
+        ))}
       </div>
     )
   }

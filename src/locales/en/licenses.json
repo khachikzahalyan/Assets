@@ -25,6 +25,7 @@
     "unassigned": "Unassigned"
   },
   "actions": {
+    "addLicense": "Add license",
     "create": "Add license",
     "edit": "Edit",
     "assign": "Assign",
@@ -90,7 +91,13 @@
     "desc": "Add the first license"
   },
   "error": "Failed to load licenses. Try again.",
-  "pagination": { "range": "{{from}}–{{to}} / {{total}}" },
+  "pagination": {
+    "range": "{{from}}–{{to}} / {{total}}",
+    "showing": "Showing",
+    "of": "of",
+    "prev": "Previous",
+    "next": "Next"
+  },
   "keys": {
     "activate": "Activate",
     "activatedToast": "Key activated on «{{name}}»",

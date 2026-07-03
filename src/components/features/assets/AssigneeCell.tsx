@@ -56,12 +56,17 @@ export function AssigneeCell({
           {tempLabel}
         </div>
       )
-    } else if (asset.assignment?.departmentId) {
-      const deptName = deptMap.get(asset.assignment.departmentId)
-      if (deptName) {
+    } else {
+      // Subline: «должность · отдел» (e.g. "System Admin · ИТ") — same format as
+      // the asset-detail assignment card. Department resolves from the employee's
+      // own departmentId first, falling back to the assignment's.
+      const deptId = emp?.departmentId ?? asset.assignment?.departmentId ?? null
+      const deptName = deptId ? deptMap.get(deptId) : undefined
+      const sub = [emp?.position, deptName].filter(Boolean).join(' · ')
+      if (sub) {
         subEl = (
           <div className="text-[13px] text-text-tertiary truncate leading-tight mt-0.5">
-            {deptName}
+            {sub}
           </div>
         )
       }

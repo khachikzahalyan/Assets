@@ -16,16 +16,28 @@ export interface GroupTabsProps {
 }
 
 /**
- * Horizontal filter-chip tabs for asset group selection.
- * Each tab shows an icon, label (full on desktop / short on mobile), and count.
+ * Horizontal tab strip for asset group selection.
+ *
+ * Desktop (≥768px): filled chip buttons (accent/surface).
+ * Mobile (<768px): underline-tab style — transparent bg, accent underline on active,
+ *   count badge with tinted bg (active) or muted (inactive/zero).
+ *   The bg-surface-2 / border-b strip is applied by AssetsToolbar's wrapper div, not here.
  */
 export function GroupTabs({ tabs, selected, onSelect, counts }: GroupTabsProps) {
   return (
-    <div className="flex items-center gap-1 flex-wrap max-md:flex-nowrap max-md:overflow-x-auto max-md:gap-1.5 no-scrollbar max-md:w-full max-md:scroll-fade-x">
+    <div
+      className={[
+        // Desktop: wrapped flex with gap
+        'flex items-center gap-1 flex-wrap',
+        // Mobile: horizontal scroll, no gap (tabs use margin-right instead)
+        'max-md:flex-nowrap max-md:overflow-x-auto max-md:gap-0 no-scrollbar max-md:w-full',
+      ].join(' ')}
+    >
       {tabs.map(tab => {
-        const active = selected === tab.id
-        const count = counts[tab.id] ?? 0
+        const active   = selected === tab.id
+        const count    = counts[tab.id] ?? 0
         const hasShort = tab.shortLabel != null && tab.shortLabel !== tab.label
+
         return (
           <button
             key={tab.id}
@@ -34,13 +46,24 @@ export function GroupTabs({ tabs, selected, onSelect, counts }: GroupTabsProps) 
             aria-label={tab.label}
             onClick={() => onSelect(tab.id)}
             className={[
-              'inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-[13px] font-semibold tracking-tight transition-colors duration-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-border-strong',
-              'max-md:shrink-0 max-md:h-[32px] max-md:px-[12px] max-md:text-[12px] max-md:gap-1.5',
+              // ── Shared base ──
+              'inline-flex items-center transition-colors duration-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-border-strong shrink-0',
+              // ── Desktop sizing / shape (md+) ──
+              'md:gap-1.5 md:h-8 md:px-2.5 md:rounded-lg md:text-[13px] md:font-semibold md:tracking-tight',
+              // Desktop active vs inactive chip
               active
-                ? 'bg-accent text-white'
-                : 'bg-surface text-text-primary border border-border hover:border-border-strong',
+                ? 'md:bg-accent md:text-white'
+                : 'md:bg-surface md:text-text-primary md:border md:border-border md:hover:border-border-strong',
+              // ── Mobile sizing / shape (max-md) ──
+              // padding: 8px top/bottom, 10px right, 0 left; 6px right-margin for spacing
+              'max-md:relative max-md:h-auto max-md:gap-[5px]',
+              'max-md:pl-0 max-md:pr-[10px] max-md:py-[8px] max-md:mr-[6px]',
+              'max-md:text-[12.5px] max-md:font-semibold',
+              // Mobile text colour (active = accent, inactive = muted)
+              active ? 'max-md:text-accent' : 'max-md:text-text-tertiary',
             ].join(' ')}
           >
+            {/* Icon: visible on desktop only */}
             <Icon
               name={tab.icon}
               size={13}
@@ -50,8 +73,8 @@ export function GroupTabs({ tabs, selected, onSelect, counts }: GroupTabsProps) 
                 'max-md:hidden',
               ].join(' ')}
             />
-            {/* Desktop: full label. Mobile: short label if provided, else full label.
-                Both spans are aria-hidden because the button carries aria-label={tab.label}. */}
+
+            {/* Label: full on desktop, short on mobile if provided */}
             {hasShort ? (
               <>
                 <span aria-hidden="true" className="max-md:hidden">{tab.label}</span>
@@ -60,15 +83,36 @@ export function GroupTabs({ tabs, selected, onSelect, counts }: GroupTabsProps) 
             ) : (
               <span aria-hidden="true">{tab.label}</span>
             )}
+
+            {/* Count badge */}
             <span
               aria-hidden="true"
               className={[
-                'tabular-nums text-[12px] max-md:text-[11px] max-md:text-white max-md:font-semibold max-md:opacity-[0.95]',
+                // Desktop count — subtle text
+                'tabular-nums text-[12px]',
                 active ? 'text-white/70' : 'text-text-subtle',
+                // Mobile count — badge pill
+                'max-md:text-[10px] max-md:font-bold max-md:rounded-[10px]',
+                active
+                  // Active: accent bg + white text
+                  ? 'max-md:bg-accent max-md:text-white max-md:px-[6px] max-md:py-[1px]'
+                  : count === 0
+                    // Zero count: no bg, extra-muted text
+                    ? 'max-md:text-text-subtle max-md:opacity-60 max-md:px-[5px] max-md:py-[1px]'
+                    // Non-zero inactive: faint bg
+                    : 'max-md:bg-surface max-md:text-text-subtle max-md:px-[6px] max-md:py-[1px]',
               ].join(' ')}
             >
               {count}
             </span>
+
+            {/* Mobile active underline — absolute bar at bottom of the strip */}
+            {active && (
+              <span
+                aria-hidden="true"
+                className="hidden max-md:block absolute bottom-[-1px] left-0 right-0 h-[2px] bg-accent rounded-[1px]"
+              />
+            )}
           </button>
         )
       })}

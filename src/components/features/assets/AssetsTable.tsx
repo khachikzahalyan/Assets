@@ -13,6 +13,7 @@ import {
 import { CATEGORY_COLOR } from './categoryColors'
 import { AssetRow, GRID_COLS } from './AssetRow'
 import { MobileCard } from './AssetRowMobile'
+import { MobileListPlaceholders } from '@/components/ui'
 
 // ── AssetsTable ──────────────────────────────────────────────────────────────
 
@@ -175,24 +176,8 @@ export function AssetsTable({
       })}
 
       {/* Placeholder card slots — pad the list to minRows (10) so the block
-          always occupies the same height and the paginator never moves.
-          Height mirrors a real MobileCard: same paddings + two text lines. */}
-      {Array.from({ length: placeholderCount }).map((_, i) => (
-        <div
-          key={`__mph_${i}`}
-          aria-hidden="true"
-          data-testid="asset-card-placeholder"
-          style={{ flexGrow: 1, flexShrink: 0 }}
-          className="relative px-[14px] py-[7px] border-b border-border border-l-[3px] border-l-transparent pointer-events-none last:border-b-0"
-        >
-          {/* invisible replica of the card's text column → identical row height */}
-          <div className="opacity-0">
-            <div className="text-[13px] font-bold leading-snug mb-[2px]">&nbsp;</div>
-            <div className="text-[11px] leading-snug">&nbsp;</div>
-          </div>
-          <div className="absolute left-[14px] right-[14px] top-1/2 -translate-y-1/2 border-t border-dashed border-border/50" />
-        </div>
-      ))}
+          always occupies the same height and the paginator never moves. */}
+      <MobileListPlaceholders count={placeholderCount} dataTestId="asset-card-placeholder" />
     </div>}
 
     {/* ── Desktop grid table (≥ 768px) ── */}
