@@ -32,6 +32,7 @@ import {
   Menu,
   X,
   Inbox,
+  List,
   TriangleAlert,
   RefreshCw,
   Laptop,
@@ -186,6 +187,7 @@ const REGISTRY: Record<string, LucideIcon> = {
   tv: Tv,
   'rotate-ccw': RotateCcw,
   'list-filter': ListFilter,
+  list: List,
   'file-spreadsheet': FileSpreadsheet,
   'file-up': FileUp,
   // Filter-bar / sort icons

@@ -14,6 +14,8 @@ export interface SelectMiniOption {
 export interface SelectMiniProps {
   label: string
   leadingIcon?: string
+  /** Mobile-only trigger icon override (≤767px). Desktop keeps `leadingIcon`. */
+  leadingIconMobile?: string
   value: string
   onChange: (v: string) => void
   options: SelectMiniOption[]
@@ -46,7 +48,7 @@ function getIsMobile(): boolean {
  * Desktop: portal-to-body dropdown with outside-click + Escape close.
  * Mobile (≤767px): MobileSheet bottom-sheet with option rows.
  */
-export function SelectMini({ label, leadingIcon, value, onChange, options, sheetTitle, defaultValue = 'all' }: SelectMiniProps) {
+export function SelectMini({ label, leadingIcon, leadingIconMobile, value, onChange, options, sheetTitle, defaultValue = 'all' }: SelectMiniProps) {
   const [open, setOpen] = useState(false)
   const [pos, setPos] = useState<PortalPos | null>(null)
   const [isMobile, setIsMobile] = useState(getIsMobile)
@@ -186,7 +188,17 @@ export function SelectMini({ label, leadingIcon, value, onChange, options, sheet
           <Icon
             name={leadingIcon}
             size={14}
-            className={isNonDefault ? 'text-accent-light' : 'text-text-subtle'}
+            className={[
+              isNonDefault ? 'text-accent-light' : 'text-text-subtle',
+              leadingIconMobile ? 'max-md:hidden' : '',
+            ].join(' ')}
+          />
+        )}
+        {leadingIconMobile && (
+          <Icon
+            name={leadingIconMobile}
+            size={11}
+            className={`md:hidden ${isNonDefault ? 'text-accent-light' : 'text-text-subtle'}`}
           />
         )}
         <span
