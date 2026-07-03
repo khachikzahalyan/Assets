@@ -11,6 +11,12 @@ export interface CategoryChipStripProps {
   onSelect: (id: string) => void
   /** Pre-computed stockOf map from WarehouseTab. key = skuId */
   stockMap?: Record<string, { onHand: number; broken: number }>
+  /**
+   * When true, strips own padding/border (py-3 px-3.5 border-b border-border)
+   * and uses flex-1 min-w-0 instead — the parent row provides its own padding.
+   * Default false (unchanged rendering for all existing callers).
+   */
+  bare?: boolean
 }
 
 /**
@@ -27,6 +33,7 @@ export function CategoryChipStrip({
   selectedId,
   onSelect,
   stockMap = {},
+  bare = false,
 }: CategoryChipStripProps) {
   const { t } = useTranslation('parts')
   const stripRef = useRef<HTMLDivElement>(null)
@@ -66,7 +73,11 @@ export function CategoryChipStrip({
   return (
     <div
       ref={stripRef}
-      className="flex gap-[7px] overflow-x-auto py-3 px-3.5 border-b border-border"
+      className={
+        bare
+          ? 'flex gap-[7px] overflow-x-auto flex-1 min-w-0'
+          : 'flex gap-[7px] overflow-x-auto py-3 px-3.5 border-b border-border'
+      }
       style={{ scrollbarWidth: 'none' }}
       role="tablist"
       aria-label={t('tabs.warehouse')}

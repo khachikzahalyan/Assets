@@ -7,6 +7,8 @@
  * so the JIT compiler keeps them.
  */
 
+import type { Part } from '@/domain/part/types'
+
 /* ── Surface colours (prototype dark shell) ─────────────────────────────── */
 export const SURFACE = {
   card: 'bg-surface',
@@ -144,6 +146,17 @@ export function fmtPartsDate(value: string | number | Date | null | undefined): 
   if (Number.isNaN(d.getTime())) return '—'
   const dd = String(d.getDate()).padStart(2, '0')
   return `${dd}/${MON[d.getMonth()]}/${d.getFullYear()}`
+}
+
+/* ── SKU grouping helper (shared by WarehouseTab + PartsPage) ────────────── */
+export function groupSkusByCategory(parts: Part[]): Record<string, Part[]> {
+  const map: Record<string, Part[]> = {}
+  PART_CATEGORY_META.forEach((c) => { map[c.id] = [] })
+  parts.forEach((p) => {
+    if (!map[p.category]) map[p.category] = []
+    map[p.category]!.push(p)
+  })
+  return map
 }
 
 /* ── Russian pluralisation helper (компонент / компонента / компонентов) ── */

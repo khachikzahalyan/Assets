@@ -38,9 +38,9 @@ export function WarehouseMobileDetail({
   const title = skus.length === 1 ? (skus[0]?.name ?? catMeta?.label) : catMeta?.label
 
   return (
-    <div className="px-3.5 pt-3.5">
-      {/* Category header */}
-      <div className="flex items-center justify-between mb-3.5">
+    <div>
+      {/* Category header — own gutter (14px = card gutter) */}
+      <div className="px-3.5 pt-3.5 flex items-center justify-between mb-3.5">
         <div className="flex items-center gap-2.5">
           <span className={`w-9 h-9 rounded-[10px] ${tint.iconBg} ${tint.iconText} inline-flex items-center justify-center flex-shrink-0`}>
             <Icon name={icon} size={16} />
@@ -64,22 +64,17 @@ export function WarehouseMobileDetail({
         </div>
       </div>
 
-      {/* ИСТОРИЯ overline */}
-      <div className="text-[9px] font-bold tracking-[1.3px] uppercase text-text-subtle mb-3">
-        {t('warehouse.history', 'ИСТОРИЯ')}
-      </div>
-
-      {/* History card */}
-      <div className="bg-surface border border-border rounded-xl overflow-hidden">
-        <HistoryPanel
-          movements={movements}
-          skuIds={skuIds}
-          parts={parts}
-          isMobile={true}
-          categoryId={catId}
-          remainingAfterMap={remainingAfterMap}
-        />
-      </div>
+      {/* HistoryPanel full-bleed — its own metrics strip (bg-bg border-t border-border)
+          reads as an in-card section divider; the duplicate «ИСТОРИЯ» overline and
+          the nested card wrapper have been removed. HistoryPanel is NOT modified. */}
+      <HistoryPanel
+        movements={movements}
+        skuIds={skuIds}
+        parts={parts}
+        isMobile={true}
+        categoryId={catId}
+        remainingAfterMap={remainingAfterMap}
+      />
     </div>
   )
 }

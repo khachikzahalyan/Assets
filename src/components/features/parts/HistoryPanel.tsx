@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Icon, Chip } from '@/components/ui'
 import type { PartMovement, Part } from '@/domain/part/types'
 import { categoryIcon, categoryTint, fmtPartsDate } from './partsTokens'
+import { HistoryRowMobile, type MovementRuntime } from './HistoryRowMobile'
 
 /* ── Helpers ── */
 function toTs(val: string | number | null | undefined): number {
@@ -177,7 +178,7 @@ export function HistoryPanel({
   return (
     <div>
       {/* ── Metrics strip ── */}
-      <div className="px-5 py-2.5 max-md:px-3 max-md:py-1.5 border-t border-border flex items-center gap-3 flex-shrink-0 bg-bg">
+      <div className="px-5 py-2.5 max-md:px-[14px] max-md:py-1.5 border-t border-border flex items-center gap-3 flex-shrink-0 bg-bg">
         <span className="text-[13px] uppercase tracking-wider text-text-subtle font-semibold">
           {t('warehouse.history')}
         </span>
@@ -292,112 +293,136 @@ export function HistoryPanel({
         </div>
       ) : (
         <>
-          {/* ── Event rows — mirrors prototype lines 3944-3997 ── */}
+          {/* ── Event rows ── */}
           <div ref={scrollRef}>
-            <ul
-              className="ams-stock-history-list divide-y divide-border border-t border-border flex-shrink-0"
-              style={isMobile ? undefined : { minHeight: 'min(700px, 62vh)' }}
-            >
-              {visibleRows.map((mv, i) => {
-                const dt = resolveDisplayType(mv)
-                const isBroken = !!(mv as any).broken
-                const isInstall = dt === 'install' && !isBroken
-                const qty = mv.qty ?? 1
-
-                const rowSku = skuById[mv.skuId] ?? null
-                const skuCat = rowSku?.category ?? ''
-                const skuLabel = rowSku
-                  ? rowSku.name + (rowSku.variantLabel ? ' ' + rowSku.variantLabel : '')
-                  : mv.skuId || '—'
-
-                const catIconName = skuCat ? categoryIcon(skuCat) : null
-                const catTint = skuCat ? categoryTint(skuCat) : null
-
-                /* Dot colour — matches prototype lines 3953-3954 */
-                const dotColor = isBroken
-                  ? 'bg-rose-500'
-                  : isInstall
-                  ? 'bg-amber-400'
-                  : 'bg-emerald-500'
-
-                /* Action chip — mirrors prototype lines 3955-3959 */
-                const actionChip = (() => {
-                  if (isBroken) {
-                    return (
-                      <Chip color="red" size="md">
-                        <Icon name="x-circle" size={11} />
-                        {t('warehouse.actionScrapped')}
-                      </Chip>
-                    )
-                  }
-                  if (isInstall) {
-                    const remaining = remainingAfterMap[mv.id] ?? 0
-                    return (
-                      <Chip color="amber" size="md">
-                        <Icon name="wrench" size={11} />
-                        <span className="whitespace-nowrap">
-                          {t('warehouse.actionInstalled')} · {t('warehouse.actionRemaining')} {remaining} шт
-                        </span>
-                      </Chip>
-                    )
-                  }
-                  /* receive */
+            {isMobile ? (
+              /* Mobile: MobileListRow-based rows — no wrap collisions */
+              <div className="ams-stock-history-list border-t border-border">
+                {visibleRows.map((mv, i) => {
+                  const rowSku = skuById[mv.skuId] ?? null
+                  const skuCat = rowSku?.category ?? ''
+                  const skuLabel = rowSku
+                    ? rowSku.name + (rowSku.variantLabel ? ' ' + rowSku.variantLabel : '')
+                    : mv.skuId || '—'
+                  const catIconName = skuCat ? categoryIcon(skuCat) : 'package'
                   return (
-                    <Chip color="green" size="md">
-                      <Icon name="inbox" size={11} />
-                      +{qty}
-                    </Chip>
+                    <HistoryRowMobile
+                      key={mv.id ?? i}
+                      mv={mv}
+                      skuLabel={skuLabel}
+                      catIconName={catIconName}
+                      remainingAfter={remainingAfterMap[mv.id] ?? 0}
+                    />
                   )
-                })()
+                })}
+              </div>
+            ) : (
+              /* Desktop: fixed-height table-style rows — mirrors prototype lines 3944-3997 */
+              <ul
+                className="ams-stock-history-list divide-y divide-border border-t border-border flex-shrink-0"
+                style={{ minHeight: 'min(700px, 62vh)' }}
+              >
+                {visibleRows.map((mv, i) => {
+                  const dt = resolveDisplayType(mv)
+                  const isBroken = mv.broken
+                  const isInstall = dt === 'install' && !isBroken
+                  const qty = mv.qty ?? 1
 
-                /* Subline: asset invcode + name OR «Со склада» — prototype lines 3961-3974 */
-                const assetCode = mv.assetInvCode ?? (mv as any).assetId ?? null
-                const assetName = (mv as any).assetName ?? null
-                const subline = assetCode ? (
-                  <>
-                    <span className="font-mono text-[13px] uppercase tracking-wider bg-white/5 border border-white/10 rounded px-1.5 py-0.5 text-zinc-300 flex-shrink-0">
-                      {assetCode}
-                    </span>
-                    {assetName && (
-                      <span className="ams-stock-history-asset-name truncate text-text-subtle">{assetName}</span>
-                    )}
-                  </>
-                ) : (
-                  <span className="inline-flex items-center gap-1 text-text-subtle">
-                    <Icon name="package" size={10} />
-                    <span>{t('warehouse.fromWarehouse')}</span>
-                  </span>
-                )
+                  const rowSku = skuById[mv.skuId] ?? null
+                  const skuCat = rowSku?.category ?? ''
+                  const skuLabel = rowSku
+                    ? rowSku.name + (rowSku.variantLabel ? ' ' + rowSku.variantLabel : '')
+                    : mv.skuId || '—'
 
-                return (
-                  <li
-                    key={mv.id ?? i}
-                    className="flex items-center gap-3 px-5 h-[56px] flex-shrink-0 hover:bg-[#111315]/60 transition-colors max-md:h-auto max-md:py-2 max-md:gap-2 max-md:px-3 max-md:flex-wrap"
-                  >
-                    <span className={`w-2 h-2 rounded-full flex-shrink-0 ${dotColor}`} />
-                    <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                      {catIconName && catTint && (
-                        <span className={`w-6 h-6 rounded bg-surface-2 text-text-tertiary inline-flex items-center justify-center flex-shrink-0`}>
-                          <Icon name={catIconName} size={11} />
-                        </span>
+                  const catIconName = skuCat ? categoryIcon(skuCat) : null
+                  const catTint = skuCat ? categoryTint(skuCat) : null
+
+                  /* Dot colour — matches prototype lines 3953-3954 */
+                  const dotColor = isBroken
+                    ? 'bg-rose-500'
+                    : isInstall
+                    ? 'bg-amber-400'
+                    : 'bg-emerald-500'
+
+                  /* Action chip — mirrors prototype lines 3955-3959 */
+                  const actionChip = (() => {
+                    if (isBroken) {
+                      return (
+                        <Chip color="red" size="md">
+                          <Icon name="x-circle" size={11} />
+                          {t('warehouse.actionScrapped')}
+                        </Chip>
+                      )
+                    }
+                    if (isInstall) {
+                      const remaining = remainingAfterMap[mv.id] ?? 0
+                      return (
+                        <Chip color="amber" size="md">
+                          <Icon name="wrench" size={11} />
+                          <span className="whitespace-nowrap">
+                            {t('warehouse.actionInstalled')} · {t('warehouse.actionRemaining')} {remaining} шт
+                          </span>
+                        </Chip>
+                      )
+                    }
+                    /* receive */
+                    return (
+                      <Chip color="green" size="md">
+                        <Icon name="inbox" size={11} />
+                        +{qty}
+                      </Chip>
+                    )
+                  })()
+
+                  /* Subline: asset invcode + name OR «Со склада» — prototype lines 3961-3974 */
+                  const assetCode = mv.assetInvCode ?? mv.assetId
+                  const assetName = (mv as MovementRuntime).assetName ?? null
+                  const subline = assetCode ? (
+                    <>
+                      <span className="font-mono text-[13px] uppercase tracking-wider bg-white/5 border border-white/10 rounded px-1.5 py-0.5 text-zinc-300 flex-shrink-0">
+                        {assetCode}
+                      </span>
+                      {assetName && (
+                        <span className="ams-stock-history-asset-name truncate text-text-subtle">{assetName}</span>
                       )}
-                      <div className="min-w-0 flex-1">
-                        <div className="text-[15.5px] max-md:text-[14px] text-text-secondary truncate">
-                          {skuLabel}
-                        </div>
-                        <div className="text-[14px] max-md:text-[12.5px] text-text-subtle mt-0.5 leading-tight flex items-center gap-1.5 min-w-0">
-                          {subline}
+                    </>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-text-subtle">
+                      <Icon name="package" size={10} />
+                      <span>{t('warehouse.fromWarehouse')}</span>
+                    </span>
+                  )
+
+                  return (
+                    <li
+                      key={mv.id ?? i}
+                      className="flex items-center gap-3 px-5 h-[56px] flex-shrink-0 hover:bg-[#111315]/60 transition-colors"
+                    >
+                      <span className={`w-2 h-2 rounded-full flex-shrink-0 ${dotColor}`} />
+                      <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                        {catIconName && catTint && (
+                          <span className="w-6 h-6 rounded bg-surface-2 text-text-tertiary inline-flex items-center justify-center flex-shrink-0">
+                            <Icon name={catIconName} size={11} />
+                          </span>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <div className="text-[15.5px] text-text-secondary truncate">
+                            {skuLabel}
+                          </div>
+                          <div className="text-[14px] text-text-subtle mt-0.5 leading-tight flex items-center gap-1.5 min-w-0">
+                            {subline}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="flex-shrink-0">{actionChip}</div>
-                    <div className="text-[14px] font-medium text-text-tertiary tabular-nums whitespace-nowrap flex-shrink-0 w-[88px] text-right">
-                      {fmtPartsDate(mv.at)}
-                    </div>
-                  </li>
-                )
-              })}
-            </ul>
+                      <div className="flex-shrink-0">{actionChip}</div>
+                      <div className="text-[14px] font-medium text-text-tertiary tabular-nums whitespace-nowrap flex-shrink-0 w-[88px] text-right">
+                        {fmtPartsDate(mv.at)}
+                      </div>
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
           </div>
 
           {/* ── Pagination ── */}

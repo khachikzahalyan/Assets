@@ -10,12 +10,14 @@ import {
   UninstallModal,
   GpuAddModal,
   ServiceRecordModal,
+  PartsTabsHeader,
 } from '@/components/features/parts'
 import { useParts } from '@/hooks/useParts'
 import type { Part, PartsAsset, UpgradeSlot } from '@/domain/part/types'
 import { workingStock, deriveStock } from '@/domain/part/partStock'
 import type { PartRepository, PartWriteRepository } from '@/domain/part/PartRepository'
 import { createDefaultPartRepository } from '@/infra/repositories/factories'
+import { PART_CATEGORY_META, groupSkusByCategory } from '@/components/features/parts/partsTokens'
 
 type ActiveTab = 'warehouse' | 'devices'
 
@@ -63,6 +65,14 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== 'undefined' ? window.matchMedia('(max-width: 767px)').matches : false,
   )
+
+  // ── Lifted state (T2) ───────────────────────────────────────────────────────
+  // Warehouse category selection — lifted so PartsTabsHeader can drive the chip strip.
+  const [selectedCatId, setSelectedCatId] = useState<string>(
+    PART_CATEGORY_META[0]?.id ?? 'psu',
+  )
+  // Device search — lifted so PartsTabsHeader row-2 can own the input on mobile.
+  const [deviceSearch, setDeviceSearch] = useState('')
 
   // Sync isMobile on resize
   useEffect(() => {
@@ -138,6 +148,13 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
     [ref],
   )
 
+  // ── SKUs grouped by category — computed before early returns so it can be
+  //    passed to PartsTabsHeader (for the mobile CategoryChipStrip) ──────────
+  const skusByCategory = useMemo(
+    () => groupSkusByCategory(ref?.parts ?? []),
+    [ref],
+  )
+
   // ── Install handler ──────────────────────────────────────────────────────────
   const handleInstallSku = useCallback((sku: Part) => {
     setInstallModalSku(sku)
@@ -207,17 +224,11 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
     }
   }, [recordService, serviceAsset, t])
 
-  // ── Tab config — devices FIRST, warehouse SECOND (prototype order) ───────────
-  const TABS: Array<{ id: ActiveTab; labelKey: string; icon: string }> = [
-    { id: 'devices', labelKey: 'tabs.devices', icon: 'monitor-smartphone' },
-    { id: 'warehouse', labelKey: 'tabs.warehouse', icon: 'package' },
-  ]
-
   // ── Render states ────────────────────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="flex flex-col h-full p-2 gap-3 overflow-hidden max-md:overflow-y-auto max-md:overflow-x-hidden max-md:h-auto max-md:p-0 max-md:gap-3" aria-hidden="true">
-        {/* Stat strip — REAL icons and REAL labels, shimmer values; hidden on mobile (no stat strip) */}
+      <div className="flex flex-col h-full p-2 gap-3 overflow-hidden max-md:h-auto max-md:overflow-visible max-md:p-0 max-md:gap-0 max-md:mx-[10px] max-md:flex-1 max-md:min-h-0" aria-hidden="true">
+        {/* Stat strip — shimmer values; hidden on mobile */}
         <div className="grid grid-cols-4 gap-2.5 flex-shrink-0 max-md:hidden">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="bg-surface border border-border rounded-xl p-3 flex flex-col justify-center min-h-[58px] gap-2.5">
@@ -227,24 +238,30 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
           ))}
         </div>
 
-        {/* Tab strip — shimmer (no interactive, no real labels) */}
-        <div className="flex items-center justify-between border-b border-border flex-shrink-0 h-[44px]">
-          <div className="flex items-center gap-1">
-            {Array.from({ length: 2 }).map((_, i) => (
-              <div key={i} className="inline-flex items-center gap-1.5 px-4 py-3">
-                <div className="w-[14px] h-[14px] rounded anim-skeleton flex-shrink-0" />
-                <div className="h-[12px] rounded anim-skeleton" style={{ width: i === 0 ? 72 : 60 }} />
-              </div>
-            ))}
+        {/* Header card chrome — mobile only wraps the tab strip + row 2 */}
+        <div className="flex-shrink-0 max-md:bg-surface max-md:border max-md:border-border max-md:rounded-t-xl max-md:overflow-hidden max-md:border-b-0">
+          {/* Tab strip — shimmer (no interactive, no real labels) */}
+          <div className="flex items-center justify-between border-b border-border h-[44px] max-md:bg-surface-2 max-md:px-[6px]">
+            <div className="flex items-center gap-1">
+              {Array.from({ length: 2 }).map((_, i) => (
+                <div key={i} className="inline-flex items-center gap-1.5 px-4 py-3">
+                  <div className="w-[14px] h-[14px] rounded anim-skeleton flex-shrink-0 max-md:hidden" />
+                  <div className="h-[12px] rounded anim-skeleton" style={{ width: i === 0 ? 72 : 60 }} />
+                </div>
+              ))}
+            </div>
+            {/* Desktop add button shimmer */}
+            <div className="mr-1 h-8 w-[96px] rounded-lg anim-skeleton max-md:hidden" />
           </div>
-          {/* Desktop add button shimmer */}
-          <div className="mr-1 h-8 w-[96px] rounded-lg anim-skeleton max-md:hidden" />
-          {/* Mobile round FAB shimmer */}
-          <div className="md:hidden mr-2 w-9 h-9 rounded-full anim-skeleton flex-shrink-0" />
+          {/* Row-2 shimmer — mobile only */}
+          <div className="md:hidden flex items-center gap-[8px] bg-bg px-[14px] py-[7px]">
+            <div className="flex-1 h-[34px] rounded-[9px] anim-skeleton" />
+            <div className="w-[36px] h-[36px] rounded-[9px] anim-skeleton flex-shrink-0" />
+          </div>
         </div>
 
-        {/* Content region */}
-        <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-4 pt-1">
+        {/* Content region — desktop: grid; mobile: fused card chrome */}
+        <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-4 pt-1 max-md:bg-surface max-md:border max-md:border-border max-md:border-t-0 max-md:rounded-b-xl max-md:pt-0">
           {/* LEFT — category card list (shimmer — DB data) */}
           <div className="lg:col-span-5 space-y-2 min-h-0">
             {Array.from({ length: 7 }).map((_, i) => (
@@ -319,19 +336,20 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
 
   return (
     /*
-     * Page root: h-full overflow-hidden at ALL widths so stat strip + tab strip
-     * stay pinned and the inner card-grid scrolls independently (both desktop and mobile).
-     * width/max-width 100% on mobile so stat grid reaches both edges symmetrically.
+     * Page root — desktop: h-full overflow-hidden (pinned strips, inner grid scrolls).
+     * Mobile (flush mode): mx-[10px] gutters, flex-1 min-h-0, no own overflow/padding;
+     * the shell's .app-shell-content-flush provides 0 side padding + 74px bottom clearance.
      */
-    <div className="flex flex-col h-full p-2 gap-3 overflow-hidden max-md:overflow-x-hidden max-md:p-0 max-md:gap-3 max-md:w-full max-md:max-w-full max-md:box-border">
-      {/* ── HEADER: stat strip + tab strip + add button ── */}
-      <div className="flex flex-col gap-2.5 flex-shrink-0 max-md:w-full max-md:max-w-full max-md:box-border">
-        {/*
-         * Stat strip — 4 tiles.
-         * Desktop: grid-cols-4 gap-2.5
-         * Mobile:  hidden (max-md:hidden) — prototype omits the stat strip on mobile
-         *          for a cleaner breadcrumb + tabs layout.
-         */}
+    <div className="flex flex-col h-full p-2 gap-3 overflow-hidden max-md:h-auto max-md:overflow-visible max-md:p-0 max-md:gap-0 max-md:mx-[10px] max-md:flex-1 max-md:min-h-0">
+
+      {/* ── HEADER: stat strip + tab strip + row 2 ── */}
+      {/*
+       * Mobile: card chrome (bg-surface rounded-t-xl border border-border border-b-0)
+       * so the header card fuses with the body card below; border-b-0 means the shared
+       * border comes from the body card's top-border-0 instead (seamless join).
+       */}
+      <div className="flex flex-col gap-2.5 flex-shrink-0 max-md:bg-surface max-md:border max-md:border-border max-md:rounded-t-xl max-md:overflow-hidden max-md:border-b-0">
+        {/* Stat strip — Desktop: 4-tile grid. Mobile: hidden. */}
         <div className="grid grid-cols-4 gap-2.5 max-md:hidden">
           <StatTile
             tone="emerald"
@@ -359,66 +377,25 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
           />
         </div>
 
-        {/* Tab strip + add button on the same border-b line */}
-        <div className="flex items-center justify-between border-b border-border">
-          <div className="flex items-center gap-1" role="tablist">
-            {TABS.map(tab => {
-              const isActive = activeTab === tab.id
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={isActive}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`inline-flex items-center gap-1.5 px-4 py-3 text-[15px] font-semibold transition-all relative
-                    ${isActive
-                      ? 'text-text-primary after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-accent after:rounded-t'
-                      : 'text-text-subtle hover:text-text-tertiary hover:bg-surface-2/50'}`}
-                >
-                  <Icon name={tab.icon} size={14} />
-                  {t(tab.labelKey)}
-                  {tab.id === 'devices' && partsAssets.length > 0 && (
-                    <span
-                      className={`ml-0.5 px-1.5 rounded text-[12.5px] tabular-nums ${
-                        isActive ? 'bg-accent/15 text-accent' : 'bg-surface-2 text-text-subtle'
-                      }`}
-                    >
-                      {partsAssets.length}
-                    </span>
-                  )}
-                </button>
-              )
-            })}
-          </div>
-          {/*
-           * Desktop: inline rectangular add button (max-md:hidden).
-           * Mobile: round FAB on the right of the tab strip (md:hidden).
-           */}
-          <button
-            type="button"
-            onClick={() => navigate('/parts/new')}
-            className="mr-1 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-accent hover:bg-accent-light text-white text-[13.5px] font-semibold transition-colors max-md:hidden"
-            aria-label={t('actions.add')}
-          >
-            <Icon name="plus" size={14} />
-            <span>{t('actions.add')}</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate('/parts/new')}
-            className="md:hidden mr-2 w-[30px] h-[30px] rounded-full bg-accent hover:bg-accent-light text-white inline-flex items-center justify-center border-0 p-0 cursor-pointer transition-colors [box-shadow:0_2px_10px_rgba(232,105,42,0.35)] active:scale-95"
-            aria-label={t('actions.add')}
-          >
-            <Icon name="plus" size={14} />
-          </button>
-        </div>
+        {/* Responsive tab strip + row 2 */}
+        <PartsTabsHeader
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          devicesCount={partsAssets.length}
+          onAdd={() => navigate('/parts/new')}
+          deviceSearch={deviceSearch}
+          onDeviceSearchChange={setDeviceSearch}
+          skusByCategory={skusByCategory}
+          selectedCatId={selectedCatId}
+          onSelectCat={setSelectedCatId}
+          stockMap={stockMap}
+        />
       </div>
 
-      {/* Write-error banner */}
+      {/* Write-error banner — max-md:my-2 so it isn't glued between cards */}
       {writeError && (
         <div
-          className="flex items-center gap-2.5 bg-rose-500/10 border border-rose-500/30 text-rose-300 px-4 py-3 rounded-xl text-[13.5px] flex-shrink-0"
+          className="flex items-center gap-2.5 bg-rose-500/10 border border-rose-500/30 text-rose-300 px-4 py-3 rounded-xl text-[13.5px] flex-shrink-0 max-md:my-2"
           role="alert"
         >
           <Icon name="triangle-alert" size={15} className="flex-shrink-0" />
@@ -434,8 +411,14 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
         </div>
       )}
 
-      {/* Tab body — flex-1 min-h-0 overflow-hidden at all widths; inner grid scrolls. Mobile: allow y-scroll so WarehouseTab history isn't clipped */}
-      <div className="flex-1 min-h-0 overflow-hidden max-md:overflow-y-auto max-md:pb-[68px]">
+      {/*
+       * Tab body — desktop: flex-1 min-h-0 overflow-hidden (inner grid scrolls).
+       * Mobile: fused content card (bg-surface rounded-b-xl border border-border
+       * border-t-0 — the missing top border fuses with the header card's border-b-0).
+       * overflow-visible + flex flex-col flex-1 min-h-0 so inner content can stretch
+       * to fill; bottom clearance provided by .app-shell-content-flush (74px).
+       */}
+      <div className="flex-1 min-h-0 overflow-hidden max-md:overflow-visible max-md:bg-surface max-md:border max-md:border-border max-md:border-t-0 max-md:rounded-b-xl max-md:flex max-md:flex-col max-md:flex-1 max-md:min-h-0">
         {activeTab === 'warehouse' && (
           <WarehouseTab
             parts={parts}
@@ -443,6 +426,8 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
             isMobile={isMobile}
             onInstall={handleInstallSku}
             onAddGpu={() => setGpuModalOpen(true)}
+            selectedCatId={selectedCatId}
+            onSelectCat={setSelectedCatId}
           />
         )}
 
@@ -455,6 +440,8 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
             onUninstall={handleUninstall}
             onService={setServiceAsset}
             initialAssetId={urlAssetId}
+            search={deviceSearch}
+            onSearchChange={setDeviceSearch}
           />
         )}
       </div>

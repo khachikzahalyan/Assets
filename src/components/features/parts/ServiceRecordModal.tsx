@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Icon, MobileSheet } from '@/components/ui'
+import { Icon, MobileSheet, Btn, Select } from '@/components/ui'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import type { PartsAsset } from '@/domain/part/types'
 
@@ -145,18 +145,15 @@ export function ServiceRecordModal({ open, onClose, asset, onConfirm }: ServiceR
 
         {/* Actor selector — second combobox in DOM */}
         <div>
-          <label className="block text-[13px] uppercase tracking-[0.06em] font-semibold text-text-subtle mb-1.5">
+          <label htmlFor="service-actor" className="block text-[13px] uppercase tracking-[0.06em] font-semibold text-text-subtle mb-1.5">
             Исполнитель
           </label>
-          <select
+          <Select
+            id="service-actor"
             value={actor}
-            onChange={e => setActor(e.target.value)}
-            className="w-full h-9 px-2.5 rounded-md bg-[#0F1216] border border-border text-[14.5px] text-text-primary focus:outline-none focus:border-accent transition-all"
-          >
-            {SERVICE_ACTORS.map(a => (
-              <option key={a} value={a}>{a}</option>
-            ))}
-          </select>
+            onChange={setActor}
+            options={SERVICE_ACTORS.map(a => ({ value: a, label: a }))}
+          />
         </div>
 
         {/* Note textarea */}
@@ -164,6 +161,8 @@ export function ServiceRecordModal({ open, onClose, asset, onConfirm }: ServiceR
           <label htmlFor="service-note" className="block text-[13px] uppercase tracking-[0.06em] font-semibold text-text-subtle mb-1.5">
             {t('serviceModal.labelNote')}
           </label>
+          {/* TODO: create a <Textarea /> primitive in src/components/ui — no design-system
+              textarea component exists yet, so this stays a raw <textarea> for now. */}
           <textarea
             id="service-note"
             value={note}
@@ -182,24 +181,22 @@ export function ServiceRecordModal({ open, onClose, asset, onConfirm }: ServiceR
       )}
 
       <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-border">
-        <button
-          type="button"
+        <Btn
+          variant="ghost"
           onClick={handleClose}
           aria-label={t('serviceModal.cancel')}
-          className="h-9 px-3 rounded-md text-[13.5px] font-semibold text-text-tertiary hover:bg-surface-2 transition-colors"
         >
           {t('serviceModal.cancel')}
-        </button>
-        <button
-          type="button"
+        </Btn>
+        <Btn
+          variant="primary"
           onClick={() => { void handleSubmit() }}
           disabled={!kindId || saving}
           aria-label={t('serviceModal.confirm')}
-          className="h-9 px-3.5 rounded-md text-[13.5px] font-semibold text-white bg-accent hover:bg-[#FB8B3A] transition-colors disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5"
         >
           <Icon name="check" size={13} />
           {saving ? t('serviceModal.saving') : t('serviceModal.confirm')}
-        </button>
+        </Btn>
       </div>
     </div>
   )

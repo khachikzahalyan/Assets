@@ -66,7 +66,7 @@ export function AppShell({ children }: AppShellProps) {
               breadcrumbs={breadcrumbs}
               customContent={topbarNode ?? undefined}
             />
-            <div className={`app-shell-content${currentRoute === 'assets' ? ' app-shell-content-flush' : ''}`}>{children}</div>
+            <div className={`app-shell-content${currentRoute === 'assets' || currentRoute === 'licenses' || currentRoute === 'parts' ? ' app-shell-content-flush' : ''}`}>{children}</div>
           </main>
         </div>
 

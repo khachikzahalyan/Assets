@@ -301,10 +301,17 @@ export function LicensesPage({
   ]
 
   return (
-    <div className="space-y-5">
-      {/* Tab strip + search + add button — one line, no page title */}
-      <div className="border-b border-border">
-        <div className="flex items-center justify-between gap-3">
+    /* Mobile: the shell puts /licenses in .app-shell-content-flush (flex column,
+       zero side padding) — the page carries its own 10px gutters and stretches
+       (flex-1) so the keys card can fill down to the BottomNav, like /assets. */
+    <div className="space-y-5 max-md:space-y-3 max-md:mx-[10px] max-md:flex max-md:flex-col max-md:flex-1 max-md:min-h-0">
+      {/* Tab strip + search + add button — one line, no page title.
+          Mobile: assets-etalon header — card chrome, surface-2 tab strip, then a
+          search+«+» row; on the keys tab the chrome fuses with the card below. */}
+      <div className={`border-b border-border max-md:bg-surface max-md:border max-md:border-border max-md:rounded-t-xl max-md:overflow-hidden ${
+        activeTab === 'keys' ? 'max-md:border-b-0' : 'max-md:rounded-b-xl'
+      }`}>
+        <div className="flex items-center justify-between gap-3 max-md:bg-surface-2 max-md:border-b max-md:border-border max-md:px-[6px]">
           {/* Tab buttons — scrollable on mobile */}
           <div className="flex gap-0.5 overflow-x-auto no-scrollbar flex-nowrap min-w-0">
             {TABS.map(tab => {
@@ -337,8 +344,12 @@ export function LicensesPage({
             })}
           </div>
 
-          {/* Right cluster — search (keys tab, desktop) + add button, one line */}
-          <div className="flex items-center gap-2 self-end pb-2 shrink-0">
+          {/* Right cluster — search (keys tab, desktop) + add button, one line.
+              Mobile keys tab hides it (the «+» moves down next to the search row);
+              subs tab keeps the square «+» here since it has no search row. */}
+          <div className={`flex items-center gap-2 self-end pb-2 shrink-0 ${
+            activeTab === 'keys' ? 'max-md:hidden' : 'max-md:self-center max-md:pb-0 max-md:pr-1'
+          }`}>
             {activeTab === 'keys' && (
               <div className="relative hidden md:block">
                 <Icon name="search" size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-subtle pointer-events-none" />
@@ -351,31 +362,57 @@ export function LicensesPage({
                 />
               </div>
             )}
+            {/* Desktop: full-label button */}
             <Btn
               variant="primary"
               size="md"
               onClick={() => { setAddError(null); setAddOpen(true) }}
               data-testid="add-subscription-btn"
+              className="max-md:hidden"
             >
               <Icon name="plus" size={14} />
               {t('actions.addLicense')}
             </Btn>
+            {/* Mobile square «+» here only on the subs tab (keys tab renders it in the
+                search row below); conditional render avoids a duplicate testid. */}
+            {activeTab === 'subs' && (
+              <button
+                type="button"
+                onClick={() => { setAddError(null); setAddOpen(true) }}
+                aria-label={t('actions.addLicense')}
+                data-testid="add-subscription-btn-mobile"
+                className="md:hidden w-[36px] h-[36px] min-w-[36px] flex-shrink-0 rounded-[9px] bg-accent text-white inline-flex items-center justify-center shadow-[0_2px_10px] shadow-accent/35 transition-colors duration-150 hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+              >
+                <Icon name="plus" size={15} />
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Keys-tab search — mobile only (below tabs) */}
+        {/* Keys-tab search + «+» — mobile only, assets-etalon row:
+            bg-bg px-[14px] py-[7px], input flex-1 (rounded-[9px], 11.5px), 36px square button */}
         {activeTab === 'keys' && (
-          <div className="md:hidden pb-2 pt-1">
-            <div className="relative">
-              <Icon name="search" size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-subtle pointer-events-none" />
+          <div className="md:hidden flex items-center gap-[8px] bg-bg px-[14px] py-[7px]">
+            <div className="relative flex-1">
+              <Icon name="search" size={14} className="absolute left-[10px] top-1/2 -translate-y-1/2 text-text-subtle pointer-events-none" />
               <input
                 value={keySearch}
                 onChange={e => setKeySearch(e.target.value)}
                 placeholder={t('keys.searchPlaceholder')}
                 aria-label={t('keys.searchPlaceholder')}
-                className="w-full h-9 pl-9 pr-3 text-[13.5px] rounded-lg bg-bg border border-border text-text-primary placeholder:text-text-subtle focus:outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/15 transition-all"
+                className="w-full rounded-[9px] py-[9px] pl-[30px] pr-[12px] text-[11.5px] caret-accent bg-bg border border-border text-text-primary placeholder:text-text-subtle focus:outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/15 transition-all"
               />
             </div>
+            {/* 36×36 square accent «+» — mirrors AssetsToolbar mobile create button */}
+            <button
+              type="button"
+              onClick={() => { setAddError(null); setAddOpen(true) }}
+              aria-label={t('actions.addLicense')}
+              data-testid="add-subscription-btn-mobile"
+              className="w-[36px] h-[36px] min-w-[36px] flex-shrink-0 rounded-[9px] bg-accent text-white inline-flex items-center justify-center shadow-[0_2px_10px] shadow-accent/35 transition-colors duration-150 hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+            >
+              <Icon name="plus" size={15} />
+            </button>
           </div>
         )}
       </div>
@@ -389,7 +426,7 @@ export function LicensesPage({
              * Desktop: table rows (ROW_H=56px). Mobile: card-shaped shimmers.
              * Wrapped in a SectionCard-shaped container (bg-surface, border, rounded-xl).
              */
-            <div className="bg-surface border border-border rounded-xl overflow-hidden" aria-hidden="true">
+            <div className="bg-surface border border-border rounded-xl overflow-hidden max-md:rounded-t-none max-md:border-t-0 max-md:!mt-0" aria-hidden="true">
               {/* Card header — shimmer */}
               <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-border">
                 <div className="w-7 h-7 rounded-lg anim-skeleton flex-shrink-0" />

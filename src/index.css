@@ -702,8 +702,9 @@ select:-webkit-autofill {
      Body is the single scroller (body-scroll model).
      Bottom padding = 64px (fixed BottomNav height) + safe-area so content
      is never hidden behind the BottomNav bar on iOS/Android.
-     Note: pages that go edge-to-edge (assets card list) override padding
-     via the .app-shell-content-flush modifier applied by AssetsPage. ── */
+     Note: pages that go edge-to-edge (assets / licenses / parts card lists)
+     override padding via the .app-shell-content-flush modifier that AppShell
+     applies for those routes. ── */
   .app-shell-content {
     padding: 12px 12px calc(64px + env(safe-area-inset-bottom, 0px)) !important;
     overflow-y: visible !important; /* was auto — body is now the single scroller */
@@ -713,11 +714,13 @@ select:-webkit-autofill {
     width: 100% !important;
   }
 
-  /* ── Edge-to-edge override for pages (e.g. assets card list): zero side
-     padding so the list bleeds to the screen edges, but keep a 12px top gap
-     + bottom tab bar clearance. No negative-margin coupling needed. ── */
+  /* ── Floating-card override for pages (e.g. assets card list): zero side
+     padding (the ListCard carries its own 10px mx gutters) and a UNIFORM
+     10px breathing gap on every edge — top 10px, sides 10px (card mx),
+     bottom 10px above the 64px BottomNav (64+10=74). Card sits perfectly
+     even. No negative-margin coupling needed. ── */
   .app-shell-content-flush {
-    padding: 12px 0 calc(64px + env(safe-area-inset-bottom, 0px)) !important;
+    padding: 10px 0 calc(74px + env(safe-area-inset-bottom, 0px)) !important;
     /* Flex column so the ListCard can stretch to the exact bottom edge
        (= BottomNav top, thanks to the 64px+safe bottom padding) via flex-1 —
        no dvh arithmetic. The shell root is min-height:100dvh, so on short

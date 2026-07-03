@@ -1,13 +1,13 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useMemo, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Icon, Chip } from '@/components/ui'
 import { PartCard } from './PartCard'
-import { CategoryChipStrip } from './CategoryChipStrip'
 import { HistoryPanel } from './HistoryPanel'
 import { WarehouseSizedDetail } from './WarehouseSizedDetail'
 import { WarehouseMobileDetail } from './WarehouseMobileDetail'
 import type { Part, PartMovement, PartStock } from '@/domain/part/types'
-import { PART_CATEGORY_META, categoryTint, categoryIcon } from './partsTokens'
+import { PART_CATEGORY_META, categoryTint, categoryIcon, groupSkusByCategory } from './partsTokens'
+import { WarehouseSkuRowMobile } from './WarehouseSkuRowMobile'
 import { deriveStock } from '@/domain/part/partStock'
 
 /* AGG_CATS: aggregate (collapse to one summary row) */
@@ -19,6 +19,10 @@ export interface WarehouseTabProps {
   isMobile: boolean
   onInstall: (sku: Part) => void
   onAddGpu: () => void
+  /** Lifted from PartsPage — controlled selected category */
+  selectedCatId: string
+  /** Lifted from PartsPage — category selection handler */
+  onSelectCat: (id: string) => void
 }
 
 /**
@@ -36,12 +40,10 @@ export function WarehouseTab({
   isMobile,
   onInstall,
   onAddGpu,
+  selectedCatId,
+  onSelectCat,
 }: WarehouseTabProps) {
   const { t } = useTranslation('parts')
-
-  const [selectedCatId, setSelectedCatId] = useState<string>(
-    PART_CATEGORY_META[0]?.id ?? 'psu',
-  )
 
   /* ── Derived stock map (from movements, authoritative) ── */
   const stockMap = useMemo<Record<string, PartStock>>(
@@ -55,16 +57,8 @@ export function WarehouseTab({
     [stockMap],
   )
 
-  /* ── Group parts by category ── */
-  const skusByCategory = useMemo(() => {
-    const map: Record<string, Part[]> = {}
-    PART_CATEGORY_META.forEach((c) => { map[c.id] = [] })
-    parts.forEach((p) => {
-      if (!map[p.category]) map[p.category] = []
-      map[p.category]!.push(p)
-    })
-    return map
-  }, [parts])
+  /* ── Group parts by category — uses shared helper from partsTokens ── */
+  const skusByCategory = useMemo(() => groupSkusByCategory(parts), [parts])
 
   /* ── Selected category data ── */
   const selectedCatMeta = PART_CATEGORY_META.find((c) => c.id === selectedCatId)
@@ -97,10 +91,6 @@ export function WarehouseTab({
     }
     return out
   }, [movements, selectedSkuIds])
-
-  const handleCatSelect = useCallback((id: string) => {
-    setSelectedCatId(id)
-  }, [])
 
   /* ── SKU list renderer (right panel top section) ── */
   const renderSkuList = () => {
@@ -152,9 +142,22 @@ export function WarehouseTab({
         totalWorking += s.onHand
         totalBroken += s.broken
       }
+      if (isMobile) {
+        return (
+          <div>
+            <WarehouseSkuRowMobile
+              name={catMeta?.label ?? selectedCatId}
+              icon={icon}
+              tint={tint}
+              onHand={totalWorking}
+              broken={totalBroken}
+            />
+          </div>
+        )
+      }
       return (
         <ul className="divide-y divide-border flex-shrink-0">
-          <li className="flex items-center gap-3 px-5 py-3 max-md:px-3 max-md:py-2 hover:bg-[#22272E]/60 transition-colors">
+          <li className="flex items-center gap-3 px-5 py-3 hover:bg-[#22272E]/60 transition-colors">
             <span className={`w-8 h-8 rounded-lg ${tint.iconBg} ${tint.iconText} inline-flex items-center justify-center flex-shrink-0`}>
               <Icon name={icon} size={14} />
             </span>
@@ -173,6 +176,28 @@ export function WarehouseTab({
     }
 
     /* Per-SKU rows (psu / cooler / gpu) */
+    if (isMobile) {
+      return (
+        <div>
+          {visibleSkus.map((sku) => {
+            const skuTint = categoryTint(sku.category)
+            const skuIcon = categoryIcon(sku.category)
+            const s = stockOf(sku.id)
+            return (
+              <WarehouseSkuRowMobile
+                key={sku.id}
+                name={sku.name}
+                variantLabel={sku.variantLabel ?? null}
+                icon={skuIcon}
+                tint={skuTint}
+                onHand={s.onHand}
+                broken={s.broken}
+              />
+            )
+          })}
+        </div>
+      )
+    }
     return (
       <ul className="divide-y divide-border flex-shrink-0">
         {visibleSkus.map((sku) => {
@@ -182,7 +207,7 @@ export function WarehouseTab({
           return (
             <li
               key={sku.id}
-              className="flex items-center gap-3 px-5 py-3 max-md:px-3 max-md:py-2 hover:bg-[#22272E]/60 transition-colors"
+              className="flex items-center gap-3 px-5 py-3 hover:bg-[#22272E]/60 transition-colors"
             >
               <span className={`w-8 h-8 rounded-lg ${tint.iconBg} ${tint.iconText} inline-flex items-center justify-center flex-shrink-0`}>
                 <Icon name={icon} size={14} />
@@ -230,13 +255,9 @@ export function WarehouseTab({
     const isGpu = selectedCatId === 'gpu'
 
     return (
-      <div className="flex flex-col pb-[68px]">
-        <CategoryChipStrip
-          skusByCategory={skusByCategory}
-          selectedId={selectedCatId}
-          onSelect={handleCatSelect}
-          stockMap={stockMap}
-        />
+      /* CategoryChipStrip moved to PartsTabsHeader row 2 — not rendered here.
+         pb-[68px] removed — bottom clearance comes from .app-shell-content-flush. */
+      <div className="flex flex-col">
         {isAgg ? (
           /* Sized categories: SSD / HDD / M.2 / ОЗУ — per-size rows */
           <WarehouseSizedDetail
@@ -246,10 +267,20 @@ export function WarehouseTab({
             onInstall={onInstall}
           />
         ) : isGpu ? (
-          /* GPU: reuse existing right panel (shows GPU empty state / GPU SKU rows) */
-          <div className="px-3.5 pt-2">{renderRightPanel()}</div>
+          /* GPU: full-bleed without nested card chrome — fused card body */
+          <div>
+            {renderSkuList()}
+            <HistoryPanel
+              movements={movements}
+              skuIds={selectedSkuIds}
+              parts={parts}
+              isMobile
+              categoryId={selectedCatId}
+              remainingAfterMap={remainingAfterMap}
+            />
+          </div>
         ) : (
-          /* Single-pos: PSU / Cooler — header + ИСТОРИЯ overline + history card */
+          /* Single-pos: PSU / Cooler — header + HistoryPanel full-bleed */
           <WarehouseMobileDetail
             catId={selectedCatId}
             skus={selectedSkus}
@@ -278,7 +309,7 @@ export function WarehouseTab({
               categoryId={cat.id}
               skus={skusByCategory[cat.id] ?? []}
               selected={selectedCatId === cat.id}
-              onSelect={handleCatSelect}
+              onSelect={onSelectCat}
               onInstall={onInstall}
               stockMap={stockMap}
               {...(cat.id === 'gpu' ? { onAddGpu } : {})}

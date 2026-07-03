@@ -21,6 +21,10 @@ export interface DevicesTabProps {
    * Matched against PartsAsset.assetId (Firestore doc ID).
    */
   initialAssetId?: string | null
+  /** Controlled search value — lifted to PartsPage so header row 2 can bind it */
+  search: string
+  /** Controlled search change handler — lifted to PartsPage */
+  onSearchChange: (v: string) => void
 }
 
 
@@ -52,6 +56,8 @@ export function DevicesTab({
   onService: _onService,
   movements = [],
   initialAssetId,
+  search,
+  onSearchChange,
 }: DevicesTabProps) {
   const { t } = useTranslation('parts')
 
@@ -66,12 +72,6 @@ export function DevicesTab({
   }, [initialAssetId, partsAssets])
 
   const [selectedId, setSelectedId] = useState<string | null>(resolvedInitialId)
-  const [search, setSearch] = useState(() => {
-    // If an initialAssetId was provided but could not be matched yet (data may not
-    // be loaded), start with empty search so the list is fully visible.
-    // The selection above handles the focus when the asset IS found.
-    return ''
-  })
   const [family, setFamily] = useState<FamilyFilter>('all')
   const [mobileDetailId, setMobileDetailId] = useState<string | null>(null)
 
@@ -127,7 +127,7 @@ export function DevicesTab({
       <div className="lg:grid lg:grid-cols-12 lg:auto-rows-fr lg:gap-4 flex flex-col gap-4 flex-1 min-h-0">
 
         {/* LEFT COLUMN (col-span-5): pills + search + 2-col card grid */}
-        <div className="lg:col-span-5 flex flex-col gap-2.5 min-h-0 flex-1">
+        <div className="lg:col-span-5 flex flex-col gap-2.5 min-h-0 flex-1 max-md:px-[14px] max-md:pt-[10px]">
 
           {/* Family filter pills — grid 4-in-row (desktop) / flex overflow-x-auto (mobile) */}
           <div className="grid grid-cols-4 gap-1.5 flex-shrink-0 max-md:flex max-md:gap-[7px] max-md:overflow-x-auto max-md:pl-0" style={{ scrollbarWidth: 'none' }}>
@@ -152,8 +152,8 @@ export function DevicesTab({
             })}
           </div>
 
-          {/* Search input */}
-          <div className="relative flex-shrink-0">
+          {/* Search input — desktop only; mobile gets the header row-2 input */}
+          <div className="relative flex-shrink-0 max-md:hidden">
             <Icon
               name="search"
               size={14}
@@ -162,7 +162,7 @@ export function DevicesTab({
             <input
               type="search"
               value={search}
-              onChange={e => setSearch(e.target.value)}
+              onChange={e => onSearchChange(e.target.value)}
               placeholder={t('devices.searchPlaceholder')}
               aria-label={t('devices.searchPlaceholder')}
               className="w-full h-8 pl-7 pr-2.5 rounded-md bg-surface border border-border text-[14.5px] text-text-primary placeholder:text-text-subtle outline-none focus:border-accent transition-colors"

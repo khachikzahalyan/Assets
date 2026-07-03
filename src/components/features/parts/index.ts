@@ -1,3 +1,4 @@
+export * from './PartsTabsHeader'
 export * from './StatTile'
 export * from './PartCard'
 export * from './CategoryChipStrip'
