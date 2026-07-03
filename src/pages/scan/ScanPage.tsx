@@ -66,7 +66,7 @@ export function ScanPage({ repository }: ScanPageProps) {
           <div className="mx-auto w-full max-w-md">
             <div className="relative aspect-square overflow-hidden rounded-xl bg-black">
               <Scanner
-                formats={['code_128', 'qr_code']}
+                formats={['ean_13', 'code_128', 'qr_code']}
                 onScan={handleScan}
                 onError={() => setError(t('permissionDenied'))}
                 paused={resolving}

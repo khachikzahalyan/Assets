@@ -1,27 +1,40 @@
 import { useLayoutEffect, useRef } from 'react'
 import JsBarcode from 'jsbarcode'
+import { isValidEan13 } from '@/domain/asset/barcode'
 
-export interface Barcode128Props {
+export interface BarcodeSvgProps {
   value: string
   /** bar height in px (default 110) */
   height?: number
 }
 
 /**
- * Renders a Code 128 barcode into an inline SVG that scales to its container width.
+ * Renders an EAN-13 barcode for valid EAN-13 values, or a Code 128 barcode for legacy
+ * 9-digit codes. The SVG scales to its container width.
  *
  * Uses `useLayoutEffect` (not `useEffect`) on purpose: the parent `LabelPrintHost` calls
  * `window.print()` inside its OWN layout effect, and React runs child layout effects BEFORE
  * the parent's — so the bars are guaranteed drawn before the print dialog opens. With a passive
  * `useEffect` the print fired first and the label printed without bars. jsdom-safe (errors swallowed).
  */
-export function Barcode128({ value, height = 110 }: Barcode128Props) {
+export function BarcodeSvg({ value, height = 110 }: BarcodeSvgProps) {
   const ref = useRef<SVGSVGElement>(null)
   useLayoutEffect(() => {
     const svg = ref.current
     if (!svg || !value) return
     try {
-      JsBarcode(svg, value, { format: 'CODE128', displayValue: false, height, margin: 10, width: 2 })
+      if (isValidEan13(value)) {
+        JsBarcode(svg, value, {
+          format: 'EAN13',
+          flat: true,
+          displayValue: false,
+          height,
+          margin: 10,
+          width: 2,
+        })
+      } else {
+        JsBarcode(svg, value, { format: 'CODE128', displayValue: false, height, margin: 10, width: 2 })
+      }
       // JsBarcode sets fixed px width/height; convert to a viewBox so CSS (width:100%) scales
       // the bars to fill the label regardless of how many digits the code has.
       const w = svg.getAttribute('width')

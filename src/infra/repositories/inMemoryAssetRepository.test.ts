@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { InMemoryAssetRepository } from './inMemoryAssetRepository'
+import { isValidEan13 } from '@/domain/asset/barcode'
 import type { Asset, CategoryRow, StatusRow, RefRow } from '@/domain/asset'
 
 const cats: CategoryRow[] = [
@@ -87,9 +88,10 @@ describe('InMemoryAssetRepository — barcode', () => {
     categoryId: 'cat_lap', brand: 'Dell', model: 'X', type: null,
     serial: null, assignment: null, branchId: 'br_main', deptId: null,
   }
-  it('createAsset assigns a unique 9-digit barcode', async () => {
+  it('createAsset assigns a unique EAN-13 barcode', async () => {
     const r = await repo().createAsset({ ...baseInput, invCode: 'LAP/90001' }, actor)
-    expect(r.value.barcode).toMatch(/^[1-9]\d{8}$/)
+    expect(r.value.barcode).toMatch(/^[1-9]\d{12}$/)
+    expect(isValidEan13(r.value.barcode!)).toBe(true)
   })
   it('createAssetsBatch assigns distinct barcodes', async () => {
     const created = await repo().createAssetsBatch([
@@ -99,7 +101,10 @@ describe('InMemoryAssetRepository — barcode', () => {
     ], actor)
     const codes = created.map(a => a.barcode)
     expect(new Set(codes).size).toBe(3)
-    codes.forEach(c => expect(c).toMatch(/^[1-9]\d{8}$/))
+    codes.forEach(c => {
+      expect(c).toMatch(/^[1-9]\d{12}$/)
+      expect(isValidEan13(c!)).toBe(true)
+    })
   })
   it('createAsset persists a provided free barcode as-is', async () => {
     const r = await repo().createAsset({ categoryId:'cat_lap', brand:'Dell', model:'X', type:null, serial:null,

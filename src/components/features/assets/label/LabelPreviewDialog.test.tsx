@@ -6,7 +6,7 @@
  *   2. Clicking «Печать» / "Print label" triggers window.print().
  *   3. Clicking «Закрыть» / "Close" calls the onClose prop.
  *
- * jsbarcode is mocked so Barcode128 (inside AssetLabel) never touches a real
+ * jsbarcode is mocked so BarcodeSvg (inside AssetLabel) never touches a real
  * canvas / SVG renderer — safe for jsdom.
  * window.print is spied upon and replaced with a no-op.
  * i18n is initialised via the shared @/lib/i18n module (same pattern used by
@@ -18,7 +18,7 @@ import i18n from '@/lib/i18n'
 import type { Asset } from '@/domain/asset/types'
 
 // Must be hoisted above the component import so Vitest replaces the module
-// before Barcode128 evaluates its import of jsbarcode.
+// before BarcodeSvg evaluates its import of jsbarcode.
 vi.mock('jsbarcode', () => ({ default: vi.fn() }))
 
 // Import AFTER the mock is registered.

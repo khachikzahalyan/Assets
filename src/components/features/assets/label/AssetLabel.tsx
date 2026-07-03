@@ -1,5 +1,5 @@
 import type { Asset } from '@/domain/asset/types'
-import { Barcode128 } from './Barcode128'
+import { BarcodeSvg } from './BarcodeSvg'
 
 export interface AssetLabelProps {
   asset: Asset
@@ -27,7 +27,7 @@ export function AssetLabel({ asset }: AssetLabelProps) {
       {/* Order matches the owner's target label (image #22): barcode on top, inventory code centered below. */}
       {asset.barcode ? (
         <div style={{ width: '100%' }}>
-          <Barcode128 value={asset.barcode} />
+          <BarcodeSvg value={asset.barcode} />
         </div>
       ) : null}
       <div
