@@ -90,6 +90,9 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
   const [quantity, setQuantity] = useState(10)
   const [rows, setRows] = useState<GroupRow[]>([])
 
+  // Touched map — a required field turns red only after the user has focused and left it.
+  const [touched, setTouched] = useState<Record<string, boolean>>({})
+
   const selectedCategory = refData.categories.find(c => c.id === categoryId) ?? null
   const caps = selectedCategory ? categoryCapabilities(selectedCategory) : null
 
@@ -109,6 +112,7 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
     setLicenseMode('manual')
     setRows([])
     setQa({ picked: 'warehouse', assignment: null })
+    setTouched({})
   }
 
   function handleCategoryChange(id: string) {
@@ -131,6 +135,7 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
     setSubMode(next)
     setRows([])
     setInvCode(''); setSerial('')
+    setTouched({})
     if (next === 'group') setQa({ picked: 'warehouse', assignment: null })
   }
 
@@ -402,17 +407,17 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
 
                 {caps.hasTypeField && (
                   <Field label={t('form.type')} required>
-                    <Input id="asset-type" value={typeField} onChange={setTypeField} placeholder={t('placeholders.type')} invalid={!typeField.trim()} />
+                    <Input id="asset-type" value={typeField} onChange={setTypeField} placeholder={t('placeholders.type')} invalid={!!touched['type'] && !typeField.trim()} onBlur={() => setTouched(prev => ({ ...prev, type: true }))} />
                   </Field>
                 )}
 
                 {caps.hasBrandModel && (
                   <div className="grid grid-cols-2 max-md:grid-cols-1 gap-6 max-md:gap-4">
                     <Field label={t('form.brand')} required>
-                      <Input id="asset-brand" value={brand} onChange={setBrand} placeholder={t('placeholders.brand')} invalid={!brand.trim()} />
+                      <Input id="asset-brand" value={brand} onChange={setBrand} placeholder={t('placeholders.brand')} invalid={!!touched['brand'] && !brand.trim()} onBlur={() => setTouched(prev => ({ ...prev, brand: true }))} />
                     </Field>
                     <Field label={t('form.model')} required>
-                      <Input id="asset-model" value={model} onChange={setModel} placeholder={t('placeholders.model')} invalid={!model.trim()} />
+                      <Input id="asset-model" value={model} onChange={setModel} placeholder={t('placeholders.model')} invalid={!!touched['model'] && !model.trim()} onBlur={() => setTouched(prev => ({ ...prev, model: true }))} />
                     </Field>
                   </div>
                 )}
@@ -430,11 +435,11 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
                   <>
                     <div className={`grid gap-6 max-md:gap-4 ${caps.requiresSerial ? 'grid-cols-2 max-md:grid-cols-1' : 'grid-cols-1'}`}>
                       <Field label={t('form.invCode')} required>
-                        <Input id="asset-inv-code" value={invCode} onChange={setInvCode} placeholder={t('placeholders.invCode')} mono invalid={!invCode.trim()} />
+                        <Input id="asset-inv-code" value={invCode} onChange={setInvCode} placeholder={t('placeholders.invCode')} mono invalid={!!touched['invCode'] && !invCode.trim()} onBlur={() => setTouched(prev => ({ ...prev, invCode: true }))} />
                       </Field>
                       {caps.requiresSerial && (
                         <Field label={t('form.serial')} required>
-                          <Input id="asset-serial" value={serial} onChange={setSerial} placeholder={t('placeholders.serial')} mono invalid={!serial.trim()} />
+                          <Input id="asset-serial" value={serial} onChange={setSerial} placeholder={t('placeholders.serial')} mono invalid={!!touched['serial'] && !serial.trim()} onBlur={() => setTouched(prev => ({ ...prev, serial: true }))} />
                         </Field>
                       )}
                     </div>

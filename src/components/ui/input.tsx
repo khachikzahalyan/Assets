@@ -11,6 +11,8 @@ export interface InputProps {
   id?: string
   /** Optional keydown handler (e.g. Enter-to-confirm in the group stepper). */
   onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void
+  /** Optional blur handler — used to mark a field as touched for validation timing. */
+  onBlur?: () => void
   /** Optional aria-label when no visible <label> is associated. */
   ariaLabel?: string
   /** When true, the field shows a red border (required-but-empty signal). Clears on input. */
@@ -28,6 +30,7 @@ export function Input({
   autoFocus,
   id,
   onKeyDown,
+  onBlur,
   ariaLabel,
   invalid = false,
 }: InputProps) {
@@ -38,6 +41,7 @@ export function Input({
       value={value}
       onChange={e => onChange && onChange(e.target.value)}
       onKeyDown={onKeyDown}
+      {...(onBlur && { onBlur })}
       aria-label={ariaLabel}
       aria-invalid={invalid || undefined}
       placeholder={placeholder}

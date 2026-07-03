@@ -64,6 +64,8 @@ export interface InputProps {
   max?: number | string
   /** When true, the underline turns red (required-but-empty signal). Clears on input. */
   invalid?: boolean
+  /** Optional blur handler (e.g. trim / uniqueness probe on leaving the field). */
+  onBlur?: () => void
 }
 
 export function Input({
@@ -81,6 +83,7 @@ export function Input({
   min,
   max,
   invalid = false,
+  onBlur,
 }: InputProps) {
   return (
     <input
@@ -89,6 +92,7 @@ export function Input({
       value={value}
       onChange={e => onChange && onChange(e.target.value)}
       onKeyDown={onKeyDown}
+      onBlur={onBlur}
       aria-label={ariaLabel}
       aria-invalid={invalid || undefined}
       autoComplete="off"
