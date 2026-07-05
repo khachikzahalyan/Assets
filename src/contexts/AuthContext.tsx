@@ -175,7 +175,7 @@ function RealAuthProvider({ children }: { children: ReactNode }) {
       setRoleOverride(r)
       return
     }
-    console.info('[auth] setRole is a no-op in production')
+    // setRole is a no-op in production (role comes from the users doc)
   }, [])
 
   const signOut = useCallback(() => {

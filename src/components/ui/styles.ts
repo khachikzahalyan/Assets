@@ -8,9 +8,9 @@
 
 /**
  * Standard dialog/modal backdrop — z-50, bottom-sheet on mobile.
- * 8 usages: BranchFormDialog, ConfirmDeleteDialog, CategoryFormDialog,
+ * Usages: BranchFormDialog, ConfirmDeleteDialog, CategoryFormDialog,
  * DepartmentFormDialog, AssignLicenseDialog, LicenseFormDialog,
- * AssetStatusFormDialog, + RolesPage (with extra backdrop-blur-sm via cn).
+ * + RolesPage (with extra backdrop-blur-sm via cn).
  */
 export const DIALOG_BACKDROP =
   'fixed inset-0 z-50 flex items-center justify-center max-md:items-end bg-black/60'
@@ -47,6 +47,6 @@ export const LIST_ROW_SEPARATOR = 'border-b border-border last:border-b-0'
 /**
  * List-row separator — border bottom, remove on last child (border-0 variant).
  * Use when the row uses the border-0 shorthand (resets all borders on last child).
- * 3 usages: AssetHistory, PendingUsersPage, RolesPage.
+ * Usages: PendingUsersPage, RolesPage.
  */
 export const LIST_ROW_SEPARATOR_FULL = 'border-b border-border last:border-0'

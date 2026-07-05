@@ -65,45 +65,47 @@ export function DeviceGridCard({ asset, selected, hasBroken = false, isMobile = 
       : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
 
     return (
+      /* Prototype Parts Mobile card (§506–524): p-14px, chip 10px/600 (2px 7px,
+         r6), icon 34px r9, name 14px/700, subtitle 11.5px full-line mono. */
       <button
         type="button"
         aria-pressed={selected}
         onClick={onSelect}
-        className={`${cardBg} border rounded-xl px-4 py-3 cursor-pointer transition-colors w-full text-left flex flex-col gap-2 ${selected ? 'border-accent' : 'border-border'}`}
+        className={`${cardBg} border rounded-xl p-[14px] cursor-pointer transition-colors w-full text-left flex flex-col gap-2 ${selected ? 'border-accent' : 'border-border'}`}
       >
         {/* Row 1: component count chip + service badge */}
-        <div className="flex items-center gap-1.5">
-          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11.5px] font-medium border ${chipTone}`}>
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className={`inline-flex items-center gap-1 px-[7px] py-[2px] rounded-[6px] text-[10px] font-semibold border leading-none ${chipTone}`}>
             <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${dotColor}`} />
             {totalComponents}&nbsp;{t('devices.compShort', 'комп.')}
           </span>
           {isService && (
-            <span className="inline-flex items-center gap-0.5 text-[10.5px] font-medium bg-violet-500/10 text-violet-300 border border-violet-500/30 rounded-full px-2 py-0.5 flex-shrink-0">
+            <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-violet-500/10 text-violet-300 border border-violet-500/30 rounded-[6px] px-[7px] py-[2px] leading-none flex-shrink-0">
               <Icon name="wrench" size={9} />
               {t('device.service')}
             </span>
           )}
         </div>
         {/* Row 2: category icon + name/subtitle + chevron */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <span
-            className="w-8 h-8 rounded-lg inline-flex items-center justify-center flex-shrink-0"
+            className="w-[34px] h-[34px] rounded-[9px] inline-flex items-center justify-center flex-shrink-0"
             style={catColor ? { backgroundColor: catColor.bg, color: catColor.icon } : undefined}
           >
             <Icon name={iconName} size={15} />
           </span>
           <div className="flex-1 min-w-0">
             <div
-              className="text-[13.5px] font-semibold text-text-primary leading-tight truncate"
+              className="text-[14px] font-bold text-text-primary leading-tight truncate"
               title={asset.name}
             >
               {asset.name}
             </div>
-            <div className="text-[11.5px] text-text-subtle mt-0.5 truncate">
-              <span className="font-mono">{asset.id}</span>&nbsp;·&nbsp;{catLabel}
+            <div className="text-[11.5px] text-text-tertiary font-mono tracking-[0.2px] mt-[2px] truncate">
+              {asset.id}&nbsp;·&nbsp;{catLabel}
             </div>
           </div>
-          <Icon name="chevron-right" size={16} className="text-text-subtle flex-shrink-0" />
+          <Icon name="chevron-right" size={14} className="text-text-subtle flex-shrink-0" />
         </div>
       </button>
     )
