@@ -5,6 +5,7 @@ import { useIsMobile } from '@/hooks/useIsMobile'
 import {
   Btn, Icon, EmptyState, ErrorState,
   ListCard, ListPageShell, TableSkeleton, CardListSkeleton,
+  MobileAddButton,
 } from '@/components/ui'
 import {
   EmployeesFilterBar,
@@ -84,6 +85,16 @@ export function EmployeesPage({
 
   function goTo(p: number) { setPage(Math.min(Math.max(1, p), totalPages)) }
 
+  const paginationProps = { from, to, totalCount, page, totalPages, goTo }
+
+  // ── Shared handlers ───────────────────────────────────────────────────────
+  const handleKindSelect = (v: string) => { setKind(v as 'all' | 'staff'); setPage(1) }
+  const handleSearchChange = (v: string) => { setSearch(v); setPage(1) }
+  const handleFilterChange = (patch: Partial<typeof query>) => {
+    handleQueryChange(patch)
+    if ('search' in patch && patch.search === '') setSearch('')
+  }
+
   // ── Table region ──────────────────────────────────────────────────────────
   function renderTableRegion() {
     if (loading) return isMobile
@@ -104,44 +115,83 @@ export function EmployeesPage({
       )
     }
     return (
-      <div className="h-full">
-        <EmployeesTable
-          rows={pageRows}
-          branches={branches}
-          departments={departments}
-          assetCounts={assetCounts}
-          headOfficeBranchId={headOfficeBranchId}
-          onRowClick={e => { void actions.handleOpenDetail(e.id) }}
-          onRestore={id => actions.handleRestore(id)}
-        />
-      </div>
+      <EmployeesTable
+        rows={pageRows}
+        branches={branches}
+        departments={departments}
+        assetCounts={assetCounts}
+        headOfficeBranchId={headOfficeBranchId}
+        onRowClick={e => { void actions.handleOpenDetail(e.id) }}
+        onRestore={id => actions.handleRestore(id)}
+      />
     )
   }
+
+  // ── Mobile toolbar (matchMedia branch — no element duplication) ───────────
+  // KindTabs + search + add live either in ListPageShell header (desktop)
+  // or in ListCard Zone-1 (mobile). Using isMobile avoids double-DOM and
+  // keeps getByRole() queries unambiguous in tests (jsdom = isMobile false).
+  const mobileToolbarRows = isMobile ? (
+    <>
+      {/* Row 1: KindTabs underline strip */}
+      <div className="bg-surface-2 border-b border-border px-[14px] w-full">
+        <EmployeeKindTabs
+          selected={kind}
+          onSelect={handleKindSelect}
+          counts={kindCounts}
+        />
+      </div>
+      {/* Row 2: Search input + MobileAddButton */}
+      <div className="bg-bg px-[14px] py-[7px] flex items-center gap-[8px]">
+        <div className="relative flex-1">
+          <span className="absolute top-1/2 -translate-y-1/2 left-[10px] text-text-subtle pointer-events-none">
+            <Icon name="search" size={13} />
+          </span>
+          <input
+            type="search"
+            autoComplete="off"
+            value={search}
+            onChange={e => handleSearchChange(e.target.value)}
+            placeholder={t('filter.search')}
+            aria-label={t('filter.search')}
+            className="w-full h-auto rounded-[9px] py-[9px] pl-[30px] pr-[12px] text-[11.5px] bg-surface border border-border text-text-primary placeholder:text-text-subtle caret-accent focus:outline-none focus:border-accent-light focus:ring-2 focus:ring-accent-light/15 transition-all duration-150"
+          />
+        </div>
+        {canMutate && (
+          <MobileAddButton
+            onClick={actions.handleCreate}
+            ariaLabel={t('addButton')}
+          />
+        )}
+      </div>
+    </>
+  ) : null
 
   return (
     <>
       <ListPageShell
+        flushMobile
         header={
-          <>
-            {/* Single row: KindTabs (left) + search + add button (right).
-                On mobile: KindTabs on first row (scroll-strip); search+add on same row full-width. */}
-            <div className="flex items-center justify-between gap-3 flex-wrap max-md:flex-col max-md:items-stretch max-md:gap-2">
+          /* Desktop header row — only rendered on desktop (isMobile=false).
+             Mobile gets its toolbar rows inside the ListCard below.
+             This avoids element duplication that would break getByRole queries. */
+          !isMobile ? (
+            <div className="flex items-center justify-between gap-3 flex-wrap">
               <EmployeeKindTabs
                 selected={kind}
-                onSelect={v => { setKind(v as 'all' | 'staff'); setPage(1) }}
+                onSelect={handleKindSelect}
                 counts={kindCounts}
               />
-              <div className="flex items-center gap-2 max-md:w-full">
-                {/* Search input */}
+              <div className="flex items-center gap-2">
                 <div
-                  className="flex items-center gap-2 bg-bg rounded-xl px-3 py-1.5 ring-1 ring-border max-md:flex-1"
+                  className="flex items-center gap-2 bg-bg rounded-xl px-3 py-1.5 ring-1 ring-border"
                   style={{ width: 220 }}
                 >
                   <Icon name="search" size={13} className="text-text-subtle shrink-0" />
                   <input
                     type="text"
                     value={search}
-                    onChange={e => { setSearch(e.target.value); setPage(1) }}
+                    onChange={e => handleSearchChange(e.target.value)}
                     placeholder={t('filter.search')}
                     aria-label={t('filter.search')}
                     className="flex-1 text-[14px] bg-transparent border-none outline-none placeholder:text-text-subtle text-text-primary min-w-0"
@@ -149,7 +199,7 @@ export function EmployeesPage({
                   {search && (
                     <button
                       type="button"
-                      onClick={() => { setSearch(''); setPage(1) }}
+                      onClick={() => handleSearchChange('')}
                       className="text-text-subtle hover:text-text-tertiary transition-colors"
                       aria-label={t('filter.reset')}
                     >
@@ -165,18 +215,25 @@ export function EmployeesPage({
                 )}
               </div>
             </div>
-          </>
+          ) : undefined
         }
       >
+        {/* Same floating-card model as AssetsPage: NO flushMobile (keeps the
+            rounded-lg border radius on mobile); 10px side gutters; the
+            .app-shell-content-flush flex chain stretches the card to the
+            BottomNav top. */}
         <ListCard
+          className="max-md:mx-[10px]"
           toolbar={
             <>
+              {mobileToolbarRows}
+
+              {/* Divider between toolbar / mobile-rows and filter bar */}
+              <div className="border-t border-border" />
+
               <EmployeesFilterBar
                 query={query}
-                onChange={patch => {
-                  handleQueryChange(patch)
-                  if ('search' in patch && patch.search === '') setSearch('')
-                }}
+                onChange={handleFilterChange}
                 branches={branches}
                 departments={departments}
                 headOfficeBranchId={headOfficeBranchId}
@@ -192,17 +249,33 @@ export function EmployeesPage({
                   </button>
                 </div>
               )}
+
+              <div className="border-t border-border" />
             </>
           }
           pagination={
-            <EmployeesPagination
-              from={from} to={to} totalCount={totalCount}
-              page={page} totalPages={totalPages}
-              goTo={goTo}
-            />
+            /* Desktop-only pinned pagination; mobile copy lives inside the scroller */
+            <div className="max-md:hidden">
+              <EmployeesPagination {...paginationProps} />
+            </div>
           }
         >
-          {renderTableRegion()}
+          {/* Mobile: outer scroll container — single scroller for rows + pagination.
+              flex-1/min-h-0 (Zone-2 is a flex col) gives it Zone-2's exact height —
+              h-full percentages fail to resolve through this chain and leave a
+              dead band under the paginator. Identical to AssetsPage. */}
+          <div className="flex-1 min-h-0 max-md:overflow-y-auto max-md:flex max-md:flex-col">
+            {/* Mobile: INNER flex-fill wrapper — grows to push pagination to the bottom.
+                flex-shrink-0 allows content to exceed the container via outer scroll.
+                Desktop: h-full pass-through for table's height fill. */}
+            <div className="h-full max-md:h-auto max-md:grow max-md:shrink-0 max-md:flex max-md:flex-col">
+              {renderTableRegion()}
+            </div>
+            {/* Mobile-only pagination copy inside the scroller */}
+            {isMobile && !loading && !error && sorted.length > 0 && (
+              <EmployeesPagination {...paginationProps} />
+            )}
+          </div>
         </ListCard>
       </ListPageShell>
 

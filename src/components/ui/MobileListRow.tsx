@@ -63,7 +63,11 @@ export function MobileListRow({
   }
 
   const outerClass = [
-    'px-[14px] py-[7px] box-border',
+    // flex-col + justify-center: when the parent list stretches rows
+    // (flexGrow fill contract), content stays vertically centered
+    // instead of sticking to the top of the taller row.
+    'flex flex-col justify-center',
+    'px-[14px] py-[9px] box-border',
     'border-b border-border border-l-[3px]',
     accentClass,
     'bg-surface last:border-b-0',

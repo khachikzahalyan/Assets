@@ -50,7 +50,10 @@ export function PartsReceiveMobileForm({
   const sizedCats = visibleCats.filter(c => !SMALL_IDS.has(c.id))
 
   return (
-    <div className="flex flex-col h-full bg-bg">
+    /* Viewport-locked column (topbar 52 + content pt 12 + bottom nav 64 = 128):
+       header + footer stay pinned, ONLY the category-card body scrolls, and the
+       footer lands flush on the global bottom nav — no dead band below. */
+    <div className="flex flex-col h-[calc(100dvh-128px)] overflow-hidden bg-bg">
       {/* ── Fixed header ───────────────────────────────────────────────── */}
       <div className="flex-shrink-0 flex items-center justify-between px-4 py-3.5 bg-surface-2 border-b border-border">
         <span className="text-[15px] font-bold text-text-primary">{t('addModal.title')}</span>
@@ -65,7 +68,7 @@ export function PartsReceiveMobileForm({
       </div>
 
       {/* ── Scrollable body ────────────────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto px-3.5 pt-3 pb-20 space-y-1.5">
+      <div className="flex-1 min-h-0 overflow-y-auto px-3.5 pt-3 pb-4 space-y-1.5">
         {/* Submit-error banner */}
         {submitError && (
           <div
@@ -129,7 +132,8 @@ export function PartsReceiveMobileForm({
       </div>
 
       {/* ── Fixed footer bar ───────────────────────────────────────────── */}
-      <div className="flex-shrink-0 flex gap-2.5 px-3.5 pt-3 pb-6 bg-surface-2 border-t border-border">
+      {/* pb-3 (not pb-6): the global bottom nav sits directly below — no extra bulk */}
+      <div className="flex-shrink-0 flex gap-2.5 px-3.5 pt-3 pb-3 bg-surface-2 border-t border-border">
         <button
           type="button"
           onClick={onCancel}

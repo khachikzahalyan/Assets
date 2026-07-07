@@ -3,12 +3,12 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
 import {
   ListCard, ListPageShell,
-  Btn, Icon, Chip,
+  Icon, Chip,
   EmptyState, ErrorState,
   TableSkeleton, CardListSkeleton,
 } from '@/components/ui'
 import { useIsMobile } from '@/hooks/useIsMobile'
-import { CatalogTable, CatalogPagination, ConfirmDeleteDialog, type CatalogColumn } from '@/components/features/catalogs'
+import { CatalogTable, CatalogPagination, ConfirmDeleteDialog, CatalogToolbarHeader, type CatalogColumn } from '@/components/features/catalogs'
 import {
   CategoryFormDialog, type CategoryFormValues,
   CategoryGroupFormDialog,
@@ -196,26 +196,25 @@ export function CategoriesPage({ repository, categoryGroupRepository }: Categori
   return (
     <>
       <ListPageShell flushMobile>
+        {/* Floating-card model (same as AssetsPage/EmployeesPage): NO flushMobile
+            on the card — keeps rounded-lg radius on mobile; 10px side gutters;
+            the .app-shell-content-flush flex chain stretches the card to the
+            BottomNav top ('categories' is in AppShell FLUSH_ROUTES). */}
         <ListCard
-          flushMobile
+          className="max-md:mx-[10px]"
           toolbar={
             <>
               {/* Row 1: heading + add-subcategory button */}
-              <div className="flex items-center justify-between gap-3 px-5 py-3 max-md:px-3">
-                <div className="flex items-center gap-2 min-w-0">
-                  <Icon name="tags" size={16} className="text-text-tertiary flex-shrink-0" />
-                  <h1 className="text-[15px] font-semibold text-text-primary">{t('subcategories')}</h1>
-                  {!loading && (
-                    <span className="text-[13px] text-text-tertiary tabular-nums">{total}</span>
-                  )}
-                </div>
-                {canMutate && (
-                  <Btn variant="primary" size="md" onClick={() => { setSaveError(null); setEditing('new') }}>
-                    <Icon name="plus" size={14} />{t('createSubcategory')}
-                  </Btn>
-                )}
-              </div>
-              <div className="border-t border-border" />
+              <CatalogToolbarHeader
+                icon="tags"
+                title={t('subcategories')}
+                count={loading ? undefined : total}
+                canMutate={canMutate}
+                isMobile={isMobile}
+                createLabel={t('createSubcategory')}
+                buttonIcon="plus"
+                onCreate={() => { setSaveError(null); setEditing('new') }}
+              />
               {/* Row 2: group chips */}
               {loading ? (
                 <div className="flex flex-wrap gap-2 px-5 py-3 max-md:px-3">

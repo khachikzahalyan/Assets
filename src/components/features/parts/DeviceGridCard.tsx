@@ -65,47 +65,46 @@ export function DeviceGridCard({ asset, selected, hasBroken = false, isMobile = 
       : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
 
     return (
-      /* Prototype Parts Mobile card (§506–524): p-14px, chip 10px/600 (2px 7px,
-         r6), icon 34px r9, name 14px/700, subtitle 11.5px full-line mono. */
+      /* Single compact row (per owner): [icon] [name + mono subtitle] and the
+         comp-count chip + service icon on the RIGHT (chevron removed). */
       <button
         type="button"
         aria-pressed={selected}
         onClick={onSelect}
-        className={`${cardBg} border rounded-xl p-[14px] cursor-pointer transition-colors w-full text-left flex flex-col gap-2 ${selected ? 'border-accent' : 'border-border'}`}
+        className={`${cardBg} border rounded-xl p-[14px] cursor-pointer transition-colors w-full text-left flex items-center gap-2.5 ${selected ? 'border-accent' : 'border-border'}`}
       >
-        {/* Row 1: component count chip + service badge */}
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <span className={`inline-flex items-center gap-1 px-[7px] py-[2px] rounded-[6px] text-[10px] font-semibold border leading-none ${chipTone}`}>
+        <span
+          className="w-[34px] h-[34px] rounded-[9px] inline-flex items-center justify-center flex-shrink-0"
+          style={catColor ? { backgroundColor: catColor.bg, color: catColor.icon } : undefined}
+        >
+          <Icon name={iconName} size={15} />
+        </span>
+        <div className="flex-1 min-w-0">
+          <div
+            className="text-[14px] font-bold text-text-primary leading-tight truncate"
+            title={asset.name}
+          >
+            {asset.name}
+          </div>
+          <div className="text-[11.5px] text-text-tertiary font-mono tracking-[0.2px] mt-[2px] truncate">
+            {asset.id}&nbsp;·&nbsp;{catLabel}
+          </div>
+        </div>
+        {/* Right cluster: comp-count chip + service icon (icon-only, no text) */}
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          <span className={`inline-flex items-center gap-1 px-[7px] py-[2px] rounded-[6px] text-[10px] font-semibold border leading-none whitespace-nowrap ${chipTone}`}>
             <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${dotColor}`} />
             {totalComponents}&nbsp;{t('devices.compShort', 'комп.')}
           </span>
           {isService && (
-            <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-violet-500/10 text-violet-300 border border-violet-500/30 rounded-[6px] px-[7px] py-[2px] leading-none flex-shrink-0">
-              <Icon name="wrench" size={9} />
-              {t('device.service')}
+            <span
+              className="inline-flex items-center justify-center w-[20px] h-[20px] bg-violet-500/10 text-violet-300 border border-violet-500/30 rounded-[6px] flex-shrink-0"
+              title={t('device.service')}
+              aria-label={t('device.service')}
+            >
+              <Icon name="wrench" size={10} />
             </span>
           )}
-        </div>
-        {/* Row 2: category icon + name/subtitle + chevron */}
-        <div className="flex items-center gap-2.5">
-          <span
-            className="w-[34px] h-[34px] rounded-[9px] inline-flex items-center justify-center flex-shrink-0"
-            style={catColor ? { backgroundColor: catColor.bg, color: catColor.icon } : undefined}
-          >
-            <Icon name={iconName} size={15} />
-          </span>
-          <div className="flex-1 min-w-0">
-            <div
-              className="text-[14px] font-bold text-text-primary leading-tight truncate"
-              title={asset.name}
-            >
-              {asset.name}
-            </div>
-            <div className="text-[11.5px] text-text-tertiary font-mono tracking-[0.2px] mt-[2px] truncate">
-              {asset.id}&nbsp;·&nbsp;{catLabel}
-            </div>
-          </div>
-          <Icon name="chevron-right" size={14} className="text-text-subtle flex-shrink-0" />
         </div>
       </button>
     )

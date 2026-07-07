@@ -1,8 +1,10 @@
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Icon, Chip, DataTable } from '@/components/ui'
+import { Icon, Chip, DataTable, MobileListPlaceholders } from '@/components/ui'
 import type { DataTableColumn } from '@/components/ui'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import { EmployeeAvatar } from './EmployeeAvatar'
+import { EmployeeRowMobile } from './EmployeeRowMobile'
 import { formatLocalPhone } from './employeeFormat'
 import type { Employee } from '@/domain/employee'
 import type { RefRow } from '@/domain/asset'
@@ -54,17 +56,8 @@ export function EmployeesTable({
   )
 
   // ── Responsive: show mobile cards only when viewport is < 768px ─────────────
-  const [isMobile, setIsMobile] = useState<boolean>(() => {
-    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false
-    return window.matchMedia('(max-width: 767px)').matches
-  })
-  useEffect(() => {
-    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return
-    const mq = window.matchMedia('(max-width: 767px)')
-    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
-    mq.addEventListener('change', handler)
-    return () => mq.removeEventListener('change', handler)
-  }, [])
+  // Shared hook uses the same (max-width: 767px) query as the former local listener.
+  const isMobile = useIsMobile()
 
   // ── Desktop DataTable columns ────────────────────────────────────────────────
   const columns = useMemo<DataTableColumn<Employee>[]>(() => [
@@ -75,7 +68,7 @@ export function EmployeesTable({
       cellClassName: 'overflow-hidden min-w-0',
       cell: (emp) => (
         <div className="flex items-center gap-2.5 overflow-hidden min-w-0 w-full">
-          <EmployeeAvatar firstName={emp.firstName} lastName={emp.lastName} id={emp.id} size="sm" />
+          <EmployeeAvatar size="sm" />
           <span className="text-[15px] font-semibold text-text-primary truncate leading-tight">
             {emp.firstName} {emp.lastName}
           </span>
@@ -216,68 +209,22 @@ export function EmployeesTable({
 
   // ── Mobile card list (< 768px) ───────────────────────────────────────────────
   if (isMobile) {
+    const placeholderCount = Math.max(0, minRows - rows.length)
     return (
-      <div className="flex flex-col flex-1 min-h-0 overflow-y-auto">
-        {rows.map(emp => {
-          const branchName = emp.branchId ? (branchMap.get(emp.branchId) ?? '') : ''
-          const deptName   = emp.departmentId ? (deptMap.get(emp.departmentId) ?? '') : ''
-          const isHeadOffice = !!headOfficeBranchId && emp.branchId === headOfficeBranchId
-          const assetCount = assetCounts[emp.id] ?? 0
-          const statusColor = emp.status === 'active' ? 'green' : 'violet'
-
-          return (
-            <div
-              key={emp.id}
-              role="button"
-              tabIndex={0}
-              onClick={() => onRowClick(emp)}
-              onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onRowClick(emp) } }}
-              className="flex flex-row items-start gap-3 bg-surface px-[14px] py-[10px] border-b border-white/[0.06] cursor-pointer transition-colors duration-[140ms] min-h-[68px] box-border last:border-b-0 active:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[rgba(249,115,22,0.40)]"
-            >
-              {/* Icon tile */}
-              <span className="w-8 h-8 min-w-[32px] rounded-[8px] bg-white/[0.04] border-[0.5px] border-white/[0.06] inline-flex items-center justify-center flex-shrink-0 text-white/60 mt-[1px]">
-                <Icon name="user" size={16} />
-              </span>
-
-              {/* 3-row content column */}
-              <div className="flex-1 min-w-0 flex flex-col gap-[2px]">
-                {/* Row 1: name + status chip */}
-                <div className="flex items-center justify-between gap-2 min-w-0">
-                  <span className="text-[14px] font-semibold text-white/95 leading-[18px] truncate flex-1 min-w-0">
-                    {emp.firstName} {emp.lastName}
-                  </span>
-                  <span className="shrink-0 leading-none">
-                    <Chip color={statusColor} dot size="sm">{t(`status.${emp.status}`)}</Chip>
-                  </span>
-                </div>
-
-                {/* Row 2: position · department */}
-                <div className="text-[12.5px] text-text-tertiary truncate">
-                  {emp.position ?? ''}
-                  {deptName ? ` · ${deptName}` : ''}
-                </div>
-
-                {/* Row 3: branch + asset count */}
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-1 min-w-0">
-                    <span
-                      className="shrink-0 inline-flex"
-                      style={{ color: isHeadOffice ? '#10B981' : '#38BDF8' }}
-                    >
-                      <Icon name={isHeadOffice ? 'landmark' : 'building'} size={11} />
-                    </span>
-                    <span className="text-[12px] text-text-subtle truncate">
-                      {branchName || '—'}
-                    </span>
-                  </div>
-                  <span className="text-[12px] text-text-subtle shrink-0">
-                    {assetCount} {t('table.assets')}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )
-        })}
+      /* grow shrink-0 — the list block stretches inside the Zone-2 flex column
+         (assets fill contract) so rows/placeholders distribute the full height */
+      <div className="flex flex-col grow shrink-0">
+        {rows.map(emp => (
+          <EmployeeRowMobile
+            key={emp.id}
+            employee={emp}
+            branchName={emp.branchId ? (branchMap.get(emp.branchId) ?? '') : ''}
+            deptName={emp.departmentId ? (deptMap.get(emp.departmentId) ?? '') : ''}
+            assetCount={assetCounts[emp.id] ?? 0}
+            onClick={() => onRowClick(emp)}
+          />
+        ))}
+        <MobileListPlaceholders count={placeholderCount} dataTestId="emp-placeholder-row" />
       </div>
     )
   }

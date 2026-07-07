@@ -1,9 +1,14 @@
 import { useMemo, useState, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
-import { PageHeader, SectionCard, Btn, Icon, Chip, EmptyState, LoadingState, ErrorState, CardListSkeleton } from '@/components/ui'
+import {
+  ListCard, ListPageShell,
+  Icon, Chip,
+  EmptyState, ErrorState,
+  TableSkeleton, CardListSkeleton,
+} from '@/components/ui'
 import { useIsMobile } from '@/hooks/useIsMobile'
-import { CatalogTable, CatalogPagination, ConfirmDeleteDialog, type CatalogColumn } from '@/components/features/catalogs'
+import { CatalogTable, CatalogPagination, ConfirmDeleteDialog, CatalogToolbarHeader, type CatalogColumn } from '@/components/features/catalogs'
 import { BranchFormDialog, type BranchFormValues } from '@/components/features/branches'
 import type { Branch, BranchListQuery, BranchRepository } from '@/domain/branch'
 import { FirestoreBranchRepository } from '@/infra/repositories'
@@ -50,7 +55,7 @@ export function BranchesPage({ repository }: BranchesPageProps) {
   const pageRows = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   const columns: CatalogColumn<Branch>[] = [
-    { key: 'name', header: t('col.name'), render: b => <span className="text-text-primary">{b.name}</span> },
+    { key: 'name', header: t('col.name'), width: 'minmax(160px,2fr)', render: b => <span className="text-text-primary">{b.name}</span> },
     { key: 'type', header: t('col.type'), render: b => <Chip color={b.type === 'warehouse' ? 'amber' : 'blue'}>{t(`type.${b.type}`)}</Chip> },
     { key: 'city', header: t('col.city'), render: b => <span className="text-text-tertiary">{b.city ?? '—'}</span> },
   ]
@@ -85,39 +90,76 @@ export function BranchesPage({ repository }: BranchesPageProps) {
     } finally { setDelBusy(false) }
   }
 
-  function body() {
-    if (loading) return isMobile ? <CardListSkeleton rows={6} variant="catalog" /> : <LoadingState rows={6} />
+  function renderTableRegion() {
+    if (loading) return isMobile
+      ? <CardListSkeleton rows={6} variant="catalog" />
+      : <TableSkeleton rows={PAGE_SIZE} columns={4} gridTemplate="minmax(160px,2fr) 1fr 1fr 80px" lastColAction />
     if (error) return <ErrorState onRetry={load} />
     if (rows.length === 0) return <EmptyState icon="building" title={t('empty.title')} description={t('empty.desc')} />
     return (
-      <>
-        <CatalogTable
-          rows={pageRows} columns={columns} canMutate={canMutate}
-          onEdit={b => { setSaveError(null); setEditing(b) }}
-          onDelete={askDelete}
-          mobileIcon={() => (
-            <span className="w-[28px] h-[28px] rounded-[8px] inline-flex items-center justify-center flex-shrink-0 bg-emerald-500/15 text-emerald-300" aria-hidden="true">
-              <Icon name="building" size={14} />
-            </span>
-          )}
-          mobileMinRows={PAGE_SIZE}
-        />
-        <CatalogPagination page={page} pageSize={PAGE_SIZE} total={total} onPage={setPage} />
-      </>
+      <CatalogTable
+        rows={pageRows}
+        columns={columns}
+        canMutate={canMutate}
+        onEdit={b => { setSaveError(null); setEditing(b) }}
+        onDelete={askDelete}
+        minRows={PAGE_SIZE}
+        mobileIcon={(b) => (
+          <span
+            className={[
+              'w-[28px] h-[28px] rounded-[8px] inline-flex items-center justify-center flex-shrink-0',
+              b.type === 'warehouse' ? 'bg-amber-500/15 text-amber-300' : 'bg-sky-500/15 text-sky-300',
+            ].join(' ')}
+            aria-hidden="true"
+          >
+            <Icon name={b.type === 'warehouse' ? 'warehouse' : 'building'} size={14} />
+          </span>
+        )}
+        mobileSubline={(b) => (
+          <div className="text-[11px] text-text-tertiary truncate leading-snug flex items-center gap-1.5">
+            <Chip color={b.type === 'warehouse' ? 'amber' : 'blue'}>{t(`type.${b.type}`)}</Chip>
+            {b.city && (
+              <>
+                <span aria-hidden="true">·</span>
+                <span>{b.city}</span>
+              </>
+            )}
+          </div>
+        )}
+        mobileMinRows={PAGE_SIZE}
+      />
     )
   }
 
   return (
-    <div className="space-y-5">
-      <PageHeader
-        icon="building" title={t('title')} {...(!loading ? { count: total } : {})}
-        {...(canMutate ? { actions: (
-          <Btn variant="primary" size="md" onClick={() => { setSaveError(null); setEditing('new') }}>
-            <Icon name="building" size={14} />{t('create')}
-          </Btn>
-        ) } : {})}
-      />
-      <SectionCard noHeader><div className="space-y-4">{body()}</div></SectionCard>
+    <>
+      <ListPageShell flushMobile>
+        {/* Floating-card model (same as AssetsPage/EmployeesPage): NO flushMobile
+            on the card — keeps rounded-lg radius on mobile; 10px side gutters;
+            the .app-shell-content-flush flex chain stretches the card to the
+            BottomNav top ('branches' is in AppShell FLUSH_ROUTES). */}
+        <ListCard
+          className="max-md:mx-[10px]"
+          toolbar={
+            <CatalogToolbarHeader
+              icon="building"
+              title={t('title')}
+              count={loading ? undefined : total}
+              canMutate={canMutate}
+              isMobile={isMobile}
+              createLabel={t('create')}
+              onCreate={() => { setSaveError(null); setEditing('new') }}
+            />
+          }
+          pagination={
+            !loading && !error && total > 0 ? (
+              <CatalogPagination page={page} pageSize={PAGE_SIZE} total={total} onPage={setPage} />
+            ) : undefined
+          }
+        >
+          {renderTableRegion()}
+        </ListCard>
+      </ListPageShell>
 
       {editing !== null && (
         <BranchFormDialog
@@ -134,6 +176,6 @@ export function BranchesPage({ repository }: BranchesPageProps) {
         blockedMessage={blockedMsg} busy={delBusy}
         onConfirm={confirmDelete} onCancel={() => { setDeleting(null); setBlockedMsg(null) }}
       />
-    </div>
+    </>
   )
 }
