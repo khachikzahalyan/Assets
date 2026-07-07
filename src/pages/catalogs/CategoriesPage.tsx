@@ -208,7 +208,7 @@ export function CategoriesPage({ repository, categoryGroupRepository }: Categori
               <CatalogToolbarHeader
                 icon="tags"
                 title={t('subcategories')}
-                count={loading ? undefined : total}
+                {...(!loading ? { count: total } : {})}
                 canMutate={canMutate}
                 isMobile={isMobile}
                 createLabel={t('createSubcategory')}

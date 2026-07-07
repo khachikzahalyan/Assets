@@ -122,7 +122,7 @@ export function DepartmentsPage({ repository }: DepartmentsPageProps) {
             <CatalogToolbarHeader
               icon="network"
               title={t('title')}
-              count={loading ? undefined : total}
+              {...(!loading ? { count: total } : {})}
               canMutate={canMutate}
               isMobile={isMobile}
               createLabel={t('create')}

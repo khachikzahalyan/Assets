@@ -115,7 +115,7 @@ export function AuditFilterBar({ query, onChange, ref: refData }: AuditFilterBar
               id="audit-filter-from"
               variant="chip"
               value={fromDateInput}
-              max={toDateInput || undefined}
+              {...(toDateInput ? { max: toDateInput } : {})}
               onChange={iso => onChange({ fromDate: iso ? `${iso}T00:00:00.000Z` : null })}
               ariaLabel={t('filters.from')}
               placeholder="дд.мм.гггг"
@@ -131,7 +131,7 @@ export function AuditFilterBar({ query, onChange, ref: refData }: AuditFilterBar
               id="audit-filter-to"
               variant="chip"
               value={toDateInput}
-              min={fromDateInput || undefined}
+              {...(fromDateInput ? { min: fromDateInput } : {})}
               onChange={iso => onChange({ toDate: iso ? `${iso}T23:59:59.999Z` : null })}
               ariaLabel={t('filters.to')}
               placeholder="дд.мм.гггг"

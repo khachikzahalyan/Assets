@@ -144,7 +144,7 @@ export function BranchesPage({ repository }: BranchesPageProps) {
             <CatalogToolbarHeader
               icon="building"
               title={t('title')}
-              count={loading ? undefined : total}
+              {...(!loading ? { count: total } : {})}
               canMutate={canMutate}
               isMobile={isMobile}
               createLabel={t('create')}
