@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import ReactDOM from 'react-dom'
 import { useModalA11y } from '@/components/ui/useModalA11y'
+import { useBodyScrollLock } from '@/components/ui/useBodyScrollLock'
 import { MODAL_BACKDROP_ABS } from '@/components/ui'
 
 export interface EmployeeModalShellProps {
@@ -26,22 +27,11 @@ export function EmployeeModalShell({
   width = 'max-w-lg',
 }: EmployeeModalShellProps) {
   const panelRef = useRef<HTMLDivElement | null>(null)
-  const prevOverflow = useRef<string>('')
 
   useModalA11y(open, panelRef)
 
-  // Body-scroll-lock
-  useEffect(() => {
-    if (open) {
-      prevOverflow.current = document.body.style.overflow
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = prevOverflow.current
-    }
-    return () => {
-      document.body.style.overflow = prevOverflow.current
-    }
-  }, [open])
+  // Body-scroll-lock — shared ref-counted lock (composes with nested lockers).
+  useBodyScrollLock(open)
 
   // ESC close
   useEffect(() => {

@@ -27,16 +27,22 @@ export function CategoryGroupChips({
   const { t } = useTranslation('categories')
 
   return (
-    <div data-testid="category-group-chips" className="flex flex-wrap items-center gap-2">
+    <div
+      data-testid="category-group-chips"
+      /* Desktop: wrapping chip cloud. Mobile: single-row horizontal scroll strip
+         (same pattern as assets GroupTabs / EmployeeKindTabs) — no vertical stack. */
+      className="flex flex-wrap items-center gap-2 max-md:flex-nowrap max-md:overflow-x-auto max-md:w-full no-scrollbar scroll-fade-x"
+    >
       {groups.map(g => {
         const isSelected = g.id === selectedId
         return (
-          <div key={g.id} className="group flex items-center gap-0.5">
+          <div key={g.id} className="group flex items-center gap-0.5 flex-shrink-0">
             <button
               type="button"
               onClick={() => onSelect(g.id)}
               className={[
                 'flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[13px] font-medium',
+                'whitespace-nowrap flex-shrink-0',
                 'transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40',
                 isSelected ? ACTIVE_CHIP : IDLE_CHIP,
               ].join(' ')}
@@ -82,7 +88,7 @@ export function CategoryGroupChips({
         <button
           type="button"
           onClick={onAdd}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-dashed border-border text-text-tertiary text-[13px] font-medium hover:border-border-strong hover:text-text-secondary transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-dashed border-border text-text-tertiary text-[13px] font-medium whitespace-nowrap flex-shrink-0 hover:border-border-strong hover:text-text-secondary transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
         >
           <Icon name="plus" size={13} />
           {t('create')}

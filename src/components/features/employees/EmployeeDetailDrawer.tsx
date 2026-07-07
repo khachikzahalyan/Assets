@@ -244,12 +244,7 @@ export function EmployeeDetailDrawer({
       <header className="px-5 pt-5 pb-4 flex items-start gap-4 border-b border-border shrink-0">
         {/* Avatar with status dot */}
         <div className="relative shrink-0">
-          <EmployeeAvatar
-            firstName={emp.firstName}
-            lastName={emp.lastName}
-            id={emp.id}
-            size="lg"
-          />
+          <EmployeeAvatar size="lg" />
           {/* Status dot — bottom-right corner */}
           <span
             className={`absolute bottom-0 right-0 w-3 h-3 rounded-full ring-2 ring-border ${
@@ -335,10 +330,11 @@ export function EmployeeDetailDrawer({
       {/* ──────────────────────────────────────────────
           SECTION BAR — pinned. Assets title + count + select toggle + link CTA.
           ────────────────────────────────────────────── */}
-      <div className="px-5 h-11 flex items-center justify-between border-b border-border shrink-0">
-        <h3 className="flex items-center text-[13px] font-semibold text-text-tertiary tracking-[0.06em] uppercase">
-          {t('detail.assets')}
-          <span className="ml-2 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-surface-2 text-text-tertiary text-[12.5px] font-semibold tabular-nums">
+      {/* Mobile: everything single-line — smaller label that truncates, buttons never wrap */}
+      <div className="px-5 max-md:px-[14px] h-11 flex items-center justify-between gap-2 border-b border-border shrink-0">
+        <h3 className="flex items-center min-w-0 text-[13px] max-md:text-[11px] font-semibold text-text-tertiary tracking-[0.06em] max-md:tracking-[0.03em] uppercase">
+          <span className="truncate whitespace-nowrap">{t('detail.assets')}</span>
+          <span className="ml-2 shrink-0 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-surface-2 text-text-tertiary text-[12.5px] font-semibold tabular-nums">
             {linkedAssets.length}
           </span>
           {selectMode && linkedAssets.length > 0 && (
@@ -354,13 +350,13 @@ export function EmployeeDetailDrawer({
           )}
         </h3>
         {isActive && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 max-md:gap-1.5 shrink-0">
             {/* Select mode toggle — only when there are assets to select */}
             {linkedAssets.length > 0 && (
               <button
                 type="button"
                 onClick={() => (selectMode ? exitSelect() : setSelectMode(true))}
-                className="inline-flex items-center gap-1 h-7 px-2.5 rounded-md text-[14px] font-semibold text-text-tertiary bg-surface-2 border border-border hover:bg-border transition-colors"
+                className="inline-flex items-center gap-1 h-7 px-2.5 max-md:px-2 rounded-md text-[14px] max-md:text-[12px] font-semibold whitespace-nowrap text-text-tertiary bg-surface-2 border border-border hover:bg-border transition-colors"
               >
                 <Icon name={selectMode ? 'x' : 'list-checks'} size={12} />
                 {selectMode ? t('transfer.selectDone') : t('transfer.selectMode')}
@@ -369,7 +365,7 @@ export function EmployeeDetailDrawer({
             <button
               type="button"
               onClick={() => onLinkAssets(emp.id)}
-              className="inline-flex items-center gap-1 h-7 px-2.5 rounded-md text-[14px] font-semibold text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/15 transition-colors"
+              className="inline-flex items-center gap-1 h-7 px-2.5 max-md:px-2 rounded-md text-[14px] max-md:text-[12px] font-semibold whitespace-nowrap text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/15 transition-colors"
             >
               <Icon name="link-2" size={12} />
               {t('detail.linkAsset')}

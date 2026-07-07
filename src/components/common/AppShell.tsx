@@ -13,6 +13,15 @@ export interface AppShellProps {
   children: ReactNode
 }
 
+/**
+ * Routes whose pages use the ListPageShell(flushMobile) + ListCard floating-card
+ * model. AppShell applies .app-shell-content-flush for them so the flex chain
+ * content → shell → card stretches the card to the BottomNav top on mobile.
+ * ADD EVERY NEW ListPageShell(flushMobile) PAGE HERE — otherwise the card stops
+ * at content height and leaves a dead band above the BottomNav.
+ */
+const FLUSH_ROUTES = new Set(['assets', 'licenses', 'parts', 'employees', 'branches', 'categories', 'departments', 'audit'])
+
 export function AppShell({ children }: AppShellProps) {
   const { role } = useAuth()
   const location = useLocation()
@@ -66,7 +75,7 @@ export function AppShell({ children }: AppShellProps) {
               breadcrumbs={breadcrumbs}
               customContent={topbarNode ?? undefined}
             />
-            <div className={`app-shell-content${currentRoute === 'assets' || currentRoute === 'licenses' || currentRoute === 'parts' ? ' app-shell-content-flush' : ''}`}>{children}</div>
+            <div className={`app-shell-content${FLUSH_ROUTES.has(currentRoute) ? ' app-shell-content-flush' : ''}`}>{children}</div>
           </main>
         </div>
 

@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
-import { Icon, Chip, DataTable } from '@/components/ui'
+import { Icon, Chip, DataTable, MobileListPlaceholders } from '@/components/ui'
 import type { DataTableColumn } from '@/components/ui'
 import { AuditDiff } from './AuditDiff'
 import { formatAuditTs, resolveActorName, entityLink } from './auditFormat'
@@ -11,9 +11,19 @@ import { AuditRowMobile } from './AuditRowMobile'
 export interface AuditTableProps {
   rows: AuditLog[]
   ref: AuditLogReferenceData
+  /**
+   * Desktop-only fill contract: minimum row count passed to DataTable so
+   * placeholder rows fill the remaining height (same as CatalogTable.minRows).
+   */
+  minRows?: number
+  /**
+   * Mobile-only: minimum row count for placeholder padding (fill contract —
+   * same as CatalogTable.mobileMinRows). Defaults to rows.length (no padding).
+   */
+  mobileMinRows?: number
 }
 
-export function AuditTable({ rows, ref: refData }: AuditTableProps) {
+export function AuditTable({ rows, ref: refData, minRows, mobileMinRows }: AuditTableProps) {
   const { t, i18n } = useTranslation('audit')
   const navigate = useNavigate()
   const [expanded, setExpanded] = useState<string | null>(null)
@@ -122,7 +132,9 @@ export function AuditTable({ rows, ref: refData }: AuditTableProps) {
   if (isMobile) {
     // ── Mobile card list via AuditRowMobile (wraps ui/MobileListRow) ────────
     return (
-      <div className="flex flex-col">
+      // grow shrink-0: same fill contract as CatalogTable — rows and placeholder
+      // slots distribute the full available card height down to the pagination bar.
+      <div className="flex flex-col grow shrink-0">
         {rows.map(log => (
           <AuditRowMobile
             key={log.id}
@@ -132,6 +144,10 @@ export function AuditTable({ rows, ref: refData }: AuditTableProps) {
             onToggle={() => setExpanded(expanded === log.id ? null : log.id)}
           />
         ))}
+        <MobileListPlaceholders
+          count={(mobileMinRows ?? rows.length) - rows.length}
+          dataTestId="audit-card-placeholder"
+        />
       </div>
     )
   }
@@ -142,6 +158,7 @@ export function AuditTable({ rows, ref: refData }: AuditTableProps) {
       columns={columns}
       rows={rows}
       getRowKey={(log) => log.id}
+      {...(minRows !== undefined ? { minRows } : {})}
       onRowClick={(log) => setExpanded(expanded === log.id ? null : log.id)}
       renderRowExpanded={(log) =>
         expanded === log.id ? (

@@ -1,8 +1,9 @@
 import type { ReactNode } from 'react'
-import { useState, useEffect, useMemo } from 'react'
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Icon, IconBtn, DataTable, MobileListRow, MobileListPlaceholders } from '@/components/ui'
 import type { DataTableColumn } from '@/components/ui'
+import { useIsMobile } from '@/hooks/useIsMobile'
 
 export interface CatalogColumn<T> {
   key: string
@@ -37,6 +38,13 @@ export interface CatalogTableProps<T extends { id: string }> {
    * Keep separate from minRows (desktop-only) to avoid breaking pixel parity.
    */
   mobileMinRows?: number
+  /**
+   * Mobile-only: custom subline renderer for a row.
+   * When provided, it REPLACES the generic restCols-joined subline for that row.
+   * The callback owns the entire subline ReactNode (including its wrapper styling).
+   * When absent the generic behaviour (join restCols with ' · ' separators) is used.
+   */
+  mobileSubline?: (row: T) => ReactNode
 }
 
 const FALLBACK_TILE = (
@@ -51,24 +59,14 @@ const FALLBACK_TILE = (
 export function CatalogTable<T extends { id: string }>(props: CatalogTableProps<T>) {
   const {
     rows, columns, canMutate, onEdit, onDelete,
-    canDeleteRow, minRows, mobileIcon, mobileMinRows,
+    canDeleteRow, minRows, mobileIcon, mobileMinRows, mobileSubline,
   } = props
   const { t } = useTranslation('common')
   const editLabel = t('actions.edit', { defaultValue: 'Edit' })
   const deleteLabel = t('actions.delete', { defaultValue: 'Delete' })
 
-  // ── Responsive: matchMedia so the layout is correct on first paint ───────────
-  const [isMobile, setIsMobile] = useState<boolean>(() => {
-    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false
-    return window.matchMedia('(max-width: 767px)').matches
-  })
-  useEffect(() => {
-    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return
-    const mq = window.matchMedia('(max-width: 767px)')
-    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
-    mq.addEventListener('change', handler)
-    return () => mq.removeEventListener('change', handler)
-  }, [])
+  // ── Responsive: shared hook is first-paint-correct and SSR/jsdom safe ────────
+  const isMobile = useIsMobile()
 
   // ── Desktop DataTable columns ────────────────────────────────────────────────
   const dtColumns = useMemo<DataTableColumn<T>[]>(() => {
@@ -102,7 +100,9 @@ export function CatalogTable<T extends { id: string }>(props: CatalogTableProps<
     // ── Mobile card list via shared MobileListRow trio ───────────────────────
     const [primaryCol, ...restCols] = columns
     return (
-      <div className="flex flex-col">
+      // grow shrink-0: list block stretches inside Zone-2 flex column so rows
+      // and placeholder slots distribute the full available height (fill contract).
+      <div className="flex flex-col grow shrink-0">
         {rows.map(row => {
           const canDel = canDeleteRow ? canDeleteRow(row) : true
           const iconTile = mobileIcon ? mobileIcon(row) : FALLBACK_TILE
@@ -111,16 +111,22 @@ export function CatalogTable<T extends { id: string }>(props: CatalogTableProps<
               {primaryCol ? primaryCol.render(row) : null}
             </div>
           )
-          const sublineNode = restCols.length > 0 ? (
-            <div className="text-[11px] text-text-tertiary truncate leading-snug flex items-center gap-1.5">
-              {restCols.map((c, idx) => (
-                <span key={c.key} className="inline-flex items-center gap-1.5">
-                  {idx > 0 && <span aria-hidden="true">·</span>}
-                  {c.render(row)}
-                </span>
-              ))}
-            </div>
-          ) : undefined
+          // mobileSubline owns the whole subline ReactNode when provided;
+          // otherwise fall back to the generic restCols-joined subline.
+          const sublineNode: ReactNode | undefined = mobileSubline
+            ? mobileSubline(row)
+            : restCols.length > 0
+              ? (
+                <div className="text-[11px] text-text-tertiary truncate leading-snug flex items-center gap-1.5">
+                  {restCols.map((c, idx) => (
+                    <span key={c.key} className="inline-flex items-center gap-1.5">
+                      {idx > 0 && <span aria-hidden="true">·</span>}
+                      {c.render(row)}
+                    </span>
+                  ))}
+                </div>
+              )
+              : undefined
           const rightNode = canMutate ? (
             <div className="flex items-center gap-1 flex-shrink-0">
               <IconBtn
@@ -148,6 +154,9 @@ export function CatalogTable<T extends { id: string }>(props: CatalogTableProps<
               title={titleNode}
               {...(sublineNode !== undefined ? { subline: sublineNode } : {})}
               {...(rightNode !== undefined ? { right: rightNode } : {})}
+              // Fill contract: each row grows to distribute available card height
+              // so no dead band appears between the last row and the pagination bar.
+              outerStyle={{ flexGrow: 1, flexShrink: 0 }}
             />
           )
         })}

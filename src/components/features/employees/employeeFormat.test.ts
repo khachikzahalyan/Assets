@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatLocalPhone, employeeInitials, employeeAvatarColor, normalizePhone, relativeTime, formatDateRu } from './employeeFormat'
+import { formatLocalPhone, normalizePhone, formatDateRu } from './employeeFormat'
 
 describe('formatLocalPhone', () => {
   it('formats a full 9-digit Armenian number', () => {
@@ -24,39 +24,6 @@ describe('formatLocalPhone', () => {
   })
 })
 
-describe('employeeInitials', () => {
-  it('returns first letters of first and last name', () => {
-    expect(employeeInitials('Иван', 'Петров')).toBe('ИП')
-  })
-  it('returns single initial when only first name', () => {
-    expect(employeeInitials('Иван', '')).toBe('И')
-  })
-  it('returns ? for empty inputs', () => {
-    expect(employeeInitials('', '')).toBe('?')
-  })
-  it('handles undefined gracefully', () => {
-    expect(employeeInitials(undefined, undefined)).toBe('?')
-  })
-})
-
-describe('employeeAvatarColor', () => {
-  it('returns a Tailwind bg class', () => {
-    const color = employeeAvatarColor('user_123')
-    expect(color).toMatch(/^bg-/)
-  })
-  it('is deterministic — same id always gives same color', () => {
-    expect(employeeAvatarColor('abc')).toBe(employeeAvatarColor('abc'))
-  })
-  it('uses fallback for empty id', () => {
-    expect(employeeAvatarColor('')).toMatch(/^bg-/)
-  })
-  it('distributes across the palette (different ids give different colors sometimes)', () => {
-    const colors = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l'].map(employeeAvatarColor)
-    const unique = new Set(colors)
-    expect(unique.size).toBeGreaterThan(1)
-  })
-})
-
 describe('normalizePhone', () => {
   it('strips +374, enforces leading 0, caps 9 digits', () => {
     expect(normalizePhone('+37499120000')).toBe('099120000')
@@ -74,19 +41,6 @@ describe('formatLocalPhone delegates to normalizePhone', () => {
   })
   it('returns partial unformatted', () => {
     expect(formatLocalPhone('0991')).toBe('0991')
-  })
-})
-
-describe('relativeTime', () => {
-  it('returns "только что" for now', () => {
-    const now = new Date('2026-05-12T12:00:00Z')
-    expect(relativeTime(now.toISOString(), now)).toBe('только что')
-  })
-  it('handles minutes/hours/days', () => {
-    const now = new Date('2026-05-12T12:00:00Z')
-    expect(relativeTime(new Date(now.getTime() - 5 * 60000).toISOString(), now)).toBe('5 мин назад')
-    expect(relativeTime(new Date(now.getTime() - 3 * 3600000).toISOString(), now)).toBe('3 ч назад')
-    expect(relativeTime(new Date(now.getTime() - 2 * 86400000).toISOString(), now)).toBe('2 дня назад')
   })
 })
 

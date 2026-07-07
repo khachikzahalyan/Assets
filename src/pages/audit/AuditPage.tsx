@@ -1,15 +1,18 @@
 import { useMemo, useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { PageHeader, SectionCard, Btn, Icon, EmptyState, LoadingState, ErrorState, CardListSkeleton } from '@/components/ui'
+import {
+  ListCard, ListPageShell, PageHeader,
+  EmptyState, LoadingState, ErrorState, CardListSkeleton,
+} from '@/components/ui'
 import { useIsMobile } from '@/hooks/useIsMobile'
-import { AuditFilterBar, AuditTable } from '@/components/features/audit'
+import { AuditFilterBar, AuditTable, AuditPagination } from '@/components/features/audit'
 import { useAuditLogs } from '@/hooks'
 import type { AuditLogQuery } from '@/domain/audit'
 import type { AuditLogRepository } from '@/domain/audit'
 import { FirestoreAuditLogRepository } from '@/infra/repositories'
 import { db } from '@/lib/firebase'
 
-const PAGE_SIZE = 20
+const PAGE_SIZE = 10  // consistent with the other list pages (table standard: ≤10 rows/page)
 
 const DEFAULT_QUERY: AuditLogQuery = {
   entityType: 'all', action: 'all', actorUid: 'all',
@@ -38,7 +41,7 @@ export function AuditPage({ repository }: AuditPageProps) {
     setQuery(prev => ({ ...prev, ...patch }))
   }, [])
 
-  const { rows, ref, loading, error, hasNext, hasPrev, page, next, prev, reload } =
+  const { rows, ref, loading, error, hasNext, page, goto, reload } =
     useAuditLogs(repo, query)
 
   function renderBody() {
@@ -53,40 +56,55 @@ export function AuditPage({ repository }: AuditPageProps) {
         />
       )
     }
-    return (
-      <>
-        {ref && <AuditTable rows={rows} ref={ref} />}
-        <div className="flex items-center justify-between pt-4 border-t border-border mt-2">
-          <span className="text-[12px] text-text-subtle max-md:text-[11.5px]">{t('pagination.page', { page })}</span>
-          <div className="flex items-center gap-2">
-            <Btn
-              variant="secondary" size="sm" disabled={!hasPrev} onClick={prev} aria-label={t('pagination.prev')}
-              className="max-md:w-[28px] max-md:h-[28px] max-md:rounded-[7px] max-md:border max-md:border-border max-md:p-0"
-            >
-              <Icon name="chevron-right" size={13} className="rotate-180" />
-            </Btn>
-            <Btn
-              variant="secondary" size="sm" disabled={!hasNext} onClick={next} aria-label={t('pagination.next')}
-              className="max-md:w-[28px] max-md:h-[28px] max-md:rounded-[7px] max-md:border max-md:border-border max-md:p-0"
-            >
-              <Icon name="chevron-right" size={13} />
-            </Btn>
-          </div>
-        </div>
-      </>
-    )
+    return ref ? <AuditTable rows={rows} ref={ref} minRows={PAGE_SIZE} mobileMinRows={PAGE_SIZE} /> : null
   }
 
+  const showPager = !loading && !error && rows.length > 0
+
   return (
-    <div className="space-y-5">
-      <PageHeader icon="history" title={t('items.audit', { ns: 'nav' })} />
-      <SectionCard noHeader>
-        <div className="space-y-4">
-          {ref && <AuditFilterBar query={query} onChange={handleQueryChange} ref={ref} />}
-          {!ref && !error && <div className="h-9 rounded-lg anim-skeleton w-full" />}
+    <ListPageShell
+      flushMobile
+      header={
+        /* Desktop-only page header — on mobile the card starts directly with
+           the filter bar (owner request: no title row on mobile). */
+        !isMobile ? <PageHeader icon="history" title={t('items.audit', { ns: 'nav' })} /> : undefined
+      }
+    >
+      {/* Floating-card model (same as AssetsPage/EmployeesPage): NO flushMobile
+          on the card — keeps rounded-lg radius on mobile; 10px side gutters;
+          the .app-shell-content-flush flex chain stretches the card to the
+          BottomNav top ('audit' is in AppShell FLUSH_ROUTES). */}
+      <ListCard
+        className="max-md:mx-[10px]"
+        toolbar={
+          <>
+            <div className="px-5 py-3 max-md:px-3 max-md:py-2.5">
+              {ref && <AuditFilterBar query={query} onChange={handleQueryChange} ref={ref} />}
+              {!ref && !error && <div className="h-9 rounded-lg anim-skeleton w-full" />}
+            </div>
+            <div className="border-t border-border" />
+          </>
+        }
+        pagination={
+          showPager ? (
+            <AuditPagination
+              page={page}
+              pageSize={PAGE_SIZE}
+              rowsOnPage={rows.length}
+              hasNext={hasNext}
+              onPage={goto}
+            />
+          ) : undefined
+        }
+      >
+        {/* Zone 2 fill: flex-col scroller so the mobile list's grow fill contract
+            works (never a plain padded div — it breaks the flex chain). Desktop
+            keeps inner padding for DataTable; mobile is edge-to-edge like every
+            other card list (MobileListRow carries its own 14px padding). */}
+        <div className="flex-1 min-h-0 overflow-y-auto flex flex-col px-5 py-3 max-md:p-0">
           {renderBody()}
         </div>
-      </SectionCard>
-    </div>
+      </ListCard>
+    </ListPageShell>
   )
 }

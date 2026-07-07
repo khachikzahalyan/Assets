@@ -1,5 +1,6 @@
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
+import { useBodyScrollLock } from './useBodyScrollLock'
 
 export interface MobileSheetProps {
   open: boolean
@@ -16,20 +17,8 @@ export interface MobileSheetProps {
  * Pull-handle rendered via ::before CSS on .ams-mobile-sheet-panel.
  */
 export function MobileSheet({ open, onClose, title, children }: MobileSheetProps) {
-  const prevOverflow = useRef<string>('')
-
-  // Body-scroll-lock
-  useEffect(() => {
-    if (open) {
-      prevOverflow.current = document.body.style.overflow
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = prevOverflow.current
-    }
-    return () => {
-      document.body.style.overflow = prevOverflow.current
-    }
-  }, [open])
+  // Body-scroll-lock — shared ref-counted lock (composes with nested lockers).
+  useBodyScrollLock(open)
 
   // ESC key close
   useEffect(() => {

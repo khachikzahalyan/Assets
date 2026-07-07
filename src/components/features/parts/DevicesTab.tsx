@@ -140,7 +140,9 @@ export function DevicesTab({
                   onClick={() => setFamily(f.id)}
                   className={
                     'h-7 w-full rounded-md text-[14px] font-medium border transition-colors inline-flex items-center justify-center ' +
-                    'max-md:rounded-full max-md:h-auto max-md:py-[7px] max-md:px-5 max-md:whitespace-nowrap max-md:flex-shrink-0 ' +
+                    // Mobile: compact prototype pills — auto width (w-full is for the desktop grid),
+                    // 12.5px text, 7px/18px padding, horizontal scroll row.
+                    'max-md:w-auto max-md:rounded-full max-md:h-auto max-md:py-[7px] max-md:px-[18px] max-md:text-[12.5px] max-md:font-semibold max-md:whitespace-nowrap max-md:flex-shrink-0 ' +
                     (active
                       ? 'bg-accent border-accent text-white'
                       : 'bg-surface border-border text-text-tertiary hover:text-text-primary hover:border-[#3A3F46] max-md:border-white/10')

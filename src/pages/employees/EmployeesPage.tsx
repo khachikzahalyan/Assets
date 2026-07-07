@@ -1,68 +1,25 @@
-import { useMemo, useState, useCallback, useEffect, useRef } from 'react'
-import { useIsMobile } from '@/hooks/useIsMobile'
+import { useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
-import { useToast } from '@/contexts/ToastContext'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import {
   Btn, Icon, EmptyState, ErrorState,
   ListCard, ListPageShell, TableSkeleton, CardListSkeleton,
+  MobileAddButton,
 } from '@/components/ui'
 import {
   EmployeesFilterBar,
   EmployeesTable,
   EmployeeKindTabs,
-  EmployeeFormModal,
-  EmployeeDetailDrawer,
-  HandoverModal,
-  AssetPickerSheet,
-  RestoreConfirmModal,
 } from '@/components/features/employees'
-import type { EmployeeFormSubmit } from '@/components/features/employees/EmployeeFormModal'
-import type { DrawerLinkedAsset, HandoverAsset, PickerStockRow } from '@/components/features/employees'
-import type { Employee, EmployeeListQuery, EmployeeRepository, SortValue } from '@/domain/employee'
-import { EmployeeArchiveError } from '@/domain/employee'
-import type { AssetRepository, AssetWriteRepository, RefRow, CategoryRow, TransferPatch } from '@/domain/asset'
+import type { AssetRepository, AssetWriteRepository, RefRow } from '@/domain/asset'
+import type { EmployeeRepository } from '@/domain/employee'
 import type { AssignmentRepository } from '@/domain/assignment'
-import { buildTransferPatch, type TransferTarget } from '@/domain/asset'
-import type { Destination } from '@/components/features/employees/DestPicker'
-import { FirestoreEmployeeRepository, FirestoreAssetRepository, FirestoreAssignmentRepository, FirestoreUserRepository } from '@/infra/repositories'
-import { db } from '@/lib/firebase'
-
-const PAGE_SIZE = 10
-
-/**
- * Map a DestPicker Destination to the asset-cache transfer patch.
- * Pure helper — no hooks, no side effects.
- */
-function destToPatch(dest: Destination, employees: Employee[]): TransferPatch {
-  if (dest.kind === 'warehouse') return buildTransferPatch({ mode: 'warehouse' })
-  if (dest.kind === 'temporary') {
-    return buildTransferPatch({
-      mode: 'temporary',
-      tempKind: dest.tempKind,
-      expiresAt: dest.expiresAt,
-    })
-  }
-  const empDeptId =
-    dest.kind === 'employee'
-      ? (employees.find(e => e.id === dest.id)?.departmentId ?? null)
-      : null
-  const target: TransferTarget =
-    dest.kind === 'employee'
-      ? { mode: 'employee', employeeId: dest.id }
-      : dest.kind === 'department'
-        ? { mode: 'department', departmentId: dest.id }
-        : { mode: 'branch', branchId: dest.id }
-  return buildTransferPatch(target, empDeptId)
-}
-
-const DEFAULT_QUERY: Required<EmployeeListQuery> = {
-  status: 'active',
-  branchId: 'all',
-  departmentId: 'all',
-  search: '',
-  sort: 'updated_desc',
-}
+import { PAGE_SIZE } from './employeesHelpers'
+import { useEmployeesData } from './useEmployeesData'
+import { useEmployeesActions } from './useEmployeesActions'
+import { EmployeesPagination } from './EmployeesPagination'
+import { EmployeesModals } from './EmployeesModals'
 
 export interface EmployeesPageProps {
   repository?: EmployeeRepository
@@ -76,43 +33,6 @@ export interface EmployeesPageProps {
   initialDetailId?: string
 }
 
-function sortEmployees(
-  employees: Employee[],
-  sort: SortValue,
-  deptNameOf: (e: Employee) => string,
-  assetCountOf: (id: string) => number,
-): Employee[] {
-  const copy = [...employees]
-  switch (sort) {
-    case 'updated_desc':
-      return copy.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
-    case 'updated_asc':
-      return copy.sort((a, b) => a.updatedAt.localeCompare(b.updatedAt))
-    case 'name_asc':
-      return copy.sort((a, b) =>
-        `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`, 'ru'),
-      )
-    case 'name_desc':
-      return copy.sort((a, b) =>
-        `${b.firstName} ${b.lastName}`.localeCompare(`${a.firstName} ${a.lastName}`, 'ru'),
-      )
-    case 'dept_asc':
-      return copy.sort((a, b) =>
-        deptNameOf(a).localeCompare(deptNameOf(b), 'ru'),
-      )
-    case 'assets_desc':
-      return copy.sort((a, b) => assetCountOf(b.id) - assetCountOf(a.id))
-    default:
-      return copy
-  }
-}
-
-/** Normalize phone to digits only for search matching */
-function normalizePhone(p: string | null): string {
-  if (!p) return ''
-  return p.replace(/\D/g, '')
-}
-
 export function EmployeesPage({
   repository,
   assetRepository,
@@ -124,250 +44,37 @@ export function EmployeesPage({
 }: EmployeesPageProps) {
   const { t } = useTranslation('employees')
   const { user, role } = useAuth()
-  const { showToast } = useToast()
-
-  const actor = useMemo(() => ({ uid: user.id, role }), [user.id, role])
-
-  // Lazy default repos — test callers inject their own
-  const defaultRepo = useMemo<EmployeeRepository>(
-    () => new FirestoreEmployeeRepository(
-      db(),
-      async (targetUid: string) => (await new FirestoreUserRepository(db()).countSuperAdmins(targetUid)) === 0,
-    ),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  )
-  const repo = repository ?? defaultRepo
-
-  const defaultAssetRepo = useMemo(
-    () => new FirestoreAssetRepository(db()),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  )
-  const assetRepo = assetRepository ?? defaultAssetRepo
-
-  const defaultAsnRepo = useMemo<AssignmentRepository>(
-    () => new FirestoreAssignmentRepository(db()),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  )
-  const asnRepo = assignmentRepository ?? defaultAsnRepo
-
-  const defaultLoadRefData = useMemo(
-    () => async () => {
-      const r = await defaultAssetRepo.loadReferenceData()
-      return { branches: r.branches, departments: r.departments }
-    },
-    [defaultAssetRepo],
-  )
-  const refLoader = loadRefData ?? defaultLoadRefData
-
-  const defaultLoadAssetCounts = useMemo(
-    () => async (): Promise<Record<string, number>> => {
-      const assets = await assetRepo.listAssets({ statusId: 'all' })
-      const counts: Record<string, number> = {}
-      for (const asset of assets) {
-        if (asset.assignment?.mode === 'employee' && asset.assignment.employeeId) {
-          const eid = asset.assignment.employeeId
-          counts[eid] = (counts[eid] ?? 0) + 1
-        }
-      }
-      return counts
-    },
-    [assetRepo],
-  )
-
-  const canMutate = role === 'super_admin' || role === 'asset_admin'
   const isMobile = useIsMobile()
+  const canMutate = role === 'super_admin' || role === 'asset_admin'
 
-  // ── Query / filter state ──────────────────────────────────────────────────
-  const [query, setQuery]             = useState<EmployeeListQuery>({ ...DEFAULT_QUERY })
-  const [search, setSearch]           = useState('')
-  const [kind, setKind]               = useState<'all' | 'staff'>('all')
-  const [page, setPage]               = useState(1)
-
-  // ── Data state ────────────────────────────────────────────────────────────
-  // `employees` = active set, always loaded — feeds pickers (handoverEmployees etc.)
-  // `former`    = terminated set, loaded when status filter is 'terminated' or 'all'
-  const [employees, setEmployees]     = useState<Employee[]>([])
-  const [former, setFormer]           = useState<Employee[]>([])
-  const [branches, setBranches]       = useState<RefRow[]>([])
-  const [departments, setDepts]       = useState<RefRow[]>([])
-  const [categories, setCategories]   = useState<CategoryRow[]>([])
-  const [assetCounts, setAssetCounts] = useState<Record<string, number>>(assetCountsProp ?? {})
-  const [loading, setLoading]         = useState(true)
-  const [error, setError]             = useState<string | null>(null)
-
-  // ── Modal / drawer state ──────────────────────────────────────────────────
-  const [formOpen, setFormOpen]             = useState(false)
-  const [formInitial, setFormInitial]       = useState<Employee | null>(null)
-  const [detailId, setDetailId]             = useState<string | null>(null)
-  const [detailLinkedAssets, setDetailLinkedAssets] = useState<DrawerLinkedAsset[]>([])
-  const [handoverTarget, setHandoverTarget] = useState<Employee | null>(null)
-  const [handoverAssets, setHandoverAssets] = useState<HandoverAsset[]>([])
-  const [pickerTarget, setPickerTarget]     = useState<Employee | null>(null)
-  const [pickerStock, setPickerStock]       = useState<PickerStockRow[]>([])
-  const [restoreTarget, setRestoreTarget]   = useState<Employee | null>(null)
-
-  // ── Derived lookups ───────────────────────────────────────────────────────
-  const branchMap = useMemo(() => new Map(branches.map(b => [b.id, b.name])), [branches])
-  const deptMap   = useMemo(() => new Map(departments.map(d => [d.id, d.name])), [departments])
-  const catMap    = useMemo(() => new Map(categories.map(c => [c.id, c])), [categories])
-
-  const deptNameOf = useCallback((e: Employee) =>
-    e.departmentId ? (deptMap.get(e.departmentId) ?? '') : '', [deptMap])
-  const assetCountOf = useCallback((id: string) => assetCounts[id] ?? 0, [assetCounts])
-
-  // Derive head office branch id — match the seeded head-office branch
-  // explicitly (br_main / «Головной офис»); never rely on list order.
-  const headOfficeBranchId =
-    branches.find(b => b.id === 'br_main')?.id ??
-    branches.find(b => b.name === 'Головной офис')?.id ??
-    branches[0]?.id ??
-    null
-
-  // ── Load / reload ─────────────────────────────────────────────────────────
-  const reload = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const { sort: _sort, search: _search, status, ...repoQuery } = query
-      const statusFilter = status ?? 'active'
-
-      // Always fetch active employees (needed for pickers regardless of filter)
-      // Fetch former when filter is 'terminated' or 'all'
-      const activePromise = repo.listEmployees({ ...repoQuery })
-      const formerPromise = (statusFilter === 'terminated' || statusFilter === 'all')
-        ? repo.listFormerEmployees({ ...repoQuery })
-        : Promise.resolve<Employee[]>([])
-
-      const [activeEmps, formerEmps, ref] = await Promise.all([
-        activePromise,
-        formerPromise,
-        refLoader(),
-      ])
-
-      setEmployees(activeEmps)
-      setFormer(formerEmps)
-      setBranches(ref.branches)
-      setDepts(ref.departments)
-
-      // Also load categories from asset repo if we have the full loadReferenceData
-      try {
-        const fullRef = await defaultAssetRepo.loadReferenceData()
-        setCategories(fullRef.categories)
-      } catch {
-        // categories optional
-      }
-
-      if (!assetCountsProp) {
-        const counts = await defaultLoadAssetCounts()
-        setAssetCounts(counts)
-      }
-    } catch {
-      setError(t('validation.saveFailed'))
-    } finally {
-      setLoading(false)
-    }
-  }, [repo, refLoader, query, t, assetCountsProp, defaultLoadAssetCounts, defaultAssetRepo])
-
-  // Track whether initial mounts have run to avoid double-firing
-  const initialMountDone = useRef(false)
-
-  useEffect(() => {
-    void reload()
-  }, [reload])
+  const data = useEmployeesData({
+    repository, assetRepository, assignmentRepository, loadRefData,
+    assetCounts: assetCountsProp,
+  })
+  const actions = useEmployeesActions(data)
 
   // Apply initial props after first load
+  const initialMountDone = useRef(false)
   useEffect(() => {
-    if (loading || initialMountDone.current) return
+    if (data.loading || initialMountDone.current) return
     initialMountDone.current = true
     if (initialModal === 'create') {
-      setFormInitial(null)
-      setFormOpen(true)
+      data.setFormInitial(null)
+      data.setFormOpen(true)
     }
     if (initialDetailId) {
-      void handleOpenDetail(initialDetailId)
+      void actions.handleOpenDetail(initialDetailId)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, initialModal, initialDetailId])
+  }, [data.loading, initialModal, initialDetailId])
 
-  // ── Filter pipeline ───────────────────────────────────────────────────────
-
-  // displaySet: the set shown in the table, determined by which collection(s) were loaded.
-  // - 'active'     → employees (active only)
-  // - 'terminated' → former (terminated only)
-  // - 'all'        → concat of both
-  // This is already pre-filtered at the collection level; no per-row status filter needed.
-  const displaySet = useMemo(() => {
-    const s = query.status ?? 'active'
-    if (s === 'terminated') return former
-    if (s === 'all') return [...employees, ...former]
-    return employees
-  }, [employees, former, query.status])
-
-  // Base: status-filtered display set (for KindTabs counts)
-  const statusFiltered = displaySet
-
-  // KindTabs counts (staff === all in prod — only one type exists)
-  const kindCounts = useMemo(() => ({
-    all: statusFiltered.length,
-    staff: statusFiltered.length,
-  }), [statusFiltered])
-
-  // After kind filter (no-op for now — staff === all)
-  const kindFiltered = statusFiltered
-
-  // Department + branch filters
-  const deptBranchFiltered = useMemo(() => {
-    let result = kindFiltered
-    const dept = query.departmentId ?? 'all'
-    const branch = query.branchId ?? 'all'
-    if (dept !== 'all') result = result.filter(e => e.departmentId === dept)
-    if (branch !== 'all') result = result.filter(e => e.branchId === branch)
-    return result
-  }, [kindFiltered, query.departmentId, query.branchId])
-
-  // Client-side search (by name / position / phone(normalized) / email)
-  const searched = useMemo(() => {
-    const q = search.trim().toLowerCase()
-    if (!q) return deptBranchFiltered
-    return deptBranchFiltered.filter(e => {
-      const fullName = `${e.firstName} ${e.lastName}`.toLowerCase()
-      const phone = normalizePhone(e.phone)
-      return (
-        fullName.includes(q) ||
-        (e.position ?? '').toLowerCase().includes(q) ||
-        phone.includes(q.replace(/\D/g, '')) ||
-        (e.email ?? '').toLowerCase().includes(q)
-      )
-    })
-  }, [deptBranchFiltered, search])
-
-  // Client-side sort
-  const sorted = useMemo(
-    () => sortEmployees(searched, (query.sort ?? 'updated_desc') as SortValue, deptNameOf, assetCountOf),
-    [searched, query.sort, deptNameOf, assetCountOf],
-  )
-
-  // ── hasActiveFilters ──────────────────────────────────────────────────────
-  const hasActiveFilters = (
-    (query.status ?? 'active') !== 'active' ||
-    (query.branchId ?? 'all') !== 'all' ||
-    (query.departmentId ?? 'all') !== 'all' ||
-    search !== '' ||
-    (query.sort ?? 'updated_desc') !== 'updated_desc'
-  )
-
-  function resetFilters() {
-    setQuery({ ...DEFAULT_QUERY })
-    setSearch('')
-  }
-
-  const handleQueryChange = useCallback((patch: Partial<EmployeeListQuery>) => {
-    setQuery(prev => ({ ...prev, ...patch }))
-    setPage(1)
-  }, [])
+  const {
+    loading, error, sorted, kindCounts, hasActiveFilters,
+    query, search, setSearch, kind, setKind, page, setPage,
+    branches, departments, assetCounts, headOfficeBranchId,
+    handleQueryChange, resetFilters,
+    reload,
+  } = data
 
   // ── Pagination ────────────────────────────────────────────────────────────
   const totalCount = sorted.length
@@ -376,355 +83,19 @@ export function EmployeesPage({
   const to         = Math.min(page * PAGE_SIZE, totalCount)
   const pageRows   = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
-  const windowSize = 5
-  const winStart   = Math.max(1, Math.min(page - Math.floor(windowSize / 2), totalPages - windowSize + 1))
-  const winEnd     = Math.min(totalPages, winStart + windowSize - 1)
-  const pageNums   = Array.from({ length: Math.max(0, winEnd - winStart + 1) }, (_, i) => winStart + i)
-
   function goTo(p: number) { setPage(Math.min(Math.max(1, p), totalPages)) }
 
-  // ── Handlers ──────────────────────────────────────────────────────────────
+  const paginationProps = { from, to, totalCount, page, totalPages, goTo }
 
-  function handleCreate() {
-    setFormInitial(null)
-    setFormOpen(true)
+  // ── Shared handlers ───────────────────────────────────────────────────────
+  const handleKindSelect = (v: string) => { setKind(v as 'all' | 'staff'); setPage(1) }
+  const handleSearchChange = (v: string) => { setSearch(v); setPage(1) }
+  const handleFilterChange = (patch: Partial<typeof query>) => {
+    handleQueryChange(patch)
+    if ('search' in patch && patch.search === '') setSearch('')
   }
 
-  async function handleSaveForm(submit: EmployeeFormSubmit) {
-    try {
-      if (!submit.id) {
-        // Create mode
-        const id = 'pending_' + crypto.randomUUID()
-        await repo.createEmployee(
-          {
-            id,
-            firstName: submit.firstName,
-            lastName: submit.lastName,
-            email: submit.email,
-            phone: submit.phone,
-            position: submit.position,
-            branchId: headOfficeBranchId,
-            departmentId: submit.departmentId,
-          },
-          actor,
-        )
-        showToast(t('toast.created'))
-      } else {
-        // Edit mode — only editable fields
-        await repo.updateEmployee(
-          submit.id,
-          {
-            position: submit.position,
-            phone: submit.phone,
-            departmentId: submit.departmentId,
-          },
-          actor,
-        )
-        showToast(t('toast.updated'))
-      }
-      setFormOpen(false)
-      await reload()
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err)
-      if (/email already in use/i.test(msg)) {
-        showToast(t('validation.emailTaken'))
-      } else {
-        showToast(t('validation.saveFailed'))
-      }
-    }
-  }
-
-  async function handleOpenDetail(empId: string) {
-    setDetailId(empId)
-    try {
-      const assets = await assetRepo.listAssetsForEmployee(empId)
-      const linked: DrawerLinkedAsset[] = assets.map(a => {
-        const cat = catMap.get(a.categoryId)
-        const catName = cat?.name ?? ''
-        const icon = cat?.lucideIcon ?? 'box'
-        const title = a.brand && a.model ? `${a.brand} ${a.model}` : (catName || '—')
-        return {
-          id: a.id,
-          icon,
-          title,
-          invCode: a.invCode,
-          cat: catName,
-          transferredAt: a.updatedAt,
-        }
-      })
-      setDetailLinkedAssets(linked)
-    } catch {
-      setDetailLinkedAssets([])
-    }
-  }
-
-  async function handleArchive(empId: string) {
-    // Defensive self-guard before any async work
-    if (empId === actor.uid) { showToast(t('guard.self-archive')); return }
-    // Close detail drawer first
-    setDetailId(null)
-    const emp = employees.find(e => e.id === empId)
-    if (!emp) return
-    if (assetCountOf(empId) === 0) {
-      try {
-        await repo.archiveEmployee(empId, actor)
-        showToast(t('toast.archived'))
-        await reload()
-      } catch (err) {
-        if (err instanceof EmployeeArchiveError) { showToast(t(`guard.${err.reason}`)); return }
-        showToast(t('validation.saveFailed'))
-      }
-    } else {
-      // Load assets for handover
-      try {
-        const assets = await assetRepo.listAssetsForEmployee(empId)
-        const handAssets: HandoverAsset[] = assets.map(a => {
-          const cat = catMap.get(a.categoryId)
-          const catName = cat?.name ?? ''
-          const icon = cat?.lucideIcon ?? 'box'
-          const title = a.brand && a.model ? `${a.brand} ${a.model}` : (catName || '—')
-          return {
-            id: a.id,
-            icon,
-            title,
-            invCode: a.invCode,
-            sn: a.serial ?? '',
-          }
-        })
-        setHandoverAssets(handAssets)
-        setHandoverTarget(emp)
-      } catch {
-        setHandoverAssets([])
-        setHandoverTarget(emp)
-      }
-    }
-  }
-
-  async function handleHandoverConfirm(rows: { id: string; received: boolean; destination: Destination }[]) {
-    if (!handoverTarget) return
-    try {
-      for (const r of rows) {
-        if (!r.received) continue
-        if (r.destination.kind === 'warehouse') {
-          // Return to warehouse
-          await asnRepo.returnAsset(r.id, actor)
-        } else {
-          // Redirected destinations — persist via changeStatus + destToPatch
-          const patch = destToPatch(r.destination, employees)
-          await assetRepo.changeStatus(r.id, patch.toStatusId, actor, { assignment: patch.assignment, branchId: patch.branchId, deptId: patch.deptId })
-        }
-      }
-      await repo.archiveEmployee(handoverTarget.id, actor)
-      showToast(t('toast.handover'))
-      setHandoverTarget(null)
-      await reload()
-    } catch (err) {
-      if (err instanceof EmployeeArchiveError) { showToast(t(`guard.${err.reason}`)); return }
-      showToast(t('validation.saveFailed'))
-    }
-  }
-
-  async function handleTransferAssets(assetIds: string[], dest: Destination) {
-    const patch = destToPatch(dest, employees)
-    let okCount = 0
-    let failCount = 0
-    for (const id of assetIds) {
-      try {
-        await assetRepo.changeStatus(id, patch.toStatusId, actor, { assignment: patch.assignment, branchId: patch.branchId, deptId: patch.deptId })
-        okCount++
-      } catch {
-        failCount++
-      }
-    }
-    const total = assetIds.length
-    if (failCount === 0) {
-      showToast(t('transfer.toastDone', { count: okCount }))
-    } else if (okCount === 0) {
-      showToast(t('transfer.toastFailed'))
-    } else {
-      showToast(t('transfer.toastPartial', { ok: okCount, total, failed: failCount }))
-    }
-    if (okCount > 0) {
-      if (detailId) await handleOpenDetail(detailId)
-      if (!assetCountsProp) {
-        const counts = await defaultLoadAssetCounts()
-        setAssetCounts(counts)
-      }
-    }
-  }
-
-  function handleRestore(empId: string) {
-    // Close detail drawer first
-    setDetailId(null)
-    const emp = employees.find(e => e.id === empId) ?? former.find(e => e.id === empId)
-    if (!emp) return
-    setRestoreTarget(emp)
-  }
-
-  async function handleConfirmRestore() {
-    if (!restoreTarget) return
-    try {
-      await repo.restoreEmployee(restoreTarget.id, actor)
-      showToast(t('toast.restored'))
-      setRestoreTarget(null)
-      await reload()
-    } catch {
-      showToast(t('validation.saveFailed'))
-    }
-  }
-
-  async function handleLinkAssets(empId: string) {
-    // Close detail drawer first
-    setDetailId(null)
-    const emp = employees.find(e => e.id === empId)
-    if (!emp) return
-    try {
-      const assets = await assetRepo.listAssets({ statusId: 'st_warehouse', branchId: emp.branchId ?? 'all' })
-      const stock: PickerStockRow[] = assets.map(a => {
-        const cat = catMap.get(a.categoryId)
-        const catName = cat?.name ?? ''
-        const icon = cat?.lucideIcon ?? 'box'
-        const group = cat?.group ?? 'devices'
-        const title = a.brand && a.model ? `${a.brand} ${a.model}` : (catName || '—')
-        return {
-          id: a.id,
-          title,
-          invCode: a.invCode,
-          cat: catName,
-          icon,
-          group,
-        }
-      })
-      setPickerStock(stock)
-      setPickerTarget(emp)
-    } catch {
-      setPickerStock([])
-      setPickerTarget(emp)
-    }
-  }
-
-  async function handleConfirmLink(ids: string[]) {
-    if (!pickerTarget) return
-    const byId = new Map(pickerStock.map(s => [s.id, s]))
-    try {
-      for (const id of ids) {
-        const row = byId.get(id)
-        await asnRepo.assign(
-          {
-            assetId: id,
-            mode: 'employee',
-            employeeId: pickerTarget.id,
-            employeeEmail: pickerTarget.email,
-            employeeName: `${pickerTarget.firstName} ${pickerTarget.lastName}`,
-            invCode: row?.invCode ?? null,
-          },
-          actor,
-        )
-      }
-      showToast(t('toast.linked', { count: ids.length }))
-      setPickerTarget(null)
-      await reload()
-    } catch {
-      showToast(t('validation.saveFailed'))
-    }
-  }
-
-  // ── Derived emp shapes for modals ─────────────────────────────────────────
-  // Search both active and former sets — the opened drawer may belong to either
-  const detailEmp = detailId
-    ? (employees.find(e => e.id === detailId) ?? former.find(e => e.id === detailId) ?? null)
-    : null
-  const detailBranchName     = detailEmp?.branchId ? (branchMap.get(detailEmp.branchId) ?? '—') : '—'
-  const detailDeptName       = detailEmp?.departmentId ? (deptMap.get(detailEmp.departmentId) ?? '—') : '—'
-
-  // Build HandoverModal emp shape
-  const handoverEmpShape = handoverTarget ? {
-    id: handoverTarget.id,
-    firstName: handoverTarget.firstName,
-    lastName: handoverTarget.lastName,
-    position: handoverTarget.position,
-    departmentName: handoverTarget.departmentId ? (deptMap.get(handoverTarget.departmentId) ?? null) : null,
-  } : null
-
-  // Build AssetPickerSheet emp shape
-  const pickerEmpShape = pickerTarget ? {
-    id: pickerTarget.id,
-    firstName: pickerTarget.firstName,
-    lastName: pickerTarget.lastName,
-    position: pickerTarget.position,
-    departmentName: pickerTarget.departmentId ? (deptMap.get(pickerTarget.departmentId) ?? null) : null,
-    branchName: pickerTarget.branchId ? (branchMap.get(pickerTarget.branchId) ?? null) : null,
-  } : null
-
-  // HandoverModal needs employees/departments/branches in {id, name} shape
-  const handoverEmployees = employees
-    .filter(e => e.status === 'active')
-    .map(e => ({ id: e.id, name: `${e.firstName} ${e.lastName}`, status: e.status }))
-
-  // ── Render helpers ────────────────────────────────────────────────────────
-
-  function renderPagination() {
-    return (
-      <div className="flex items-center justify-between px-5 py-2 border-t border-border bg-bg max-md:justify-center">
-        {/* Info text — hidden on mobile */}
-        <span className="text-[14px] text-text-tertiary tabular-nums max-md:hidden">
-          {t('pagination.showing', { from, to, total: totalCount })}
-        </span>
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={() => goTo(page - 1)}
-            disabled={page === 1}
-            className="inline-flex items-center justify-center w-8 h-8 rounded-md text-text-primary hover:bg-surface-2 disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-100"
-            aria-label={t('pagination.prev')}
-          >
-            <Icon name="chevron-right" size={14} className="rotate-180" />
-          </button>
-          {/* Mobile-only compact page indicator */}
-          <span className="hidden max-md:inline text-[14px] font-semibold tabular-nums text-text-primary px-2">
-            {page} / {totalPages}
-          </span>
-          {winStart > 1 && (
-            <>
-              <button type="button" onClick={() => goTo(1)} className="w-8 h-8 rounded-md text-[14px] font-semibold text-text-primary hover:bg-surface-2 max-md:hidden">1</button>
-              {winStart > 2 && <span className="px-1 text-text-subtle text-[14px] max-md:hidden">…</span>}
-            </>
-          )}
-          {pageNums.map(p => (
-            <button
-              key={p}
-              type="button"
-              onClick={() => goTo(p)}
-              aria-current={p === page ? 'page' : undefined}
-              className={`w-8 h-8 rounded-md text-[14px] font-semibold tabular-nums transition-colors duration-100 ${
-                p === page
-                  ? 'bg-accent text-white shadow-sm shadow-accent/25'
-                  : 'text-text-primary hover:bg-surface-2'
-              }${p !== page ? ' max-md:hidden' : ''}`}
-            >
-              {p}
-            </button>
-          ))}
-          {winEnd < totalPages && (
-            <>
-              {winEnd < totalPages - 1 && <span className="px-1 text-text-subtle text-[14px] max-md:hidden">…</span>}
-              <button type="button" onClick={() => goTo(totalPages)} className="w-8 h-8 rounded-md text-[14px] font-semibold text-text-primary hover:bg-surface-2 max-md:hidden">{totalPages}</button>
-            </>
-          )}
-          <button
-            type="button"
-            onClick={() => goTo(page + 1)}
-            disabled={page === totalPages}
-            className="inline-flex items-center justify-center w-8 h-8 rounded-md text-text-primary hover:bg-surface-2 disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-100"
-            aria-label={t('pagination.next')}
-          >
-            <Icon name="chevron-right" size={14} />
-          </button>
-        </div>
-      </div>
-    )
-  }
-
+  // ── Table region ──────────────────────────────────────────────────────────
   function renderTableRegion() {
     if (loading) return isMobile
       ? <CardListSkeleton rows={PAGE_SIZE} variant="employee" />
@@ -739,53 +110,88 @@ export function EmployeesPage({
     if (sorted.length === 0) {
       return (
         <div className="flex-1 flex items-center justify-center">
-          <EmptyState
-            icon="users"
-            title={t('empty.title')}
-            description={t('empty.desc')}
-          />
+          <EmptyState icon="users" title={t('empty.title')} description={t('empty.desc')} />
         </div>
       )
     }
     return (
-      <div className="h-full">
-        <EmployeesTable
-          rows={pageRows}
-          branches={branches}
-          departments={departments}
-          assetCounts={assetCounts}
-          headOfficeBranchId={headOfficeBranchId}
-          onRowClick={e => { void handleOpenDetail(e.id) }}
-          onRestore={id => handleRestore(id)}
-        />
-      </div>
+      <EmployeesTable
+        rows={pageRows}
+        branches={branches}
+        departments={departments}
+        assetCounts={assetCounts}
+        headOfficeBranchId={headOfficeBranchId}
+        onRowClick={e => { void actions.handleOpenDetail(e.id) }}
+        onRestore={id => actions.handleRestore(id)}
+      />
     )
   }
+
+  // ── Mobile toolbar (matchMedia branch — no element duplication) ───────────
+  // KindTabs + search + add live either in ListPageShell header (desktop)
+  // or in ListCard Zone-1 (mobile). Using isMobile avoids double-DOM and
+  // keeps getByRole() queries unambiguous in tests (jsdom = isMobile false).
+  const mobileToolbarRows = isMobile ? (
+    <>
+      {/* Row 1: KindTabs underline strip */}
+      <div className="bg-surface-2 border-b border-border px-[14px] w-full">
+        <EmployeeKindTabs
+          selected={kind}
+          onSelect={handleKindSelect}
+          counts={kindCounts}
+        />
+      </div>
+      {/* Row 2: Search input + MobileAddButton */}
+      <div className="bg-bg px-[14px] py-[7px] flex items-center gap-[8px]">
+        <div className="relative flex-1">
+          <span className="absolute top-1/2 -translate-y-1/2 left-[10px] text-text-subtle pointer-events-none">
+            <Icon name="search" size={13} />
+          </span>
+          <input
+            type="search"
+            autoComplete="off"
+            value={search}
+            onChange={e => handleSearchChange(e.target.value)}
+            placeholder={t('filter.search')}
+            aria-label={t('filter.search')}
+            className="w-full h-auto rounded-[9px] py-[9px] pl-[30px] pr-[12px] text-[11.5px] bg-surface border border-border text-text-primary placeholder:text-text-subtle caret-accent focus:outline-none focus:border-accent-light focus:ring-2 focus:ring-accent-light/15 transition-all duration-150"
+          />
+        </div>
+        {canMutate && (
+          <MobileAddButton
+            onClick={actions.handleCreate}
+            ariaLabel={t('addButton')}
+          />
+        )}
+      </div>
+    </>
+  ) : null
 
   return (
     <>
       <ListPageShell
+        flushMobile
         header={
-          <>
-            {/* Single row: KindTabs (left) + search + add button (right).
-                On mobile: KindTabs on first row (scroll-strip); search+add on same row full-width. */}
-            <div className="flex items-center justify-between gap-3 flex-wrap max-md:flex-col max-md:items-stretch max-md:gap-2">
+          /* Desktop header row — only rendered on desktop (isMobile=false).
+             Mobile gets its toolbar rows inside the ListCard below.
+             This avoids element duplication that would break getByRole queries. */
+          !isMobile ? (
+            <div className="flex items-center justify-between gap-3 flex-wrap">
               <EmployeeKindTabs
                 selected={kind}
-                onSelect={v => { setKind(v as 'all' | 'staff'); setPage(1) }}
+                onSelect={handleKindSelect}
                 counts={kindCounts}
               />
-              <div className="flex items-center gap-2 max-md:w-full">
-                {/* Search input */}
+              <div className="flex items-center gap-2">
                 <div
-                  className="flex items-center gap-2 bg-bg rounded-xl px-3 py-1.5 ring-1 ring-border max-md:flex-1"
+                  className="flex items-center gap-2 bg-bg rounded-xl px-3 py-1.5 ring-1 ring-border"
                   style={{ width: 220 }}
                 >
                   <Icon name="search" size={13} className="text-text-subtle shrink-0" />
                   <input
                     type="text"
                     value={search}
-                    onChange={e => { setSearch(e.target.value); setPage(1) }}
+                    onChange={e => handleSearchChange(e.target.value)}
                     placeholder={t('filter.search')}
                     aria-label={t('filter.search')}
                     className="flex-1 text-[14px] bg-transparent border-none outline-none placeholder:text-text-subtle text-text-primary min-w-0"
@@ -793,7 +199,7 @@ export function EmployeesPage({
                   {search && (
                     <button
                       type="button"
-                      onClick={() => { setSearch(''); setPage(1) }}
+                      onClick={() => handleSearchChange('')}
                       className="text-text-subtle hover:text-text-tertiary transition-colors"
                       aria-label={t('filter.reset')}
                     >
@@ -802,26 +208,32 @@ export function EmployeesPage({
                   )}
                 </div>
                 {canMutate && (
-                  <Btn variant="primary" size="md" onClick={handleCreate}>
+                  <Btn variant="primary" size="md" onClick={actions.handleCreate}>
                     <Icon name="user-plus" size={14} />
                     {t('addButton')}
                   </Btn>
                 )}
               </div>
             </div>
-          </>
+          ) : undefined
         }
       >
+        {/* Same floating-card model as AssetsPage: NO flushMobile (keeps the
+            rounded-lg border radius on mobile); 10px side gutters; the
+            .app-shell-content-flush flex chain stretches the card to the
+            BottomNav top. */}
         <ListCard
+          className="max-md:mx-[10px]"
           toolbar={
             <>
+              {mobileToolbarRows}
+
+              {/* Divider between toolbar / mobile-rows and filter bar */}
+              <div className="border-t border-border" />
+
               <EmployeesFilterBar
                 query={query}
-                onChange={patch => {
-                  handleQueryChange(patch)
-                  // If filter bar resets search (via reset button)
-                  if ('search' in patch && patch.search === '') setSearch('')
-                }}
+                onChange={handleFilterChange}
                 branches={branches}
                 departments={departments}
                 headOfficeBranchId={headOfficeBranchId}
@@ -837,66 +249,37 @@ export function EmployeesPage({
                   </button>
                 </div>
               )}
+
+              <div className="border-t border-border" />
             </>
           }
-          pagination={renderPagination()}
+          pagination={
+            /* Desktop-only pinned pagination; mobile copy lives inside the scroller */
+            <div className="max-md:hidden">
+              <EmployeesPagination {...paginationProps} />
+            </div>
+          }
         >
-          {renderTableRegion()}
+          {/* Mobile: outer scroll container — single scroller for rows + pagination.
+              flex-1/min-h-0 (Zone-2 is a flex col) gives it Zone-2's exact height —
+              h-full percentages fail to resolve through this chain and leave a
+              dead band under the paginator. Identical to AssetsPage. */}
+          <div className="flex-1 min-h-0 max-md:overflow-y-auto max-md:flex max-md:flex-col">
+            {/* Mobile: INNER flex-fill wrapper — grows to push pagination to the bottom.
+                flex-shrink-0 allows content to exceed the container via outer scroll.
+                Desktop: h-full pass-through for table's height fill. */}
+            <div className="h-full max-md:h-auto max-md:grow max-md:shrink-0 max-md:flex max-md:flex-col">
+              {renderTableRegion()}
+            </div>
+            {/* Mobile-only pagination copy inside the scroller */}
+            {isMobile && !loading && !error && sorted.length > 0 && (
+              <EmployeesPagination {...paginationProps} />
+            )}
+          </div>
         </ListCard>
       </ListPageShell>
 
-      {/* ── Modals / Drawers ── */}
-
-      <EmployeeFormModal
-        open={formOpen}
-        initial={formInitial}
-        departments={departments}
-        onSave={submit => { void handleSaveForm(submit) }}
-        onClose={() => setFormOpen(false)}
-      />
-
-      <EmployeeDetailDrawer
-        open={!!detailId}
-        emp={detailEmp}
-        branchName={detailBranchName}
-        departmentName={detailDeptName}
-        linkedAssets={detailLinkedAssets}
-        onClose={() => setDetailId(null)}
-        onArchive={id => { void handleArchive(id) }}
-        onRestore={id => { handleRestore(id) }}
-        onLinkAssets={id => { void handleLinkAssets(id) }}
-        employees={handoverEmployees}
-        departments={departments}
-        branches={branches}
-        onTransferAssets={handleTransferAssets}
-        currentUserId={user.id}
-      />
-
-      <HandoverModal
-        open={!!handoverTarget}
-        emp={handoverEmpShape}
-        assets={handoverAssets}
-        employees={handoverEmployees}
-        departments={departments}
-        branches={branches}
-        onConfirm={rows => { void handleHandoverConfirm(rows) }}
-        onClose={() => setHandoverTarget(null)}
-      />
-
-      <AssetPickerSheet
-        open={!!pickerTarget}
-        emp={pickerEmpShape}
-        stock={pickerStock}
-        onConfirm={ids => { void handleConfirmLink(ids) }}
-        onClose={() => setPickerTarget(null)}
-      />
-
-      <RestoreConfirmModal
-        open={!!restoreTarget}
-        emp={restoreTarget}
-        onConfirm={() => { void handleConfirmRestore() }}
-        onClose={() => setRestoreTarget(null)}
-      />
+      <EmployeesModals data={data} actions={actions} currentUserId={user.id} />
     </>
   )
 }

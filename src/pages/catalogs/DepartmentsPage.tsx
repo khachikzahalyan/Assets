@@ -1,9 +1,14 @@
 import { useMemo, useState, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
-import { PageHeader, SectionCard, Btn, Icon, EmptyState, LoadingState, ErrorState, CardListSkeleton } from '@/components/ui'
+import {
+  ListCard, ListPageShell,
+  Icon,
+  EmptyState, ErrorState,
+  TableSkeleton, CardListSkeleton,
+} from '@/components/ui'
 import { useIsMobile } from '@/hooks/useIsMobile'
-import { CatalogTable, CatalogPagination, ConfirmDeleteDialog, type CatalogColumn } from '@/components/features/catalogs'
+import { CatalogTable, CatalogPagination, ConfirmDeleteDialog, CatalogToolbarHeader, type CatalogColumn } from '@/components/features/catalogs'
 import { DepartmentFormDialog, type DepartmentFormValues } from '@/components/features/departments'
 import type { Department, DepartmentRepository } from '@/domain/department'
 import { FirestoreDepartmentRepository } from '@/infra/repositories'
@@ -82,39 +87,57 @@ export function DepartmentsPage({ repository }: DepartmentsPageProps) {
     } finally { setDelBusy(false) }
   }
 
-  function body() {
-    if (loading) return isMobile ? <CardListSkeleton rows={6} variant="catalog" /> : <LoadingState rows={6} />
+  function renderTableRegion() {
+    if (loading) return isMobile
+      ? <CardListSkeleton rows={6} variant="catalog" />
+      : <TableSkeleton rows={PAGE_SIZE} columns={2} gridTemplate="minmax(160px,2fr) 80px" lastColAction />
     if (error) return <ErrorState onRetry={load} />
     if (rows.length === 0) return <EmptyState icon="network" title={t('empty.title')} description={t('empty.desc')} />
     return (
-      <>
-        <CatalogTable
-          rows={pageRows} columns={columns} canMutate={canMutate}
-          onEdit={d => { setSaveError(null); setEditing(d) }}
-          onDelete={askDelete}
-          mobileIcon={() => (
-            <span className="w-[28px] h-[28px] rounded-[8px] inline-flex items-center justify-center flex-shrink-0 bg-sky-500/15 text-sky-300" aria-hidden="true">
-              <Icon name="network" size={14} />
-            </span>
-          )}
-          mobileMinRows={PAGE_SIZE}
-        />
-        <CatalogPagination page={page} pageSize={PAGE_SIZE} total={total} onPage={setPage} />
-      </>
+      <CatalogTable
+        rows={pageRows} columns={columns} canMutate={canMutate}
+        onEdit={d => { setSaveError(null); setEditing(d) }}
+        onDelete={askDelete}
+        minRows={PAGE_SIZE}
+        mobileIcon={() => (
+          <span className="w-[28px] h-[28px] rounded-[8px] inline-flex items-center justify-center flex-shrink-0 bg-sky-500/15 text-sky-300" aria-hidden="true">
+            <Icon name="network" size={14} />
+          </span>
+        )}
+        mobileMinRows={PAGE_SIZE}
+      />
     )
   }
 
   return (
-    <div className="space-y-5">
-      <PageHeader
-        icon="network" title={t('title')} {...(!loading ? { count: total } : {})}
-        {...(canMutate ? { actions: (
-          <Btn variant="primary" size="md" onClick={() => { setSaveError(null); setEditing('new') }}>
-            <Icon name="network" size={14} />{t('create')}
-          </Btn>
-        ) } : {})}
-      />
-      <SectionCard noHeader><div className="space-y-4">{body()}</div></SectionCard>
+    <>
+      <ListPageShell flushMobile>
+        {/* Floating-card model (same as BranchesPage/CategoriesPage): NO flushMobile
+            on the card — keeps rounded-lg radius on mobile; 10px side gutters;
+            the .app-shell-content-flush flex chain stretches the card to the
+            BottomNav top ('departments' is in AppShell FLUSH_ROUTES). */}
+        <ListCard
+          className="max-md:mx-[10px]"
+          toolbar={
+            <CatalogToolbarHeader
+              icon="network"
+              title={t('title')}
+              count={loading ? undefined : total}
+              canMutate={canMutate}
+              isMobile={isMobile}
+              createLabel={t('create')}
+              onCreate={() => { setSaveError(null); setEditing('new') }}
+            />
+          }
+          pagination={
+            !loading && !error && total > 0 ? (
+              <CatalogPagination page={page} pageSize={PAGE_SIZE} total={total} onPage={setPage} />
+            ) : undefined
+          }
+        >
+          {renderTableRegion()}
+        </ListCard>
+      </ListPageShell>
 
       {editing !== null && (
         <DepartmentFormDialog
@@ -131,6 +154,6 @@ export function DepartmentsPage({ repository }: DepartmentsPageProps) {
         blockedMessage={blockedMsg} busy={delBusy}
         onConfirm={confirmDelete} onCancel={() => { setDeleting(null); setBlockedMsg(null) }}
       />
-    </div>
+    </>
   )
 }

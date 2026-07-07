@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { Icon } from '@/components/ui'
+import { Icon, MobileAddButton } from '@/components/ui'
 import { CategoryChipStrip } from './CategoryChipStrip'
 import type { Part, PartStock } from '@/domain/part/types'
 
@@ -92,7 +92,7 @@ export function PartsTabsHeader({
           })}
         </div>
 
-        {/* Desktop «Получить» button — hidden on mobile (square «+» in row 2 handles mobile) */}
+        {/* Desktop «Получить» button — hidden on mobile */}
         <button
           type="button"
           onClick={onAdd}
@@ -102,13 +102,20 @@ export function PartsTabsHeader({
           <Icon name="plus" size={14} />
           <span>{t('actions.add')}</span>
         </button>
+
+        {/* Mobile «+» — shared MobileAddButton, inline at the right end of the tab strip */}
+        <MobileAddButton
+          onClick={onAdd}
+          ariaLabel={t('actions.add')}
+          className="md:hidden mr-[8px]"
+        />
       </div>
 
       {/* ── Row 2 — mobile only ────────────────────────────────────────────── */}
       {/*
        * Warehouse tab: CategoryChipStrip bare (no own padding/border) as flex-1
        * Devices tab: search input flex-1
-       * Always: 36×36 square accent «+» button
+       * (the «+» add button lives on the tab strip above, per prototype)
        */}
       <div className="md:hidden flex items-center gap-[8px] bg-bg px-[14px] py-[7px]">
         {activeTab === 'warehouse' ? (
@@ -136,14 +143,6 @@ export function PartsTabsHeader({
             />
           </div>
         )}
-        <button
-          type="button"
-          onClick={onAdd}
-          aria-label={t('actions.add')}
-          className="w-[36px] h-[36px] min-w-[36px] flex-shrink-0 rounded-[9px] bg-accent text-white inline-flex items-center justify-center shadow-[0_2px_10px] shadow-accent/35 transition-colors duration-150 hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
-        >
-          <Icon name="plus" size={15} />
-        </button>
       </div>
     </>
   )

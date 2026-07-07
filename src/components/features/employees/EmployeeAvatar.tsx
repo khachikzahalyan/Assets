@@ -2,10 +2,6 @@ import type { Role } from '@/config/roles'
 import { RoleIcon } from '@/components/ui/RoleIcon'
 
 export interface EmployeeAvatarProps {
-  /** Kept for backward-compat with callers; no longer used for rendering. */
-  firstName?: string
-  lastName?: string
-  id?: string
   size?: 'sm' | 'md' | 'lg'
   /** Explicit role for the avatar icon; defaults to 'employee' when omitted. */
   role?: Role

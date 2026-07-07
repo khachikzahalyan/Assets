@@ -2,7 +2,9 @@
   "title": "Licenses",
   "tabs": {
     "workstation": "Workstation",
-    "server": "Server"
+    "server": "Server",
+    "keys": "Windows Key",
+    "subs": "Subscriptions"
   },
   "col": {
     "name": "Name",

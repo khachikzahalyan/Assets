@@ -49,6 +49,7 @@ import {
   // Category icons + badge icons
   Armchair,
   Box,
+  Boxes,
   House,
   Landmark,
   Printer,
@@ -176,6 +177,7 @@ const REGISTRY: Record<string, LucideIcon> = {
   // Category icons + badge icons
   armchair: Armchair,
   box: Box,
+  boxes: Boxes,
   house: House,
   landmark: Landmark,
   printer: Printer,

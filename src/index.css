@@ -389,6 +389,26 @@ select:-webkit-autofill {
 }
 .anim-drawer-slide-in { animation: drawerSlideInRight 200ms cubic-bezier(0.16, 1, 0.3, 1) both; }
 
+/* ── ams-drawer-panel: desktop clamp sizing + mobile bottom-sheet overrides ── */
+/* Desktop only — keeps the right-side drawer at 42vw (clamped).              */
+/* Defined in CSS (not inline style) so max-md Tailwind classes can override.  */
+@media (min-width: 768px) {
+  .ams-drawer-panel {
+    width: 100%;
+    max-width: clamp(320px, 42vw, 680px);
+  }
+}
+
+/* Mobile: swap slide-in-from-right → slide-up-from-bottom, add safe-area.   */
+@media (max-width: 767px) {
+  .anim-drawer-slide-in {
+    animation: amsSheetIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .ams-drawer-panel {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+
 /* ── Login page decorative animations ── */
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(18px); }

@@ -9,6 +9,7 @@ import ReactDOM from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@/components/ui'
 import { DatePicker } from '@/components/features/assets/create/DatePicker'
+import { rafThrottle } from '@/lib/rafThrottle'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -77,6 +78,16 @@ const pad = (n: number) => String(n).padStart(2, '0')
 const toISO = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 const plusDaysISO = (days: number) => { const d = new Date(); d.setDate(d.getDate() + days); return toISO(d) }
 
+// Structural equality for a PopoverPos — lets setPos bail out when a scroll frame
+// produces the same geometry, avoiding a re-render per scroll event.
+const samePopoverPos = (a: PopoverPos | null, b: PopoverPos): boolean =>
+  a !== null &&
+  a.top === b.top &&
+  a.bottom === b.bottom &&
+  a.left === b.left &&
+  a.right === b.right &&
+  a.width === b.width
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function DestPicker({
@@ -105,26 +116,26 @@ export function DestPicker({
     if (!triggerRef.current) return
     const isMobile = window.matchMedia('(max-width: 768px)').matches
     if (isMobile) {
-      setPos({ left: 8, right: 8, bottom: 8, width: 'auto' })
+      const next: PopoverPos = { left: 8, right: 8, bottom: 8, width: 'auto' }
+      setPos((prev) => (samePopoverPos(prev, next) ? prev : next))
       return
     }
     const rect = triggerRef.current.getBoundingClientRect()
     const popoverHeight = 180
     const spaceBelow = window.innerHeight - rect.bottom
     const openUp = forceDropUp || spaceBelow < popoverHeight + 8
-    if (openUp) {
-      setPos({
-        bottom: window.innerHeight - rect.top + 4,
-        right: window.innerWidth - rect.right,
-        width: 240,
-      })
-    } else {
-      setPos({
-        top: rect.bottom + 4,
-        right: window.innerWidth - rect.right,
-        width: 240,
-      })
-    }
+    const next: PopoverPos = openUp
+      ? {
+          bottom: window.innerHeight - rect.top + 4,
+          right: window.innerWidth - rect.right,
+          width: 240,
+        }
+      : {
+          top: rect.bottom + 4,
+          right: window.innerWidth - rect.right,
+          width: 240,
+        }
+    setPos((prev) => (samePopoverPos(prev, next) ? prev : next))
   }, [forceDropUp])
 
   useLayoutEffect(() => {
@@ -154,17 +165,19 @@ export function DestPicker({
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setOpen(false)
     }
+    const onScrollResize = rafThrottle(updatePos)
     document.addEventListener('mousedown', onOutsideClick)
     document.addEventListener('touchstart', onOutsideClick)
     document.addEventListener('keydown', onKey)
-    window.addEventListener('scroll', updatePos, true)
-    window.addEventListener('resize', updatePos)
+    window.addEventListener('scroll', onScrollResize, true)
+    window.addEventListener('resize', onScrollResize)
     return () => {
+      onScrollResize.cancel()
       document.removeEventListener('mousedown', onOutsideClick)
       document.removeEventListener('touchstart', onOutsideClick)
       document.removeEventListener('keydown', onKey)
-      window.removeEventListener('scroll', updatePos, true)
-      window.removeEventListener('resize', updatePos)
+      window.removeEventListener('scroll', onScrollResize, true)
+      window.removeEventListener('resize', onScrollResize)
     }
   }, [open, updatePos])
 

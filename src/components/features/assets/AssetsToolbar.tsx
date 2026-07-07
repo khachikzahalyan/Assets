@@ -1,8 +1,11 @@
+import { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Btn, Icon } from '@/components/ui'
+import { Btn, Icon, MobileAddButton } from '@/components/ui'
 import { GroupTabs } from './GroupTabs'
 import type { GroupTab } from './GroupTabs'
 import type { AssetListQuery, AssetGroupFilter } from '@/domain/asset'
+
+const SEARCH_DEBOUNCE_MS = 300
 
 export interface AssetsToolbarProps {
   query: AssetListQuery
@@ -34,6 +37,40 @@ export function AssetsToolbar({
   onNavigateCreate,
 }: AssetsToolbarProps) {
   const { t } = useTranslation('assets')
+
+  // ── Debounced search ────────────────────────────────────────────────────────
+  // The input stays immediately responsive via local state; the parent `onChange`
+  // (which triggers a full-collection Firestore refetch) fires only after the user
+  // pauses typing for ~300ms. External resets of query.search (e.g. "reset filters")
+  // still sync back into the local input.
+  const [searchLocal, setSearchLocal] = useState(query.search ?? '')
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const lastEmittedRef = useRef(query.search ?? '')
+
+  useEffect(() => {
+    const incoming = query.search ?? ''
+    // Only resync when the prop changed to something we didn't just emit ourselves
+    // (an external reset), so mid-typing debounces aren't clobbered.
+    if (incoming !== lastEmittedRef.current) {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+      lastEmittedRef.current = incoming
+      setSearchLocal(incoming)
+    }
+  }, [query.search])
+
+  // Clear any pending debounce on unmount.
+  useEffect(() => () => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+  }, [])
+
+  const handleSearchInput = (value: string) => {
+    setSearchLocal(value)
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      lastEmittedRef.current = value
+      onChange({ search: value })
+    }, SEARCH_DEBOUNCE_MS)
+  }
 
   const groupTabs: GroupTab[] = [
     { id: 'all',       label: t('groups.all'),       icon: 'layers' },
@@ -90,8 +127,8 @@ export function AssetsToolbar({
               id="assets-search"
               type="search"
               autoComplete="off"
-              value={query.search ?? ''}
-              onChange={e => onChange({ search: e.target.value })}
+              value={searchLocal}
+              onChange={e => handleSearchInput(e.target.value)}
               placeholder={t('search')}
               aria-label={t('search')}
               className={[
@@ -141,23 +178,12 @@ export function AssetsToolbar({
               <Icon name="plus" size={13} />
               {t('toolbar.create')}
             </Btn>
-            {/* Mobile: 36×36px square accent button with shadow */}
-            <button
-              type="button"
+            {/* Mobile: shared 36×36 MobileAddButton — same control on every page */}
+            <MobileAddButton
               onClick={onNavigateCreate}
-              aria-label={t('toolbar.create')}
-              className={[
-                'md:hidden',
-                'w-[36px] h-[36px] min-w-[36px] flex-shrink-0',
-                'rounded-[9px] bg-accent text-white',
-                'inline-flex items-center justify-center',
-                'shadow-[0_2px_10px] shadow-accent/35',
-                'transition-colors duration-150 hover:bg-accent-hover',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40',
-              ].join(' ')}
-            >
-              <Icon name="plus" size={15} />
-            </button>
+              ariaLabel={t('toolbar.create')}
+              className="md:hidden"
+            />
           </>
         )}
       </div>

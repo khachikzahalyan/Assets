@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import ReactDOM from 'react-dom'
 import { Icon } from '@/components/ui'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { useExclusiveDropdown } from './dropdownBus'
+import { DPPortal } from './DatePickerPortal'
 
 const RU_MONTHS = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь']
 const RU_WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
@@ -42,46 +43,14 @@ export interface DatePickerProps {
   showPlusYear?: boolean
   /** Accessible label / data-testid passthrough for the trigger. */
   id?: string
-}
-
-/** Calendar surface wrapper: mobile = bottom sheet (slides up), desktop = anchored popover. */
-function DPPortal({ isMobile, pos, onBackdrop, children }: {
-  isMobile: boolean
-  pos: { top: number; left: number; width: number } | null
-  onBackdrop: () => void
-  children: ReactNode
-}) {
-  if (isMobile) {
-    return (
-      <div
-        data-dp-portal="true"
-        className="fixed inset-0 z-[1000] flex items-end bg-black/60 anim-backdrop-fade"
-        onMouseDown={(e) => { if (e.target === e.currentTarget) onBackdrop() }}
-      >
-        <div
-          data-ams-dropdown="true"
-          className="w-full bg-surface rounded-t-[18px] overflow-hidden pb-[env(safe-area-inset-bottom,0px)] [animation:amsSheetIn_0.22s_ease-out]"
-        >
-          {children}
-        </div>
-      </div>
-    )
-  }
-  if (!pos) return null
-  return (
-    <div
-      data-dp-portal="true"
-      data-ams-dropdown="true"
-      style={{ position: 'fixed', top: pos.top, left: pos.left, width: pos.width, zIndex: 1000 }}
-      className="bg-surface ring-1 ring-border rounded-xl shadow-xl shadow-slate-900/40 anim-fade-slide-in overflow-hidden"
-    >
-      {children}
-    </div>
-  )
+  /** Trigger visual style: 'field' (default underline) or 'chip' (compact border box). */
+  variant?: 'field' | 'chip'
+  /** aria-label for the trigger button. */
+  ariaLabel?: string
 }
 
 /** Themed calendar (dark/orange) matching the AMS brand. Ported from the prototype. */
-export function DatePicker({ value, onChange, min, max, disabled = false, placeholder = 'дд.мм.гггг', showPlusYear = false, id }: DatePickerProps) {
+export function DatePicker({ value, onChange, min, max, disabled = false, placeholder = 'дд.мм.гггг', showPlusYear = false, id, variant = 'field', ariaLabel }: DatePickerProps) {
   const [open, setOpen] = useState(false)
   useExclusiveDropdown(open, setOpen)
   const isMobile = useIsMobile()
@@ -180,14 +149,15 @@ export function DatePicker({ value, onChange, min, max, disabled = false, placeh
         onClick={() => !disabled && setOpen(o => !o)}
         aria-haspopup="dialog"
         aria-expanded={open}
-        className={`w-full px-0 py-2.5 text-[15px] border-b bg-transparent rounded-none flex items-center gap-2 outline-none shadow-none transition-[border-color,box-shadow] duration-200 text-left
-          ${open ? 'border-accent shadow-[0_2px_8px_rgba(217,119,87,0.1)]' : 'border-border hover:border-border-strong'}
-          disabled:opacity-50 disabled:cursor-not-allowed`}
+        aria-label={ariaLabel}
+        className={variant === 'chip'
+          ? `w-full h-8 px-2 text-[12px] bg-bg border border-border rounded-lg flex items-center gap-1.5 text-left transition-all duration-150 ${open ? 'border-accent' : 'border-border hover:border-border-strong'} disabled:opacity-50 disabled:cursor-not-allowed`
+          : `w-full px-0 py-2.5 text-[15px] border-b bg-transparent rounded-none flex items-center gap-2 outline-none shadow-none transition-[border-color,box-shadow] duration-200 text-left ${open ? 'border-accent shadow-[0_2px_8px_rgba(217,119,87,0.1)]' : 'border-border hover:border-border-strong'} disabled:opacity-50 disabled:cursor-not-allowed`}
       >
         <span className={selected ? 'text-text-primary' : 'text-text-subtle'}>
           {selected ? formatDisplay(selected) : placeholder}
         </span>
-        <Icon name="calendar" size={14} className={`ml-auto shrink-0 transition-colors ${open ? 'text-accent' : 'text-text-subtle'}`} />
+        <Icon name="calendar" size={variant === 'chip' ? 13 : 14} className={`ml-auto shrink-0 transition-colors ${open ? 'text-accent' : 'text-text-subtle'}`} />
       </button>
 
       {open && ReactDOM.createPortal(

@@ -14,15 +14,10 @@ describe('AppLoader', () => {
     expect(screen.getByText('AMS')).toBeInTheDocument()
   })
 
-  it('renders the default label "Загрузка…"', () => {
+  it('label is screen-reader-only (visually hidden via sr-only)', () => {
     render(<AppLoader />)
-    expect(screen.getByText('Загрузка…')).toBeInTheDocument()
-  })
-
-  it('renders a custom label when label prop is provided', () => {
-    render(<AppLoader label="X" />)
-    expect(screen.getByText('X')).toBeInTheDocument()
-    expect(screen.queryByText('Загрузка…')).toBeNull()
+    const label = screen.getByText('Загрузка…')
+    expect(label.className).toContain('sr-only')
   })
 
   it('fullScreen=true → root has min-h-screen class', () => {

@@ -10,6 +10,7 @@
 import { useState, useEffect, useRef } from 'react'
 import ReactDOM from 'react-dom'
 import { useTranslation } from 'react-i18next'
+import type { TFunction } from 'i18next'
 import { Icon, Btn, MODAL_BACKDROP_ABS, MODAL_SHEET } from '@/components/ui'
 import { useModalA11y } from '@/components/ui/useModalA11y'
 import { RoleIcon } from '@/components/ui/RoleIcon'
@@ -68,6 +69,112 @@ function iconTileCls(iconName: string): string {
     armchair: 'bg-amber-500/10 text-amber-300',
   }
   return map[iconName] ?? 'bg-bg text-text-tertiary'
+}
+
+// ── Step indicator strip (module scope — stable component identity) ───────────
+// Declared outside HandoverModal so it keeps a single component type across
+// renders; when it lived inside the render body React remounted the subtree on
+// every state change.
+function StepIndicator({ step, t }: { step: 'receive' | 'route'; t: TFunction<'employees'> }) {
+  return (
+    <div className="px-6 py-2.5 bg-bg/60 border-b border-border flex items-center gap-3 shrink-0">
+      <div className="flex items-center gap-1.5">
+        <span
+          className={`w-2.5 h-2.5 rounded-full transition-colors duration-200 ${
+            step === 'receive' ? 'bg-emerald-500' : 'bg-slate-300'
+          }`}
+        />
+        <span className="h-px bg-border" style={{ width: 80 }} />
+        <span
+          className={`w-2.5 h-2.5 rounded-full transition-colors duration-200 ${
+            step === 'route' ? 'bg-emerald-500' : 'bg-slate-300'
+          }`}
+        />
+      </div>
+      <span className="text-[13.5px] font-medium text-text-primary tabular-nums">
+        {step === 'receive' ? t('handover.step1') : t('handover.step2')}
+      </span>
+    </div>
+  )
+}
+
+// ── Progress block (module scope — stable component identity) ─────────────────
+interface ProgressBlockProps {
+  step: 'receive' | 'route'
+  allDone: boolean
+  checkedCount: number
+  total: number
+  warehouseCount: number
+  redirectedCount: number
+  rows: HandoverRow[]
+  onToggleAll: () => void
+  t: TFunction<'employees'>
+}
+
+function ProgressBlock({
+  step,
+  allDone,
+  checkedCount,
+  total,
+  warehouseCount,
+  redirectedCount,
+  rows,
+  onToggleAll,
+  t,
+}: ProgressBlockProps) {
+  return (
+    <div className="ams-handover-progress flex flex-col gap-1.5 min-w-0 w-full max-w-[280px]">
+      {/* Row 1: counter + bulk toggle + breakdown */}
+      <div className="ams-handover-progress-row1 flex items-center gap-3 flex-wrap">
+        <span
+          className={`ams-handover-progress-counter text-[14px] font-semibold tabular-nums ${
+            step === 'route' || allDone ? 'text-emerald-300' : 'text-text-primary'
+          }`}
+        >
+          {t('handover.received')} {step === 'route' ? total : checkedCount}/{total}
+        </span>
+        {step === 'receive' && (
+          <button
+            type="button"
+            onClick={onToggleAll}
+            className="ams-handover-toggle-all inline-flex items-center gap-1 text-[13.5px] font-semibold text-accent hover:text-accent hover:underline underline-offset-4 decoration-accent-light/60 transition-colors duration-100"
+          >
+            <Icon name={checkedCount < total ? 'check-check' : 'square'} size={11} />
+            <span className="ams-handover-toggle-all-label">
+              {checkedCount < total ? t('handover.markAll') : t('handover.unmarkAll')}
+            </span>
+          </button>
+        )}
+        {redirectedCount > 0 && (
+          <span className="ams-handover-progress-breakdown text-[13px] text-text-tertiary tabular-nums">
+            · → {t('dest.warehouse')}: {warehouseCount} · Перенаправлено: {redirectedCount}
+          </span>
+        )}
+      </div>
+      {/* Row 2: segmented progress bar */}
+      <div className="ams-handover-progress-bar flex gap-[3px] rounded-full overflow-hidden ring-1 ring-emerald-500/30 shadow-sm shadow-emerald-500/10 w-full">
+        {rows.map((r) => (
+          <div
+            key={r.id}
+            style={{ height: 6, flex: 1 }}
+            className={`rounded-full transition-colors duration-200 ${
+              step === 'route'
+                ? 'bg-emerald-500'
+                : r.received
+                  ? 'bg-emerald-500'
+                  : 'bg-border'
+            }`}
+          />
+        ))}
+      </div>
+      {/* Row 3: keyboard hint — only in step 1; not actionable on touch */}
+      {step === 'receive' && (
+        <span className="ams-handover-progress-kbhint text-[12.5px] text-text-subtle font-mono leading-none max-md:hidden">
+          {t('handover.kbHint')}
+        </span>
+      )}
+    </div>
+  )
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -146,83 +253,6 @@ export function HandoverModal({
 
   const empName = `${emp.firstName} ${emp.lastName}`
 
-  // ── Step indicator strip ─────────────────────────────────────────────────
-  const StepIndicator = () => (
-    <div className="px-6 py-2.5 bg-bg/60 border-b border-border flex items-center gap-3 shrink-0">
-      <div className="flex items-center gap-1.5">
-        <span
-          className={`w-2.5 h-2.5 rounded-full transition-colors duration-200 ${
-            step === 'receive' ? 'bg-emerald-500' : 'bg-slate-300'
-          }`}
-        />
-        <span className="h-px bg-border" style={{ width: 80 }} />
-        <span
-          className={`w-2.5 h-2.5 rounded-full transition-colors duration-200 ${
-            step === 'route' ? 'bg-emerald-500' : 'bg-slate-300'
-          }`}
-        />
-      </div>
-      <span className="text-[13.5px] font-medium text-text-primary tabular-nums">
-        {step === 'receive' ? t('handover.step1') : t('handover.step2')}
-      </span>
-    </div>
-  )
-
-  // ── Progress block ───────────────────────────────────────────────────────
-  const ProgressBlock = () => (
-    <div className="ams-handover-progress flex flex-col gap-1.5 min-w-0 w-full max-w-[280px]">
-      {/* Row 1: counter + bulk toggle + breakdown */}
-      <div className="ams-handover-progress-row1 flex items-center gap-3 flex-wrap">
-        <span
-          className={`ams-handover-progress-counter text-[14px] font-semibold tabular-nums ${
-            step === 'route' || allDone ? 'text-emerald-300' : 'text-text-primary'
-          }`}
-        >
-          {t('handover.received')} {step === 'route' ? total : checkedCount}/{total}
-        </span>
-        {step === 'receive' && (
-          <button
-            type="button"
-            onClick={toggleAll}
-            className="ams-handover-toggle-all inline-flex items-center gap-1 text-[13.5px] font-semibold text-accent hover:text-accent hover:underline underline-offset-4 decoration-accent-light/60 transition-colors duration-100"
-          >
-            <Icon name={checkedCount < total ? 'check-check' : 'square'} size={11} />
-            <span className="ams-handover-toggle-all-label">
-              {checkedCount < total ? t('handover.markAll') : t('handover.unmarkAll')}
-            </span>
-          </button>
-        )}
-        {redirectedCount > 0 && (
-          <span className="ams-handover-progress-breakdown text-[13px] text-text-tertiary tabular-nums">
-            · → {t('dest.warehouse')}: {warehouseCount} · Перенаправлено: {redirectedCount}
-          </span>
-        )}
-      </div>
-      {/* Row 2: segmented progress bar */}
-      <div className="ams-handover-progress-bar flex gap-[3px] rounded-full overflow-hidden ring-1 ring-emerald-500/30 shadow-sm shadow-emerald-500/10 w-full">
-        {rows.map((r) => (
-          <div
-            key={r.id}
-            style={{ height: 6, flex: 1 }}
-            className={`rounded-full transition-colors duration-200 ${
-              step === 'route'
-                ? 'bg-emerald-500'
-                : r.received
-                  ? 'bg-emerald-500'
-                  : 'bg-border'
-            }`}
-          />
-        ))}
-      </div>
-      {/* Row 3: keyboard hint — only in step 1; not actionable on touch */}
-      {step === 'receive' && (
-        <span className="ams-handover-progress-kbhint text-[12.5px] text-text-subtle font-mono leading-none max-md:hidden">
-          {t('handover.kbHint')}
-        </span>
-      )}
-    </div>
-  )
-
   return ReactDOM.createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 max-md:items-end max-md:p-0">
       <div
@@ -277,7 +307,7 @@ export function HandoverModal({
         </div>
 
         {/* Step indicator */}
-        <StepIndicator />
+        <StepIndicator step={step} t={t} />
 
         {/* Step 2 helper hint */}
         {step === 'route' && (
@@ -427,7 +457,17 @@ export function HandoverModal({
                 <span className="ams-handover-back-label">{t('handover.back')}</span>
               </Btn>
             )}
-            <ProgressBlock />
+            <ProgressBlock
+              step={step}
+              allDone={allDone}
+              checkedCount={checkedCount}
+              total={total}
+              warehouseCount={warehouseCount}
+              redirectedCount={redirectedCount}
+              rows={rows}
+              onToggleAll={toggleAll}
+              t={t}
+            />
           </div>
 
           {/* Spacer */}
