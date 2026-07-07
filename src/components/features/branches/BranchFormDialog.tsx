@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import ReactDOM from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { Btn, Field, Input, Select, DIALOG_BACKDROP, MODAL_SHEET } from '@/components/ui'
 import type { Branch, BranchType } from '@/domain/branch'
@@ -32,7 +33,7 @@ export function BranchFormDialog(p: BranchFormDialogProps) {
     p.onSubmit({ name: name.trim(), type, city: city.trim() || null, address: address.trim() || null })
   }
 
-  return (
+  return ReactDOM.createPortal(
     <div className={DIALOG_BACKDROP} onClick={p.onCancel}>
       <div className={`w-[440px] max-md:w-full max-md:rounded-b-none max-md:rounded-t-[18px] max-md:max-h-[85vh] max-md:overflow-y-auto rounded-lg border border-border bg-surface p-5 mx-4 max-md:mx-0 ${MODAL_SHEET}`} onClick={e => e.stopPropagation()}>
         <div className="max-md:block hidden mx-auto h-1 w-9 rounded-full bg-white/20 mb-3" />
@@ -62,6 +63,7 @@ export function BranchFormDialog(p: BranchFormDialogProps) {
           <Btn variant="primary" size="sm" disabled={!!p.submitting} onClick={submit}>{t('form.save')}</Btn>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

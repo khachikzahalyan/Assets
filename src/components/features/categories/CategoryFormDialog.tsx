@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import ReactDOM from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { Btn, Field, Input, DIALOG_BACKDROP, MODAL_SHEET } from '@/components/ui'
 import type { Category } from '@/domain/category'
@@ -36,7 +37,7 @@ export function CategoryFormDialog(p: CategoryFormDialogProps) {
     p.onSubmit({ name: name.trim(), hasSpecs, lucideIcon: lucideIcon.trim() || 'package' })
   }
 
-  return (
+  return ReactDOM.createPortal(
     <div className={DIALOG_BACKDROP} onClick={p.onCancel}>
       <div
         className={`w-[480px] rounded-lg border border-border bg-surface p-5 mx-4 max-md:mx-0 ${MODAL_SHEET}`}
@@ -81,6 +82,7 @@ export function CategoryFormDialog(p: CategoryFormDialogProps) {
           </Btn>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

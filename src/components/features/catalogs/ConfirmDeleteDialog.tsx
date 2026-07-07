@@ -1,3 +1,4 @@
+import ReactDOM from 'react-dom'
 import { Btn, DIALOG_BACKDROP, MODAL_SHEET } from '@/components/ui'
 
 export interface ConfirmDeleteDialogProps {
@@ -14,7 +15,7 @@ export interface ConfirmDeleteDialogProps {
 
 export function ConfirmDeleteDialog(p: ConfirmDeleteDialogProps) {
   if (!p.open) return null
-  return (
+  return ReactDOM.createPortal(
     <div className={DIALOG_BACKDROP} onClick={p.onCancel}>
       <div className={`w-[400px] max-md:w-full max-md:rounded-b-none max-md:rounded-t-[18px] max-md:max-h-[85vh] max-md:overflow-y-auto rounded-lg border border-border bg-surface p-5 mx-4 max-md:mx-0 ${MODAL_SHEET}`} onClick={e => e.stopPropagation()}>
         <div className="max-md:block hidden mx-auto h-1 w-9 rounded-full bg-white/20 mb-3" />
@@ -27,6 +28,7 @@ export function ConfirmDeleteDialog(p: ConfirmDeleteDialogProps) {
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
