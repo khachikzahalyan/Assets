@@ -160,11 +160,19 @@ export function HistoryPanel({
   const visibleRows = filtered.slice(sliceStart, sliceStart + PAGE_SIZE)
   const pageNums = buildPageNums(safePage, totalPages)
 
-  /* Count by type — mirrors prototype lines 2019-2022 */
-  const receiveCnt   = sorted.filter((m) => resolveDisplayType(m) === 'receive').length
-  const installCnt   = sorted.filter((m) => resolveDisplayType(m) === 'install').length
-  const uninstallCnt = sorted.filter((m) => resolveDisplayType(m) === 'uninstall').length
-  const moveCnt      = sorted.filter((m) => resolveDisplayType(m) === 'move').length
+  /* Count by type — single pass over `sorted` (mirrors prototype lines 2019-2022) */
+  const { receiveCnt, installCnt, uninstallCnt, moveCnt } = useMemo(() => {
+    const c = { receiveCnt: 0, installCnt: 0, uninstallCnt: 0, moveCnt: 0 }
+    for (const m of sorted) {
+      switch (resolveDisplayType(m)) {
+        case 'receive':   c.receiveCnt++; break
+        case 'install':   c.installCnt++; break
+        case 'uninstall': c.uninstallCnt++; break
+        case 'move':      c.moveCnt++; break
+      }
+    }
+    return c
+  }, [sorted])
 
   const goToPage = (p: number) => {
     setPage(p)
@@ -179,7 +187,7 @@ export function HistoryPanel({
     <div>
       {/* ── Metrics strip ── */}
       <div className="px-5 py-2.5 max-md:px-[14px] max-md:py-1.5 border-t border-border flex items-center gap-3 flex-shrink-0 bg-bg">
-        <span className="text-[13px] uppercase tracking-wider text-text-subtle font-semibold">
+        <span className="text-[13px] uppercase tracking-wider text-text-subtle font-semibold max-md:text-[10px] max-md:font-bold max-md:tracking-[1.4px] max-md:text-text-secondary">
           {t('warehouse.history')}
         </span>
         <div className="flex items-center gap-1.5 ml-auto">

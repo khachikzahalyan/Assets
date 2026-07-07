@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@/components/ui'
 import { MobileSheet } from '@/components/ui/MobileSheet'
+import { rafThrottle } from '@/lib/rafThrottle'
 import type { CategoryRow } from '@/domain/asset'
 
 // The capability taxonomy + derivation now live in the pure domain layer
@@ -78,7 +79,12 @@ export function CategoryPicker({ categories, value, onChange, categoryGroupId, d
     if (left + popWidth > window.innerWidth - 8) left = window.innerWidth - popWidth - 8
     if (left < 8) left = 8
     const width = Math.min(popWidth, window.innerWidth - 16)
-    setPos({ top: r.bottom + 4, left, width })
+    const next: PortalPos = { top: r.bottom + 4, left, width }
+    setPos(prev =>
+      prev && prev.top === next.top && prev.left === next.left && prev.width === next.width
+        ? prev
+        : next,
+    )
   }
 
   useLayoutEffect(() => {
@@ -89,8 +95,7 @@ export function CategoryPicker({ categories, value, onChange, categoryGroupId, d
   useEffect(() => {
     if (!open) return
 
-    function onScroll() { updatePos() }
-    function onResize() { updatePos() }
+    const onScrollResize = rafThrottle(updatePos)
     function onMouseDown(e: MouseEvent) {
       const t = e.target as Node | null
       const inTrigger = triggerRef.current?.contains(t) ?? false
@@ -107,13 +112,14 @@ export function CategoryPicker({ categories, value, onChange, categoryGroupId, d
       }
     }
 
-    window.addEventListener('scroll', onScroll, true)
-    window.addEventListener('resize', onResize)
+    window.addEventListener('scroll', onScrollResize, true)
+    window.addEventListener('resize', onScrollResize)
     document.addEventListener('mousedown', onMouseDown)
     document.addEventListener('keydown', onKey)
     return () => {
-      window.removeEventListener('scroll', onScroll, true)
-      window.removeEventListener('resize', onResize)
+      onScrollResize.cancel()
+      window.removeEventListener('scroll', onScrollResize, true)
+      window.removeEventListener('resize', onScrollResize)
       document.removeEventListener('mousedown', onMouseDown)
       document.removeEventListener('keydown', onKey)
     }

@@ -2,6 +2,7 @@ import { useState, useRef, useLayoutEffect, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { Icon } from '@/components/ui/icon'
 import { MobileSheet } from '@/components/ui/MobileSheet'
+import { rafThrottle } from '@/lib/rafThrottle'
 
 export interface ViewSortOption {
   value: string
@@ -76,7 +77,8 @@ export function ViewPopover({
     // Left-align to the trigger (open rightward, like SelectMini), clamped so the
     // panel never bleeds off the right edge of the viewport.
     const left = Math.max(8, Math.min(r.left, window.innerWidth - panelW - 8))
-    setPos({ top: r.bottom + 6, left })
+    const next: PortalPos = { top: r.bottom + 6, left }
+    setPos(prev => (prev.top === next.top && prev.left === next.left ? prev : next))
   }
 
   useLayoutEffect(() => {
@@ -86,8 +88,7 @@ export function ViewPopover({
   useEffect(() => {
     if (!open || isMobile) return
 
-    function onScroll() { updatePos() }
-    function onResize() { updatePos() }
+    const onScrollResize = rafThrottle(updatePos)
     function onMouseDown(e: MouseEvent) {
       const t = e.target as Node | null
       const inTrigger = triggerRef.current?.contains(t) ?? false
@@ -98,13 +99,14 @@ export function ViewPopover({
       if (e.key === 'Escape') setOpen(false)
     }
 
-    window.addEventListener('scroll', onScroll, true)
-    window.addEventListener('resize', onResize)
+    window.addEventListener('scroll', onScrollResize, true)
+    window.addEventListener('resize', onScrollResize)
     document.addEventListener('mousedown', onMouseDown)
     document.addEventListener('keydown', onKey)
     return () => {
-      window.removeEventListener('scroll', onScroll, true)
-      window.removeEventListener('resize', onResize)
+      onScrollResize.cancel()
+      window.removeEventListener('scroll', onScrollResize, true)
+      window.removeEventListener('resize', onScrollResize)
       document.removeEventListener('mousedown', onMouseDown)
       document.removeEventListener('keydown', onKey)
     }

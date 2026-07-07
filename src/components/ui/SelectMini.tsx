@@ -2,6 +2,7 @@ import { useState, useRef, useLayoutEffect, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { Icon } from './icon'
 import { MobileSheet } from './MobileSheet'
+import { rafThrottle } from '@/lib/rafThrottle'
 
 export interface SelectMiniOption {
   value: string
@@ -73,11 +74,16 @@ export function SelectMini({ label, leadingIcon, leadingIconMobile, value, onCha
     const el = triggerRef.current
     if (!el) return
     const r = el.getBoundingClientRect()
-    setPos({
+    const next: PortalPos = {
       top: r.bottom + 6,
       left: r.left,
       minWidth: Math.max(r.width, 180),
-    })
+    }
+    setPos(prev =>
+      prev && prev.top === next.top && prev.left === next.left && prev.minWidth === next.minWidth
+        ? prev
+        : next,
+    )
   }
 
   useLayoutEffect(() => {
@@ -87,8 +93,7 @@ export function SelectMini({ label, leadingIcon, leadingIconMobile, value, onCha
   useEffect(() => {
     if (!open || isMobile) return
 
-    function onScroll() { updatePos() }
-    function onResize() { updatePos() }
+    const onScrollResize = rafThrottle(updatePos)
     function onMouseDown(e: MouseEvent) {
       const t = e.target as Node | null
       const inTrigger = triggerRef.current?.contains(t) ?? false
@@ -99,13 +104,14 @@ export function SelectMini({ label, leadingIcon, leadingIconMobile, value, onCha
       if (e.key === 'Escape') setOpen(false)
     }
 
-    window.addEventListener('scroll', onScroll, true)
-    window.addEventListener('resize', onResize)
+    window.addEventListener('scroll', onScrollResize, true)
+    window.addEventListener('resize', onScrollResize)
     document.addEventListener('mousedown', onMouseDown)
     document.addEventListener('keydown', onKey)
     return () => {
-      window.removeEventListener('scroll', onScroll, true)
-      window.removeEventListener('resize', onResize)
+      onScrollResize.cancel()
+      window.removeEventListener('scroll', onScrollResize, true)
+      window.removeEventListener('resize', onScrollResize)
       document.removeEventListener('mousedown', onMouseDown)
       document.removeEventListener('keydown', onKey)
     }
