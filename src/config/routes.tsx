@@ -1,19 +1,57 @@
+import { lazy, Suspense, type ComponentType } from 'react'
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import { AppShell } from '@/components/common'
-import {
-  DashboardPage, LoginPage, AssetsPage, AssetCreatePage, AssetDetailPage,
-  EmployeesPage, EmployeeCreatePage, EmployeeDetailPage, MyAssetsPage, MyActsPage, ProfilePage,
-  PendingUsersPage, BranchesPage, DepartmentsPage, CategoriesPage, SettingsPage,
-  AuditPage, LicensesPage, RolesPage, PartsPage, PartsReceivePage, ScanPage,
-} from '@/pages'
+import { AppLoader } from '@/components/ui'
 import { RequireAuth, RoleGate } from '@/components/routing'
 import { routeRoles } from './access'
 
-/** Shell layout wrapper — renders the persistent AppShell around routed content. */
+/**
+ * Route-level code splitting: every page is a lazy chunk, downloaded on first
+ * navigation to its route. Without this the whole app (all 21 pages + Firebase
+ * SDK) shipped as ONE ~2.5 MB chunk that every page had to parse up front.
+ *
+ * Pages use named exports, so each import maps the name onto `default`.
+ */
+function lazyPage<K extends string>(
+  loader: () => Promise<Record<K, ComponentType>>,
+  name: K,
+) {
+  return lazy(() => loader().then(m => ({ default: m[name] })))
+}
+
+const DashboardPage      = lazyPage(() => import('@/pages/dashboard/DashboardPage'), 'DashboardPage')
+const LoginPage          = lazyPage(() => import('@/pages/auth/LoginPage'), 'LoginPage')
+const PendingUsersPage   = lazyPage(() => import('@/pages/auth/PendingUsersPage'), 'PendingUsersPage')
+const AssetsPage         = lazyPage(() => import('@/pages/assets/AssetsPage'), 'AssetsPage')
+const AssetCreatePage    = lazyPage(() => import('@/pages/assets/AssetCreatePage'), 'AssetCreatePage')
+const AssetDetailPage    = lazyPage(() => import('@/pages/assets/AssetDetailPage'), 'AssetDetailPage')
+const EmployeesPage      = lazyPage(() => import('@/pages/employees/EmployeesPage'), 'EmployeesPage')
+const EmployeeCreatePage = lazyPage(() => import('@/pages/employees/EmployeeCreatePage'), 'EmployeeCreatePage')
+const EmployeeDetailPage = lazyPage(() => import('@/pages/employees/EmployeeDetailPage'), 'EmployeeDetailPage')
+const MyAssetsPage       = lazyPage(() => import('@/pages/self-service/MyAssetsPage'), 'MyAssetsPage')
+const MyActsPage         = lazyPage(() => import('@/pages/self-service/MyActsPage'), 'MyActsPage')
+const ProfilePage        = lazyPage(() => import('@/pages/self-service/ProfilePage'), 'ProfilePage')
+const BranchesPage       = lazyPage(() => import('@/pages/catalogs/BranchesPage'), 'BranchesPage')
+const DepartmentsPage    = lazyPage(() => import('@/pages/catalogs/DepartmentsPage'), 'DepartmentsPage')
+const CategoriesPage     = lazyPage(() => import('@/pages/catalogs/CategoriesPage'), 'CategoriesPage')
+const RolesPage          = lazyPage(() => import('@/pages/catalogs/RolesPage'), 'RolesPage')
+const SettingsPage       = lazyPage(() => import('@/pages/settings/SettingsPage'), 'SettingsPage')
+const AuditPage          = lazyPage(() => import('@/pages/audit/AuditPage'), 'AuditPage')
+const LicensesPage       = lazyPage(() => import('@/pages/licenses/LicensesPage'), 'LicensesPage')
+const PartsPage          = lazyPage(() => import('@/pages/parts/PartsPage'), 'PartsPage')
+const PartsReceivePage   = lazyPage(() => import('@/pages/parts/PartsReceivePage'), 'PartsReceivePage')
+const ScanPage           = lazyPage(() => import('@/pages/scan/ScanPage'), 'ScanPage')
+
+/** Shell layout wrapper — renders the persistent AppShell around routed content.
+    Suspense sits INSIDE the shell so the chrome (sidebar/topbar/bottom-nav)
+    stays mounted while a page chunk downloads; only the content area shows
+    the loader. */
 function ShellLayout() {
   return (
     <AppShell>
-      <Outlet />
+      <Suspense fallback={<AppLoader />}>
+        <Outlet />
+      </Suspense>
     </AppShell>
   )
 }
@@ -40,7 +78,14 @@ export function AppRoutes() {
   return (
     <Routes>
       {/* ── Public ── */}
-      <Route path="/login" element={<LoginPage />} />
+      <Route
+        path="/login"
+        element={
+          <Suspense fallback={<AppLoader fullScreen />}>
+            <LoginPage />
+          </Suspense>
+        }
+      />
 
       {/* ── Authenticated ── */}
       <Route element={<RequireAuth />}>
