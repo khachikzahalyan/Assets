@@ -3,7 +3,9 @@
   "title": "Լիցենզիաներ",
   "tabs": {
     "workstation": "Աշխատակայան",
-    "server": "Սերվեր"
+    "server": "Սերվեր",
+    "keys": "Windows Key",
+    "subs": "Բաժանորդագրություններ"
   },
   "col": {
     "name": "Անվանում",

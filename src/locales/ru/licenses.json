@@ -123,7 +123,7 @@
     "emptyTitle": "Нет ключей",
     "freedOn": "Освобождён {{date}}",
     "searchPlaceholder": "Поиск по активу или инв. коду…",
-    "sectionTitle": "Windows-ключи",
+    "sectionTitle": "Windows Key",
     "statusFree": "Свободен",
     "statusInUse": "Используется"
   },
@@ -170,7 +170,7 @@
     "emptyDesc": "Добавьте первую подписку кнопкой «Добавить лицензию».",
     "emptyTitle": "Нет подписок",
     "employees": "Сотрудники",
-    "sectionTitle": "Подписки и ПО",
+    "sectionTitle": "Подписки",
     "expiresInDays": "Истекает через {{days}} дн.",
     "expiryDate": "Истекает",
     "notAssigned": "не назначены",
@@ -179,9 +179,9 @@
     "seatsProgress": "{{used}} / {{total}}"
   },
   "tabs": {
-    "keys": "Windows-ключи",
+    "keys": "Windows Key",
     "server": "Серверные",
-    "subs": "Подписки и ПО",
+    "subs": "Подписки",
     "workstation": "Рабочие станции"
   },
   "title": "Лицензии",
