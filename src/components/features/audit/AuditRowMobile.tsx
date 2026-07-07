@@ -104,6 +104,9 @@ export function AuditRowMobile({ log, refData, isOpen, onToggle }: AuditRowMobil
       right={right}
       onClick={onToggle}
       {...(footer !== undefined ? { footer } : {})}
+      /* Fill contract (same as EmployeeRowMobile/CatalogTable rows): rows +
+         placeholder slots grow to distribute the card height evenly. */
+      outerStyle={{ flexGrow: 1, flexShrink: 0 }}
     />
   )
 }

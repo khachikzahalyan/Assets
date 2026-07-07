@@ -16,6 +16,12 @@ export interface UseAuditLogsResult {
   page: number
   next: () => void
   prev: () => void
+  /**
+   * Jump to a 1-based page. Backward jumps to ANY visited page are supported
+   * (the cursor stack holds every cursor); forward only one step (cursor
+   * pagination cannot skip ahead). Out-of-range values are ignored.
+   */
+  goto: (p: number) => void
   reload: () => void
 }
 
@@ -103,11 +109,19 @@ export function useAuditLogs(
     setCursorStack(s => (s.length > 1 ? s.slice(0, -1) : s))
   }, [])
 
+  const goto = useCallback((p: number) => {
+    setCursorStack(s => {
+      if (p >= 1 && p < s.length) return s.slice(0, p)                    // backward jump
+      if (p === s.length + 1 && nextCursor != null) return [...s, nextCursor] // forward one step
+      return s                                                            // same page / out of range
+    })
+  }, [nextCursor])
+
   return {
     rows, ref, loading, error,
     hasNext: nextCursor != null,
     hasPrev: cursorStack.length > 1,
     page: cursorStack.length,
-    next, prev, reload,
+    next, prev, goto, reload,
   }
 }

@@ -253,9 +253,9 @@ describe('AuditPage', () => {
 
   // ── (d) pagination ───────────────────────────────────────────────────────────
   describe('(d) pagination', () => {
-    it('first page shows exactly PAGE_SIZE (20) rows when 25 logs are seeded', async () => {
-      // Arrange — 25 logs, all by alice so names appear uniformly
-      const logs = makePageLogs(25, 'uid-alice')
+    it('first page shows exactly PAGE_SIZE (10) rows when 15 logs are seeded', async () => {
+      // Arrange — 15 logs, all by alice so names appear uniformly
+      const logs = makePageLogs(15, 'uid-alice')
       const repo = new InMemoryAuditLogRepository(logs, ACTOR_NAMES)
       renderPage(repo)
 
@@ -267,12 +267,12 @@ describe('AuditPage', () => {
       // Count data rows: getAllByRole('row')[0] = thead; rest are data rows
       const allRows = screen.getAllByRole('row')
       // Subtract 1 for the thead row
-      expect(allRows.length - 1).toBe(20)
+      expect(allRows.length - 1).toBe(10)
     })
 
     it('Next button is enabled when there are more pages', async () => {
       // Arrange
-      const logs = makePageLogs(25, 'uid-alice')
+      const logs = makePageLogs(15, 'uid-alice')
       const repo = new InMemoryAuditLogRepository(logs, ACTOR_NAMES)
       renderPage(repo)
 
@@ -319,15 +319,15 @@ describe('AuditPage', () => {
     })
 
     it('clicking Next loads page 2 with the remaining 5 rows', async () => {
-      // Arrange — 25 logs
-      const logs = makePageLogs(25, 'uid-alice')
+      // Arrange — 15 logs
+      const logs = makePageLogs(15, 'uid-alice')
       const repo = new InMemoryAuditLogRepository(logs, ACTOR_NAMES)
       renderPage(repo)
 
-      // Wait for page 1 — 20 data rows
+      // Wait for page 1 — 10 data rows
       await waitFor(() => {
         const rows = screen.getAllByRole('row')
-        expect(rows.length - 1).toBe(20)
+        expect(rows.length - 1).toBe(10)
       })
 
       // Identify the Next button: it is the enabled (non-disabled) button
@@ -353,45 +353,44 @@ describe('AuditPage', () => {
       // Act — click Next
       fireEvent.click(nextBtn)
 
-      // Assert — page 2 has 5 rows (25 - 20 = 5)
+      // Assert — page 2 has 5 rows (15 - 10 = 5)
       await waitFor(() => {
         const rows = screen.getAllByRole('row')
         expect(rows.length - 1).toBe(5)
       })
     })
 
-    it('clicking Prev after Next returns to page 1 with 20 rows', async () => {
-      // Arrange — 25 logs
-      const logs = makePageLogs(25, 'uid-alice')
+    it('clicking Prev after Next returns to page 1 with 10 rows', async () => {
+      // Arrange — 15 logs
+      const logs = makePageLogs(15, 'uid-alice')
       const repo = new InMemoryAuditLogRepository(logs, ACTOR_NAMES)
       renderPage(repo)
 
       // Wait for page 1
       await waitFor(() => {
         const rows = screen.getAllByRole('row')
-        expect(rows.length - 1).toBe(20)
+        expect(rows.length - 1).toBe(10)
       })
 
-      // Navigate to page 2
-      let allBtns = screen.getAllByRole('button')
-      const nextBtn = allBtns[allBtns.length - 1]!
-      fireEvent.click(nextBtn)
+      // Navigate to page 2 — locate Next by its aria-label (pagination.next)
+      const expectedNext = i18n.t('pagination.next', { ns: 'audit' })
+      fireEvent.click(screen.getByRole('button', { name: expectedNext }))
 
       await waitFor(() => {
         const rows = screen.getAllByRole('row')
         expect(rows.length - 1).toBe(5)
       })
 
-      // Act — click Prev (now enabled on page 2)
-      allBtns = screen.getAllByRole('button')
-      const prevBtn = allBtns[allBtns.length - 2]!
+      // Act — click Prev (now enabled on page 2), located by aria-label
+      const expectedPrev = i18n.t('pagination.prev', { ns: 'audit' })
+      const prevBtn = screen.getByRole('button', { name: expectedPrev })
       expect(prevBtn).not.toBeDisabled()
       fireEvent.click(prevBtn)
 
-      // Assert — back to page 1: 20 data rows
+      // Assert — back to page 1: 10 data rows
       await waitFor(() => {
         const rows = screen.getAllByRole('row')
-        expect(rows.length - 1).toBe(20)
+        expect(rows.length - 1).toBe(10)
       })
     })
   })

@@ -29,7 +29,11 @@
     "field": "Field", "before": "Before", "after": "After",
     "comment": "Comment", "noChanges": "No field changes"
   },
-  "pagination": { "page": "Page {{page}}", "prev": "Previous page", "next": "Next page" },
+  "pagination": {
+    "page": "Page {{page}}", "prev": "Previous page", "next": "Next page",
+    "shownRange": "Showing <0>{{from}}–{{to}}</0>",
+    "shownRangePlain": "Showing {{from}}–{{to}}"
+  },
   "empty": {
     "title": "No entries",
     "desc": "Audit log entries will appear here as changes are made in the system."
