@@ -43,10 +43,3 @@ export const MODAL_BACKDROP_ABS =
  * 3 usages: RecentActivityList (×2), ActivateKeyModal.
  */
 export const LIST_ROW_SEPARATOR = 'border-b border-border last:border-b-0'
-
-/**
- * List-row separator — border bottom, remove on last child (border-0 variant).
- * Use when the row uses the border-0 shorthand (resets all borders on last child).
- * Usages: PendingUsersPage, RolesPage.
- */
-export const LIST_ROW_SEPARATOR_FULL = 'border-b border-border last:border-0'
