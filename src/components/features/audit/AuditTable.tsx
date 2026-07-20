@@ -158,13 +158,15 @@ export function AuditTable({ rows, ref: refData, minRows, mobileMinRows }: Audit
     )
   }
 
-  // ── Desktop DataTable ───────────────────────────────────────────────────────
+  // ── Desktop DataTable — fillHeight: /audit renders inside ListCard Zone 2
+  //    (bounded flex column), rows flex-stretch like AssetsTable (58px floor). ──
   return (
     <DataTable<AuditLog>
       columns={columns}
       rows={rows}
       getRowKey={(log) => log.id}
       {...(minRows !== undefined ? { minRows } : {})}
+      fillHeight
       onRowClick={(log) => handleToggle(log.id)}
       renderRowExpanded={(log) =>
         expanded === log.id ? (

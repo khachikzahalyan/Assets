@@ -168,13 +168,16 @@ export function CatalogTable<T extends { id: string }>(props: CatalogTableProps<
     )
   }
 
-  // ── Desktop DataTable ───────────────────────────────────────────────────────
+  // ── Desktop DataTable — fillHeight: every CatalogTable consumer renders inside
+  //    ListCard Zone 2 (bounded flex column), so rows flex-stretch to fill the
+  //    card exactly like AssetsTable (58px floor, paginator pinned, no dead band).
   return (
     <DataTable<T>
       columns={dtColumns}
       rows={rows}
       getRowKey={(row) => row.id}
       {...(minRows !== undefined ? { minRows } : {})}
+      fillHeight
     />
   )
 }
