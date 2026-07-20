@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { completeEmailLinkIfPresent, sendEmployeeLink, signInWithGoogle } from '@/lib/auth'
+import { completeEmailLinkIfPresent, sendEmployeeLink, signInWithGoogle, mapGoogleSignInError } from '@/lib/auth'
 
 /** Minimal email validity check — non-empty and contains @. */
 function isValidEmail(v: string): boolean {
@@ -51,8 +51,18 @@ export function useLoginForm() {
     try {
       await signInWithGoogle()
       // AuthProvider's onAuthStateChanged takes over from here.
-    } catch {
-      setGoogleError(t('error.googleFailed'))
+    } catch (err) {
+      const kind = mapGoogleSignInError(err)
+      const keyMap: Record<typeof kind, string> = {
+        'unauthorized-domain': 'error.google.unauthorizedDomain',
+        'popup-closed':        'error.google.popupClosed',
+        'popup-blocked':       'error.google.popupBlocked',
+        'operation-not-allowed': 'error.google.notEnabled',
+        'domain-not-allowed':  'error.google.domainNotAllowed',
+        'network':             'error.google.network',
+        'unknown':             'error.googleFailed',
+      }
+      setGoogleError(t(keyMap[kind]))
     } finally {
       setGoogleBusy(false)
     }

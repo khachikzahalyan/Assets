@@ -30,6 +30,14 @@
   "confirmEmailPrompt": "Enter the email address the sign-in link was sent to",
   "error": {
     "googleFailed": "Could not sign in with Google. Please try again.",
+    "google": {
+      "unauthorizedDomain": "This application's address is not authorised for sign-in. Please contact your system administrator.",
+      "popupClosed": "The sign-in window was closed. Please try again.",
+      "popupBlocked": "Your browser blocked the sign-in pop-up. Allow pop-ups for this site and try again.",
+      "notEnabled": "Sign in with Google is temporarily unavailable. Please contact your system administrator.",
+      "domainNotAllowed": "Your email domain is not on the allowed list. Please contact your system administrator.",
+      "network": "Network error. Check your connection and try again."
+    },
     "linkFailed": "Could not send the link. Check your email and try again.",
     "emailLinkFailed": "The link is invalid or expired. Please request a new one."
   },

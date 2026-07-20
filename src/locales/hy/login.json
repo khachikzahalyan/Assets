@@ -34,6 +34,14 @@
   "confirmEmailPrompt": "Enter the email address the sign-in link was sent to",
   "error": {
     "googleFailed": "Could not sign in with Google. Please try again.",
+    "google": {
+      "unauthorizedDomain": "Այս հավելվածի հասցեն չի թույլատրվում մուտք գործելու համար: Դիմեք համակարգի ադմինիստրատորին:",
+      "popupClosed": "Մուտքի պատուհանը փակվեց: Կրկին փորձեք:",
+      "popupBlocked": "Ձեր բրաուզերը արգելափակեց մուտքի բացվող պատուհանը: Թույլատրեք բացվող պատուհանները այս կայքի համար:",
+      "notEnabled": "Google-ով մուտքն ժամանակավորապես անհասանելի է: Դիմեք համակարգի ադմինիստրատորին:",
+      "domainNotAllowed": "Ձեր email-դոմենը թույլատրվածների ցանկում չէ: Դիմեք համակարգի ադմինիստրատորին:",
+      "network": "Ցանցի սխալ: Ստուգեք կապը և կրկին փորձեք:"
+    },
     "linkFailed": "Could not send the link. Check your email and try again.",
     "emailLinkFailed": "The link is invalid or expired. Please request a new one."
   },

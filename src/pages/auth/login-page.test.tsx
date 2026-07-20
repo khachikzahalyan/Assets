@@ -12,15 +12,21 @@ const mockCompleteEmailLinkIfPresent = vi.fn(async (_prompt?: string) => false) 
 const mockSendEmployeeLink = vi.fn(async (_email: string) => undefined) as LooseMock
 const mockSignInWithGoogle = vi.fn(async () => undefined) as LooseMock
 
-vi.mock('@/lib/auth', () => ({
-  completeEmailLinkIfPresent: (prompt?: string) => mockCompleteEmailLinkIfPresent(prompt),
-  sendEmployeeLink: (email: string) => mockSendEmployeeLink(email),
-  signInWithGoogle: () => mockSignInWithGoogle(),
-  signOutUser: vi.fn(),
-  subscribeToAuthState: vi.fn(() => () => {}),
-  fetchUserRole: vi.fn(async () => null),
-  claimPendingUser: vi.fn(async () => undefined),
-}))
+vi.mock('@/lib/auth', async (importOriginal) => {
+  // Keep mapGoogleSignInError real so the mapping logic is actually exercised.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const actual = await importOriginal<any>()
+  return {
+    ...actual,
+    completeEmailLinkIfPresent: (prompt?: string) => mockCompleteEmailLinkIfPresent(prompt),
+    sendEmployeeLink: (email: string) => mockSendEmployeeLink(email),
+    signInWithGoogle: () => mockSignInWithGoogle(),
+    signOutUser: vi.fn(),
+    subscribeToAuthState: vi.fn(() => () => {}),
+    fetchUserRole: vi.fn(async () => null),
+    claimPendingUser: vi.fn(async () => undefined),
+  }
+})
 
 // ── Mock @/lib/firebase (AuthContext transitive dep) ───────────────
 vi.mock('@/lib/firebase', () => ({
@@ -194,6 +200,46 @@ describe('LoginPage', () => {
     await waitFor(() => {
       expect(
         screen.getByText('Ссылка недействительна или устарела. Запросите новую.'),
+      ).toBeInTheDocument()
+    })
+  })
+
+  // ── Differentiated Google error messages (mapGoogleSignInError is real) ──
+
+  it('shows unauthorizedDomain message when signInWithGoogle rejects with auth/unauthorized-domain', async () => {
+    const err = Object.assign(new Error('unauthorized'), { code: 'auth/unauthorized-domain' })
+    mockSignInWithGoogle.mockRejectedValueOnce(err)
+    renderLoginPage()
+    const googleBtn = screen.getByText('Войти через Google')
+    await act(async () => { fireEvent.click(googleBtn) })
+    await waitFor(() => {
+      expect(
+        screen.getByText('Адрес этого приложения не авторизован для входа. Обратитесь к администратору системы.'),
+      ).toBeInTheDocument()
+    })
+  })
+
+  it('shows popupClosed message when signInWithGoogle rejects with auth/popup-closed-by-user', async () => {
+    const err = Object.assign(new Error('popup closed'), { code: 'auth/popup-closed-by-user' })
+    mockSignInWithGoogle.mockRejectedValueOnce(err)
+    renderLoginPage()
+    const googleBtn = screen.getByText('Войти через Google')
+    await act(async () => { fireEvent.click(googleBtn) })
+    await waitFor(() => {
+      expect(
+        screen.getByText('Окно входа было закрыто. Попробуйте ещё раз.'),
+      ).toBeInTheDocument()
+    })
+  })
+
+  it('shows generic googleFailed message when signInWithGoogle rejects with a plain Error', async () => {
+    mockSignInWithGoogle.mockRejectedValueOnce(new Error('something unexpected'))
+    renderLoginPage()
+    const googleBtn = screen.getByText('Войти через Google')
+    await act(async () => { fireEvent.click(googleBtn) })
+    await waitFor(() => {
+      expect(
+        screen.getByText('Не удалось войти через Google. Попробуйте ещё раз.'),
       ).toBeInTheDocument()
     })
   })
