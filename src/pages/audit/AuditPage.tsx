@@ -1,8 +1,8 @@
-import { useMemo, useState, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   ListCard, ListPageShell, PageHeader,
-  EmptyState, LoadingState, ErrorState, CardListSkeleton,
+  EmptyState, TableSkeleton, ErrorState, CardListSkeleton,
 } from '@/components/ui'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { AuditFilterBar, AuditTable, AuditPagination } from '@/components/features/audit'
@@ -19,6 +19,13 @@ const DEFAULT_QUERY: AuditLogQuery = {
   fromDate: null, toDate: null, search: '', pageSize: PAGE_SIZE,
 }
 
+// Module-level lazy singleton — cache key stays stable across navigations.
+let _sharedAuditRepo: FirestoreAuditLogRepository | null = null
+function getSharedAuditRepo(): FirestoreAuditLogRepository {
+  if (!_sharedAuditRepo) _sharedAuditRepo = new FirestoreAuditLogRepository(db())
+  return _sharedAuditRepo
+}
+
 export interface AuditPageProps {
   repository?: AuditLogRepository
 }
@@ -26,13 +33,7 @@ export interface AuditPageProps {
 export function AuditPage({ repository }: AuditPageProps) {
   const { t } = useTranslation(['audit', 'nav'])
 
-  const defaultRepo = useMemo<AuditLogRepository>(
-    () => new FirestoreAuditLogRepository(db()),
-    // db() is stable across renders — the firebase sdk returns the same Firestore instance.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  )
-  const repo = repository ?? defaultRepo
+  const repo = repository ?? getSharedAuditRepo()
   const isMobile = useIsMobile()
 
   const [query, setQuery] = useState<AuditLogQuery>({ ...DEFAULT_QUERY })
@@ -45,8 +46,8 @@ export function AuditPage({ repository }: AuditPageProps) {
     useAuditLogs(repo, query)
 
   function renderBody() {
-    if (loading) return isMobile ? <CardListSkeleton rows={8} variant="audit" /> : <LoadingState rows={8} />
-    if (error) return <ErrorState onRetry={reload} />
+    if (loading) return isMobile ? <CardListSkeleton rows={10} variant="audit" /> : <TableSkeleton rows={10} columns={7} gridTemplate="36px minmax(130px,1fr) minmax(120px,1.5fr) minmax(100px,1fr) minmax(90px,1fr) minmax(90px,1fr) minmax(120px,1.2fr)" />
+    if (error && rows.length === 0 && !ref) return <ErrorState onRetry={reload} />
     if (rows.length === 0) {
       return (
         <EmptyState
@@ -58,8 +59,6 @@ export function AuditPage({ repository }: AuditPageProps) {
     }
     return ref ? <AuditTable rows={rows} ref={ref} minRows={PAGE_SIZE} mobileMinRows={PAGE_SIZE} /> : null
   }
-
-  const showPager = !loading && !error && rows.length > 0
 
   return (
     <ListPageShell
@@ -79,22 +78,21 @@ export function AuditPage({ repository }: AuditPageProps) {
         toolbar={
           <>
             <div className="px-5 py-3 max-md:px-3 max-md:py-2.5">
-              {ref && <AuditFilterBar query={query} onChange={handleQueryChange} ref={ref} />}
-              {!ref && !error && <div className="h-9 rounded-lg anim-skeleton w-full" />}
+              <AuditFilterBar query={query} onChange={handleQueryChange} ref={ref} />
             </div>
             <div className="border-t border-border" />
           </>
         }
         pagination={
-          showPager ? (
-            <AuditPagination
-              page={page}
-              pageSize={PAGE_SIZE}
-              rowsOnPage={rows.length}
-              hasNext={hasNext}
-              onPage={goto}
-            />
-          ) : undefined
+          /* Always mounted — rowsOnPage=0 during load renders disabled prev/next,
+             preventing the ~44px layout shift (EmployeesPage precedent). */
+          <AuditPagination
+            page={page}
+            pageSize={PAGE_SIZE}
+            rowsOnPage={rows.length}
+            hasNext={hasNext}
+            onPage={goto}
+          />
         }
       >
         {/* Zone 2 fill: flex-col scroller so the mobile list's grow fill contract

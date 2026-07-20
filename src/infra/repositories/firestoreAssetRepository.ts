@@ -130,7 +130,12 @@ export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepo
   // + useAssets hook) call it concurrently.
   // The cache is cleared on rejection so a transient failure (e.g. permission-denied
   // on former_employees before rules are deployed) doesn't permanently poison the cache.
+  // TTL: when the repo instance is shared across navigations (module singleton in
+  // AssetsPage), the cache expires after 60s so catalog/employee edits made elsewhere
+  // still show up on the next visit without a full-session stale cache.
   private refCache: Promise<AssetReferenceData> | null = null
+  private refCacheAt = 0
+  private static readonly REF_TTL_MS = 60_000
 
   async listAssets(query: AssetListQuery): Promise<Asset[]> {
     const cons: QueryConstraint[] = []
@@ -156,7 +161,9 @@ export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepo
   }
 
   async loadReferenceData(): Promise<AssetReferenceData> {
-    if (!this.refCache) {
+    const expired = Date.now() - this.refCacheAt > FirestoreAssetRepository.REF_TTL_MS
+    if (!this.refCache || expired) {
+      this.refCacheAt = Date.now()
       // Clear the cache on rejection so a transient error (e.g. permission-denied
       // on former_employees before rules are deployed) doesn't permanently poison
       // the in-memory cache and make all subsequent calls fail without hitting Firebase.

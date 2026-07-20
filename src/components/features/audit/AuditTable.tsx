@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { Icon, Chip, DataTable, MobileListPlaceholders } from '@/components/ui'
@@ -27,6 +27,12 @@ export function AuditTable({ rows, ref: refData, minRows, mobileMinRows }: Audit
   const { t, i18n } = useTranslation('audit')
   const navigate = useNavigate()
   const [expanded, setExpanded] = useState<string | null>(null)
+  // Stable toggle handler: AuditRowMobile.memo skips re-renders when only
+  // unrelated state changes (no new function reference on every render).
+  const handleToggle = useCallback(
+    (id: string) => setExpanded(prev => prev === id ? null : id),
+    [],
+  )
 
   // ── Responsive: matchMedia so the layout is correct on first paint ───────────
   const [isMobile, setIsMobile] = useState<boolean>(() => {
@@ -140,8 +146,8 @@ export function AuditTable({ rows, ref: refData, minRows, mobileMinRows }: Audit
             key={log.id}
             log={log}
             refData={refData}
-            isOpen={expanded === log.id}
-            onToggle={() => setExpanded(expanded === log.id ? null : log.id)}
+            expandedId={expanded}
+            onToggle={handleToggle}
           />
         ))}
         <MobileListPlaceholders
@@ -159,7 +165,7 @@ export function AuditTable({ rows, ref: refData, minRows, mobileMinRows }: Audit
       rows={rows}
       getRowKey={(log) => log.id}
       {...(minRows !== undefined ? { minRows } : {})}
-      onRowClick={(log) => setExpanded(expanded === log.id ? null : log.id)}
+      onRowClick={(log) => handleToggle(log.id)}
       renderRowExpanded={(log) =>
         expanded === log.id ? (
           <div className="py-2 px-3">

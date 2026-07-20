@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { Employee, EmployeeListQuery, EmployeeRepository, SortValue } from '@/domain/employee'
 import type { AssetRepository, AssetWriteRepository, RefRow, CategoryRow } from '@/domain/asset'
@@ -12,6 +12,42 @@ import {
 import { db } from '@/lib/firebase'
 import type { DrawerLinkedAsset, HandoverAsset, PickerStockRow } from '@/components/features/employees'
 import { DEFAULT_QUERY, sortEmployees, normalizePhone } from './employeesHelpers'
+import { cacheIdentity, readResourceCache, writeResourceCache } from '@/hooks/useCachedResource'
+
+// ── Module-level lazy singletons ────────────────────────────────────────────
+// Keep repo references stable across navigations so the SWR cache key stays constant.
+let _defaultEmpRepo: FirestoreEmployeeRepository | null = null
+function getDefaultEmpRepo(): FirestoreEmployeeRepository {
+  if (!_defaultEmpRepo) {
+    _defaultEmpRepo = new FirestoreEmployeeRepository(
+      db(),
+      async (targetUid: string) =>
+        (await new FirestoreUserRepository(db()).countSuperAdmins(targetUid)) === 0,
+    )
+  }
+  return _defaultEmpRepo
+}
+
+let _defaultAssetRepo: FirestoreAssetRepository | null = null
+function getDefaultAssetRepo(): FirestoreAssetRepository {
+  if (!_defaultAssetRepo) _defaultAssetRepo = new FirestoreAssetRepository(db())
+  return _defaultAssetRepo
+}
+
+let _defaultAsnRepo: FirestoreAssignmentRepository | null = null
+function getDefaultAsnRepo(): FirestoreAssignmentRepository {
+  if (!_defaultAsnRepo) _defaultAsnRepo = new FirestoreAssignmentRepository(db())
+  return _defaultAsnRepo
+}
+
+interface EmployeesSnapshot {
+  employees: Employee[]
+  former: Employee[]
+  branches: RefRow[]
+  departments: RefRow[]
+  categories: CategoryRow[]
+  assetCounts: Record<string, number>
+}
 
 export interface UseEmployeesDataOptions {
   repository?: EmployeeRepository | undefined
@@ -30,37 +66,17 @@ export function useEmployeesData({
 }: UseEmployeesDataOptions) {
   const { t } = useTranslation('employees')
 
-  // Lazy default repos — test callers inject their own
-  const defaultRepo = useMemo<EmployeeRepository>(
-    () => new FirestoreEmployeeRepository(
-      db(),
-      async (targetUid: string) => (await new FirestoreUserRepository(db()).countSuperAdmins(targetUid)) === 0,
-    ),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  )
-  const repo = repository ?? defaultRepo
-
-  const defaultAssetRepo = useMemo(
-    () => new FirestoreAssetRepository(db()),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  )
-  const assetRepo = assetRepository ?? defaultAssetRepo
-
-  const defaultAsnRepo = useMemo<AssignmentRepository>(
-    () => new FirestoreAssignmentRepository(db()),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  )
-  const asnRepo = assignmentRepository ?? defaultAsnRepo
+  // Use injected repos (test seam) or module-level singletons (production).
+  const repo = repository ?? getDefaultEmpRepo()
+  const assetRepo = assetRepository ?? getDefaultAssetRepo()
+  const asnRepo = assignmentRepository ?? getDefaultAsnRepo()
 
   const defaultLoadRefData = useMemo(
     () => async () => {
-      const r = await defaultAssetRepo.loadReferenceData()
+      const r = await getDefaultAssetRepo().loadReferenceData()
       return { branches: r.branches, departments: r.departments }
     },
-    [defaultAssetRepo],
+    [],
   )
   const refLoader = loadRefData ?? defaultLoadRefData
 
@@ -79,20 +95,38 @@ export function useEmployeesData({
     [assetRepo],
   )
 
+  // ── Snapshot key for SWR seeding ─────────────────────────────────────────
+  // Computed at render time using the resolved repo reference (stable per mount).
+  const snapKeyForDefaultQuery = `employees:${cacheIdentity(repo)}:${JSON.stringify(DEFAULT_QUERY)}`
+
   // ── Query / filter state ──────────────────────────────────────────────────
   const [query, setQuery]             = useState<EmployeeListQuery>({ ...DEFAULT_QUERY })
   const [search, setSearch]           = useState('')
   const [kind, setKind]               = useState<'all' | 'staff'>('all')
   const [page, setPage]               = useState(1)
 
-  // ── Data state ────────────────────────────────────────────────────────────
-  const [employees, setEmployees]     = useState<Employee[]>([])
-  const [former, setFormer]           = useState<Employee[]>([])
-  const [branches, setBranches]       = useState<RefRow[]>([])
-  const [departments, setDepts]       = useState<RefRow[]>([])
-  const [categories, setCategories]   = useState<CategoryRow[]>([])
-  const [assetCounts, setAssetCounts] = useState<Record<string, number>>(assetCountsProp ?? {})
-  const [loading, setLoading]         = useState(true)
+  // ── Data state — seeded from cache when available (SWR instant render) ───
+  const [employees, setEmployees]     = useState<Employee[]>(
+    () => readResourceCache<EmployeesSnapshot>(snapKeyForDefaultQuery)?.employees ?? [],
+  )
+  const [former, setFormer]           = useState<Employee[]>(
+    () => readResourceCache<EmployeesSnapshot>(snapKeyForDefaultQuery)?.former ?? [],
+  )
+  const [branches, setBranches]       = useState<RefRow[]>(
+    () => readResourceCache<EmployeesSnapshot>(snapKeyForDefaultQuery)?.branches ?? [],
+  )
+  const [departments, setDepts]       = useState<RefRow[]>(
+    () => readResourceCache<EmployeesSnapshot>(snapKeyForDefaultQuery)?.departments ?? [],
+  )
+  const [categories, setCategories]   = useState<CategoryRow[]>(
+    () => readResourceCache<EmployeesSnapshot>(snapKeyForDefaultQuery)?.categories ?? [],
+  )
+  const [assetCounts, setAssetCounts] = useState<Record<string, number>>(
+    () => assetCountsProp ?? (readResourceCache<EmployeesSnapshot>(snapKeyForDefaultQuery)?.assetCounts ?? {}),
+  )
+  const [loading, setLoading]         = useState<boolean>(
+    () => readResourceCache<EmployeesSnapshot>(snapKeyForDefaultQuery) === undefined,
+  )
   const [error, setError]             = useState<string | null>(null)
 
   // ── Modal / drawer state ──────────────────────────────────────────────────
@@ -124,8 +158,22 @@ export function useEmployeesData({
 
   // ── Load / reload ─────────────────────────────────────────────────────────
   const reload = useCallback(async () => {
-    setLoading(true)
+    const snapKey = `employees:${cacheIdentity(repo)}:${JSON.stringify(query)}`
+    const cached = readResourceCache<EmployeesSnapshot>(snapKey)
+
+    if (cached) {
+      // Seed from cache — show stale data instantly, skip skeleton.
+      setEmployees(cached.employees)
+      setFormer(cached.former)
+      setBranches(cached.branches)
+      setDepts(cached.departments)
+      setCategories(cached.categories)
+      if (!assetCountsProp) setAssetCounts(cached.assetCounts)
+    } else {
+      setLoading(true)
+    }
     setError(null)
+
     try {
       const { sort: _sort, search: _search, status, ...repoQuery } = query
       const statusFilter = status ?? 'active'
@@ -146,23 +194,36 @@ export function useEmployeesData({
       setBranches(ref.branches)
       setDepts(ref.departments)
 
+      let fetchedCategories: CategoryRow[] = []
       try {
-        const fullRef = await defaultAssetRepo.loadReferenceData()
-        setCategories(fullRef.categories)
+        const fullRef = await getDefaultAssetRepo().loadReferenceData()
+        fetchedCategories = fullRef.categories
+        setCategories(fetchedCategories)
       } catch {
-        // categories optional
+        // categories optional — keep whatever was already in state
       }
 
+      let counts: Record<string, number> = {}
       if (!assetCountsProp) {
-        const counts = await defaultLoadAssetCounts()
+        counts = await defaultLoadAssetCounts()
         setAssetCounts(counts)
       }
+
+      // Write snapshot to cache so the next mount can seed instantly.
+      writeResourceCache(snapKey, {
+        employees: activeEmps,
+        former: formerEmps,
+        branches: ref.branches,
+        departments: ref.departments,
+        categories: fetchedCategories,
+        assetCounts: counts,
+      })
     } catch {
       setError(t('validation.saveFailed'))
     } finally {
       setLoading(false)
     }
-  }, [repo, refLoader, query, t, assetCountsProp, defaultLoadAssetCounts, defaultAssetRepo])
+  }, [repo, refLoader, query, t, assetCountsProp, defaultLoadAssetCounts])
 
   useEffect(() => {
     void reload()

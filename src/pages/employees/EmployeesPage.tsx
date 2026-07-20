@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
 import { useIsMobile } from '@/hooks/useIsMobile'
@@ -13,7 +13,7 @@ import {
   EmployeeKindTabs,
 } from '@/components/features/employees'
 import type { AssetRepository, AssetWriteRepository, RefRow } from '@/domain/asset'
-import type { EmployeeRepository } from '@/domain/employee'
+import type { Employee, EmployeeRepository } from '@/domain/employee'
 import type { AssignmentRepository } from '@/domain/assignment'
 import { PAGE_SIZE } from './employeesHelpers'
 import { useEmployeesData } from './useEmployeesData'
@@ -81,7 +81,24 @@ export function EmployeesPage({
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
   const from       = totalCount === 0 ? 0 : (page - 1) * PAGE_SIZE + 1
   const to         = Math.min(page * PAGE_SIZE, totalCount)
-  const pageRows   = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  // useMemo prevents allocating a new slice array on every render (e.g. modal open/close).
+  const pageRows   = useMemo(
+    () => sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    [sorted, page],
+  )
+
+  // Stable handlers for memoized EmployeeRowMobile — avoids inline closure creation
+  // per row. Full benefit lands once useEmployeesActions memoizes its functions.
+  const handleRowClick = useCallback(
+    (e: Employee) => { void actions.handleOpenDetail(e.id) },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [actions.handleOpenDetail],
+  )
+  const handleRestoreEmployee = useCallback(
+    (id: string) => { actions.handleRestore(id) },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [actions.handleRestore],
+  )
 
   function goTo(p: number) { setPage(Math.min(Math.max(1, p), totalPages)) }
 
@@ -121,8 +138,8 @@ export function EmployeesPage({
         departments={departments}
         assetCounts={assetCounts}
         headOfficeBranchId={headOfficeBranchId}
-        onRowClick={e => { void actions.handleOpenDetail(e.id) }}
-        onRestore={id => actions.handleRestore(id)}
+        onRowClick={handleRowClick}
+        onRestore={handleRestoreEmployee}
       />
     )
   }

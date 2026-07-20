@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Btn, Icon, MobileAddButton } from '@/components/ui'
 import { GroupTabs } from './GroupTabs'
@@ -72,14 +72,20 @@ export function AssetsToolbar({
     }, SEARCH_DEBOUNCE_MS)
   }
 
-  const groupTabs: GroupTab[] = [
+  const groupTabs = useMemo<GroupTab[]>(() => [
     { id: 'all',       label: t('groups.all'),       icon: 'layers' },
     { id: 'devices',   label: t('groups.devices'),   icon: 'monitor-smartphone' },
     { id: 'network',   label: t('groups.network'),   shortLabel: t('groups.networkShort'), icon: 'server' },
     { id: 'furniture', label: t('groups.furniture'), icon: 'armchair' },
-  ]
+  ], [t])
 
   const activeGroup = query.group ?? 'all'
+
+  // Stable handler so GroupTabs.memo skips re-renders on page/filter changes.
+  const handleGroupSelect = useCallback(
+    (g: string) => onChange({ group: g as AssetGroupFilter }),
+    [onChange],
+  )
 
   return (
     <div
@@ -97,7 +103,7 @@ export function AssetsToolbar({
         <GroupTabs
           tabs={groupTabs}
           selected={activeGroup}
-          onSelect={g => onChange({ group: g as AssetGroupFilter })}
+          onSelect={handleGroupSelect}
           counts={groupCounts}
         />
       </div>

@@ -1,6 +1,6 @@
-import { useEffect, useState, useCallback } from 'react'
 import type { Asset, AssetListQuery } from '@/domain/asset'
 import type { AssetRepository, AssetReferenceData } from '@/domain/asset/AssetRepository'
+import { useCachedResource, cacheIdentity } from './useCachedResource'
 
 export interface UseAssetsResult {
   assets: Asset[]
@@ -11,56 +11,40 @@ export interface UseAssetsResult {
 }
 
 /**
- * Fetches assets and reference data for the given query.
+ * Fetches assets and reference data for the given query, with SWR caching.
  *
- * @param repository Must be a STABLE reference (memoized via useMemo, or a
- *   module/instance singleton). Passing a new instance each render triggers a
+ * Repeat visits render cached data instantly (loading=false) and revalidate
+ * in the background. Skeleton only on true first load.
+ *
+ * @param repository Must be a STABLE reference (module singleton or memoized).
+ *   Passing a new instance each render changes the cache key and triggers a
  *   re-fetch on every render.
- * @param query The list query (group, statusId, branchId, search, sort).
- *   Serialised with JSON.stringify so only value changes trigger a re-fetch.
+ * @param query The list query. Serialised with JSON.stringify so only value
+ *   changes trigger a re-fetch and a new cache entry.
  */
 export function useAssets(
   repository: AssetRepository,
   query: AssetListQuery,
 ): UseAssetsResult {
-  const [assets, setAssets] = useState<Asset[]>([])
-  const [ref, setRef] = useState<AssetReferenceData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<Error | null>(null)
-  const [tick, setTick] = useState(0)
-
-  const reload = useCallback(() => setTick(t => t + 1), [])
-
-  // Stable serialised key so the effect only re-runs when query values change.
   const queryKey = JSON.stringify(query)
+  const key = `assets:${cacheIdentity(repository)}:${queryKey}`
 
-  useEffect(() => {
-    let active = true
-    setLoading(true)
-    setError(null)
+  const { data, loading, error, reload } = useCachedResource(
+    key,
+    async () => {
+      const [assets, ref] = await Promise.all([
+        repository.listAssets(query),
+        repository.loadReferenceData(),
+      ])
+      return { assets, ref }
+    },
+  )
 
-    void (async () => {
-      try {
-        const [assetList, refData] = await Promise.all([
-          repository.listAssets(query),
-          repository.loadReferenceData(),
-        ])
-        if (!active) return
-        setAssets(assetList)
-        setRef(refData)
-      } catch (err) {
-        if (!active) return
-        setError(err instanceof Error ? err : new Error(String(err)))
-      } finally {
-        if (active) setLoading(false)
-      }
-    })()
-
-    return () => {
-      active = false
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [repository, queryKey, tick])
-
-  return { assets, ref, loading, error, reload }
+  return {
+    assets: data?.assets ?? [],
+    ref: data?.ref ?? null,
+    loading,
+    error,
+    reload,
+  }
 }

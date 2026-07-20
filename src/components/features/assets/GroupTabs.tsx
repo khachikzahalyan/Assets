@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Icon } from '@/components/ui/icon'
 
 export interface GroupTab {
@@ -23,7 +24,7 @@ export interface GroupTabsProps {
  *   count badge with tinted bg (active) or muted (inactive/zero).
  *   The bg-surface-2 / border-b strip is applied by AssetsToolbar's wrapper div, not here.
  */
-export function GroupTabs({ tabs, selected, onSelect, counts }: GroupTabsProps) {
+export const GroupTabs = memo(function GroupTabs({ tabs, selected, onSelect, counts }: GroupTabsProps) {
   return (
     <div
       className={[
@@ -118,4 +119,4 @@ export function GroupTabs({ tabs, selected, onSelect, counts }: GroupTabsProps) 
       })}
     </div>
   )
-}
+})

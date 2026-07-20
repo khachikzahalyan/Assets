@@ -11,7 +11,6 @@ import type { AssetListQuery, Asset } from '@/domain/asset'
 import type { AssetRepository } from '@/domain/asset/AssetRepository'
 import { FirestoreAssetRepository } from '@/infra/repositories'
 import { db } from '@/lib/firebase'
-import { exportAssetsXlsx } from '@/lib/exportXlsx'
 import type { ExportRow } from '@/lib/exportXlsx'
 import { deriveDisplayStatusId, isTemporaryAssignment } from '@/components/features/assets/assetFormat'
 
@@ -29,19 +28,21 @@ export interface AssetsPageProps {
   repository?: AssetRepository
 }
 
+// Module-level singleton: keeps the repo's reference-data cache (60s TTL) alive
+// across navigations, so returning to /assets doesn't refetch 7 catalog
+// collections before the toolbar can render. Test callers pass their own repo.
+let sharedRepo: FirestoreAssetRepository | null = null
+function getSharedRepo(): FirestoreAssetRepository {
+  if (!sharedRepo) sharedRepo = new FirestoreAssetRepository(db())
+  return sharedRepo
+}
+
 export function AssetsPage({ repository }: AssetsPageProps) {
   const { t } = useTranslation(['assets', 'nav'])
   const navigate = useNavigate()
   const { role } = useAuth()
 
-  // Composition root: build default Firestore repo lazily; test callers pass their own.
-  const defaultRepo = useMemo<AssetRepository>(
-    () => new FirestoreAssetRepository(db()),
-    // db() is stable across renders — the firebase sdk returns the same Firestore instance.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  )
-  const repo = repository ?? defaultRepo
+  const repo = repository ?? getSharedRepo()
 
   const canMutate = role === 'super_admin' || role === 'asset_admin'
   const isMobile = useIsMobile()
@@ -57,24 +58,23 @@ export function AssetsPage({ repository }: AssetsPageProps) {
     setPage(1)
   }, [])
 
-  // ── Display query: pass statusId:'all' to the repo, filter derived-status client-side ──
-  // This ensures the status chip filter matches the derived status shown in the table.
-  const repoQuery = useMemo<AssetListQuery>(
-    () => ({ ...query, statusId: 'all' }),
-    [query],
-  )
-
-  // ── Count query: group:'all' + statusId:'all' to get all groups for tab counts ──
-  const countQuery = useMemo<AssetListQuery>(
+  // ── Single fetch: group:'all' + statusId:'all' (branch/search/sort applied by repo).
+  // The old two-hook shape (display query + count query) issued TWO full collection
+  // reads per mount/filter change that differed ONLY in `group` — and the repo's
+  // group filter is client-side anyway. Fetch the superset once; derive both the
+  // group-filtered display list and the tab counts from it below.
+  const fetchQuery = useMemo<AssetListQuery>(
     () => ({ ...query, group: 'all', statusId: 'all' }),
     [query],
   )
+  const { assets: allGroupsAssets, ref, loading, error, reload } = useAssets(repo, fetchQuery)
 
-  // Primary hook: filtered display list (group, search, branch, sort applied by repo; status applied below)
-  const { assets, ref, loading, error, reload } = useAssets(repo, repoQuery)
-
-  // Secondary hook: all groups (same branch/search/sort) for accurate group tab counts
-  const { assets: allGroupsAssets } = useAssets(repo, countQuery)
+  // Group-filtered set (same category→group lookup the repo used to apply server-side)
+  const assets = useMemo<Asset[]>(() => {
+    if ((query.group ?? 'all') === 'all') return allGroupsAssets
+    const catGroupMap = new Map((ref?.categories ?? []).map(c => [c.id, c.group]))
+    return allGroupsAssets.filter(a => catGroupMap.get(a.categoryId) === query.group)
+  }, [allGroupsAssets, ref, query.group])
 
   // ── Group counts over the all-groups set ────────────────────────────────────
   const groupCounts = useMemo(() => {
@@ -157,7 +157,10 @@ export function AssetsPage({ repository }: AssetsPageProps) {
 
   // Paginate the displayed list
   const totalCount = displayed.length
-  const pageRows: Asset[] = displayed.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const pageRows = useMemo<Asset[]>(
+    () => displayed.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    [displayed, page],
+  )
 
   // ── Active filters check (for EmptyState icon) ──────────────────────────────
   const hasActiveFilters =
@@ -166,6 +169,10 @@ export function AssetsPage({ repository }: AssetsPageProps) {
     (query.branchId ?? 'all') !== 'all' ||
     (query.search ?? '') !== '' ||
     showTemp
+
+  // Row and create navigation handlers — stable references for memoized children.
+  const handleRowClick = useCallback((a: Asset) => navigate(`/assets/${a.id}`), [navigate])
+  const handleNavigateCreate = useCallback(() => navigate('/assets/new'), [navigate])
 
   // Temp toggle handler
   const handleToggleTemp = useCallback(() => {
@@ -180,9 +187,13 @@ export function AssetsPage({ repository }: AssetsPageProps) {
     setPage(1)
   }, [])
 
-  // Export handler — exports the displayed (filtered) set
-  const handleExport = useCallback(() => {
+  // Export handler — exports the displayed (filtered) set.
+  // The xlsx library (~300 KB) is imported ON CLICK — a static import shipped it
+  // inside the AssetsPage route chunk and slowed every page open for a button
+  // most visits never press.
+  const handleExport = useCallback(async () => {
     if (!ref) return
+    const { exportAssetsXlsx } = await import('@/lib/exportXlsx')
     const statusMap = new Map(ref.statuses.map(s => [s.id, s.name]))
     const branchMap = new Map(ref.branches.map(b => [b.id, b.name]))
     const categoryMap = new Map(ref.categories.map(c => [c.id, c.name]))
@@ -231,7 +242,7 @@ export function AssetsPage({ repository }: AssetsPageProps) {
           lastColAction
           gridTemplate="minmax(240px,2.4fr) minmax(130px,1fr) minmax(100px,0.85fr) minmax(150px,1.2fr) minmax(110px,1fr) 56px"
         />
-    if (error) return <ErrorState onRetry={reload} />
+    if (error && !ref) return <ErrorState onRetry={reload} />
     if (displayed.length === 0) {
       return (
         <EmptyState
@@ -254,16 +265,16 @@ export function AssetsPage({ repository }: AssetsPageProps) {
         rows={pageRows}
         ref={ref!}
         canMutate={canMutate}
-        onRowClick={(a) => navigate(`/assets/${a.id}`)}
+        onRowClick={handleRowClick}
         minRows={PAGE_SIZE}
         {...(focusId ? { focusId } : {})}
       />
     )
   }
 
-  // Pagination element — desktop renders it in the ListCard's pinned Zone 3;
-  // mobile (prototype file 1) renders it INSIDE the scroll region right after
-  // the rows. Same element, two CSS-gated mounts.
+  // Pagination element — mobile only (rendered INSIDE the scroll region after rows).
+  // Desktop pagination lives in Zone 3 and is always mounted to prevent layout shift
+  // when data arrives (EmployeesPage precedent — P2 zero-layout-shift).
   const paginationEl =
     !loading && !error && displayed.length > 0 ? (
       <PaginationBar
@@ -287,56 +298,46 @@ export function AssetsPage({ repository }: AssetsPageProps) {
         toolbar={
           <>
             {/* Row 1: Group tabs + Search + Import + Export + Create */}
-            {ref ? (
-              <AssetsToolbar
-                query={query}
-                onChange={handleQueryChange}
-                groupCounts={groupCounts}
-                totalCount={totalCount}
-                canMutate={canMutate}
-                onExport={handleExport}
-                onNavigateCreate={() => navigate('/assets/new')}
-              />
-            ) : (
-              /* Toolbar skeleton while ref is loading */
-              <div className="h-[52px] px-5 py-2">
-                <div className="h-8 rounded-lg anim-skeleton w-full" />
-              </div>
-            )}
+            <AssetsToolbar
+              query={query}
+              onChange={handleQueryChange}
+              groupCounts={groupCounts}
+              totalCount={totalCount}
+              canMutate={canMutate}
+              onExport={handleExport}
+              onNavigateCreate={handleNavigateCreate}
+            />
 
             {/* Divider between Row 1 and Row 2 */}
             <div className="border-t border-border" />
 
             {/* Row 2: Status + Branch + Sort + Temp toggle + Reset */}
-            {ref ? (
-              <AssetsFilterBar
-                query={query}
-                onChange={handleQueryChange}
-                ref={ref}
-                showTemp={showTemp}
-                onToggleTemp={handleToggleTemp}
-                tempCount={tempCount}
-                onReset={handleReset}
-              />
-            ) : (
-              /* Filter-bar skeleton — same padding as real AssetsFilterBar (px-5 py-2 = 48px total) */
-              <div className="flex items-center gap-2 px-5 py-2 max-md:px-3">
-                <div className="h-8 w-[108px] rounded-lg anim-skeleton flex-shrink-0" />
-                <div className="h-8 w-[108px] rounded-lg anim-skeleton flex-shrink-0" />
-                <div className="h-8 w-[72px] rounded-lg anim-skeleton flex-shrink-0" />
-                <div className="h-8 w-[80px] rounded-lg anim-skeleton flex-shrink-0" />
-              </div>
-            )}
+            <AssetsFilterBar
+              query={query}
+              onChange={handleQueryChange}
+              ref={ref}
+              showTemp={showTemp}
+              onToggleTemp={handleToggleTemp}
+              tempCount={tempCount}
+              onReset={handleReset}
+            />
 
             {/* Divider between filter row and table */}
             <div className="border-t border-border" />
           </>
         }
         pagination={
-          /* Desktop-only pinned pagination (Zone 3); mobile copy lives inside the scroller */
-          paginationEl !== undefined ? (
-            <div className="max-md:hidden">{paginationEl}</div>
-          ) : undefined
+          /* Desktop-only pinned pagination (Zone 3).
+             Always mounted — total=0 during load renders disabled prev/next, preventing
+             the ~44px layout shift when data arrives (EmployeesPage precedent). */
+          <div className="max-md:hidden">
+            <PaginationBar
+              page={page}
+              pageSize={PAGE_SIZE}
+              total={totalCount}
+              onPage={setPage}
+            />
+          </div>
         }
       >
         {/* Mobile: outer scroll container — single scroller for rows + pagination.

@@ -1,6 +1,8 @@
-import { createContext, useContext, useState, useMemo, useCallback, useEffect, type ReactNode } from 'react'
+import { createContext, useContext, useState, useMemo, useCallback, useEffect, useRef, type ReactNode } from 'react'
 import type { Role } from '@/config/roles'
 import { fetchUserRole, signOutUser, subscribeToAuthState, claimPendingUser } from '@/lib/auth'
+// Import directly (not via @/hooks barrel) — useParts imports useAuth, creating a barrel cycle.
+import { clearResourceCache } from '@/hooks/useCachedResource'
 
 export interface AuthUser {
   id: string
@@ -110,13 +112,21 @@ export function AuthProvider({ children, initialRole }: { children: ReactNode; i
 }
 
 function MockAuthProvider({ children, initialRole }: { children: ReactNode; initialRole: Role }) {
-  const [role, setRole] = useState<Role>(initialRole)
+  const [role, setRoleState] = useState<Role>(initialRole)
+
+  const setRole = useCallback((r: Role) => {
+    clearResourceCache()
+    setRoleState(r)
+  }, [])
+
   const signOut = useCallback(() => {
+    clearResourceCache()
     if (import.meta.env.DEV) console.info('[auth] signOut (mock)')
   }, [])
+
   const value = useMemo<AuthContextValue>(
     () => ({ user: { ...MOCK_USERS[role], role }, role, status: 'ready', setRole, signOut }),
-    [role, signOut],
+    [role, setRole, signOut],
   )
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
@@ -127,9 +137,19 @@ function RealAuthProvider({ children }: { children: ReactNode }) {
   // DEV-only role override for the dev switcher against a real signed-in user.
   const [roleOverride, setRoleOverride] = useState<Role | null>(null)
 
+  // Track previous uid to detect user transitions (not just initial resolution).
+  const prevUid = useRef<string | null | undefined>(undefined)
+
   useEffect(() => {
     let active = true
     const unsub = subscribeToAuthState((fbUser) => {
+      const newUid = fbUser?.uid ?? null
+      // Clear cache on user transition — prevents cross-user/cross-session data leakage.
+      if (prevUid.current !== undefined && prevUid.current !== newUid) {
+        clearResourceCache()
+      }
+      prevUid.current = newUid
+
       if (!fbUser) {
         if (!active) return
         setUser(null)
@@ -172,6 +192,7 @@ function RealAuthProvider({ children }: { children: ReactNode }) {
 
   const setRole = useCallback((r: Role) => {
     if (import.meta.env.DEV) {
+      clearResourceCache()
       setRoleOverride(r)
       return
     }
@@ -179,6 +200,7 @@ function RealAuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const signOut = useCallback(() => {
+    clearResourceCache()
     void signOutUser().catch(() => {
       if (import.meta.env.DEV) console.info('[auth] signOut failed')
     })

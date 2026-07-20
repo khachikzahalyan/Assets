@@ -13,7 +13,7 @@ const ENTITY_TYPES = [
 export interface AuditFilterBarProps {
   query: AuditLogQuery
   onChange: (patch: Partial<AuditLogQuery>) => void
-  ref: AuditLogReferenceData
+  ref: AuditLogReferenceData | null
 }
 
 function isDirty(q: AuditLogQuery): boolean {
@@ -48,7 +48,7 @@ export function AuditFilterBar({ query, onChange, ref: refData }: AuditFilterBar
 
   const actorOptions: SelectMiniOption[] = [
     { value: 'all', label: t('filters.allActors') },
-    ...refData.actors.map(a => ({ value: a.uid, label: a.displayName ?? a.uid })),
+    ...(refData?.actors ?? []).map(a => ({ value: a.uid, label: a.displayName ?? a.uid })),
   ]
 
   // DatePicker uses YYYY-MM-DD; convert to/from ISO bounds.

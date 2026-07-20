@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import type { Asset } from '@/domain/asset'
 import type { EmployeeRow } from '@/domain/asset'
 import { temporaryHoldStatus } from '@/domain/asset'
@@ -18,7 +19,7 @@ export interface AssigneeCellProps {
   kindInternLabel: string // "Стажёр"
 }
 
-export function AssigneeCell({
+export const AssigneeCell = memo(function AssigneeCell({
   asset,
   employeeMap,
   deptMap,
@@ -157,4 +158,4 @@ export function AssigneeCell({
       </div>
     </div>
   )
-}
+})

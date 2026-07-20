@@ -9,7 +9,7 @@ import type { ViewSortOption } from './ViewPopover'
 export interface AssetsFilterBarProps {
   query: AssetListQuery
   onChange: (patch: Partial<AssetListQuery>) => void
-  ref: AssetReferenceData
+  ref: AssetReferenceData | null
   // Temp toggle
   showTemp?: boolean
   onToggleTemp?: () => void
@@ -52,7 +52,7 @@ export function AssetsFilterBar({
   // ── Status options (colored dots) ─────────────────────────────────────────
   const statusOptions: SelectMiniOption[] = [
     { value: 'all', label: t('filters.allStatuses') },
-    ...refData.statuses.map(s => {
+    ...(refData?.statuses ?? []).map(s => {
       const dot = STATUS_DOT_COLORS[s.id]
       return { value: s.id, label: s.name, ...(dot ? { dotColor: dot } : {}) }
     }),
@@ -61,7 +61,7 @@ export function AssetsFilterBar({
   // ── Branch options (per-branch icon+color) ────────────────────────────────
   const branchOptions: SelectMiniOption[] = [
     { value: 'all', label: t('filters.allBranches') },
-    ...refData.branches.map(b => ({
+    ...(refData?.branches ?? []).map(b => ({
       value: b.id,
       label: b.name,
       icon:      b.id === 'br_main' ? 'landmark' : 'building',

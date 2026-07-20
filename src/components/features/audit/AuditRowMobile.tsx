@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { Icon, Chip, MobileListRow } from '@/components/ui'
@@ -25,15 +26,19 @@ function iconForEntity(type: AuditEntityType): string {
 export interface AuditRowMobileProps {
   log: AuditLog
   refData: AuditLogReferenceData
-  isOpen: boolean
-  onToggle: () => void
+  /** The currently-expanded log id (null = none). Used to derive isOpen locally
+   *  so the parent can pass a stable `onToggle` without closing over `expanded`. */
+  expandedId: string | null
+  /** Called with the log id when the row is clicked. Stable via useCallback in AuditTable. */
+  onToggle: (id: string) => void
 }
 
 /**
  * Mobile audit log row — wraps ui/MobileListRow with audit-specific slot content.
  * Extracted from AuditTable to keep AuditTable well under 300 lines.
  */
-export function AuditRowMobile({ log, refData, isOpen, onToggle }: AuditRowMobileProps) {
+export const AuditRowMobile = memo(function AuditRowMobile({ log, refData, expandedId, onToggle }: AuditRowMobileProps) {
+  const isOpen = expandedId === log.id
   const { t, i18n } = useTranslation('audit')
   const navigate = useNavigate()
 
@@ -102,11 +107,11 @@ export function AuditRowMobile({ log, refData, isOpen, onToggle }: AuditRowMobil
       title={titleNode}
       subline={sublineNode}
       right={right}
-      onClick={onToggle}
+      onClick={() => onToggle(log.id)}
       {...(footer !== undefined ? { footer } : {})}
       /* Fill contract (same as EmployeeRowMobile/CatalogTable rows): rows +
          placeholder slots grow to distribute the card height evenly. */
       outerStyle={{ flexGrow: 1, flexShrink: 0 }}
     />
   )
-}
+})

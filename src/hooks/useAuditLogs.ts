@@ -1,7 +1,8 @@
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import type {
   AuditLog, AuditLogQuery, AuditCursor, AuditLogReferenceData, AuditLogRepository,
 } from '@/domain/audit'
+import { useCachedResource, cacheIdentity } from './useCachedResource'
 
 export interface UseAuditLogsResult {
   rows: AuditLog[]
@@ -27,7 +28,9 @@ export interface UseAuditLogsResult {
 
 /**
  * Cursor-paginated audit fetch. Maintains a stack of cursors so prev() can walk
- * back. The query is serialised so changing any filter resets to page 1.
+ * back. Page 1 is SWR-cached (loading=false on warm remount); deep pages are
+ * uncached (plain fetch, same as before). The query is serialised so changing
+ * any filter resets to page 1.
  *
  * @param repository MUST be a stable reference (useMemo / singleton).
  */
@@ -35,16 +38,9 @@ export function useAuditLogs(
   repository: AuditLogRepository,
   query: AuditLogQuery,
 ): UseAuditLogsResult {
-  const [rows, setRows] = useState<AuditLog[]>([])
-  const [ref, setRef] = useState<AuditLogReferenceData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<Error | null>(null)
-  const [tick, setTick] = useState(0)
-
   // Cursor stack: cursorStack[i] is the cursor used to fetch page i+1.
   // Page 1 uses null. We store the NEXT cursor of each fetched page to advance.
   const [cursorStack, setCursorStack] = useState<(AuditCursor | null)[]>([null])
-  const [nextCursor, setNextCursor] = useState<AuditCursor | null>(null)
 
   const queryKey = JSON.stringify(query)
   const prevQueryKey = useRef(queryKey)
@@ -57,49 +53,32 @@ export function useAuditLogs(
     }
   }, [queryKey])
 
-  const reload = useCallback(() => setTick(t => t + 1), [])
-
   const currentCursor = cursorStack[cursorStack.length - 1] ?? null
 
-  // Page fetch — re-runs on every page turn, filter change, or explicit reload.
-  useEffect(() => {
-    let active = true
-    setLoading(true)
-    setError(null)
-    void (async () => {
-      try {
-        const page = await repository.listAuditLogs(query, currentCursor)
-        if (!active) return
-        setRows(page.rows)
-        setNextCursor(page.nextCursor)
-      } catch (err) {
-        if (!active) return
-        setError(err instanceof Error ? err : new Error(String(err)))
-      } finally {
-        if (active) setLoading(false)
-      }
-    })()
-    return () => { active = false }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [repository, queryKey, currentCursor, tick])
+  // Cache page 1 only; deep pages are uncached (key=null → plain fetch semantics).
+  const repoId = cacheIdentity(repository)
+  const pageKey = currentCursor === null ? `audit:${repoId}:${queryKey}` : null
 
-  // Reference data fetch — re-runs only when the repository changes or on reload.
-  // Stable actor/reference data does not need to be re-fetched on every page turn.
-  useEffect(() => {
-    let active = true
-    void (async () => {
-      try {
-        const refData = await repository.loadReferenceData()
-        if (!active) return
-        setRef(refData)
-      } catch (err) {
-        if (!active) return
-        setError(err instanceof Error ? err : new Error(String(err)))
-      }
-    })()
-    return () => { active = false }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [repository, tick])
+  const { data: pageData, loading, error: pageError, reload: reloadPage } = useCachedResource(
+    pageKey,
+    () => repository.listAuditLogs(query, currentCursor),
+  )
+
+  // Reference data is cached independently — not re-fetched on page turns.
+  const { data: ref, error: refError, reload: reloadRef } = useCachedResource(
+    `audit:${repoId}:ref`,
+    () => repository.loadReferenceData(),
+  )
+
+  const rows = pageData?.rows ?? []
+  const nextCursor = pageData?.nextCursor ?? null
+  const error = pageError ?? refError
+
+  // Combined reload — refreshes both page data and ref data.
+  const reload = useCallback(() => {
+    reloadPage()
+    reloadRef()
+  }, [reloadPage, reloadRef])
 
   const next = useCallback(() => {
     if (nextCursor != null) setCursorStack(s => [...s, nextCursor])
@@ -111,9 +90,9 @@ export function useAuditLogs(
 
   const goto = useCallback((p: number) => {
     setCursorStack(s => {
-      if (p >= 1 && p < s.length) return s.slice(0, p)                    // backward jump
+      if (p >= 1 && p < s.length) return s.slice(0, p)                       // backward jump
       if (p === s.length + 1 && nextCursor != null) return [...s, nextCursor] // forward one step
-      return s                                                            // same page / out of range
+      return s                                                                // same page / out of range
     })
   }, [nextCursor])
 

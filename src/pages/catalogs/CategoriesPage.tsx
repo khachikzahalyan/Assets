@@ -18,9 +18,27 @@ import type { Category, CategoryGroup, CategoryRepository, CategoryGroupReposito
 import { FirestoreCategoryRepository, FirestoreCategoryGroupRepository } from '@/infra/repositories'
 import { EntityInUseError } from '@/domain/shared'
 import { db } from '@/lib/firebase'
+import { useCachedResource, cacheIdentity } from '@/hooks/useCachedResource'
 import { useCategoryGroupCrud } from './useCategoryGroupCrud'
 
 const PAGE_SIZE = 10
+
+interface CategoriesSnapshot {
+  groups: CategoryGroup[]
+  categories: Category[]
+}
+
+// Module-level lazy singletons — cache keys stay stable across navigations.
+let _sharedCatRepo: FirestoreCategoryRepository | null = null
+function getSharedCatRepo(): FirestoreCategoryRepository {
+  if (!_sharedCatRepo) _sharedCatRepo = new FirestoreCategoryRepository(db())
+  return _sharedCatRepo
+}
+let _sharedCatGroupRepo: FirestoreCategoryGroupRepository | null = null
+function getSharedCatGroupRepo(): FirestoreCategoryGroupRepository {
+  if (!_sharedCatGroupRepo) _sharedCatGroupRepo = new FirestoreCategoryGroupRepository(db())
+  return _sharedCatGroupRepo
+}
 
 export interface CategoriesPageProps {
   repository?: CategoryRepository
@@ -32,26 +50,35 @@ export function CategoriesPage({ repository, categoryGroupRepository }: Categori
   const { user, role } = useAuth()
   const isMobile = useIsMobile()
 
-  const defaultRepo = useMemo<CategoryRepository>(
-    () => new FirestoreCategoryRepository(db()),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  )
-  const defaultGroupRepo = useMemo<CategoryGroupRepository>(
-    () => new FirestoreCategoryGroupRepository(db()),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  )
-  const repo      = repository ?? defaultRepo
-  const groupRepo = categoryGroupRepository ?? defaultGroupRepo
+  const repo      = repository ?? getSharedCatRepo()
+  const groupRepo = categoryGroupRepository ?? getSharedCatGroupRepo()
   const canMutate = role === 'super_admin'
 
   // ── Data ─────────────────────────────────────────────────────────────────
-  const [groups, setGroups]                   = useState<CategoryGroup[]>([])
-  const [rows, setRows]                       = useState<Category[]>([])
-  const [loading, setLoad]                    = useState(true)
-  const [error, setError]                     = useState<string | null>(null)
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null)
+
+  // ── SWR cache ─────────────────────────────────────────────────────────────
+  const cacheKey = `categories:${cacheIdentity(repo)}:${cacheIdentity(groupRepo)}`
+  const { data, loading, error: fetchError, reload } = useCachedResource<CategoriesSnapshot>(
+    cacheKey,
+    async () => {
+      const [groups, categories] = await Promise.all([
+        groupRepo.listCategoryGroups(),
+        repo.listCategories(),
+      ])
+      return { groups, categories }
+    },
+  )
+  const groups = data?.groups ?? []
+  const rows   = data?.categories ?? []
+
+  // Sync selectedGroupId when groups data arrives (first load or after mutation).
+  useEffect(() => {
+    if (!data?.groups) return
+    setSelectedGroupId(prev =>
+      prev !== null && data.groups.some(g => g.id === prev) ? prev : (data.groups[0]?.id ?? null),
+    )
+  }, [data])
 
   // ── Subcategory CRUD state ────────────────────────────────────────────────
   const [editing, setEditing]       = useState<Category | 'new' | null>(null)
@@ -81,22 +108,12 @@ export function CategoriesPage({ repository, categoryGroupRepository }: Categori
   const total    = filtered.length
   const pageRows = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
-  // ── Load ─────────────────────────────────────────────────────────────────
-  const load = useCallback(async () => {
-    setLoad(true); setError(null)
-    try {
-      const [gs, cs] = await Promise.all([groupRepo.listCategoryGroups(), repo.listCategories()])
-      setGroups(gs)
-      setRows(cs)
-      setSelectedGroupId(prev =>
-        prev !== null && gs.some(g => g.id === prev) ? prev : (gs[0]?.id ?? null),
-      )
-    } catch { setError(t('validation.saveFailed')) }
-    finally { setLoad(false) }
-  }, [groupRepo, repo, t])
-  useEffect(() => { void load() }, [load])
-
   // ── Group CRUD (hook) ─────────────────────────────────────────────────────
+  // useCategoryGroupCrud expects `load: () => Promise<void>`.
+  // useCachedResource's `reload` returns void — wrap to satisfy the type.
+  const reloadAsync = useCallback(async () => { reload() }, [reload])
+  const [pageError, setPageError] = useState<string | null>(null)
+
   const {
     groupEditing, setGroupEditing,
     groupSubmitting,
@@ -105,7 +122,7 @@ export function CategoriesPage({ repository, categoryGroupRepository }: Categori
     groupBlockedMsg, setGroupBlockedMsg,
     groupDelBusy,
     handleGroupSubmit, askDeleteGroup, confirmDeleteGroup,
-  } = useCategoryGroupCrud(groupRepo, load, setError)
+  } = useCategoryGroupCrud(groupRepo, reloadAsync, setPageError)
 
   // ── Columns ───────────────────────────────────────────────────────────────
   const columns: CatalogColumn<Category>[] = [
@@ -144,7 +161,7 @@ export function CategoriesPage({ repository, categoryGroupRepository }: Categori
       } else {
         await repo.createCategory({ ...v, group: selectedGroup.behavior, categoryGroupId: selectedGroupId }, actor)
       }
-      setEditing(null); setPage(1); await load()
+      setEditing(null); setPage(1); reload()
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e)
       setSaveError(/name already in use/i.test(msg) ? t('validation.nameTaken') : t('validation.saveFailed'))
@@ -163,19 +180,19 @@ export function CategoriesPage({ repository, categoryGroupRepository }: Categori
     setDelBusy(true)
     try {
       await repo.deleteCategory(deleting.id, { uid: user.id, role })
-      setDeleting(null); setBlockedMsg(null); setPage(1); await load()
+      setDeleting(null); setBlockedMsg(null); setPage(1); reload()
     } catch (e) {
       if (e instanceof EntityInUseError) setBlockedMsg(t('delete.inUse', { count: e.count }))
-      else { setDeleting(null); setError(t('validation.saveFailed')) }
+      else { setDeleting(null) }
     } finally { setDelBusy(false) }
   }
 
   // ── Render ────────────────────────────────────────────────────────────────
   function renderTableRegion() {
     if (loading) return isMobile
-      ? <CardListSkeleton rows={6} variant="catalog" />
+      ? <CardListSkeleton rows={10} variant="catalog" />
       : <TableSkeleton rows={PAGE_SIZE} columns={3} gridTemplate="minmax(160px,2fr) 1fr 80px" lastColAction />
-    if (error) return <ErrorState onRetry={load} />
+    if ((fetchError || pageError) && !data) return <ErrorState onRetry={reload} />
     if (!selectedGroupId || filtered.length === 0) return (
       <EmptyState icon="tags" title={t('empty.title')} description={t('empty.desc')} />
     )
@@ -221,6 +238,17 @@ export function CategoriesPage({ repository, categoryGroupRepository }: Categori
                   {[80, 100, 72].map(w => (
                     <div key={w} style={{ width: w }} className="h-8 rounded-full bg-surface-2 animate-pulse" />
                   ))}
+                  {/* "+ add group" chip is local chrome — render real (disabled) so the row footprint matches loaded */}
+                  {canMutate && (
+                    <button
+                      type="button"
+                      disabled
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-dashed border-border text-text-tertiary text-[13px] font-medium whitespace-nowrap flex-shrink-0 opacity-50 cursor-not-allowed"
+                    >
+                      <Icon name="plus" size={13} />
+                      {t('create')}
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div className="px-5 py-3 max-md:px-3">
@@ -240,9 +268,8 @@ export function CategoriesPage({ repository, categoryGroupRepository }: Categori
             </>
           }
           pagination={
-            !loading && !error && total > 0 ? (
-              <CatalogPagination page={page} pageSize={PAGE_SIZE} total={total} onPage={setPage} />
-            ) : undefined
+            /* Always mounted — total=0 during load renders disabled prev/next (EmployeesPage precedent). */
+            <CatalogPagination page={page} pageSize={PAGE_SIZE} total={total} onPage={setPage} />
           }
         >
           {renderTableRegion()}

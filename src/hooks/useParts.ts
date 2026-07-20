@@ -1,9 +1,10 @@
-import { useEffect, useState, useCallback, useMemo } from 'react'
+import { useMemo, useCallback } from 'react'
 import type { PartRepository, PartWriteRepository, PartReferenceData, ReceiveItem, InstallInput, UninstallInput, CreateGpuInput, ServiceRecordInput } from '@/domain/part/PartRepository'
 import type { PartMovement, Part } from '@/domain/part/types'
 import type { AuditedResult } from '@/domain/audit'
 import type { Actor } from '@/domain/asset/AssetRepository'
 import { useAuth } from '@/contexts/AuthContext'
+import { useCachedResource, cacheIdentity } from './useCachedResource'
 
 export interface UsePartsResult {
   ref: PartReferenceData | null
@@ -19,7 +20,7 @@ export interface UsePartsResult {
 
 /**
  * Loads the parts reference data (SKU catalog + movement journal + upgradeable assets)
- * and exposes bound write methods.
+ * and exposes bound write methods. SWR-cached: repeat visits render instantly.
  *
  * Pattern mirrors useAssets.ts: load on mount, expose reload(), call reload() after
  * every successful write (no onSnapshot in MVP — matches the load-then-reload approach).
@@ -38,35 +39,10 @@ export function useParts(repo: PartRepository & PartWriteRepository): UsePartsRe
 
   const actor = useMemo<Actor>(() => ({ uid: user.id, role }), [user.id, role])
 
-  const [ref, setRef] = useState<PartReferenceData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<Error | null>(null)
-  const [tick, setTick] = useState(0)
-
-  const reload = useCallback(() => setTick(t => t + 1), [])
-
-  useEffect(() => {
-    let active = true
-    setLoading(true)
-    setError(null)
-
-    void (async () => {
-      try {
-        const data = await repo.loadReferenceData()
-        if (!active) return
-        setRef(data)
-      } catch (err) {
-        if (!active) return
-        setError(err instanceof Error ? err : new Error(String(err)))
-      } finally {
-        if (active) setLoading(false)
-      }
-    })()
-
-    return () => {
-      active = false
-    }
-  }, [repo, tick])
+  const { data: ref, loading, error, reload } = useCachedResource(
+    `parts:${cacheIdentity(repo)}`,
+    () => repo.loadReferenceData(),
+  )
 
   const receiveParts = useCallback(
     async (items: ReceiveItem[]): Promise<AuditedResult<PartMovement[]>> => {

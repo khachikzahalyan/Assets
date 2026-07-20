@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { memo, useEffect, useRef, useState, type CSSProperties } from 'react'
 import type { Asset } from '@/domain/asset'
 import type { ChipColor } from '@/components/ui/chip'
 import { CHIP_PALETTE } from '@/components/ui/chip'
@@ -52,7 +52,7 @@ export interface MobileCardProps {
  * Highlight/scrollIntoView logic remains here; onClick is passed through
  * to avoid double keyboard handling.
  */
-export function MobileCard({
+export const MobileCard = memo(function MobileCard({
   a,
   title,
   displayStatus,
@@ -156,4 +156,4 @@ export function MobileCard({
       {...(highlight ? { className: 'bg-accent/5 ring-2 ring-inset ring-accent/45' } : {})}
     />
   )
-}
+})

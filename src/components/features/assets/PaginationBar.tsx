@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { useTranslation, Trans } from 'react-i18next'
 import { Pagination } from '@/components/ui'
 
@@ -16,7 +17,7 @@ export interface PaginationBarProps {
  *
  * All layout/behaviour logic lives in ui/Pagination (the canonical etalon).
  */
-export function PaginationBar({ page, pageSize, total, onPage }: PaginationBarProps) {
+export const PaginationBar = memo(function PaginationBar({ page, pageSize, total, onPage }: PaginationBarProps) {
   const { t } = useTranslation('assets')
 
   const from = total === 0 ? 0 : (page - 1) * pageSize + 1
@@ -46,4 +47,4 @@ export function PaginationBar({ page, pageSize, total, onPage }: PaginationBarPr
       nextLabel={t('pagination.next')}
     />
   )
-}
+})

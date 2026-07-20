@@ -221,7 +221,7 @@ export function EmployeesTable({
             branchName={emp.branchId ? (branchMap.get(emp.branchId) ?? '') : ''}
             deptName={emp.departmentId ? (deptMap.get(emp.departmentId) ?? '') : ''}
             assetCount={assetCounts[emp.id] ?? 0}
-            onClick={() => onRowClick(emp)}
+            onRowClick={onRowClick}
           />
         ))}
         <MobileListPlaceholders count={placeholderCount} dataTestId="emp-placeholder-row" />

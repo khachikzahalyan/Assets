@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { memo, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Chip, Icon, IconBtn } from '@/components/ui'
 import type { Asset, EmployeeRow } from '@/domain/asset'
@@ -38,7 +38,7 @@ export interface AssetRowProps {
   isFocused?: boolean
 }
 
-export function AssetRow({
+export const AssetRow = memo(function AssetRow({
   asset,
   title,
   categoryName,
@@ -200,4 +200,4 @@ export function AssetRow({
       </div>
     </div>
   )
-}
+})

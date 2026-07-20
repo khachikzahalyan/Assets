@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { MobileListRow } from '@/components/ui'
 import { CHIP_PALETTE } from '@/components/ui/chip'
@@ -15,7 +16,10 @@ export interface EmployeeRowMobileProps {
   branchName: string
   deptName: string
   assetCount: number
-  onClick: () => void
+  /** Called with the employee when the row is clicked.
+   *  Receives the employee so the parent can pass a stable callback directly
+   *  (avoiding per-row inline-closure creation) and React.memo is effective. */
+  onRowClick: (e: Employee) => void
 }
 
 /**
@@ -28,12 +32,12 @@ export interface EmployeeRowMobileProps {
  * Subline: «{должность} · {отдел}» 11px text-tertiary (omits missing parts, no dangling ·).
  * Right: asset-count pill (CHIP_PALETTE; gray when 0, blue when >0) + branch name 10px muted.
  */
-export function EmployeeRowMobile({
+export const EmployeeRowMobile = memo(function EmployeeRowMobile({
   employee,
   branchName,
   deptName,
   assetCount,
-  onClick,
+  onRowClick,
 }: EmployeeRowMobileProps) {
   const { t } = useTranslation('employees')
 
@@ -86,10 +90,10 @@ export function EmployeeRowMobile({
       subline={sublineNode}
       right={right}
       accentClass={borderClass}
-      onClick={onClick}
+      onClick={() => onRowClick(employee)}
       /* Fill contract (same as assets rows): rows + placeholder slots grow to
          distribute the card height so no clean band is left above pagination. */
       outerStyle={{ flexGrow: 1, flexShrink: 0 }}
     />
   )
-}
+})

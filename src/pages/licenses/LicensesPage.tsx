@@ -1,7 +1,8 @@
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
-import { Btn, Icon, ErrorState } from '@/components/ui'
+import { Btn, Icon, ErrorState, TableSkeleton, CardListSkeleton, SectionCard } from '@/components/ui'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import {
   WindowsKeysSection,
   SubscriptionsSection,
@@ -25,9 +26,47 @@ import {
 } from '@/infra/repositories'
 import { db } from '@/lib/firebase'
 import { getMaskedLicenseKey } from '@/lib/licenses/maskedKey'
+import { cacheIdentity, readResourceCache, writeResourceCache } from '@/hooks/useCachedResource'
+
+// ── Module-level lazy singletons ────────────────────────────────────────────
+let _wRepo: FirestoreWorkstationLicenseRepository | null = null
+function getDefaultWRepo(): FirestoreWorkstationLicenseRepository {
+  if (!_wRepo) _wRepo = new FirestoreWorkstationLicenseRepository(db())
+  return _wRepo
+}
+let _auditRepo: FirestoreAuditLogRepository | null = null
+function getDefaultAuditRepo(): FirestoreAuditLogRepository {
+  if (!_auditRepo) _auditRepo = new FirestoreAuditLogRepository(db())
+  return _auditRepo
+}
+let _subRepo: FirestoreSubscriptionRepository | null = null
+function getDefaultSubRepo(): FirestoreSubscriptionRepository {
+  if (!_subRepo) _subRepo = new FirestoreSubscriptionRepository(db())
+  return _subRepo
+}
+let _empRepo: FirestoreEmployeeRepository | null = null
+function getDefaultEmpRepo(): FirestoreEmployeeRepository {
+  if (!_empRepo) _empRepo = new FirestoreEmployeeRepository(db())
+  return _empRepo
+}
+let _assRepo: FirestoreAssetRepository | null = null
+function getDefaultAssRepo(): FirestoreAssetRepository {
+  if (!_assRepo) _assRepo = new FirestoreAssetRepository(db())
+  return _assRepo
+}
+
 import { resolveCategoryCapabilities } from '@/domain/asset/categoryCapabilities'
 import type { KeylessAsset } from '@/components/features/licenses/ActivateKeyModal'
 import type { Asset, CategoryRow } from '@/domain/asset'
+
+interface WorkstationSnapshot {
+  rows: WorkstationLicense[]
+  maskedKeys: Record<string, string>
+}
+
+interface SubsSnapshot {
+  subs: Subscription[]
+}
 
 type ActiveTab = 'keys' | 'subs'
 
@@ -52,30 +91,18 @@ export function LicensesPage({
 }: LicensesPageProps) {
   const { t } = useTranslation('licenses')
   const { user, role } = useAuth()
+  const isMobile = useIsMobile()
 
   const canReveal = role === 'super_admin' || role === 'tech_admin'
 
   const actor = useMemo<Actor>(() => ({ uid: user.id, role }), [user.id, role])
 
-  // ── Composition root ────────────────────────────────────────────────────────
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const dbInstance = useMemo(() => db(), [])
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const defaultWRepo = useMemo<WorkstationLicenseRepository>(() => new FirestoreWorkstationLicenseRepository(dbInstance), [dbInstance])
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const defaultAuditRepo = useMemo<AuditLogRepository>(() => new FirestoreAuditLogRepository(dbInstance), [dbInstance])
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const defaultSubRepo = useMemo<SubscriptionRepository>(() => new FirestoreSubscriptionRepository(dbInstance), [dbInstance])
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const defaultEmpRepo = useMemo<EmployeeRepository>(() => new FirestoreEmployeeRepository(dbInstance), [dbInstance])
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const defaultAssetRepo = useMemo<AssetRepository>(() => new FirestoreAssetRepository(dbInstance), [dbInstance])
-
-  const wRepo = workstationRepo ?? defaultWRepo
-  const aRepo = auditRepo ?? defaultAuditRepo
-  const subRepo = subscriptionRepo ?? defaultSubRepo
-  const empRepo = employeeRepo ?? defaultEmpRepo
-  const assRepo = assetRepo ?? defaultAssetRepo
+  // ── Composition root — use injected repos (tests) or module singletons ──────
+  const wRepo = workstationRepo ?? getDefaultWRepo()
+  const aRepo = auditRepo ?? getDefaultAuditRepo()
+  const subRepo = subscriptionRepo ?? getDefaultSubRepo()
+  const empRepo = employeeRepo ?? getDefaultEmpRepo()
+  const assRepo = assetRepo ?? getDefaultAssRepo()
 
   // ── Tab state ────────────────────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState<ActiveTab>('keys')
@@ -114,7 +141,14 @@ export function LicensesPage({
 
   // ── Load workstation licenses ────────────────────────────────────────────────
   const loadWorkstation = useCallback(async (guard?: { value: boolean }) => {
-    setWLoading(true)
+    const snapKey = `licenses:${cacheIdentity(wRepo)}:workstation`
+    const cached = readResourceCache<WorkstationSnapshot>(snapKey)
+    if (cached) {
+      setWRows(cached.rows)
+      setMaskedKeys(cached.maskedKeys)
+    } else {
+      setWLoading(true)
+    }
     setWError(null)
     try {
       const rows = await wRepo.listLicenses()
@@ -125,13 +159,14 @@ export function LicensesPage({
       const pairs = await Promise.all(
         rows.map(async r => ({
           id: r.id,
-          masked: await getMaskedLicenseKey(dbInstance, 'licenses', r.id).catch(() => '—'),
+          masked: await getMaskedLicenseKey(db(), 'licenses', r.id).catch(() => '—'),
         })),
       )
       if (guard && !guard.value) return
       const map: Record<string, string> = {}
       for (const { id, masked } of pairs) map[id] = masked
       setMaskedKeys(map)
+      writeResourceCache(snapKey, { rows, maskedKeys: map })
     } catch {
       if (guard && !guard.value) return
       setWError(t('error'))
@@ -139,7 +174,7 @@ export function LicensesPage({
       if (!guard || guard.value) setWLoading(false)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [wRepo, dbInstance])
+  }, [wRepo])
 
   // ── Load audit for license tab ───────────────────────────────────────────────
   const loadAudit = useCallback(async () => {
@@ -175,12 +210,19 @@ export function LicensesPage({
 
   // ── Load subscriptions ───────────────────────────────────────────────────────
   const loadSubs = useCallback(async (guard?: { value: boolean }) => {
-    setSubsLoading(true)
+    const snapKey = `licenses:${cacheIdentity(subRepo)}:subs`
+    const cached = readResourceCache<SubsSnapshot>(snapKey)
+    if (cached) {
+      setSubs(cached.subs)
+    } else {
+      setSubsLoading(true)
+    }
     setSubsError(null)
     try {
       const rows = await subRepo.listSubscriptions()
       if (guard && !guard.value) return
       setSubs(rows)
+      writeResourceCache(snapKey, { subs: rows })
     } catch {
       if (guard && !guard.value) return
       setSubsError(t('error'))
@@ -301,10 +343,15 @@ export function LicensesPage({
   ]
 
   return (
-    /* Mobile: the shell puts /licenses in .app-shell-content-flush (flex column,
+    /* Full-height flex column on BOTH breakpoints (assets etalon):
+       Mobile: the shell puts /licenses in .app-shell-content-flush (flex column,
        zero side padding) — the page carries its own 10px gutters and stretches
-       (flex-1) so the keys card can fill down to the BottomNav, like /assets. */
-    <div className="space-y-5 max-md:space-y-3 max-md:mx-[10px] max-md:flex max-md:flex-col max-md:flex-1 max-md:min-h-0">
+       (flex-1) so the keys card can fill down to the BottomNav, like /assets.
+       Desktop: h-full inside .app-shell-content so the keys card stretches to the
+       content-area bottom and DataTable rows distribute the height (flex:1 1 0),
+       exactly like AssetsTable. space-y (margins) kept over gap — the mobile
+       keys card cancels its top margin via !mt-0 to fuse with the tab chrome. */
+    <div className="flex flex-col h-full min-h-0 space-y-5 max-md:space-y-3 max-md:mx-[10px] max-md:flex-1">
       {/* Tab strip + search + add button — one line, no page title.
           Mobile: assets-etalon header — card chrome, surface-2 tab strip, then a
           search+«+» row; on the keys tab the chrome fuses with the card below. */}
@@ -422,43 +469,44 @@ export function LicensesPage({
         <>
           {wLoading && (
             /*
-             * Keys-tab skeleton — mirrors WindowsKeysSection layout.
-             * Desktop: table rows (ROW_H=56px). Mobile: card-shaped shimmers.
-             * Wrapped in a SectionCard-shaped container (bg-surface, border, rounded-xl).
+             * Keys-tab skeleton — section header band + card body.
+             * Header band mirrors WindowsKeysSection header exactly:
+             *   Desktop: real icon + title (local chrome, no async data).
+             *   Mobile:  shimmer strip — filter labels are local chrome but counts
+             *            are async; rendering real labels with 0 would be misleading,
+             *            so we shimmer the full strip instead.
+             * Card body: CardListSkeleton (mobile) / TableSkeleton (desktop).
              */
-            <div className="bg-surface border border-border rounded-xl overflow-hidden max-md:rounded-t-none max-md:border-t-0 max-md:!mt-0" aria-hidden="true">
-              {/* Card header — shimmer */}
-              <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-border">
-                <div className="w-7 h-7 rounded-lg anim-skeleton flex-shrink-0" />
-                <div className="h-[10px] w-[120px] rounded anim-skeleton" />
-              </div>
-              {/* Desktop: table rows — shimmer (DB: license name + meta + status) */}
-              <div className="divide-y divide-border max-md:hidden">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <div key={i} className="flex items-center gap-3 px-5 py-0" style={{ minHeight: 56 }}>
-                    <div className="w-8 h-8 rounded-lg anim-skeleton flex-shrink-0" />
-                    <div className="flex-1 min-w-0 space-y-2">
-                      <div className="h-[13px] rounded anim-skeleton" style={{ width: `${48 + (i % 3) * 12}%` }} />
-                      <div className="h-[10px] rounded anim-skeleton" style={{ width: `${32 + (i % 4) * 8}%` }} />
-                    </div>
-                    <div className="h-[20px] w-[64px] rounded-md anim-skeleton flex-shrink-0" />
-                    <div className="h-[28px] w-[28px] rounded-md anim-skeleton flex-shrink-0" />
+            <div
+              className="bg-surface border border-border rounded-xl overflow-hidden max-md:rounded-t-none max-md:border-t-0 max-md:!mt-0 max-md:flex-1 max-md:min-h-0 md:flex md:flex-col md:flex-1 md:min-h-0"
+              aria-hidden="true"
+            >
+              {/* Section header band — ~48px, matches WindowsKeysSection header (line ~318) */}
+              <header className="flex items-center justify-between px-5 py-2.5 border-b border-border max-md:px-[14px] max-md:py-2">
+                {/* Desktop: real icon + title (local chrome) */}
+                <div className="flex items-center gap-2.5 max-md:hidden">
+                  <span className="w-7 h-7 rounded-md bg-surface-2 text-violet-400 inline-flex items-center justify-center">
+                    <Icon name="key-round" size={14} />
+                  </span>
+                  <h2 className="text-[13.5px] font-bold uppercase tracking-[0.04em] text-text-primary">
+                    {t('keys.sectionTitle')}
+                  </h2>
+                </div>
+                {/* Mobile: shimmer strip — async counts make real-label+0 misleading */}
+                <div className="md:hidden w-full flex items-center gap-0.5 overflow-x-auto no-scrollbar flex-nowrap">
+                  <div className="h-[28px] w-[90px] rounded anim-skeleton flex-shrink-0" />
+                  <div className="h-[28px] w-[70px] rounded anim-skeleton flex-shrink-0" />
+                </div>
+              </header>
+              {isMobile
+                ? <CardListSkeleton rows={10} variant="key" />
+                : (
+                  /* flex-1 min-h-0 gives TableSkeleton (height:100%) the remaining
+                     card height so its flex rows stretch like the real DataTable */
+                  <div className="flex-1 min-h-0">
+                    <TableSkeleton rows={10} columns={4} gridTemplate="minmax(220px,1.3fr) minmax(160px,1.1fr) minmax(120px,0.8fr) minmax(160px,1.2fr)" />
                   </div>
-                ))}
-              </div>
-              {/* Mobile: card-shaped shimmers */}
-              <div className="divide-y divide-border md:hidden">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <div key={i} className="px-4 py-3 flex flex-col gap-2">
-                    <div className="h-[13px] rounded anim-skeleton font-mono" style={{ width: `${55 + (i % 3) * 10}%` }} />
-                    <div className="flex items-center gap-2">
-                      <div className="h-[11px] rounded anim-skeleton" style={{ width: `${30 + (i % 4) * 8}%` }} />
-                      <div className="h-[18px] w-[60px] rounded-md anim-skeleton flex-shrink-0" />
-                    </div>
-                    <div className="h-[11px] rounded anim-skeleton" style={{ width: `${40 + (i % 3) * 10}%` }} />
-                  </div>
-                ))}
-              </div>
+                )}
             </div>
           )}
           {wError && <ErrorState onRetry={loadWorkstation} />}
@@ -483,39 +531,17 @@ export function LicensesPage({
         <>
           {subsLoading && (
             /*
-             * Subs-tab skeleton — mirrors SubscriptionsSection:
-             * SectionCard header + grid-cols-1 md:grid-cols-2 xl:grid-cols-3 of SubscriptionCard stubs.
-             * Each SubscriptionCard is a bordered card with title, meta rows, and assignee chips.
+             * Subs-tab skeleton — real SectionCard with real header (local chrome) +
+             * subscription shimmer in the body.
+             * SectionCard provides shadow, rounded-xl, border, header (px-5 py-3.5 / max-md px-3.5 py-3).
+             * bodyClassName="!p-0": CardListSkeleton variant="subscription" already carries p-5 on
+             * its outer grid wrapper; zeroing SectionCard's body padding avoids double-spacing.
+             * Mobile padding is p-5 (vs real p-3.5 from SectionCard); 6px diff is acceptable for a skeleton.
              */
-            <div className="bg-surface border border-border rounded-xl overflow-hidden" aria-hidden="true">
-              {/* Card header — shimmer */}
-              <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-border">
-                <div className="w-7 h-7 rounded-lg anim-skeleton flex-shrink-0" />
-                <div className="h-[10px] w-[120px] rounded anim-skeleton" />
-              </div>
-              {/* Sub-card grid — shimmer (DB: subscription name + meta + assignees) */}
-              <div className="p-5">
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="bg-bg border border-border rounded-xl p-4 space-y-3">
-                      {/* Card title row */}
-                      <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-md anim-skeleton flex-shrink-0" />
-                        <div className="h-[14px] flex-1 rounded anim-skeleton" style={{ maxWidth: '65%' }} />
-                      </div>
-                      {/* Meta rows */}
-                      <div className="h-[11px] w-[50%] rounded anim-skeleton" />
-                      <div className="h-[11px] w-[40%] rounded anim-skeleton" />
-                      {/* Assignee chips */}
-                      <div className="flex flex-wrap gap-1.5 pt-1">
-                        {Array.from({ length: 2 }).map((__, j) => (
-                          <div key={j} className="h-[22px] w-[72px] rounded-full anim-skeleton" />
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+            <div aria-hidden="true">
+              <SectionCard title={t('subs.sectionTitle')} icon="boxes" bodyClassName="!p-0">
+                <CardListSkeleton rows={6} variant="subscription" />
+              </SectionCard>
             </div>
           )}
           {subsError && <ErrorState onRetry={loadSubs} />}
