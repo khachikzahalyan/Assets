@@ -4,11 +4,12 @@ import { useAuth } from '@/contexts/AuthContext'
 import {
   ListCard, ListPageShell,
   Icon, Chip,
+  Btn, MobileAddButton,
   EmptyState, ErrorState,
   TableSkeleton, CardListSkeleton,
 } from '@/components/ui'
 import { useIsMobile } from '@/hooks/useIsMobile'
-import { CatalogTable, CatalogPagination, ConfirmDeleteDialog, CatalogToolbarHeader, type CatalogColumn } from '@/components/features/catalogs'
+import { CatalogTable, CatalogPagination, ConfirmDeleteDialog, type CatalogColumn } from '@/components/features/catalogs'
 import {
   CategoryFormDialog, type CategoryFormValues,
   CategoryGroupFormDialog,
@@ -221,49 +222,61 @@ export function CategoriesPage({ repository, categoryGroupRepository }: Categori
           className="max-md:mx-[10px]"
           toolbar={
             <>
-              {/* Row 1: heading + add-subcategory button */}
-              <CatalogToolbarHeader
-                icon="tags"
-                title={t('subcategories')}
-                {...(!loading ? { count: total } : {})}
-                canMutate={canMutate}
-                isMobile={isMobile}
-                createLabel={t('createSubcategory')}
-                buttonIcon="plus"
-                onCreate={() => { setSaveError(null); setEditing('new') }}
-              />
-              {/* Row 2: group chips */}
-              {loading ? (
-                <div className="flex flex-wrap gap-2 px-5 py-3 max-md:px-3">
-                  {[80, 100, 72].map(w => (
-                    <div key={w} style={{ width: w }} className="h-8 rounded-full bg-surface-2 animate-pulse" />
-                  ))}
-                  {/* "+ add group" chip is local chrome — render real (disabled) so the row footprint matches loaded */}
-                  {canMutate && (
-                    <button
-                      type="button"
-                      disabled
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-dashed border-border text-text-tertiary text-[13px] font-medium whitespace-nowrap flex-shrink-0 opacity-50 cursor-not-allowed"
-                    >
-                      <Icon name="plus" size={13} />
-                      {t('create')}
-                    </button>
+              {/* Single toolbar row: group chips (left, scrollable) + add-subcategory button (right, fixed) */}
+              <div className="flex items-center gap-3 px-5 py-3 max-md:px-3">
+                {/* Left: chips — overflow-hidden so they don't push the button off-screen */}
+                <div className="flex-1 min-w-0 overflow-hidden">
+                  {loading ? (
+                    <div className="flex flex-wrap gap-2 max-md:flex-nowrap max-md:overflow-x-auto no-scrollbar">
+                      {[80, 100, 72].map(w => (
+                        <div key={w} style={{ width: w }} className="h-8 rounded-lg bg-surface-2 animate-pulse flex-shrink-0" />
+                      ))}
+                      {/* "+ add group" dashed chip: always visible so footprint matches loaded state */}
+                      {canMutate && (
+                        <button
+                          type="button"
+                          disabled
+                          className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg border border-dashed border-border text-text-tertiary text-[13px] font-semibold tracking-tight whitespace-nowrap flex-shrink-0 opacity-50 cursor-not-allowed"
+                        >
+                          <Icon name="plus" size={13} />
+                          {t('create')}
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <CategoryGroupChips
+                      groups={groups}
+                      counts={counts}
+                      selectedId={selectedGroupId ?? ''}
+                      onSelect={id => { setSelectedGroupId(id); setPage(1) }}
+                      onEdit={g => { setGroupSaveError(null); setGroupEditing(g) }}
+                      onDelete={askDeleteGroup}
+                      onAdd={() => { setGroupSaveError(null); setGroupEditing('new') }}
+                      canMutate={canMutate}
+                    />
                   )}
                 </div>
-              ) : (
-                <div className="px-5 py-3 max-md:px-3">
-                  <CategoryGroupChips
-                    groups={groups}
-                    counts={counts}
-                    selectedId={selectedGroupId ?? ''}
-                    onSelect={id => { setSelectedGroupId(id); setPage(1) }}
-                    onEdit={g => { setGroupSaveError(null); setGroupEditing(g) }}
-                    onDelete={askDeleteGroup}
-                    onAdd={() => { setGroupSaveError(null); setGroupEditing('new') }}
-                    canMutate={canMutate}
-                  />
-                </div>
-              )}
+
+                {/* Right: add-subcategory button — flex-shrink-0 so it never collapses */}
+                {canMutate && (
+                  isMobile ? (
+                    <MobileAddButton
+                      onClick={() => { setSaveError(null); setEditing('new') }}
+                      ariaLabel={t('createSubcategory')}
+                    />
+                  ) : (
+                    <Btn
+                      variant="primary"
+                      size="md"
+                      className="flex-shrink-0"
+                      onClick={() => { setSaveError(null); setEditing('new') }}
+                    >
+                      <Icon name="plus" size={14} />
+                      {t('createSubcategory')}
+                    </Btn>
+                  )
+                )}
+              </div>
               <div className="border-t border-border" />
             </>
           }

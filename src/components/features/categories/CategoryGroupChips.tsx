@@ -13,11 +13,11 @@ export interface CategoryGroupChipsProps {
   canMutate: boolean
 }
 
-/** Accent classes for the selected chip — uniform primary accent (never rainbow). */
+/** Chip styles — mirror assets GroupTabs desktop chips exactly (filled accent active). */
 const ACTIVE_CHIP =
-  'bg-accent/10 border-accent text-accent'
+  'bg-accent text-white'
 const IDLE_CHIP =
-  'bg-surface-2/50 border-border text-text-secondary hover:border-border-strong hover:text-text-primary'
+  'bg-surface text-text-primary border border-border hover:border-border-strong'
 
 export function CategoryGroupChips({
   groups, counts, selectedId,
@@ -40,16 +40,21 @@ export function CategoryGroupChips({
             <button
               type="button"
               onClick={() => onSelect(g.id)}
+              aria-pressed={isSelected}
               className={[
-                'flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[13px] font-medium',
+                'inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-[13px] font-semibold tracking-tight',
                 'whitespace-nowrap flex-shrink-0',
-                'transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40',
+                'transition-colors duration-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-border-strong',
                 isSelected ? ACTIVE_CHIP : IDLE_CHIP,
               ].join(' ')}
             >
-              <Icon name={g.lucideIcon} size={13} className="flex-shrink-0" />
+              <Icon
+                name={g.lucideIcon}
+                size={13}
+                className={`flex-shrink-0 ${isSelected ? 'text-white' : 'text-text-primary'}`}
+              />
               <span>{g.name}</span>
-              <span className={`text-[11px] tabular-nums ${isSelected ? 'opacity-70' : 'opacity-50'}`}>
+              <span className={`tabular-nums text-[12px] ${isSelected ? 'text-white/70' : 'text-text-subtle'}`}>
                 {counts[g.id] ?? 0}
               </span>
             </button>
@@ -88,7 +93,7 @@ export function CategoryGroupChips({
         <button
           type="button"
           onClick={onAdd}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-dashed border-border text-text-tertiary text-[13px] font-medium whitespace-nowrap flex-shrink-0 hover:border-border-strong hover:text-text-secondary transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+          className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg border border-dashed border-border text-text-tertiary text-[13px] font-semibold tracking-tight whitespace-nowrap flex-shrink-0 hover:border-border-strong hover:text-text-secondary transition-colors duration-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-border-strong"
         >
           <Icon name="plus" size={13} />
           {t('create')}
