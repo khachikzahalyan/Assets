@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import { Btn, Chip, Icon, MobileListRow } from '@/components/ui'
 import { RoleIcon } from '@/components/ui/RoleIcon'
 import type { User } from '@/domain/user'
@@ -10,6 +11,8 @@ export interface RoleRowMobileProps {
   youLabel: string
   changeLabel: string
   onChangeRole: () => void
+  /** Forwarded to MobileListRow.outerStyle — parent injects flexGrow/flexShrink for fill contract. */
+  outerStyle?: CSSProperties
 }
 
 /**
@@ -17,9 +20,12 @@ export interface RoleRowMobileProps {
  * Row itself is inert; only the right Change Btn is interactive.
  */
 export function RoleRowMobile({
-  u, isSelf, roleLabel, statusLabel, youLabel, changeLabel, onChangeRole,
+  u, isSelf, roleLabel, statusLabel, youLabel, changeLabel, onChangeRole, outerStyle,
 }: RoleRowMobileProps) {
-  const iconTile = (
+  // Avatar = the role badge itself (owner request); generic tile only when no role
+  const iconTile = u.role ? (
+    <RoleIcon role={u.role} size={28} className="shrink-0" />
+  ) : (
     <span
       className="w-[28px] h-[28px] rounded-[8px] inline-flex items-center justify-center flex-shrink-0 bg-surface-2 text-text-subtle"
       aria-hidden="true"
@@ -45,10 +51,7 @@ export function RoleRowMobile({
     <div className="text-[11px] leading-snug">
       <div className="text-text-tertiary truncate">{u.email}</div>
       <div className="flex items-center gap-2 pt-0.5 flex-wrap">
-        <Chip color="gray">
-          <RoleIcon role={u.role} size={16} className="shrink-0 mr-0.5" />
-          {roleLabel}
-        </Chip>
+        <Chip color="gray">{roleLabel}</Chip>
         <span className="text-text-tertiary">{statusLabel}</span>
       </div>
     </div>
@@ -67,6 +70,7 @@ export function RoleRowMobile({
       title={titleNode}
       subline={sublineNode}
       right={right}
+      {...(outerStyle !== undefined ? { outerStyle } : {})}
       {...(isSelf ? { className: 'bg-accent/5' } : {})}
     />
   )

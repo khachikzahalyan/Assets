@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Btn, Icon, MobileListRow } from '@/components/ui'
 import type { PendingUser } from '@/domain/user'
@@ -6,13 +7,15 @@ export interface PendingUserRowMobileProps {
   pu: PendingUser
   formattedDate: string
   onAssign: () => void
+  /** Forwarded to MobileListRow's outerStyle — parent injects flexGrow/flexShrink for fill contract. */
+  outerStyle?: CSSProperties
 }
 
 /**
  * Mobile row for a pending user — wraps ui/MobileListRow.
  * Row itself is inert (no onClick); only the footer Btn is interactive.
  */
-export function PendingUserRowMobile({ pu, formattedDate, onAssign }: PendingUserRowMobileProps) {
+export function PendingUserRowMobile({ pu, formattedDate, onAssign, outerStyle }: PendingUserRowMobileProps) {
   const { t } = useTranslation('pending-users')
 
   const iconTile = (
@@ -50,6 +53,7 @@ export function PendingUserRowMobile({ pu, formattedDate, onAssign }: PendingUse
       title={titleNode}
       subline={sublineNode}
       footer={footer}
+      {...(outerStyle !== undefined ? { outerStyle } : {})}
     />
   )
 }

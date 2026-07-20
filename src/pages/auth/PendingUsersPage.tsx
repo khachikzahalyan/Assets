@@ -1,10 +1,14 @@
 import { useMemo, useState, useCallback, useEffect } from 'react'
+import ReactDOM from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import {
-  PageHeader, SectionCard, Btn, Icon, EmptyState, ErrorState, Field, Select,
-  MODAL_SHEET, DataTable, Input, TableSkeleton,
+  ListCard, ListPageShell,
+  Btn, Icon, EmptyState, TableSkeleton, ErrorState, Field, Select, Input,
+  CardListSkeleton, DataTable,
+  MobileListPlaceholders,
+  DIALOG_BACKDROP, MODAL_SHEET,
 } from '@/components/ui'
 import type { DataTableColumn } from '@/components/ui'
 import type { PendingUser, UserRepository, AssignRoleInput } from '@/domain/user'
@@ -12,6 +16,9 @@ import type { Role } from '@/config/roles'
 import { ROLE_IDS } from '@/config/roles'
 import { createDefaultUserRepository } from '@/infra/repositories'
 import { PendingUserRowMobile } from '@/components/features/users'
+import { CatalogPagination } from '@/components/features/catalogs'
+
+const PAGE_SIZE = 10
 
 export interface PendingUsersPageProps {
   repository?: UserRepository
@@ -75,11 +82,11 @@ function AssignDialog({ pendingUser, onClose, onAssigned, repo, actor }: AssignD
     }
   }
 
-  return (
+  return ReactDOM.createPortal(
     /* Backdrop */
     <div
       role="presentation"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm max-md:items-end"
+      className={`${DIALOG_BACKDROP} backdrop-blur-sm`}
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
       {/* Dialog panel */}
@@ -216,11 +223,14 @@ function AssignDialog({ pendingUser, onClose, onAssigned, repo, actor }: AssignD
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
+
+const gridTemplate = 'minmax(180px,2fr) minmax(140px,1.5fr) minmax(140px,1.5fr) 160px'
 
 export function PendingUsersPage({ repository }: PendingUsersPageProps) {
   const { t } = useTranslation('pending-users')
@@ -239,6 +249,8 @@ export function PendingUsersPage({ repository }: PendingUsersPageProps) {
   const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([])
   const [loading, setLoading]           = useState(true)
   const [error, setError]               = useState<string | null>(null)
+  const [search, setSearch]             = useState('')
+  const [page, setPage]                 = useState(1)
   const [dialogUser, setDialogUser]     = useState<PendingUser | null>(null)
 
   const load = useCallback(async () => {
@@ -258,6 +270,23 @@ export function PendingUsersPage({ repository }: PendingUsersPageProps) {
     void load()
   }, [load])
 
+  // Filter by search term (name or email)
+  const filtered = useMemo(() => {
+    const s = search.trim().toLowerCase()
+    if (!s) return pendingUsers
+    return pendingUsers.filter(u =>
+      `${u.displayName ?? ''} ${u.email ?? ''}`.toLowerCase().includes(s),
+    )
+  }, [pendingUsers, search])
+
+  // Reset to page 1 when search changes
+  useEffect(() => { setPage(1) }, [search])
+
+  const pageRows = useMemo(
+    () => filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    [filtered, page],
+  )
+
   function handleAssigned(uid: string) {
     setPendingUsers(prev => prev.filter(u => u.id !== uid))
     setDialogUser(null)
@@ -273,47 +302,19 @@ export function PendingUsersPage({ repository }: PendingUsersPageProps) {
   }
 
   function renderBody() {
-    if (loading) {
-      if (isMobile) {
-        /* Mobile skeleton — mirrors PendingUserRowMobile (MobileListRow structure) */
-        return (
-          <div aria-hidden="true" className="flex flex-col">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="px-[14px] py-[9px] border-b border-border border-l-[3px] border-l-transparent bg-surface last:border-b-0">
-                {/* Inner flex row: icon + middle */}
-                <div className="flex items-center gap-[9px]">
-                  <div className="w-[28px] h-[28px] rounded-[8px] anim-skeleton flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    {/* Title: name */}
-                    <div className="h-[13px] w-[55%] rounded anim-skeleton mb-[2px]" />
-                    {/* Subline: email */}
-                    <div className="h-[11px] rounded anim-skeleton" style={{ width: `${50 + (i % 3) * 12}%` }} />
-                    {/* Subline: date */}
-                    <div className="h-[11px] rounded anim-skeleton mt-0.5" style={{ width: `${35 + (i % 4) * 8}%` }} />
-                  </div>
-                </div>
-                {/* Footer: full-width button — h-7 matches real Btn sm (28px) */}
-                <div className="h-7 w-full rounded-lg anim-skeleton mt-0.5" />
-              </div>
-            ))}
-          </div>
-        )
-      }
-      /* Desktop skeleton — mirrors DataTable grid:
-         minmax(180px,2fr) minmax(140px,1.5fr) minmax(140px,1.5fr) 120px
-         firstColWide: avatar+name cell; lastColAction: assign button column */
-      return (
-        <TableSkeleton
-          rows={6}
+    // Loading: toolbar renders as-is (static); only the body shimmers
+    if (loading) return isMobile
+      ? <CardListSkeleton rows={PAGE_SIZE} variant="pending-user" />
+      : <TableSkeleton
+          rows={PAGE_SIZE}
           columns={4}
-          gridTemplate="minmax(180px,2fr) minmax(140px,1.5fr) minmax(140px,1.5fr) 120px"
-          firstColWide
+          gridTemplate={gridTemplate}
           lastColAction
         />
-      )
-    }
-    if (error)   return <ErrorState onRetry={load} />
-    if (pendingUsers.length === 0) {
+
+    if (error) return <ErrorState onRetry={load} />
+
+    if (filtered.length === 0) {
       return (
         <EmptyState
           icon="user-plus"
@@ -324,21 +325,24 @@ export function PendingUsersPage({ repository }: PendingUsersPageProps) {
     }
 
     if (isMobile) {
+      const placeholderCount = Math.max(0, PAGE_SIZE - pageRows.length)
       return (
-        <div className="flex flex-col">
-          {pendingUsers.map(pu => (
+        <div className="flex flex-col flex-1 min-h-0">
+          {pageRows.map(pu => (
             <PendingUserRowMobile
               key={pu.id}
               pu={pu}
               formattedDate={formatDate(pu.createdAt)}
               onAssign={() => setDialogUser(pu)}
+              outerStyle={{ flexGrow: 1, flexShrink: 0 }}
             />
           ))}
+          <MobileListPlaceholders count={placeholderCount} dataTestId="pending-user-placeholder" />
         </div>
       )
     }
 
-    /* Desktop DataTable */
+    /* Desktop DataTable with fill contract */
     const dtColumns: DataTableColumn<PendingUser>[] = [
       {
         key: 'user',
@@ -374,40 +378,79 @@ export function PendingUsersPage({ repository }: PendingUsersPageProps) {
       {
         key: 'action',
         header: '',
-        width: '120px',
+        width: '160px',
         align: 'right',
         cell: (pu) => (
-          <Btn size="sm" variant="primary" onClick={() => setDialogUser(pu)}>
+          <Btn size="sm" variant="primary" className="whitespace-nowrap" onClick={() => setDialogUser(pu)}>
             <Icon name="user-plus" size={13} />
             {t('assign')}
           </Btn>
         ),
       },
     ]
+
     return (
       <DataTable<PendingUser>
         columns={dtColumns}
-        rows={pendingUsers}
+        rows={pageRows}
         getRowKey={(pu) => pu.id}
         aria-label={t('title')}
+        minRows={PAGE_SIZE}
+        fillHeight
       />
     )
   }
 
   return (
-    <div className="space-y-5">
-      <PageHeader
-        icon="user-plus"
-        title={t('title')}
-        description={t('subtitle')}
-        {...(!loading ? { count: pendingUsers.length } : {})}
-      />
-
-      <SectionCard noHeader>
-        <div className="space-y-4">
-          {renderBody()}
-        </div>
-      </SectionCard>
+    <>
+      {/* No page header (same pattern as /roles — card starts directly with toolbar). */}
+      <ListPageShell flushMobile>
+        {/* Floating-card model: NO flushMobile on the card — keeps rounded-lg radius
+            on mobile; 10px side gutters; the .app-shell-content-flush flex chain
+            stretches the card to the BottomNav top ('pending-users' is in AppShell FLUSH_ROUTES). */}
+        <ListCard
+          className="max-md:mx-[10px]"
+          toolbar={
+            /* Zone 1: search — static content rendered immediately, no shimmer. */
+            <>
+              <div className="flex items-center gap-2 flex-wrap px-5 py-3 max-md:px-3 max-md:py-2.5">
+                <div className="relative flex-1 min-w-[180px]">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-subtle pointer-events-none">
+                    <Icon name="search" size={13} />
+                  </span>
+                  <input
+                    id="pending-users-search"
+                    type="search"
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    placeholder={t('col.user')}
+                    aria-label={t('col.user')}
+                    className="w-full h-9 pl-8 pr-3 text-sm bg-bg border border-border rounded-lg text-text-primary placeholder:text-text-subtle focus:outline-none focus:border-accent focus:ring-2 focus:ring-[rgba(249,115,22,0.40)] transition-all duration-150"
+                  />
+                </div>
+              </div>
+              <div className="border-t border-border" />
+            </>
+          }
+          pagination={
+            /* Always mounted — total=0 during load renders disabled prev/next,
+               preventing layout shift (RolesPage / EmployeesPage precedent). */
+            <CatalogPagination
+              page={page}
+              pageSize={PAGE_SIZE}
+              total={loading ? 0 : filtered.length}
+              onPage={setPage}
+            />
+          }
+        >
+          {/* Zone 2: flex-1 min-h-0 flex-col scroller — edge-to-edge on BOTH
+              breakpoints (no inner padding: the table's first column carries
+              paddingLeft:20, MobileListRow carries its own 14px). */}
+          <div className="flex-1 min-h-0 overflow-y-auto flex flex-col">
+            {renderBody()}
+          </div>
+        </ListCard>
+      </ListPageShell>
 
       {dialogUser && (
         <AssignDialog
@@ -418,6 +461,6 @@ export function PendingUsersPage({ repository }: PendingUsersPageProps) {
           actor={{ uid: user.id, role }}
         />
       )}
-    </div>
+    </>
   )
 }

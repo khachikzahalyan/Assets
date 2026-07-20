@@ -10,7 +10,7 @@ export interface CardListSkeletonProps {
    *
    * Default: "asset"
    */
-  variant?: 'asset' | 'employee' | 'catalog' | 'audit' | 'key' | 'part-device' | 'subscription' | 'role'
+  variant?: 'asset' | 'employee' | 'catalog' | 'audit' | 'key' | 'part-device' | 'subscription' | 'role' | 'pending-user'
 }
 
 /**
@@ -37,6 +37,8 @@ export interface CardListSkeletonProps {
  * - "part-device"  — mirrors DeviceGridCard isMobile=true: 34×34 icon, title+subline, right chip
  * - "subscription" — mirrors SubscriptionCard card grid: bg-surface card with header+seatbar+dates+employees
  * - "role"         — mirrors RoleRowMobile → MobileListRow: 28×28 icon, title+email+chip, right Btn stub
+ * - "pending-user" — mirrors PendingUserRowMobile → MobileListRow: 28×28 rounded-[8px] icon,
+ *                    13px title mb-[2px] + 2-line 11px subline (email + date); footer: full-width h-7 Btn stub
  */
 export function CardListSkeleton({ rows = 10, variant = 'asset' }: CardListSkeletonProps) {
   if (variant === 'employee') {
@@ -259,6 +261,47 @@ export function CardListSkeleton({ rows = 10, variant = 'asset' }: CardListSkele
               <div className="h-[11px] w-[40%] rounded anim-skeleton" />
               <div className="h-[13px] w-[30%] rounded anim-skeleton" />
             </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  if (variant === 'pending-user') {
+  // Mirrors PendingUserRowMobile → MobileListRow (PendingUserRowMobile.tsx):
+  //   outer:  px-[14px] py-[9px] border-b border-border border-l-[3px] border-l-transparent bg-surface
+  //   inner flex: items-center gap-[9px]
+  //   icon:   w-[28px] h-[28px] rounded-[8px]
+  //   middle flex-1: 13px title mb-[2px] + 2-line 11px subline (email line + date line mt-0.5)
+  //   NO right column
+  //   footer: full-width h-7 rounded-lg Btn stub (assign button) mt-0.5
+    return (
+      <div
+        data-testid="card-list-skeleton"
+        data-variant="pending-user"
+        aria-hidden="true"
+        className="flex flex-col"
+      >
+        {Array.from({ length: rows }).map((_, i) => (
+          <div
+            key={i}
+            data-testid="card-list-skeleton-row"
+            className="px-[14px] py-[9px] border-b border-border border-l-[3px] border-l-transparent bg-surface last:border-b-0"
+          >
+            {/* Inner flex row: icon + middle */}
+            <div className="flex items-center gap-[9px]">
+              <div className="w-[28px] h-[28px] rounded-[8px] anim-skeleton flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                {/* Title: display name */}
+                <div className="h-[13px] w-[55%] rounded anim-skeleton mb-[2px]" />
+                {/* Subline line 1: email */}
+                <div className="h-[11px] rounded anim-skeleton" style={{ width: `${50 + (i % 3) * 12}%` }} />
+                {/* Subline line 2: date */}
+                <div className="h-[11px] rounded anim-skeleton mt-0.5" style={{ width: `${35 + (i % 4) * 8}%` }} />
+              </div>
+            </div>
+            {/* Footer: full-width assign button stub — h-7 = 28px matches Btn sm */}
+            <div className="h-7 w-full rounded-lg anim-skeleton mt-0.5" />
           </div>
         ))}
       </div>

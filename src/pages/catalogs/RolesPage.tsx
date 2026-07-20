@@ -1,12 +1,18 @@
 import { useMemo, useState, useCallback, useEffect } from 'react'
+import ReactDOM from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import { cn } from '@/lib/utils'
 import {
-  PageHeader, SectionCard, Btn, Icon, EmptyState, TableSkeleton, ErrorState, Field, Select, Input,
+  ListCard, ListPageShell,
+  Btn, Icon, EmptyState, TableSkeleton, ErrorState, Field, Select, Input,
+  SelectMini,
   CardListSkeleton, DataTable,
+  MobileListPlaceholders,
   DIALOG_BACKDROP, MODAL_SHEET,
 } from '@/components/ui'
+import type { SelectMiniOption } from '@/components/ui/SelectMini'
 import type { DataTableColumn } from '@/components/ui'
 import type { User, UserRepository, AssignRoleInput, UserListQuery } from '@/domain/user'
 import { RoleLockoutError } from '@/domain/user'
@@ -15,6 +21,9 @@ import { ROLE_IDS } from '@/config/roles'
 import { RoleIcon } from '@/components/ui/RoleIcon'
 import { createDefaultUserRepository } from '@/infra/repositories'
 import { RoleRowMobile } from '@/components/features/users'
+import { CatalogPagination } from '@/components/features/catalogs'
+
+const PAGE_SIZE = 10
 
 export interface RolesPageProps { repository?: UserRepository }
 
@@ -64,7 +73,7 @@ function ChangeRoleDialog({ target, isSelf, onClose, onChanged, repo, actor }: C
     }
   }
 
-  return (
+  return ReactDOM.createPortal(
     <div
       role="presentation"
       className={cn(DIALOG_BACKDROP, 'backdrop-blur-sm')}
@@ -145,7 +154,8 @@ function ChangeRoleDialog({ target, isSelf, onClose, onChanged, repo, actor }: C
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
 
@@ -154,6 +164,7 @@ export function RolesPage({ repository }: RolesPageProps) {
   const { t } = useTranslation('roles')
   const { t: tNav } = useTranslation('nav')
   const { user, role } = useAuth()
+  const isMobile = useIsMobile()
 
   const defaultRepo = useMemo<UserRepository>(
     () => createDefaultUserRepository(),
@@ -168,20 +179,8 @@ export function RolesPage({ repository }: RolesPageProps) {
   const [roleFilter, setRoleFilter] = useState<Role | 'no-role' | 'all'>('all')
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'no-role' | 'terminated'>('all')
   const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
   const [dialogUser, setDialogUser] = useState<User | null>(null)
-
-  // ── Responsive: matchMedia so the layout is correct on first paint ───────────
-  const [isMobile, setIsMobile] = useState<boolean>(() => {
-    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false
-    return window.matchMedia('(max-width: 767px)').matches
-  })
-  useEffect(() => {
-    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return
-    const mq = window.matchMedia('(max-width: 767px)')
-    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
-    mq.addEventListener('change', handler)
-    return () => mq.removeEventListener('change', handler)
-  }, [])
 
   const load = useCallback(async () => {
     setLoading(true); setError(null)
@@ -206,40 +205,61 @@ export function RolesPage({ repository }: RolesPageProps) {
     })
   }, [users, roleFilter, statusFilter, search])
 
+  // Reset page to 1 when filters or search change
+  useEffect(() => { setPage(1) }, [roleFilter, statusFilter, search])
+
+  const pageRows = useMemo(
+    () => filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    [filtered, page],
+  )
+
   function handleChanged(updated: User) {
     setUsers(prev => prev.map(u => (u.id === updated.id ? updated : u)))
     setDialogUser(null)
   }
 
-  const roleFilterOptions = [
-    { value: 'all', label: t('filter.all') },
-    ...ROLE_IDS.map(id => ({ value: id, label: tNav(`roles.${id}`) })),
-    { value: 'no-role', label: t('role.none') },
+  // Per-role option icons (owner request: each role gets its own icon in the dropdown)
+  const ROLE_OPTION_ICONS: Record<string, string> = {
+    super_admin: 'crown',
+    asset_admin: 'shield-check',
+    tech_admin: 'wrench',
+    employee: 'user',
+  }
+  const roleFilterOptions: SelectMiniOption[] = [
+    { value: 'all', label: t('filter.all'), icon: 'users' },
+    ...ROLE_IDS.map(id => ({ value: id, label: tNav(`roles.${id}`), icon: ROLE_OPTION_ICONS[id] ?? 'user' })),
+    { value: 'no-role', label: t('role.none'), icon: 'user-circle' },
   ]
-  const statusFilterOptions = [
+  // Status dots (owner request): active = green, no-role = amber, terminated = red
+  const statusFilterOptions: SelectMiniOption[] = [
     { value: 'all', label: t('filter.all') },
-    { value: 'active', label: t('status.active') },
-    { value: 'no-role', label: t('status.no-role') },
-    { value: 'terminated', label: t('status.terminated') },
+    { value: 'active', label: t('status.active'), dotColor: '#22C55E' },
+    { value: 'no-role', label: t('status.no-role'), dotColor: '#F59E0B' },
+    { value: 'terminated', label: t('status.terminated'), dotColor: '#F43F5E' },
   ]
 
   function roleLabel(r: Role | null): string { return r ? tNav(`roles.${r}`) : t('role.none') }
 
+  const gridTemplate = 'minmax(180px,2fr) minmax(140px,1.5fr) minmax(120px,1.3fr) minmax(100px,1fr) 160px'
+
   function renderBody() {
+    // Loading: search/filters render as-is (local/static); only the body shimmers
     if (loading) return isMobile
-      ? <CardListSkeleton rows={6} variant="role" />
+      ? <CardListSkeleton rows={PAGE_SIZE} variant="role" />
       : <TableSkeleton
-          rows={6}
+          rows={PAGE_SIZE}
           columns={5}
-          gridTemplate="minmax(180px,2fr) minmax(140px,1.5fr) minmax(120px,1.3fr) minmax(100px,1fr) 100px"
+          gridTemplate={gridTemplate}
           lastColAction
         />
     if (error) return <ErrorState onRetry={load} />
     if (filtered.length === 0) return <EmptyState icon="shield-check" title={t('empty.title')} description={t('empty.desc')} />
+
     if (isMobile) {
+      const placeholderCount = Math.max(0, PAGE_SIZE - pageRows.length)
       return (
-        <div className="flex flex-col">
-          {filtered.map(u => (
+        <div className="flex flex-col flex-1 min-h-0">
+          {pageRows.map(u => (
             <RoleRowMobile
               key={u.id}
               u={u}
@@ -249,13 +269,15 @@ export function RolesPage({ repository }: RolesPageProps) {
               youLabel={t('you')}
               changeLabel={t('change')}
               onChangeRole={() => setDialogUser(u)}
+              outerStyle={{ flexGrow: 1, flexShrink: 0 }}
             />
           ))}
+          <MobileListPlaceholders count={placeholderCount} dataTestId="role-row-placeholder" />
         </div>
       )
     }
 
-    // ── Desktop DataTable ───────────────────────────────────────────────────
+    // Desktop DataTable with fill contract
     const dtColumns: DataTableColumn<User>[] = [
       {
         key: 'user',
@@ -265,9 +287,14 @@ export function RolesPage({ repository }: RolesPageProps) {
           const isSelf = u.id === user.id
           return (
             <span className="flex items-center gap-2">
-              <span className="w-7 h-7 rounded-full bg-surface-2 border border-border text-text-subtle inline-flex items-center justify-center flex-shrink-0">
-                <Icon name="user" size={13} />
-              </span>
+              {/* Avatar = the role badge itself (owner request); generic tile only when no role */}
+              {u.role ? (
+                <RoleIcon role={u.role} size={28} className="shrink-0" />
+              ) : (
+                <span className="w-7 h-7 rounded-full bg-surface-2 border border-border text-text-subtle inline-flex items-center justify-center flex-shrink-0">
+                  <Icon name="user" size={13} />
+                </span>
+              )}
               <span className="text-[13px] font-medium text-text-primary truncate max-w-[160px]">{u.displayName || u.email}</span>
               {isSelf && <span className="text-[10.5px] px-1.5 py-0.5 rounded bg-accent/15 text-accent flex-shrink-0">{t('you')}</span>}
             </span>
@@ -285,10 +312,7 @@ export function RolesPage({ repository }: RolesPageProps) {
         header: t('col.role'),
         width: 'minmax(120px,1.3fr)',
         cell: (u) => (
-          <span className="inline-flex items-center gap-1 text-[13px] text-text-primary">
-            <RoleIcon role={u.role} size={18} className="shrink-0" />
-            {roleLabel(u.role)}
-          </span>
+          <span className="text-[13px] text-text-primary">{roleLabel(u.role)}</span>
         ),
       },
       {
@@ -300,53 +324,100 @@ export function RolesPage({ repository }: RolesPageProps) {
       {
         key: 'action',
         header: '',
-        width: '100px',
+        width: '160px',
         align: 'right',
         cell: (u) => (
-          <Btn size="sm" variant="secondary" onClick={() => setDialogUser(u)}>
+          <Btn size="sm" variant="secondary" className="whitespace-nowrap" onClick={() => setDialogUser(u)}>
             <Icon name="shield-check" size={13} />
             {t('change')}
           </Btn>
         ),
       },
     ]
+
     return (
       <DataTable<User>
         columns={dtColumns}
-        rows={filtered}
+        rows={pageRows}
         getRowKey={(u) => u.id}
         rowClassName={(u) => cn(u.id === user.id ? 'bg-accent/5' : '')}
         aria-label={t('title')}
+        minRows={PAGE_SIZE}
+        fillHeight
       />
     )
   }
 
   return (
-    <div className="space-y-5">
-      <PageHeader icon="shield-check" title={t('title')} description={t('subtitle')}
-        {...(!loading ? { count: filtered.length } : {})} />
-
-      <SectionCard noHeader>
-        <div className="space-y-4">
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="flex-1 min-w-[180px]">
-              <label htmlFor="roles-search" className="sr-only">{t('search')}</label>
-              <Input id="roles-search" value={search} onChange={setSearch} placeholder={t('search')} />
-            </div>
-            <div className="w-[160px] max-md:w-full">
-              <label htmlFor="roles-role-filter" className="sr-only">{t('filter.role')}</label>
-              <Select id="roles-role-filter" value={roleFilter}
-                onChange={(v) => setRoleFilter(v as Role | 'no-role' | 'all')} options={roleFilterOptions} />
-            </div>
-            <div className="w-[160px] max-md:w-full">
-              <label htmlFor="roles-status-filter" className="sr-only">{t('filter.status')}</label>
-              <Select id="roles-status-filter" value={statusFilter}
-                onChange={(v) => setStatusFilter(v as 'all' | 'active' | 'no-role' | 'terminated')} options={statusFilterOptions} />
-            </div>
+    <>
+      {/* No page header on either breakpoint (owner request) — the card starts
+          directly with the filter bar. */}
+      <ListPageShell flushMobile>
+        {/* Floating-card model: NO flushMobile on the card — keeps rounded-lg radius
+            on mobile; 10px side gutters; the .app-shell-content-flush flex chain
+            stretches the card to the BottomNav top ('roles' is in AppShell FLUSH_ROUTES). */}
+        <ListCard
+          className="max-md:mx-[10px]"
+          toolbar={
+            /* Zone 1: search + filters — static content rendered immediately,
+               no shimmer (owner rule: only async data shimmers). */
+            <>
+              {/* Single row: search (flex-1) + both SelectMini chips (owner request).
+                  Mobile: wraps — search takes the full first line, chips drop below. */}
+              <div className="flex items-center gap-2 flex-wrap px-5 py-3 max-md:px-3 max-md:py-2.5 max-md:gap-[6px]">
+                <div className="relative flex-1 min-w-[180px]">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-subtle pointer-events-none">
+                    <Icon name="search" size={13} />
+                  </span>
+                  <input
+                    id="roles-search"
+                    type="search"
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    placeholder={t('search')}
+                    aria-label={t('search')}
+                    className="w-full h-9 pl-8 pr-3 text-sm bg-bg border border-border rounded-lg text-text-primary placeholder:text-text-subtle focus:outline-none focus:border-accent focus:ring-2 focus:ring-[rgba(249,115,22,0.40)] transition-all duration-150"
+                  />
+                </div>
+                <SelectMini
+                  id="roles-role-filter"
+                  label={t('filter.role')}
+                  leadingIcon="shield-check"
+                  value={roleFilter}
+                  onChange={v => setRoleFilter(v as Role | 'no-role' | 'all')}
+                  options={roleFilterOptions}
+                />
+                <SelectMini
+                  id="roles-status-filter"
+                  label={t('filter.status')}
+                  leadingIcon="circle-dot"
+                  value={statusFilter}
+                  onChange={v => setStatusFilter(v as 'all' | 'active' | 'no-role' | 'terminated')}
+                  options={statusFilterOptions}
+                />
+              </div>
+              <div className="border-t border-border" />
+            </>
+          }
+          pagination={
+            /* Always mounted — total=0 during load renders disabled prev/next,
+               preventing layout shift (EmployeesPage / BranchesPage precedent). */
+            <CatalogPagination
+              page={page}
+              pageSize={PAGE_SIZE}
+              total={loading ? 0 : filtered.length}
+              onPage={setPage}
+            />
+          }
+        >
+          {/* Zone 2: flex-1 min-h-0 flex-col scroller — edge-to-edge on BOTH
+              breakpoints like /assets (no inner padding: the table's first column
+              carries paddingLeft:20, MobileListRow carries its own 14px). */}
+          <div className="flex-1 min-h-0 overflow-y-auto flex flex-col">
+            {renderBody()}
           </div>
-          {renderBody()}
-        </div>
-      </SectionCard>
+        </ListCard>
+      </ListPageShell>
 
       {dialogUser && (
         <ChangeRoleDialog
@@ -358,6 +429,6 @@ export function RolesPage({ repository }: RolesPageProps) {
           actor={{ uid: user.id, role }}
         />
       )}
-    </div>
+    </>
   )
 }

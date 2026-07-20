@@ -52,6 +52,19 @@ function makeRepo() {
   return new InMemoryUserRepository(users)
 }
 
+/** Build a repo with N users (ids: u1..uN, all super_admin / active). */
+function makeLargeRepo(count: number) {
+  const users: User[] = Array.from({ length: count }, (_, i) => ({
+    id: `u${i + 1}`,
+    email: `u${i + 1}@x.io`,
+    displayName: `User ${i + 1}`,
+    role: 'super_admin' as const,
+    status: 'active' as const,
+    createdAt: '2026-01-01T00:00:00.000Z',
+  }))
+  return new InMemoryUserRepository(users)
+}
+
 function renderPage(repo = makeRepo()) {
   render(
     <I18nextProvider i18n={i18n}>
@@ -121,8 +134,11 @@ describe('RolesPage', () => {
     renderPage()
     await screen.findByText('Super One')
 
-    // Act
-    fireEvent.change(document.getElementById('roles-role-filter')!, { target: { value: 'asset_admin' } })
+    // Act — open SelectMini trigger then click the asset_admin option
+    fireEvent.click(document.getElementById('roles-role-filter')!)
+    // The option label for asset_admin in Russian locale
+    const assetAdminLabel = i18n.t('roles.asset_admin', { ns: 'nav' })
+    fireEvent.click(await screen.findByRole('option', { name: assetAdminLabel }))
 
     // Assert
     expect(screen.getByText('Asset Admin')).toBeInTheDocument()
@@ -135,8 +151,11 @@ describe('RolesPage', () => {
     renderPage()
     await screen.findByText('Super One')
 
-    // Act
-    fireEvent.change(document.getElementById('roles-status-filter')!, { target: { value: 'no-role' } })
+    // Act — open SelectMini status trigger then click the no-role option
+    fireEvent.click(document.getElementById('roles-status-filter')!)
+    // The option label for no-role status in Russian locale
+    const noRoleLabel = i18n.t('status.no-role', { ns: 'roles' })
+    fireEvent.click(await screen.findByRole('option', { name: noRoleLabel }))
 
     // Assert
     expect(screen.getByText('No Role')).toBeInTheDocument()
@@ -194,5 +213,79 @@ describe('RolesPage', () => {
     // Assert: submit button is disabled because role is unchanged
     const submitBtn = await screen.findByRole('button', { name: 'Изменить' })
     expect(submitBtn).toBeDisabled()
+  })
+
+  it('renders no page header — the card starts directly with the filter bar (owner request)', async () => {
+    renderPage()
+    await screen.findByText('Super One')
+    expect(screen.queryByRole('heading', { level: 1 })).not.toBeInTheDocument()
+  })
+
+  it('paginates: 11 users → page 1 shows 10 rows, Next shows the remaining 1', async () => {
+    // Arrange: 11 users total — exceeds PAGE_SIZE=10
+    const repo = makeLargeRepo(11)
+    renderPage(repo)
+
+    // Wait for load
+    await screen.findByText('User 1')
+
+    // Page 1 must show exactly 10 data rows (role="row" in the DataTable body,
+    // excluding the header row which also has role="row")
+    // DataTable emits 1 header row + N data rows; total getAllByRole('row') = 11 when 10 data rows
+    const allRows = screen.getAllByRole('row')
+    // header rowgroup has 1 row, body rowgroup has 10 data rows → 11 total
+    expect(allRows.length).toBe(11)
+
+    // User 11 must NOT be visible on page 1
+    expect(screen.queryByText('User 11')).not.toBeInTheDocument()
+
+    // Act: click Next button (CatalogPagination renders a button with label from common.pagination.next)
+    const nextBtn = screen.getByRole('button', { name: /След/ })
+    fireEvent.click(nextBtn)
+
+    // Assert: page 2 shows User 11
+    await screen.findByText('User 11')
+    expect(screen.queryByText('User 1')).not.toBeInTheDocument()
+  })
+
+  it('filter change resets pagination to page 1', async () => {
+    // Arrange: 11 super_admin users + 1 asset_admin
+    const users: User[] = [
+      ...Array.from({ length: 11 }, (_, i) => ({
+        id: `su${i + 1}`,
+        email: `su${i + 1}@x.io`,
+        displayName: `Super ${i + 1}`,
+        role: 'super_admin' as const,
+        status: 'active' as const,
+        createdAt: '2026-01-01T00:00:00.000Z',
+      })),
+      { id: 'aa1', email: 'aa1@x.io', displayName: 'Asset Admin', role: 'asset_admin', status: 'active', createdAt: '2026-01-01T00:00:00.000Z' },
+    ]
+    const repo = new InMemoryUserRepository(users)
+    renderPage(repo)
+
+    await screen.findByText('Super 1')
+
+    // Navigate to page 2
+    fireEvent.click(screen.getByRole('button', { name: /След/ }))
+    await screen.findByText('Super 11')
+
+    // Change role filter → page resets to 1
+    // Open SelectMini trigger then click the asset_admin option
+    fireEvent.click(document.getElementById('roles-role-filter')!)
+    const assetAdminLabel = i18n.t('roles.asset_admin', { ns: 'nav' })
+    fireEvent.click(await screen.findByRole('option', { name: assetAdminLabel }))
+    expect(await screen.findByText('Asset Admin')).toBeInTheDocument()
+    // After reset, Super 11 is gone (it would be on page 2 if page had not reset)
+    expect(screen.queryByText('Super 11')).not.toBeInTheDocument()
+  })
+
+  it('ListCard is rendered (floating-card shell present)', async () => {
+    renderPage()
+    await screen.findByText('Super One')
+    // ListCard renders a bg-surface rounded-lg card; the search input is inside it
+    expect(document.getElementById('roles-search')).toBeInTheDocument()
+    expect(document.getElementById('roles-role-filter')).toBeInTheDocument()
+    expect(document.getElementById('roles-status-filter')).toBeInTheDocument()
   })
 })

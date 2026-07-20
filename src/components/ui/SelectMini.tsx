@@ -49,7 +49,7 @@ function getIsMobile(): boolean {
  * Desktop: portal-to-body dropdown with outside-click + Escape close.
  * Mobile (≤767px): MobileSheet bottom-sheet with option rows.
  */
-export function SelectMini({ label, leadingIcon, leadingIconMobile, value, onChange, options, sheetTitle, defaultValue = 'all' }: SelectMiniProps) {
+export function SelectMini({ id, label, leadingIcon, leadingIconMobile, value, onChange, options, sheetTitle, defaultValue = 'all' }: SelectMiniProps) {
   const [open, setOpen] = useState(false)
   const [pos, setPos] = useState<PortalPos | null>(null)
   const [isMobile, setIsMobile] = useState(getIsMobile)
@@ -183,6 +183,7 @@ export function SelectMini({ label, leadingIcon, leadingIconMobile, value, onCha
     <>
       <button
         ref={triggerRef}
+        id={id}
         type="button"
         aria-haspopup="listbox"
         aria-expanded={open}
