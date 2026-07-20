@@ -175,35 +175,6 @@ export function WindowsKeysSection({
   const columns = useMemo<DataTableColumn<WorkstationLicense>[]>(() => {
     const cols: DataTableColumn<WorkstationLicense>[] = [
       {
-        key: 'key',
-        header: t('keys.colKey'),
-        width: 'minmax(220px,1.3fr)',
-        cell: (lic) => (
-          <span className="font-mono text-[13px] text-text-primary tracking-tight">
-            {maskedKeys[lic.id] ?? '—'}
-          </span>
-        ),
-      },
-      {
-        key: 'version',
-        header: t('keys.colVersion'),
-        width: 'minmax(160px,1.1fr)',
-        cell: (lic) => (
-          <span className="text-[13.5px] text-text-secondary">{lic.name}</span>
-        ),
-      },
-      {
-        key: 'status',
-        header: t('keys.colStatus'),
-        width: 'minmax(120px,0.8fr)',
-        cell: (lic) => {
-          const isFree = licenseStatus(lic) === 'free'
-          return isFree
-            ? <Chip color="green" dot>{t('keys.statusFree')}</Chip>
-            : <Chip color="blue" dot>{t('keys.statusInUse')}</Chip>
-        },
-      },
-      {
         key: 'asset',
         header: t('keys.colAsset'),
         width: 'minmax(160px,1.2fr)',
@@ -239,6 +210,35 @@ export function WindowsKeysSection({
             </div>
           )
         },
+      },
+      {
+        key: 'version',
+        header: t('keys.colVersion'),
+        width: 'minmax(160px,1.1fr)',
+        cell: (lic) => (
+          <span className="text-[13.5px] text-text-secondary">{lic.name}</span>
+        ),
+      },
+      {
+        key: 'status',
+        header: t('keys.colStatus'),
+        width: 'minmax(120px,0.8fr)',
+        cell: (lic) => {
+          const isFree = licenseStatus(lic) === 'free'
+          return isFree
+            ? <Chip color="green" dot>{t('keys.statusFree')}</Chip>
+            : <Chip color="blue" dot>{t('keys.statusInUse')}</Chip>
+        },
+      },
+      {
+        key: 'key',
+        header: t('keys.colKey'),
+        width: 'minmax(220px,1.3fr)',
+        cell: (lic) => (
+          <span className="font-mono text-[13px] text-text-primary tracking-tight">
+            {maskedKeys[lic.id] ?? '—'}
+          </span>
+        ),
       },
     ]
 
@@ -281,7 +281,7 @@ export function WindowsKeysSection({
             type="button"
             onClick={() => setFilter(f.id)}
             data-testid={`filter-${f.id}`}
-            className={`relative py-1.5 px-3 text-[13px] font-medium transition-colors flex items-center gap-1.5 flex-shrink-0 ${
+            className={`relative py-3 max-md:py-2.5 px-3 text-[13px] font-medium transition-colors flex items-center gap-1.5 flex-shrink-0 ${
               active ? 'text-accent' : 'text-text-primary hover:text-text-secondary'
             }`}
           >
@@ -315,16 +315,10 @@ export function WindowsKeysSection({
         className="bg-surface border border-border rounded-xl shadow-sm shadow-black/30 overflow-hidden flex flex-col flex-1 min-h-0 max-md:rounded-t-none max-md:border-t-0 max-md:!mt-0"
         aria-label={t('keys.sectionTitle')}
       >
-        {/* Section header — mobile hides the icon+title (owner request), keeps only the filter chips */}
-        <header className="flex items-center justify-between px-5 py-2.5 border-b border-border max-md:px-[14px] max-md:py-2">
-          <div className="flex items-center gap-2.5 max-md:hidden">
-            <span className="w-7 h-7 rounded-md bg-surface-2 text-violet-400 inline-flex items-center justify-center">
-              <Icon name="key-round" size={14} />
-            </span>
-            <h2 className="text-[13.5px] font-bold uppercase tracking-[0.04em] text-text-primary">
-              {t('keys.sectionTitle')}
-            </h2>
-          </div>
+        {/* Section header — icon+title removed on BOTH breakpoints (owner request),
+            only the filter chips remain. Vertical padding lives on the chip buttons
+            (tab etalon) so the active underline sits ON the header's bottom border. */}
+        <header className="flex items-center px-5 border-b border-border max-md:px-[14px]">
           <div className="max-md:w-full max-md:overflow-x-auto max-md:no-scrollbar">
             {filterChips}
           </div>

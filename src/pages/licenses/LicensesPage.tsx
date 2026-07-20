@@ -481,21 +481,14 @@ export function LicensesPage({
               className="bg-surface border border-border rounded-xl overflow-hidden max-md:rounded-t-none max-md:border-t-0 max-md:!mt-0 max-md:flex-1 max-md:min-h-0 md:flex md:flex-col md:flex-1 md:min-h-0"
               aria-hidden="true"
             >
-              {/* Section header band — ~48px, matches WindowsKeysSection header (line ~318) */}
-              <header className="flex items-center justify-between px-5 py-2.5 border-b border-border max-md:px-[14px] max-md:py-2">
-                {/* Desktop: real icon + title (local chrome) */}
-                <div className="flex items-center gap-2.5 max-md:hidden">
-                  <span className="w-7 h-7 rounded-md bg-surface-2 text-violet-400 inline-flex items-center justify-center">
-                    <Icon name="key-round" size={14} />
-                  </span>
-                  <h2 className="text-[13.5px] font-bold uppercase tracking-[0.04em] text-text-primary">
-                    {t('keys.sectionTitle')}
-                  </h2>
-                </div>
-                {/* Mobile: shimmer strip — async counts make real-label+0 misleading */}
-                <div className="md:hidden w-full flex items-center gap-0.5 overflow-x-auto no-scrollbar flex-nowrap">
-                  <div className="h-[28px] w-[90px] rounded anim-skeleton flex-shrink-0" />
-                  <div className="h-[28px] w-[70px] rounded anim-skeleton flex-shrink-0" />
+              {/* Section header band — matches WindowsKeysSection header (chips only,
+                  no title; vertical padding on the chip stubs like the real buttons).
+                  Shimmer strip: filter labels are local chrome but counts are async —
+                  real labels with 0 would mislead. */}
+              <header className="flex items-center px-5 border-b border-border max-md:px-[14px]">
+                <div className="max-md:w-full flex items-center gap-0.5 py-3 max-md:py-2.5 overflow-x-auto no-scrollbar flex-nowrap">
+                  <div className="h-[21px] w-[110px] mx-3 rounded anim-skeleton flex-shrink-0" />
+                  <div className="h-[21px] w-[90px] mx-3 rounded anim-skeleton flex-shrink-0" />
                 </div>
               </header>
               {isMobile
@@ -504,7 +497,7 @@ export function LicensesPage({
                   /* flex-1 min-h-0 gives TableSkeleton (height:100%) the remaining
                      card height so its flex rows stretch like the real DataTable */
                   <div className="flex-1 min-h-0">
-                    <TableSkeleton rows={10} columns={4} gridTemplate="minmax(220px,1.3fr) minmax(160px,1.1fr) minmax(120px,0.8fr) minmax(160px,1.2fr)" />
+                    <TableSkeleton rows={10} columns={4} gridTemplate="minmax(160px,1.2fr) minmax(160px,1.1fr) minmax(120px,0.8fr) minmax(220px,1.3fr)" />
                   </div>
                 )}
             </div>
