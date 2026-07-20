@@ -165,12 +165,15 @@ describe('AuditFilterBar', () => {
     expect(onChange).toHaveBeenCalledWith({ actorUid: 'uid-alice' })
   })
 
-  // ── (f) from-date picker fires onChange with start-of-day ISO bound ──────────
-  it('(f) clicking «Сегодня» in the from-picker fires onChange with T00:00:00.000Z bound', () => {
+  // ── (f) from-date picker fires onChange with LOCAL start-of-day UTC instant ──
+  it('(f) clicking «Сегодня» in the from-picker fires onChange with the LOCAL day start as a UTC instant', () => {
     // Arrange
     const onChange = vi.fn()
     renderBar(DEFAULT_QUERY, onChange)
     const todayISO = localTodayISO()
+    // The bound is local midnight converted to UTC — NOT `${day}T00:00:00.000Z`
+    // (that UTC-day bug shifted the window by the timezone offset, e.g. +4h in Armenia).
+    const expected = new Date(`${todayISO}T00:00:00`).toISOString()
 
     // Act — open the from-date chip picker (unique aria-label = filters.from = «С»)
     const fromLabel = i18n.t('filters.from', { ns: 'audit' })
@@ -179,15 +182,16 @@ describe('AuditFilterBar', () => {
     fireEvent.click(screen.getByText('Сегодня'))
 
     // Assert
-    expect(onChange).toHaveBeenCalledWith({ fromDate: `${todayISO}T00:00:00.000Z` })
+    expect(onChange).toHaveBeenCalledWith({ fromDate: expected })
   })
 
-  // ── (g) to-date picker fires onChange with end-of-day ISO bound ──────────────
-  it('(g) clicking «Сегодня» in the to-picker fires onChange with T23:59:59.999Z bound', () => {
+  // ── (g) to-date picker fires onChange with LOCAL end-of-day UTC instant ──────
+  it('(g) clicking «Сегодня» in the to-picker fires onChange with the LOCAL day end as a UTC instant', () => {
     // Arrange
     const onChange = vi.fn()
     renderBar(DEFAULT_QUERY, onChange)
     const todayISO = localTodayISO()
+    const expected = new Date(`${todayISO}T23:59:59.999`).toISOString()
 
     // Act — open the to-date chip picker (unique aria-label = filters.to = «По»)
     const toLabel = i18n.t('filters.to', { ns: 'audit' })
@@ -195,7 +199,25 @@ describe('AuditFilterBar', () => {
     fireEvent.click(screen.getByText('Сегодня'))
 
     // Assert
-    expect(onChange).toHaveBeenCalledWith({ toDate: `${todayISO}T23:59:59.999Z` })
+    expect(onChange).toHaveBeenCalledWith({ toDate: expected })
+  })
+
+  // ── (g-2) stored bound round-trips to the same LOCAL day in the picker ───────
+  it('(g-2) a stored local-midnight bound displays as the SAME local day (no slice(0,10) off-by-one)', () => {
+    // Arrange — store today's local midnight as the query bound (what the picker emits)
+    const todayISO = localTodayISO()
+    const storedFrom = new Date(`${todayISO}T00:00:00`).toISOString()
+    renderBar({ ...DEFAULT_QUERY, fromDate: storedFrom })
+
+    // Act — open the from-picker; its trigger must show today's LOCAL day.
+    // In UTC+ zones, storedFrom.slice(0,10) would be YESTERDAY — the display
+    // must convert back via local date parts instead.
+    const fromLabel = i18n.t('filters.from', { ns: 'audit' })
+    const trigger = screen.getByRole('button', { name: fromLabel })
+
+    // Assert — DatePicker chip renders the selected day as DD.MM.YYYY
+    const [y, m, d] = todayISO.split('-')
+    expect(trigger.textContent).toContain(`${d}.${m}.${y}`)
   })
 
   // ── (h) «Очистить» in the from-picker emits { fromDate: null } ───────────────

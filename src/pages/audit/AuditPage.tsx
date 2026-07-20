@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
-  ListCard, ListPageShell, PageHeader,
+  ListCard, ListPageShell,
   EmptyState, TableSkeleton, ErrorState, CardListSkeleton,
 } from '@/components/ui'
 import { useIsMobile } from '@/hooks/useIsMobile'
@@ -31,7 +31,7 @@ export interface AuditPageProps {
 }
 
 export function AuditPage({ repository }: AuditPageProps) {
-  const { t } = useTranslation(['audit', 'nav'])
+  const { t } = useTranslation('audit')
 
   const repo = repository ?? getSharedAuditRepo()
   const isMobile = useIsMobile()
@@ -47,7 +47,11 @@ export function AuditPage({ repository }: AuditPageProps) {
 
   function renderBody() {
     if (loading) return isMobile ? <CardListSkeleton rows={10} variant="audit" /> : <TableSkeleton rows={10} columns={7} gridTemplate="36px minmax(130px,1fr) minmax(120px,1.5fr) minmax(100px,1fr) minmax(90px,1fr) minmax(90px,1fr) minmax(120px,1.2fr)" />
-    if (error && rows.length === 0 && !ref) return <ErrorState onRetry={reload} />
+    // Any error with zero rows renders the ErrorState — NOT gated on `!ref`:
+    // ref data loads without composite indexes, so a failed page query (e.g.
+    // failed-precondition on a missing index) would otherwise be masked as an
+    // "empty journal". Errors with rows still visible keep showing the rows.
+    if (error && rows.length === 0) return <ErrorState onRetry={reload} />
     if (rows.length === 0) {
       return (
         <EmptyState
@@ -63,11 +67,6 @@ export function AuditPage({ repository }: AuditPageProps) {
   return (
     <ListPageShell
       flushMobile
-      header={
-        /* Desktop-only page header — on mobile the card starts directly with
-           the filter bar (owner request: no title row on mobile). */
-        !isMobile ? <PageHeader icon="history" title={t('items.audit', { ns: 'nav' })} /> : undefined
-      }
     >
       {/* Floating-card model (same as AssetsPage/EmployeesPage): NO flushMobile
           on the card — keeps rounded-lg radius on mobile; 10px side gutters;

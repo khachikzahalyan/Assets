@@ -16,6 +16,26 @@ export interface AuditFilterBarProps {
   ref: AuditLogReferenceData | null
 }
 
+/**
+ * Day-boundary helpers — the user picks a LOCAL calendar day, so the query
+ * bounds must be that day's start/end in the browser's timezone converted to
+ * UTC instants. Appending 'Z' to the picked day (a former bug) shifted the
+ * window by the UTC offset: e.g. in UTC+4 a record at 01:00 local fell into
+ * the previous day's filter.
+ */
+function localDayStartIso(day: string): string {
+  return new Date(`${day}T00:00:00`).toISOString()
+}
+function localDayEndIso(day: string): string {
+  return new Date(`${day}T23:59:59.999`).toISOString()
+}
+/** Inverse for display: UTC instant → the LOCAL calendar day it belongs to. */
+function isoToLocalDay(iso: string): string {
+  const d = new Date(iso)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+
 function isDirty(q: AuditLogQuery): boolean {
   return (
     q.entityType !== 'all' ||
@@ -28,10 +48,20 @@ function isDirty(q: AuditLogQuery): boolean {
 }
 
 /**
- * Audit filter bar — same strip pattern as EmployeesFilterBar/AssetsFilterBar:
- * Row 1: full-width search. Row 2: SelectMini chips (entity / action / actor)
- * + compact date range; on mobile the row is a single horizontal scroll strip
- * (SelectMini opens a bottom sheet there), desktop wraps and shows Reset.
+ * Audit filter bar — single DOM tree, responsive via Tailwind breakpoints.
+ *
+ * Desktop (≥768px): ONE row — search (flex-1, shrinks) + 3 SelectMini chips +
+ *   "С [date] По [date]" atomic pair + Reset. The chip strip uses md:contents
+ *   so its children become direct flex items of the row; flex-wrap is the
+ *   graceful fallback on narrow desktop widths.
+ *
+ * Mobile (<768px):
+ *   Row 1: full-width search.
+ *   Row 2: horizontal scroll strip — chips + date pair + Reset in one line.
+ *
+ * No DOM duplication — a single element tree handles both layouts.
+ * The date pair is always wrapped in one flex-shrink-0 container so it
+ * never splits across lines.
  */
 export function AuditFilterBar({ query, onChange, ref: refData }: AuditFilterBarProps) {
   const { t } = useTranslation('audit')
@@ -51,16 +81,19 @@ export function AuditFilterBar({ query, onChange, ref: refData }: AuditFilterBar
     ...(refData?.actors ?? []).map(a => ({ value: a.uid, label: a.displayName ?? a.uid })),
   ]
 
-  // DatePicker uses YYYY-MM-DD; convert to/from ISO bounds.
-  const fromDateInput = query.fromDate ? query.fromDate.slice(0, 10) : ''
-  const toDateInput = query.toDate ? query.toDate.slice(0, 10) : ''
+  // DatePicker uses YYYY-MM-DD; convert to/from ISO bounds (local-day mapping,
+  // NOT slice(0,10) — the stored bound is a UTC instant of a LOCAL midnight).
+  const fromDateInput = query.fromDate ? isoToLocalDay(query.fromDate) : ''
+  const toDateInput = query.toDate ? isoToLocalDay(query.toDate) : ''
 
   const dirty = isDirty(query)
 
   return (
-    <div className="flex flex-col gap-2">
-      {/* Row 1: Search (full-width) */}
-      <div className="relative">
+    /* Desktop: one flex-wrap row (everything inline). Mobile: column of
+       search row + scroll strip. */
+    <div className="flex flex-col gap-2 md:flex-row md:items-center md:flex-wrap">
+      {/* Search — flex-1 on desktop so it shrinks to fit everything in one row */}
+      <div className="relative max-md:w-full md:flex-1 md:min-w-[160px]">
         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-subtle pointer-events-none">
           <Icon name="search" size={13} />
         </span>
@@ -74,10 +107,13 @@ export function AuditFilterBar({ query, onChange, ref: refData }: AuditFilterBar
         />
       </div>
 
-      {/* Row 2: filter strip — wraps on desktop, horizontal scroll on mobile */}
+      {/* Chips strip — mobile: horizontal scroll line; desktop: md:contents
+          flattens the children into the outer row (search + chips + dates + reset
+          all become siblings of ONE flex line). */}
       <div
         className={[
-          'flex items-center gap-2 flex-wrap',
+          'flex items-center gap-2 md:contents',
+          /* Mobile: single non-wrapping horizontal scroll strip */
           'max-md:flex-nowrap max-md:overflow-x-auto max-md:gap-[6px]',
           'no-scrollbar scroll-fade-x',
         ].join(' ')}
@@ -107,36 +143,36 @@ export function AuditFilterBar({ query, onChange, ref: refData }: AuditFilterBar
           options={actorOptions}
         />
 
-        {/* From-date — span avoids label→button double-click forwarding; ariaLabel covers a11y */}
-        <span className="flex items-center gap-1.5 text-[12px] text-text-tertiary flex-shrink-0">
-          {t('filters.from')}
-          <div className="w-[128px]">
-            <DatePicker
-              id="audit-filter-from"
-              variant="chip"
-              value={fromDateInput}
-              {...(toDateInput ? { max: toDateInput } : {})}
-              onChange={iso => onChange({ fromDate: iso ? `${iso}T00:00:00.000Z` : null })}
-              ariaLabel={t('filters.from')}
-              placeholder="дд.мм.гггг"
-            />
-          </div>
-        </span>
-
-        {/* To-date */}
-        <span className="flex items-center gap-1.5 text-[12px] text-text-tertiary flex-shrink-0">
-          {t('filters.to')}
-          <div className="w-[128px]">
-            <DatePicker
-              id="audit-filter-to"
-              variant="chip"
-              value={toDateInput}
-              {...(fromDateInput ? { min: fromDateInput } : {})}
-              onChange={iso => onChange({ toDate: iso ? `${iso}T23:59:59.999Z` : null })}
-              ariaLabel={t('filters.to')}
-              placeholder="дд.мм.гггг"
-            />
-          </div>
+        {/* Date pair — atomic: never splits С from По; wraps as one unit */}
+        <span className="flex items-center gap-2 flex-shrink-0">
+          <span className="flex items-center gap-1.5 text-[12px] text-text-tertiary flex-shrink-0">
+            {t('filters.from')}
+            <div className="w-[128px]">
+              <DatePicker
+                id="audit-filter-from"
+                variant="chip"
+                value={fromDateInput}
+                {...(toDateInput ? { max: toDateInput } : {})}
+                onChange={iso => onChange({ fromDate: iso ? localDayStartIso(iso) : null })}
+                ariaLabel={t('filters.from')}
+                placeholder="дд.мм.гггг"
+              />
+            </div>
+          </span>
+          <span className="flex items-center gap-1.5 text-[12px] text-text-tertiary flex-shrink-0">
+            {t('filters.to')}
+            <div className="w-[128px]">
+              <DatePicker
+                id="audit-filter-to"
+                variant="chip"
+                value={toDateInput}
+                {...(fromDateInput ? { min: fromDateInput } : {})}
+                onChange={iso => onChange({ toDate: iso ? localDayEndIso(iso) : null })}
+                ariaLabel={t('filters.to')}
+                placeholder="дд.мм.гггг"
+              />
+            </div>
+          </span>
         </span>
 
         {/* Reset — shown only when filters are dirty */}

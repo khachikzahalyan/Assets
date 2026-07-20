@@ -1,6 +1,6 @@
 import {
   collection, getDocs, query as fsQuery, where, orderBy, limit,
-  startAfter, getDoc, doc, type Firestore, type QueryConstraint,
+  startAfter, getDoc, doc, Timestamp, type Firestore, type QueryConstraint,
   type QueryDocumentSnapshot,
 } from 'firebase/firestore'
 import type {
@@ -49,8 +49,16 @@ export class FirestoreAuditLogRepository implements AuditLogRepository {
     if (query.entityType !== 'all') constraints.push(where('entityType', '==', query.entityType))
     if (query.action !== 'all') constraints.push(where('action', '==', query.action))
     if (query.actorUid !== 'all') constraints.push(where('actorUid', '==', query.actorUid))
-    if (query.fromDate != null) constraints.push(where('at', '>=', query.fromDate))
-    if (query.toDate != null) constraints.push(where('at', '<=', query.toDate))
+    // `at` is written with serverTimestamp() → stored as a Firestore Timestamp.
+    // Comparing a Timestamp field against an ISO STRING silently matches nothing
+    // (timestamps sort before strings in Firestore's type order), so the bounds
+    // MUST be converted to Timestamp values.
+    if (query.fromDate != null) {
+      constraints.push(where('at', '>=', Timestamp.fromDate(new Date(query.fromDate))))
+    }
+    if (query.toDate != null) {
+      constraints.push(where('at', '<=', Timestamp.fromDate(new Date(query.toDate))))
+    }
     constraints.push(orderBy('at', 'desc'))
 
     // Cursor: read the anchor doc and startAfter it.
