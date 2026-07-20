@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@/components/ui'
 import type { PartsAsset } from '@/domain/part/types'
@@ -18,7 +19,10 @@ export interface DeviceGridCardProps {
   hasBroken?: boolean
   /** isMobile: true on ≤767px — renders a full-width horizontal list card with chevron */
   isMobile?: boolean
-  onSelect: () => void
+  /** Called with the asset id when the card is clicked.
+   *  Receives the id so the parent can pass a stable handler directly
+   *  (handleSelect from useCallback) and React.memo is effective. */
+  onSelect: (id: string) => void
 }
 
 /**
@@ -26,7 +30,7 @@ export interface DeviceGridCardProps {
  * Layout from prototype parts.html lines 2876-2945.
  * No action buttons — actions live in the right detail panel.
  */
-export function DeviceGridCard({ asset, selected, hasBroken = false, isMobile = false, onSelect }: DeviceGridCardProps) {
+export const DeviceGridCard = memo(function DeviceGridCard({ asset, selected, hasBroken = false, isMobile = false, onSelect }: DeviceGridCardProps) {
   const { t } = useTranslation('parts')
 
   const family = assetFamilyOf(asset.categoryId) ?? 'desktop'
@@ -70,7 +74,7 @@ export function DeviceGridCard({ asset, selected, hasBroken = false, isMobile = 
       <button
         type="button"
         aria-pressed={selected}
-        onClick={onSelect}
+        onClick={() => onSelect(asset.id)}
         className={`${cardBg} border rounded-xl p-[14px] cursor-pointer transition-colors w-full text-left flex items-center gap-2.5 ${selected ? 'border-accent' : 'border-border'}`}
       >
         <span
@@ -115,7 +119,7 @@ export function DeviceGridCard({ asset, selected, hasBroken = false, isMobile = 
     <button
       type="button"
       aria-pressed={selected}
-      onClick={onSelect}
+      onClick={() => onSelect(asset.id)}
       style={cardStyle}
       className={`${cardBg} border border-border rounded-xl p-2.5 cursor-pointer transition-colors flex flex-col h-full w-full text-left`}
     >
@@ -156,4 +160,4 @@ export function DeviceGridCard({ asset, selected, hasBroken = false, isMobile = 
       </div>
     </button>
   )
-}
+})

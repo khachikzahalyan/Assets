@@ -192,7 +192,7 @@ export function DevicesTab({
                   asset={a}
                   selected={selectedId === a.id}
                   isMobile={isMobile}
-                  onSelect={() => handleSelect(a.id)}
+                  onSelect={handleSelect}
                 />
               ))}
             </div>

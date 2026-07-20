@@ -13,6 +13,7 @@
  *
  * Rows are inert (no onClick) — warehouse history is read-only on mobile.
  */
+import { memo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { CHIP_PALETTE } from '@/components/ui/chip'
 import { Icon, MobileListRow } from '@/components/ui'
@@ -46,7 +47,7 @@ export interface HistoryRowMobileProps {
   remainingAfter: number
 }
 
-export function HistoryRowMobile({
+export const HistoryRowMobile = memo(function HistoryRowMobile({
   mv,
   skuLabel,
   catIconName,
@@ -142,4 +143,4 @@ export function HistoryRowMobile({
       right={right}
     />
   )
-}
+})

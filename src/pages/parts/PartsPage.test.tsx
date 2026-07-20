@@ -130,10 +130,11 @@ describe('PartsPage', () => {
     })
     // Act
     const { container } = renderPage()
-    // Assert — skeleton renders only shimmer bars (no real tab labels)
+    // Assert — skeleton principle 2: local chrome (tab labels) renders REAL
+    // immediately; shimmer bars cover only the async data region.
     expect(container.querySelector('.anim-skeleton')).toBeInTheDocument()
-    expect(screen.queryByText('tabs.warehouse')).not.toBeInTheDocument()
-    expect(screen.queryByText('tabs.devices')).not.toBeInTheDocument()
+    expect(screen.getByText('tabs.warehouse')).toBeInTheDocument()
+    expect(screen.getByText('tabs.devices')).toBeInTheDocument()
   })
 
   it('shows error state when useParts returns an error', () => {

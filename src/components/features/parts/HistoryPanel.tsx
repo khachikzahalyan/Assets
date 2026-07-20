@@ -306,7 +306,7 @@ export function HistoryPanel({
             {isMobile ? (
               /* Mobile: MobileListRow-based rows — no wrap collisions */
               <div className="ams-stock-history-list border-t border-border">
-                {visibleRows.map((mv, i) => {
+                {visibleRows.map((mv) => {
                   const rowSku = skuById[mv.skuId] ?? null
                   const skuCat = rowSku?.category ?? ''
                   const skuLabel = rowSku
@@ -315,7 +315,7 @@ export function HistoryPanel({
                   const catIconName = skuCat ? categoryIcon(skuCat) : 'package'
                   return (
                     <HistoryRowMobile
-                      key={mv.id ?? i}
+                      key={mv.id}
                       mv={mv}
                       skuLabel={skuLabel}
                       catIconName={catIconName}
@@ -330,7 +330,7 @@ export function HistoryPanel({
                 className="ams-stock-history-list divide-y divide-border border-t border-border flex-shrink-0"
                 style={{ minHeight: 'min(700px, 62vh)' }}
               >
-                {visibleRows.map((mv, i) => {
+                {visibleRows.map((mv) => {
                   const dt = resolveDisplayType(mv)
                   const isBroken = mv.broken
                   const isInstall = dt === 'install' && !isBroken
@@ -403,7 +403,7 @@ export function HistoryPanel({
 
                   return (
                     <li
-                      key={mv.id ?? i}
+                      key={mv.id}
                       className="flex items-center gap-3 px-5 h-[56px] flex-shrink-0 hover:bg-[#111315]/60 transition-colors"
                     >
                       <span className={`w-2 h-2 rounded-full flex-shrink-0 ${dotColor}`} />

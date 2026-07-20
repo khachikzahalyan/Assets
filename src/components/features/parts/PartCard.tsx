@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { memo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Icon, Chip } from '@/components/ui'
 import type { Part, PartStock } from '@/domain/part/types'
@@ -31,13 +31,9 @@ const RAM_VARIANTS: Variant[] = [
   { id: '128gb', label: '128 ГБ' },
 ]
 const CATEGORY_VARIANTS: Record<string, Variant[] | null> = {
-  psu: null,
-  cooler: null,
-  ssd: STORAGE_VARIANTS,
-  hdd: STORAGE_VARIANTS,
-  nvme: STORAGE_VARIANTS,
+  psu: null, cooler: null, gpu: null,
+  ssd: STORAGE_VARIANTS, hdd: STORAGE_VARIANTS, nvme: STORAGE_VARIANTS,
   ram: RAM_VARIANTS,
-  gpu: null,
 }
 
 export interface PartCardProps {
@@ -61,7 +57,7 @@ export interface PartCardProps {
  *  - GPU: orange "+ Добавить" button instead of Install
  *  - Single-SKU (psu/cooler): inline "Установить" text button
  */
-export function PartCard({
+export const PartCard = memo(function PartCard({
   categoryId,
   skus,
   selected,
@@ -113,27 +109,15 @@ export function PartCard({
       )
     : {}
 
-  /* Subtitle text */
+  /* Subtitle: count only in-stock variants (onHand > 0, consistent with the expanded list). */
+  const inStockVariantCount = (variants ?? []).filter((v) => {
+    const sku = skuByVariant[v.id]
+    return sku !== undefined && stockOf(sku.id).onHand > 0
+  }).length
   const subtitle = (() => {
     if (allVariants) {
-      const count = variants?.length ?? 0
-      if (categoryId === 'ram') {
-        // e.g. "3 размера"
-        return count === 0
-          ? 'Нет размеров'
-          : count === 1
-          ? '1 размер'
-          : count <= 4
-          ? `${count} размера`
-          : `${count} размеров`
-      }
-      return count === 0
-        ? 'Нет размеров'
-        : count === 1
-        ? '1 размер'
-        : count <= 4
-        ? `${count} размера`
-        : `${count} размеров`
+      const n = inStockVariantCount
+      return n === 0 ? 'Нет размеров' : n === 1 ? '1 размер' : n <= 4 ? `${n} размера` : `${n} размеров`
     }
     if (isGpu) {
       const n = skus.length
@@ -308,4 +292,4 @@ export function PartCard({
       })()}
     </div>
   )
-}
+})

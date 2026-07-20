@@ -5,6 +5,7 @@
  * Used by WarehouseTab.renderSkuList() when isMobile is true.
  * Rows are inert (no onClick) — selection is handled by CategoryChipStrip.
  */
+import { memo } from 'react'
 import { CHIP_PALETTE } from '@/components/ui/chip'
 import { Icon, MobileListRow } from '@/components/ui'
 import type { Tint } from './partsTokens'
@@ -24,7 +25,7 @@ export interface WarehouseSkuRowMobileProps {
   broken: number
 }
 
-export function WarehouseSkuRowMobile({
+export const WarehouseSkuRowMobile = memo(function WarehouseSkuRowMobile({
   name,
   variantLabel,
   icon,
@@ -83,4 +84,4 @@ export function WarehouseSkuRowMobile({
       right={right}
     />
   )
-}
+})

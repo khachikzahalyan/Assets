@@ -34,7 +34,7 @@ export function WarehouseMobileDetail({
 
   let totalOnHand = 0
   for (const sku of skus) totalOnHand += workingStock(stockOf(sku.id))
-  const installSku: Part | null = skus.find(s => workingStock(stockOf(s.id)) > 0) ?? skus.at(0) ?? null
+  const installSku: Part | null = skus.find(s => workingStock(stockOf(s.id)) > 0) ?? null
   const title = skus.length === 1 ? (skus[0]?.name ?? catMeta?.label) : catMeta?.label
 
   return (
@@ -48,7 +48,10 @@ export function WarehouseMobileDetail({
           <span className="text-[16px] font-bold text-text-primary">{title}</span>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          <span className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[11px] font-bold rounded-full px-2.5 py-1">
+          <span className={`text-[11px] font-bold rounded-full px-2.5 py-1 flex-shrink-0
+            ${totalOnHand > 0
+              ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'
+              : 'bg-surface-2 border border-border text-text-subtle'}`}>
             ● {totalOnHand}шт
           </span>
           {installSku && (

@@ -18,11 +18,20 @@ import { workingStock, deriveStock } from '@/domain/part/partStock'
 import type { PartRepository, PartWriteRepository } from '@/domain/part/PartRepository'
 import { createDefaultPartRepository } from '@/infra/repositories/factories'
 import { PART_CATEGORY_META, groupSkusByCategory } from '@/components/features/parts/partsTokens'
+import { PartsPageSkeleton } from './PartsPageSkeleton'
 
 type ActiveTab = 'warehouse' | 'devices'
 
+// Module-level lazy singleton: keeps the repo's reference-data cache alive
+// across navigations. Test callers pass their own repo via the prop.
+let _sharedPartRepo: (PartRepository & PartWriteRepository) | null = null
+function getSharedPartRepo(): PartRepository & PartWriteRepository {
+  if (!_sharedPartRepo) _sharedPartRepo = createDefaultPartRepository()
+  return _sharedPartRepo
+}
+
 export interface PartsPageProps {
-  /** Injected repo — for tests. Production callers omit this; the page creates the default. */
+  /** Injected repo — for tests. Production callers omit this; the page uses the singleton. */
   repository?: PartRepository & PartWriteRepository
 }
 
@@ -48,14 +57,7 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
   const urlTab = searchParams.get('tab')
   const urlAssetId = searchParams.get('assetId')
 
-  // Composition root: stable default repo; test callers inject their own.
-  const defaultRepo = useMemo(
-    () => createDefaultPartRepository(),
-    // createDefaultPartRepository() wraps db() which is a stable singleton.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  )
-  const repo = repository ?? defaultRepo
+  const repo = repository ?? getSharedPartRepo()
 
   const { ref, loading, error, reload, installPart, uninstallPart, recordService, createGpu } = useParts(repo)
 
@@ -193,6 +195,9 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
     }
   }, [uninstallPart, t, uninstallTarget.sku])
 
+  // ── GPU modal open handler (stable for PartCard.memo GPU card) ──────────────
+  const handleOpenGpuModal = useCallback(() => setGpuModalOpen(true), [])
+
   // ── GPU add handler ──────────────────────────────────────────────────────────
   const handleGpuConfirm = useCallback(async (name: string, qty: number) => {
     setWriteError(null)
@@ -224,99 +229,7 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
     }
   }, [recordService, serviceAsset, t])
 
-  // ── Render states ────────────────────────────────────────────────────────────
-  if (loading) {
-    return (
-      <div className="flex flex-col h-full p-2 gap-3 overflow-hidden max-md:h-auto max-md:overflow-visible max-md:p-0 max-md:gap-0 max-md:mx-[10px] max-md:flex-1 max-md:min-h-0" aria-hidden="true">
-        {/* Stat strip — shimmer values; hidden on mobile */}
-        <div className="grid grid-cols-4 gap-2.5 flex-shrink-0 max-md:hidden">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="bg-surface border border-border rounded-xl p-3 flex flex-col justify-center min-h-[58px] gap-2.5">
-              <div className="h-[10px] w-[55%] rounded anim-skeleton" />
-              <div className="h-[16px] w-[42%] rounded anim-skeleton" />
-            </div>
-          ))}
-        </div>
-
-        {/* Header card chrome — mobile only wraps the tab strip + row 2 */}
-        <div className="flex-shrink-0 max-md:bg-surface max-md:border max-md:border-border max-md:rounded-t-xl max-md:overflow-hidden max-md:border-b-0">
-          {/* Tab strip — shimmer (no interactive, no real labels) */}
-          <div className="flex items-center justify-between border-b border-border h-[44px] max-md:bg-surface-2 max-md:px-[6px]">
-            <div className="flex items-center gap-1">
-              {Array.from({ length: 2 }).map((_, i) => (
-                <div key={i} className="inline-flex items-center gap-1.5 px-4 py-3">
-                  <div className="w-[14px] h-[14px] rounded anim-skeleton flex-shrink-0 max-md:hidden" />
-                  <div className="h-[12px] rounded anim-skeleton" style={{ width: i === 0 ? 72 : 60 }} />
-                </div>
-              ))}
-            </div>
-            {/* Desktop add button shimmer */}
-            <div className="mr-1 h-8 w-[96px] rounded-lg anim-skeleton max-md:hidden" />
-          </div>
-          {/* Row-2 shimmer — mobile only */}
-          <div className="md:hidden flex items-center gap-[8px] bg-bg px-[14px] py-[7px]">
-            <div className="flex-1 h-[34px] rounded-[9px] anim-skeleton" />
-            <div className="w-[36px] h-[36px] rounded-[9px] anim-skeleton flex-shrink-0" />
-          </div>
-        </div>
-
-        {/* Content region — desktop: grid; mobile: fused card chrome */}
-        <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-4 pt-1 max-md:bg-surface max-md:border max-md:border-border max-md:border-t-0 max-md:rounded-b-xl max-md:pt-0">
-          {/* LEFT — category card list (shimmer — DB data) */}
-          <div className="lg:col-span-5 space-y-2 min-h-0">
-            {Array.from({ length: 7 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-3 px-4 py-3 bg-surface border border-border rounded-xl min-h-[64px] max-md:min-h-[56px]">
-                <div className="w-10 h-10 rounded-lg anim-skeleton flex-shrink-0 max-md:w-7 max-md:h-7" />
-                <div className="flex-1 min-w-0 space-y-2">
-                  <div className="h-[13px] w-[40%] rounded anim-skeleton" />
-                  <div className="h-[10px] w-[55%] rounded anim-skeleton" />
-                </div>
-                <div className="h-[22px] w-[44px] rounded-md anim-skeleton flex-shrink-0" />
-              </div>
-            ))}
-          </div>
-
-          {/* RIGHT — detail/history panel (desktop only) */}
-          <div className="hidden lg:flex lg:col-span-7 min-h-0 flex-col bg-surface border border-border rounded-xl overflow-hidden">
-            {/* Panel header: icon+title (shimmer — DB: selected category) + qty chip (shimmer) */}
-            <div className="flex items-center gap-3 px-5 py-4 border-b border-border flex-shrink-0">
-              <div className="w-8 h-8 rounded-lg anim-skeleton flex-shrink-0" />
-              <div className="h-[15px] w-[180px] rounded anim-skeleton" />
-              <div className="h-[22px] w-[44px] rounded-md anim-skeleton ml-auto flex-shrink-0" />
-            </div>
-            {/* history subheader — shimmer + summary chips (shimmer — DB: movement counts) */}
-            <div className="flex items-center gap-2 px-5 py-3 border-b border-border flex-shrink-0">
-              <div className="h-[10px] w-[72px] rounded anim-skeleton" />
-              <div className="h-[20px] w-[112px] rounded-md anim-skeleton ml-auto" />
-              <div className="h-[20px] w-[120px] rounded-md anim-skeleton" />
-            </div>
-            {/* Filter chips (shimmer) */}
-            <div className="flex items-center gap-2 px-5 pt-3 flex-shrink-0">
-              <div className="h-[24px] w-[124px] rounded-md anim-skeleton" />
-              <div className="h-[24px] w-[110px] rounded-md anim-skeleton" />
-            </div>
-            {/* History rows (shimmer — DB) */}
-            <div className="p-5 space-y-4">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full anim-skeleton flex-shrink-0" />
-                  <div className="w-7 h-7 rounded-md anim-skeleton flex-shrink-0" />
-                  <div className="flex-1 min-w-0 space-y-2">
-                    <div className="h-[12px] w-[38%] rounded anim-skeleton" />
-                    <div className="h-[10px] w-[56px] rounded anim-skeleton" />
-                  </div>
-                  <div className="h-[22px] w-[140px] rounded-md anim-skeleton flex-shrink-0" />
-                  <div className="h-[11px] w-[82px] rounded anim-skeleton flex-shrink-0" />
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (error) {
+  if (error && !ref) {
     return (
       <div className="space-y-5">
         <div className="text-text-primary text-xl font-semibold">{t('title')}</div>
@@ -356,24 +269,28 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
             icon="inbox"
             label={t('stats.onHand')}
             value={stats.onHand}
+            loading={loading}
           />
           <StatTile
             tone="violet"
             icon="wrench"
             label={t('stats.installed')}
             value={stats.installed}
+            loading={loading}
           />
           <StatTile
             tone="rose"
             icon="x-octagon"
             label={t('stats.broken')}
             value={stats.broken}
+            loading={loading}
           />
           <StatTile
             tone="blue"
             icon="monitor-smartphone"
             label={t('stats.devices')}
             value={stats.devices}
+            loading={loading}
           />
         </div>
 
@@ -419,19 +336,22 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
        * to fill; bottom clearance provided by .app-shell-content-flush (74px).
        */}
       <div className="flex-1 min-h-0 overflow-hidden max-md:overflow-visible max-md:bg-surface max-md:border max-md:border-border max-md:border-t-0 max-md:rounded-b-xl max-md:flex max-md:flex-col max-md:flex-1 max-md:min-h-0">
-        {activeTab === 'warehouse' && (
+        {loading ? (
+          // DevicesTab-footprint skeleton (devices is the default active tab).
+          // Desktop: 12-col grid with real family pills + real search input + shimmer card grid + no-selection panel.
+          // Mobile: real family pills + px-[14px] pt-[10px] wrapper + CardListSkeleton variant="part-device".
+          <PartsPageSkeleton />
+        ) : activeTab === 'warehouse' ? (
           <WarehouseTab
             parts={parts}
             movements={movements}
             isMobile={isMobile}
             onInstall={handleInstallSku}
-            onAddGpu={() => setGpuModalOpen(true)}
+            onAddGpu={handleOpenGpuModal}
             selectedCatId={selectedCatId}
             onSelectCat={setSelectedCatId}
           />
-        )}
-
-        {activeTab === 'devices' && (
+        ) : (
           <DevicesTab
             partsAssets={partsAssets}
             parts={parts}

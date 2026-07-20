@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Icon } from '@/components/ui'
+import { Icon, EmptyState } from '@/components/ui'
 import type { Part } from '@/domain/part/types'
 import { workingStock } from '@/domain/part/partStock'
 import type { PartStock } from '@/domain/part/types'
@@ -19,11 +19,13 @@ export interface WarehouseSizedDetailProps {
  * Mobile-only per-size row layout for sized categories (SSD / HDD / M.2 / ОЗУ).
  * Replaces the desktop AGG_CATS collapsed single-row on mobile.
  *
+ * Shows only in-stock sizes (workingStock > 0). If the whole category has no
+ * stock, renders an EmptyState instead of the size list.
+ *
  * Layout per prototype:
- *   – Category header: [36px colored icon][title + "N размеров"][● Nшт green chip][chevron]
+ *   – Category header: [36px colored icon][title + "N размеров"][● Nшт chip][chevron]
  *   – ОЗУ only: DDR3/DDR4/DDR5 toggle (active = uniform accent)
- *   – Per-size rows: label left, [qty + "Установить" text button] OR [0шт muted pill] right
- *   – Zero-stock rows: dimmed, no install button
+ *   – Per-size rows (in-stock only): label left, [qty + "Установить" button] right
  */
 export function WarehouseSizedDetail({ categoryId, skus, stockMap, onInstall }: WarehouseSizedDetailProps) {
   const { t } = useTranslation('parts')
@@ -34,17 +36,21 @@ export function WarehouseSizedDetail({ categoryId, skus, stockMap, onInstall }: 
   const catMeta = PART_CAT_BY_ID[categoryId]
   const isRam = categoryId === 'ram'
 
-  const visibleSkus = (isRam ? skus.filter(s => s.ddr === ramDdr) : skus)
-    .slice()
-    .sort((a, b) => variantRank(categoryId, a.variantId) - variantRank(categoryId, b.variantId))
-
   const totalOnHand = skus.reduce((sum, s) => {
     const stock = stockMap[s.id] ?? { onHand: 0, broken: 0 }
     return sum + workingStock(stock)
   }, 0)
 
+  const ddrFiltered = isRam ? skus.filter(s => s.ddr === ramDdr) : skus
+  const visibleSkus = ddrFiltered
+    .filter(s => workingStock(stockMap[s.id] ?? { onHand: 0, broken: 0 }) > 0)
+    .slice()
+    .sort((a, b) => variantRank(categoryId, a.variantId) - variantRank(categoryId, b.variantId))
+
   const sizeCount = visibleSkus.length
-  const sizeLabel = `${sizeCount} ${sizeCount === 1 ? 'размер' : sizeCount >= 2 && sizeCount <= 4 ? 'размера' : 'размеров'}`
+  const sizeLabel = totalOnHand === 0
+    ? t('warehouse.noStock')
+    : `${sizeCount} ${sizeCount === 1 ? 'размер' : sizeCount >= 2 && sizeCount <= 4 ? 'размера' : 'размеров'}`
 
   return (
     <div>
@@ -66,52 +72,55 @@ export function WarehouseSizedDetail({ categoryId, skus, stockMap, onInstall }: 
         <Icon name="chevron-up" size={14} className="text-text-subtle flex-shrink-0" />
       </div>
 
-      {/* DDR toggle for ОЗУ */}
-      {isRam && (
-        <div className="flex items-center gap-1.5 px-3.5 py-2.5 border-b border-border/50">
-          {['DDR3', 'DDR4', 'DDR5'].map(ddr => (
-            <button
-              key={ddr}
-              type="button"
-              onClick={() => setRamDdr(ddr)}
-              className={`px-2.5 h-5 rounded text-[10px] font-semibold transition-all
-                ${ramDdr === ddr
-                  ? 'bg-accent text-white'
-                  : 'bg-surface text-text-tertiary border border-border hover:border-border-strong'}`}
-            >
-              {ddr}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Per-size rows */}
-      {visibleSkus.length === 0 ? (
-        <div className="px-3.5 py-6 text-[13px] text-text-subtle text-center">
-          {t('warehouse.emptyCategory', 'Нет позиций')}
-        </div>
+      {/* Whole category empty → simple empty state, no size rows */}
+      {totalOnHand === 0 ? (
+        <EmptyState
+          icon="package-open"
+          title={t('warehouse.noStock')}
+          description={t('warehouse.noneAvailableHint')}
+        />
       ) : (
-        <div>
-          {visibleSkus.map((sku, idx) => {
-            const stock = stockMap[sku.id] ?? { onHand: 0, broken: 0 }
-            const onHand = workingStock(stock)
-            const sizeCellLabel = sku.variantLabel || sku.name
-            const isLast = idx === visibleSkus.length - 1
-            return (
-              <div
-                key={sku.id}
-                className={`flex items-center justify-between px-3.5 py-3.5${!isLast ? ' border-b border-border/50' : ''}`}
-              >
-                <span className={`text-[13.5px] font-medium ${onHand === 0 ? 'text-text-subtle' : 'text-text-primary'}`}>
-                  {sizeCellLabel}
-                </span>
-                <div className="flex items-center gap-3 flex-shrink-0">
-                  {onHand === 0 ? (
-                    <span className="bg-surface border border-border text-text-subtle text-[11px] rounded-full px-2.5 py-1">
-                      0шт
+        <>
+          {/* DDR toggle for ОЗУ */}
+          {isRam && (
+            <div className="flex items-center gap-1.5 px-3.5 py-2.5 border-b border-border/50">
+              {['DDR3', 'DDR4', 'DDR5'].map(ddr => (
+                <button
+                  key={ddr}
+                  type="button"
+                  onClick={() => setRamDdr(ddr)}
+                  className={`px-2.5 h-5 rounded text-[10px] font-semibold transition-all
+                    ${ramDdr === ddr
+                      ? 'bg-accent text-white'
+                      : 'bg-surface text-text-tertiary border border-border hover:border-border-strong'}`}
+                >
+                  {ddr}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Per-size rows — all in stock (filtered above, no 0шт branch needed) */}
+          {visibleSkus.length === 0 ? (
+            <div className="px-3.5 py-6 text-[13px] text-text-subtle text-center">
+              {t('warehouse.noStock')}
+            </div>
+          ) : (
+            <div>
+              {visibleSkus.map((sku, idx) => {
+                const stock = stockMap[sku.id] ?? { onHand: 0, broken: 0 }
+                const onHand = workingStock(stock)
+                const sizeCellLabel = sku.variantLabel || sku.name
+                const isLast = idx === visibleSkus.length - 1
+                return (
+                  <div
+                    key={sku.id}
+                    className={`flex items-center justify-between px-3.5 py-3.5${!isLast ? ' border-b border-border/50' : ''}`}
+                  >
+                    <span className="text-[13.5px] font-medium text-text-primary">
+                      {sizeCellLabel}
                     </span>
-                  ) : (
-                    <>
+                    <div className="flex items-center gap-3 flex-shrink-0">
                       <span className="text-[13px] font-semibold text-text-primary">{onHand} шт</span>
                       <button
                         type="button"
@@ -121,13 +130,13 @@ export function WarehouseSizedDetail({ categoryId, skus, stockMap, onInstall }: 
                         <Icon name="wrench" size={11} />
                         {t('actions.install', 'Установить')}
                       </button>
-                    </>
-                  )}
-                </div>
-              </div>
-            )
-          })}
-        </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </>
       )}
     </div>
   )

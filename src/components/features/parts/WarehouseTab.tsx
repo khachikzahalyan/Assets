@@ -1,17 +1,12 @@
 import { useMemo, useCallback } from 'react'
-import { useTranslation } from 'react-i18next'
-import { Icon, Chip } from '@/components/ui'
 import { PartCard } from './PartCard'
 import { HistoryPanel } from './HistoryPanel'
 import { WarehouseSizedDetail } from './WarehouseSizedDetail'
 import { WarehouseMobileDetail } from './WarehouseMobileDetail'
+import { WarehouseSkuList, AGG_CATS } from './WarehouseSkuList'
 import type { Part, PartMovement, PartStock } from '@/domain/part/types'
-import { PART_CATEGORY_META, categoryTint, categoryIcon, groupSkusByCategory } from './partsTokens'
-import { WarehouseSkuRowMobile } from './WarehouseSkuRowMobile'
+import { PART_CATEGORY_META, groupSkusByCategory } from './partsTokens'
 import { deriveStock } from '@/domain/part/partStock'
-
-/* AGG_CATS: aggregate (collapse to one summary row) */
-const AGG_CATS = new Set(['ssd', 'hdd', 'nvme', 'ram'])
 
 export interface WarehouseTabProps {
   parts: Part[]
@@ -43,8 +38,6 @@ export function WarehouseTab({
   selectedCatId,
   onSelectCat,
 }: WarehouseTabProps) {
-  const { t } = useTranslation('parts')
-
   /* ── Derived stock map (from movements, authoritative) ── */
   const stockMap = useMemo<Record<string, PartStock>>(
     () => deriveStock(movements),
@@ -92,150 +85,18 @@ export function WarehouseTab({
     return out
   }, [movements, selectedSkuIds])
 
-  /* ── SKU list renderer (right panel top section) ── */
-  const renderSkuList = () => {
-    const isGpuCat = selectedCatId === 'gpu'
-    // Show every SKU in the category, even at 0 on-hand, so the count reads «0 шт»
-    // instead of an empty state — per owner: don't hide out-of-stock parts. The
-    // empty state below only remains for a category with no SKU docs at all (GPU).
-    const visibleSkus = selectedSkus
-
-    if (visibleSkus.length === 0) {
-      return (
-        <div className="h-full flex items-center justify-center p-8">
-          <div className="text-center max-w-xs">
-            <span className="w-12 h-12 rounded-full bg-surface-2 text-text-subtle inline-flex items-center justify-center mb-3">
-              <Icon name={isGpuCat ? 'microchip' : 'search'} size={20} />
-            </span>
-            <div className="text-[15px] font-semibold text-text-secondary">
-              {isGpuCat ? t('warehouse.emptyGpu') : t('warehouse.emptyCategory')}
-            </div>
-            <div className="text-[14px] text-text-tertiary mt-1">
-              {isGpuCat
-                ? t('warehouse.emptyGpuHint')
-                : t('warehouse.emptyCategoryHint')}
-            </div>
-            {isGpuCat && (
-              <button
-                type="button"
-                onClick={onAddGpu}
-                className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[14.5px] font-semibold text-accent border border-[#F97316]/30 bg-[#F97316]/10 hover:bg-[#F97316]/15 transition-colors"
-              >
-                <Icon name="plus" size={12} />
-                {t('gpu.addBtn')}
-              </button>
-            )}
-          </div>
-        </div>
-      )
-    }
-
-    /* Aggregated categories: one summary row with dual chips */
-    if (AGG_CATS.has(selectedCatId)) {
-      const tint = categoryTint(selectedCatId)
-      const icon = categoryIcon(selectedCatId)
-      const catMeta = selectedCatMeta
-      let totalWorking = 0
-      let totalBroken = 0
-      for (const sku of visibleSkus) {
-        const s = stockOf(sku.id)
-        totalWorking += s.onHand
-        totalBroken += s.broken
-      }
-      if (isMobile) {
-        return (
-          <div>
-            <WarehouseSkuRowMobile
-              name={catMeta?.label ?? selectedCatId}
-              icon={icon}
-              tint={tint}
-              onHand={totalWorking}
-              broken={totalBroken}
-            />
-          </div>
-        )
-      }
-      return (
-        <ul className="divide-y divide-border flex-shrink-0">
-          <li className="flex items-center gap-3 px-5 py-3 hover:bg-[#22272E]/60 transition-colors">
-            <span className={`w-8 h-8 rounded-lg ${tint.iconBg} ${tint.iconText} inline-flex items-center justify-center flex-shrink-0`}>
-              <Icon name={icon} size={14} />
-            </span>
-            <div className="flex-1 min-w-0">
-              <div className="text-[15px] font-semibold text-text-primary truncate leading-tight">
-                {catMeta?.label ?? selectedCatId}
-              </div>
-            </div>
-            <div className="flex items-center gap-1.5 flex-shrink-0">
-              <Chip color="green" size="sm" dot>{totalWorking} шт</Chip>
-              {totalBroken > 0 && <Chip color="red" size="sm" dot>{totalBroken} шт</Chip>}
-            </div>
-          </li>
-        </ul>
-      )
-    }
-
-    /* Per-SKU rows (psu / cooler / gpu) */
-    if (isMobile) {
-      return (
-        <div>
-          {visibleSkus.map((sku) => {
-            const skuTint = categoryTint(sku.category)
-            const skuIcon = categoryIcon(sku.category)
-            const s = stockOf(sku.id)
-            return (
-              <WarehouseSkuRowMobile
-                key={sku.id}
-                name={sku.name}
-                variantLabel={sku.variantLabel ?? null}
-                icon={skuIcon}
-                tint={skuTint}
-                onHand={s.onHand}
-                broken={s.broken}
-              />
-            )
-          })}
-        </div>
-      )
-    }
-    return (
-      <ul className="divide-y divide-border flex-shrink-0">
-        {visibleSkus.map((sku) => {
-          const tint = categoryTint(sku.category)
-          const icon = categoryIcon(sku.category)
-          const s = stockOf(sku.id)
-          return (
-            <li
-              key={sku.id}
-              className="flex items-center gap-3 px-5 py-3 hover:bg-[#22272E]/60 transition-colors"
-            >
-              <span className={`w-8 h-8 rounded-lg ${tint.iconBg} ${tint.iconText} inline-flex items-center justify-center flex-shrink-0`}>
-                <Icon name={icon} size={14} />
-              </span>
-              <div className="flex-1 min-w-0">
-                <div className="text-[15px] font-semibold text-text-primary truncate leading-tight">
-                  {sku.name}
-                  {sku.variantLabel && (
-                    <span className="text-text-tertiary font-normal"> · {sku.variantLabel}</span>
-                  )}
-                </div>
-              </div>
-              <div className="flex items-center gap-1.5 flex-shrink-0">
-                <Chip color="green" size="sm" dot>{s.onHand} шт</Chip>
-                {s.broken > 0 && <Chip color="red" size="sm" dot>{s.broken} шт</Chip>}
-              </div>
-            </li>
-          )
-        })}
-      </ul>
-    )
-  }
-
-  /* ── RIGHT panel (desktop only, or mobile detail) ── */
+  /* ── RIGHT panel (desktop only) ── */
   const renderRightPanel = () => (
     <div className="bg-surface border border-border rounded-xl shadow-sm shadow-black/30 flex flex-col">
       <div className="flex flex-col">
-        {renderSkuList()}
+        <WarehouseSkuList
+          selectedCatId={selectedCatId}
+          selectedSkus={selectedSkus}
+          stockOf={stockOf}
+          isMobile={isMobile}
+          onAddGpu={onAddGpu}
+          catMeta={selectedCatMeta}
+        />
         {/* History block — rendered inline inside the same card */}
         <HistoryPanel
           movements={movements}
@@ -269,7 +130,14 @@ export function WarehouseTab({
         ) : isGpu ? (
           /* GPU: full-bleed without nested card chrome — fused card body */
           <div>
-            {renderSkuList()}
+            <WarehouseSkuList
+              selectedCatId={selectedCatId}
+              selectedSkus={selectedSkus}
+              stockOf={stockOf}
+              isMobile={true}
+              onAddGpu={onAddGpu}
+              catMeta={selectedCatMeta}
+            />
             <HistoryPanel
               movements={movements}
               skuIds={selectedSkuIds}
@@ -325,4 +193,3 @@ export function WarehouseTab({
     </div>
   )
 }
-
