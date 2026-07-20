@@ -58,23 +58,19 @@ export function MyActsPage({ repository }: MyActsPageProps) {
   if (loading) {
     return (
       <div className="space-y-5" aria-busy="true">
-        <div className="h-8 w-[160px] rounded-lg anim-skeleton" />
-        <div className="bg-surface border border-border rounded-xl overflow-hidden">
-          <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-border">
-            <div className="w-7 h-7 rounded-lg anim-skeleton flex-shrink-0" />
-            <div className="h-[10px] w-[80px] rounded anim-skeleton" />
-          </div>
-          <div className="p-5 space-y-2">
+        {/* PageHeader: local i18n — render real */}
+        <PageHeader icon="file-text" title={t('self.myActs')} className="max-md:hidden" />
+        {/* SectionCard: render real header; only rows are async */}
+        <SectionCard title={t('self.myActs')} icon="file-text">
+          <div className="space-y-2">
             {Array.from({ length: 5 }).map((_, i) => (
               <div key={i} className="flex items-center gap-3 min-h-[44px]">
-                {/* assetId stub — DB data */}
                 <div className="h-[12px] w-[96px] rounded anim-skeleton flex-shrink-0" />
-                {/* view-scan button shimmer */}
-                <div className="h-[32px] w-[112px] rounded-lg anim-skeleton flex-shrink-0" />
+                <div className="h-7 w-[112px] rounded-lg anim-skeleton flex-shrink-0" />
               </div>
             ))}
           </div>
-        </div>
+        </SectionCard>
       </div>
     )
   }

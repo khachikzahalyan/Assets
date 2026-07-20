@@ -12,9 +12,15 @@ export interface AppLoaderProps {
  * Used by RequireAuth while auth state resolves.
  */
 export function AppLoader({ fullScreen = false }: AppLoaderProps) {
+  /* Non-fullScreen: h-full collapses on the mobile body-scroll shell (ancestors
+     size via min-height, so percentage heights resolve to auto) and the mark
+     jumped to the top of the content area. The dvh min-height keeps it centered
+     in the visible band between topbar and BottomNav (52+64+padding ≈ 128px),
+     visually matching the fullScreen loader's position — no logo jump between
+     the auth loader and the route-chunk Suspense fallback. */
   const wrapperClass = fullScreen
     ? 'min-h-screen w-full bg-bg flex items-center justify-center'
-    : 'w-full h-full flex items-center justify-center'
+    : 'w-full h-full min-h-[calc(100dvh-128px)] flex items-center justify-center'
 
   return (
     <div

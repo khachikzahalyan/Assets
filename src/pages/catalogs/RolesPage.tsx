@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
 import { cn } from '@/lib/utils'
 import {
-  PageHeader, SectionCard, Btn, Icon, EmptyState, LoadingState, ErrorState, Field, Select, Input,
+  PageHeader, SectionCard, Btn, Icon, EmptyState, TableSkeleton, ErrorState, Field, Select, Input,
   CardListSkeleton, DataTable,
   DIALOG_BACKDROP, MODAL_SHEET,
 } from '@/components/ui'
@@ -226,7 +226,14 @@ export function RolesPage({ repository }: RolesPageProps) {
   function roleLabel(r: Role | null): string { return r ? tNav(`roles.${r}`) : t('role.none') }
 
   function renderBody() {
-    if (loading) return isMobile ? <CardListSkeleton rows={6} variant="catalog" /> : <LoadingState rows={6} />
+    if (loading) return isMobile
+      ? <CardListSkeleton rows={6} variant="role" />
+      : <TableSkeleton
+          rows={6}
+          columns={5}
+          gridTemplate="minmax(180px,2fr) minmax(140px,1.5fr) minmax(120px,1.3fr) minmax(100px,1fr) 100px"
+          lastColAction
+        />
     if (error) return <ErrorState onRetry={load} />
     if (filtered.length === 0) return <EmptyState icon="shield-check" title={t('empty.title')} description={t('empty.desc')} />
     if (isMobile) {

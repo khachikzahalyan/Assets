@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
-import { PageHeader, LoadingState, ErrorState } from '@/components/ui'
+import { PageHeader, Icon, ErrorState } from '@/components/ui'
 import { AssetCreateForm } from '@/components/features/assets/create/AssetCreateForm'
 import { useAuth } from '@/contexts/AuthContext'
 import type { Asset, AssetReferenceData, CreateAssetInput } from '@/domain/asset'
@@ -164,10 +164,73 @@ export function AssetCreatePage({ repository, licenseRepository, onCreated, onPe
   }
 
   if (loading) {
+    // Mirror AssetCreateForm outer wrapper exactly — no PageHeader (loaded branch has none).
+    // Header chrome (AMS pill + title + close) is static and always real.
+    // Category grid and form fields are async-driven → shimmer bars.
     return (
       <div className="space-y-5">
-        <PageHeader icon="package-plus" title={t('form.createTitle')} />
-        <LoadingState rows={5} />
+        <div className="bg-surface rounded-2xl ring-1 ring-[#2A2F36]/50 overflow-hidden w-full max-w-[1600px] mx-auto">
+          {/* In-card header — static chrome rendered real */}
+          <div className="flex items-center justify-between max-md:px-3 max-md:pt-2.5 max-md:pb-2.5 px-5 py-3 border-b border-[#2A2F36]/60 gap-2 overflow-hidden">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <span className="inline-flex items-center bg-[#F97316]/15 text-accent text-[11px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-md ring-1 ring-[#F97316]/30 shrink-0">
+                AMS
+              </span>
+              <div className="min-w-0">
+                <h2 className="text-[15px] font-semibold text-text-primary leading-tight truncate">
+                  {t('form.createTitle')}
+                </h2>
+                <p className="text-[13px] text-text-subtle mt-0.5 truncate">
+                  {t('form.subtitleCat', { cat: '—' })}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5 flex-shrink-0">
+              {/* Mode toggle placeholder — grayed out during load */}
+              <div className="inline-flex bg-[#22272E]/80 rounded-xl ring-1 ring-[#2A2F36]/60 p-0.5 opacity-40">
+                <div className="w-7 h-7 rounded-lg" />
+                <div className="w-7 h-7 rounded-lg" />
+              </div>
+              {/* Functional close button */}
+              <button
+                type="button"
+                onClick={() => navigate('/assets')}
+                aria-label={t('form.close')}
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-text-subtle hover:text-text-primary hover:bg-border transition-colors"
+              >
+                <Icon name="x" size={14} />
+              </button>
+            </div>
+          </div>
+          {/* Grid body — shimmer both columns */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 max-lg:pb-28">
+            {/* Left column: group tabs + category picker */}
+            <section className="max-md:px-[14px] px-6 py-5 lg:border-r lg:border-[#2A2F36]/80">
+              <div className="space-y-4">
+                {/* GroupTabs shimmer */}
+                <div className="flex gap-1.5">
+                  {[72, 88, 80].map(w => (
+                    <div key={w} style={{ width: w }} className="h-8 rounded-lg anim-skeleton" />
+                  ))}
+                </div>
+                {/* CategoryPicker shimmer — 2-col card grid */}
+                <div className="grid grid-cols-2 gap-2">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className="h-[56px] rounded-xl anim-skeleton" />
+                  ))}
+                </div>
+              </div>
+            </section>
+            {/* Right column: form fields */}
+            <section className="max-md:px-[14px] px-6 py-5">
+              <div className="space-y-4">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="h-9 rounded-lg anim-skeleton" />
+                ))}
+              </div>
+            </section>
+          </div>
+        </div>
       </div>
     )
   }

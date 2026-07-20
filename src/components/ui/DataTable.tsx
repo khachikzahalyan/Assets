@@ -51,6 +51,15 @@ export interface DataTableProps<T> {
    * rows.length < minRows). Useful for asserting placeholder counts in tests.
    */
   placeholderTestId?: string
+  /**
+   * Opt into the AssetsTable full-height fill contract: the table takes flex:1 1 0
+   * and every row (real + placeholder) gets flex:1 1 0 with minHeight:58 as the
+   * floor, so rows distribute the available card height evenly and the paginator
+   * stays pinned to the card bottom. REQUIRES a bounded-height flex-column parent
+   * (ListCard Zone 2 or equivalent) — without one the table collapses, which is
+   * why this is opt-in and content-driven height remains the default.
+   */
+  fillHeight?: boolean
 }
 
 // ── Component ───────────────────────────────────────────────────────────────────
@@ -83,6 +92,7 @@ export function DataTable<T>({
   emptyState,
   renderRowExpanded,
   placeholderTestId,
+  fillHeight = false,
 }: DataTableProps<T>) {
   const gridTemplateColumns = columns.map(c => c.width).join(' ')
   const placeholderCount = Math.max(0, (minRows ?? rows.length) - rows.length)
@@ -95,7 +105,12 @@ export function DataTable<T>({
     <div
       role="table"
       aria-label={ariaLabel}
-      style={{ display: 'flex', flexDirection: 'column', width: '100%' }}
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        width: '100%',
+        ...(fillHeight ? { flex: '1 1 0', minHeight: 0 } : {}),
+      }}
     >
       {/* ── Sticky header rowgroup ─────────────────────────────────────────── */}
       <div
@@ -138,7 +153,11 @@ export function DataTable<T>({
           Consistent list height comes from a shared minRows/PAGE_SIZE, not flex. */}
       <div
         role="rowgroup"
-        style={{ display: 'flex', flexDirection: 'column' }}
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          ...(fillHeight ? { flex: '1 1 0', minHeight: 0 } : {}),
+        }}
       >
         {rows.map(row => {
           const key = getRowKey(row)
@@ -170,6 +189,7 @@ export function DataTable<T>({
                   gridTemplateColumns,
                   alignItems: 'center',
                   minHeight: 58,
+                  ...(fillHeight ? { flex: '1 1 0' } : {}),
                 }}
               >
                 {columns.map((col, idx) => (
@@ -216,6 +236,7 @@ export function DataTable<T>({
               borderTop: '1px solid rgba(42,47,54,0.35)',
               pointerEvents: 'none',
               position: 'relative',
+              ...(fillHeight ? { flex: '1 1 0' } : {}),
             }}
           >
             <div

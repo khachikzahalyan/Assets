@@ -177,7 +177,7 @@ export function WindowsKeysSection({
       {
         key: 'key',
         header: t('keys.colKey'),
-        width: 'minmax(180px,2fr)',
+        width: 'minmax(220px,1.3fr)',
         cell: (lic) => (
           <span className="font-mono text-[13px] text-text-primary tracking-tight">
             {maskedKeys[lic.id] ?? '—'}
@@ -187,7 +187,7 @@ export function WindowsKeysSection({
       {
         key: 'version',
         header: t('keys.colVersion'),
-        width: 'minmax(120px,1fr)',
+        width: 'minmax(160px,1.1fr)',
         cell: (lic) => (
           <span className="text-[13.5px] text-text-secondary">{lic.name}</span>
         ),
@@ -195,7 +195,7 @@ export function WindowsKeysSection({
       {
         key: 'status',
         header: t('keys.colStatus'),
-        width: 'minmax(90px,0.7fr)',
+        width: 'minmax(120px,0.8fr)',
         cell: (lic) => {
           const isFree = licenseStatus(lic) === 'free'
           return isFree
@@ -206,7 +206,7 @@ export function WindowsKeysSection({
       {
         key: 'asset',
         header: t('keys.colAsset'),
-        width: 'minmax(140px,1.4fr)',
+        width: 'minmax(160px,1.2fr)',
         cell: (lic) => {
           const isFree = licenseStatus(lic) === 'free'
           if (isFree) {
@@ -306,12 +306,13 @@ export function WindowsKeysSection({
   return (
     <>
       <section
-        /* max-md:flex-1: inside the mobile flush flex chain the card stretches to the
-           BottomNav (like /assets ListCard); the rows area absorbs the space and the
-           pagination pins to the card bottom. Desktop keeps natural height.
+        /* flex-1 min-h-0 on BOTH breakpoints (assets etalon): inside the page's
+           full-height flex column the card stretches to the content-area bottom
+           (mobile: BottomNav top; desktop: shell content bottom); the rows area
+           absorbs the space and the pagination pins to the card bottom.
            max-md:rounded-t-none/border-t-0/!mt-0: fuses with the page tab+search
            header above into ONE visual card (assets etalon). */
-        className="bg-surface border border-border rounded-xl shadow-sm shadow-black/30 overflow-hidden flex flex-col max-md:flex-1 max-md:min-h-0 max-md:rounded-t-none max-md:border-t-0 max-md:!mt-0"
+        className="bg-surface border border-border rounded-xl shadow-sm shadow-black/30 overflow-hidden flex flex-col flex-1 min-h-0 max-md:rounded-t-none max-md:border-t-0 max-md:!mt-0"
         aria-label={t('keys.sectionTitle')}
       >
         {/* Section header — mobile hides the icon+title (owner request), keeps only the filter chips */}
@@ -330,8 +331,8 @@ export function WindowsKeysSection({
         </header>
 
         {rows.length === 0 ? (
-          /* max-md:flex-1 keeps the empty state vertically centered in the stretched card */
-          <div className="flex flex-col items-center justify-center px-6 py-12 text-center max-md:flex-1">
+          /* flex-1 keeps the empty state vertically centered in the stretched card */
+          <div className="flex flex-col items-center justify-center px-6 py-12 text-center flex-1">
             <span className="w-12 h-12 rounded-xl bg-surface-2 text-text-subtle inline-flex items-center justify-center mb-3">
               <Icon name="key-round" size={20} />
             </span>
@@ -373,7 +374,8 @@ export function WindowsKeysSection({
                 />
               </div>
             ) : (
-              /* ── Desktop DataTable ────────────────────────────────────────── */
+              /* ── Desktop DataTable — fillHeight: rows flex-stretch to fill the
+                    card exactly like AssetsTable (58px floor, paginator pinned) ── */
               <DataTable<WorkstationLicense>
                 columns={columns}
                 rows={pageRows}
@@ -381,6 +383,7 @@ export function WindowsKeysSection({
                 getRowDataTestId={(lic) => `key-row-${lic.id}`}
                 onRowClick={(lic) => setDetailsId(lic.id)}
                 minRows={PAGE_SIZE}
+                fillHeight
                 aria-label={t('keys.sectionTitle')}
               />
             )}

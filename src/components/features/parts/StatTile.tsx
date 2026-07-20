@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Icon } from '@/components/ui'
 import { STAT_TONES } from './partsTokens'
 
@@ -12,6 +13,7 @@ export interface StatTileProps {
   value: number
   /** Unit suffix — defaults to «шт» */
   unit?: string
+  loading?: boolean
 }
 
 /**
@@ -32,7 +34,7 @@ const MOBILE_TONE_STYLE: Record<string, string> = {
   amber:   'max-md:[background:rgba(245,158,11,0.12)]  max-md:[border-color:rgba(245,158,11,0.35)]',
 }
 
-export function StatTile({ tone, icon, label, value, unit = 'шт' }: StatTileProps) {
+export const StatTile = memo(function StatTile({ tone, icon, label, value, unit = 'шт', loading }: StatTileProps) {
   const t = STAT_TONES[tone] ?? STAT_TONES.slate!
   const mobileTone = MOBILE_TONE_STYLE[tone] ?? ''
   return (
@@ -49,12 +51,15 @@ export function StatTile({ tone, icon, label, value, unit = 'шт' }: StatTilePr
         <div className="text-[12px] uppercase tracking-[0.08em] text-text-subtle font-semibold leading-none truncate">
           {label}
         </div>
-        {/* Value: 20px desktop → 22px mobile */}
-        <div className={`mt-1 text-[20px] font-bold tabular-nums ${t.value} leading-none whitespace-nowrap max-md:text-[22px]`}>
-          {value}
-          <span className="ml-1 text-[13px] font-medium text-text-subtle">{unit}</span>
-        </div>
+        {loading === true ? (
+          <div className="h-[20px] w-[42%] rounded anim-skeleton mt-1 max-md:h-[22px]" />
+        ) : (
+          <div className={`mt-1 text-[20px] font-bold tabular-nums ${t.value} leading-none whitespace-nowrap max-md:text-[22px]`}>
+            {value}
+            <span className="ml-1 text-[13px] font-medium text-text-subtle">{unit}</span>
+          </div>
+        )}
       </div>
     </div>
   )
-}
+})

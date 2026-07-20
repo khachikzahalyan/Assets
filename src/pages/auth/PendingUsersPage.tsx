@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import {
   PageHeader, SectionCard, Btn, Icon, EmptyState, ErrorState, Field, Select,
-  MODAL_SHEET, DataTable, Input,
+  MODAL_SHEET, DataTable, Input, TableSkeleton,
 } from '@/components/ui'
 import type { DataTableColumn } from '@/components/ui'
 import type { PendingUser, UserRepository, AssignRoleInput } from '@/domain/user'
@@ -275,64 +275,41 @@ export function PendingUsersPage({ repository }: PendingUsersPageProps) {
   function renderBody() {
     if (loading) {
       if (isMobile) {
-        /* Mobile skeleton — card-shaped shimmers */
+        /* Mobile skeleton — mirrors PendingUserRowMobile (MobileListRow structure) */
         return (
-          <div aria-hidden="true" className="divide-y divide-border">
+          <div aria-hidden="true" className="flex flex-col">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="px-3 py-3 flex flex-col gap-2">
-                {/* Row 1: avatar + name */}
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-full anim-skeleton flex-shrink-0" />
-                  <div className="h-[13px] rounded anim-skeleton flex-1" style={{ maxWidth: '55%' }} />
+              <div key={i} className="px-[14px] py-[9px] border-b border-border border-l-[3px] border-l-transparent bg-surface last:border-b-0">
+                {/* Inner flex row: icon + middle */}
+                <div className="flex items-center gap-[9px]">
+                  <div className="w-[28px] h-[28px] rounded-[8px] anim-skeleton flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    {/* Title: name */}
+                    <div className="h-[13px] w-[55%] rounded anim-skeleton mb-[2px]" />
+                    {/* Subline: email */}
+                    <div className="h-[11px] rounded anim-skeleton" style={{ width: `${50 + (i % 3) * 12}%` }} />
+                    {/* Subline: date */}
+                    <div className="h-[11px] rounded anim-skeleton mt-0.5" style={{ width: `${35 + (i % 4) * 8}%` }} />
+                  </div>
                 </div>
-                {/* Row 2: email */}
-                <div className="h-[11px] rounded anim-skeleton" style={{ width: `${50 + (i % 3) * 12}%` }} />
-                {/* Row 3: date */}
-                <div className="h-[11px] rounded anim-skeleton" style={{ width: `${35 + (i % 4) * 8}%` }} />
-                {/* Row 4: button */}
-                <div className="h-[32px] w-full rounded-lg anim-skeleton mt-0.5" />
+                {/* Footer: full-width button — h-7 matches real Btn sm (28px) */}
+                <div className="h-7 w-full rounded-lg anim-skeleton mt-0.5" />
               </div>
             ))}
           </div>
         )
       }
-      /*
-       * Desktop skeleton — mirrors the real table:
-       * thead: user / email / signed-in / action — ~38px header
-       * tbody rows: py-3 px-3 — avatar+name | email | date | button — ~48px per row
-       */
+      /* Desktop skeleton — mirrors DataTable grid:
+         minmax(180px,2fr) minmax(140px,1.5fr) minmax(140px,1.5fr) 120px
+         firstColWide: avatar+name cell; lastColAction: assign button column */
       return (
-        <div aria-hidden="true">
-          {/* Table header — shimmer column labels */}
-          <div className="flex items-center gap-3 border-b border-border py-2.5 px-3">
-            {(
-              ['35%', '30%', '20%', '10%'] as const
-            ).map((widthPct, i) => (
-              <div key={i} style={{ width: widthPct, flexShrink: 0 }}>
-                {/* Skip the last (action) column — no shimmer bar for it */}
-                {i < 3 && (
-                  <div className="h-[9px] rounded anim-skeleton" style={{ width: '55%' }} />
-                )}
-              </div>
-            ))}
-          </div>
-          {/* Table rows — shimmer (DB: user name + email + sign-in date) */}
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="flex items-center gap-3 py-3 px-3 border-b border-border last:border-b-0">
-              {/* User col: avatar + name */}
-              <div className="flex items-center gap-2 flex-1" style={{ flexBasis: '35%', minWidth: 0 }}>
-                <div className="w-7 h-7 rounded-full anim-skeleton flex-shrink-0" />
-                <div className="h-[13px] rounded anim-skeleton flex-1" style={{ maxWidth: '70%' }} />
-              </div>
-              {/* Email col */}
-              <div className="h-[13px] rounded anim-skeleton flex-1" style={{ flexBasis: '30%', maxWidth: '30%' }} />
-              {/* Signed-in col */}
-              <div className="h-[13px] rounded anim-skeleton flex-1" style={{ flexBasis: '20%', maxWidth: '20%' }} />
-              {/* Action col */}
-              <div className="h-[28px] w-[72px] rounded-lg anim-skeleton flex-shrink-0" />
-            </div>
-          ))}
-        </div>
+        <TableSkeleton
+          rows={6}
+          columns={4}
+          gridTemplate="minmax(180px,2fr) minmax(140px,1.5fr) minmax(140px,1.5fr) 120px"
+          firstColWide
+          lastColAction
+        />
       )
     }
     if (error)   return <ErrorState onRetry={load} />

@@ -31,4 +31,10 @@ describe('AppLoader', () => {
     const loader = screen.getByTestId('app-loader')
     expect(loader.className).not.toContain('min-h-screen')
   })
+
+  it('fullScreen=false → root has a dvh-based min-height so the mark stays centered when h-full collapses (mobile body-scroll shell)', () => {
+    render(<AppLoader />)
+    const loader = screen.getByTestId('app-loader')
+    expect(loader.className).toContain('min-h-[calc(100dvh-128px)]')
+  })
 })

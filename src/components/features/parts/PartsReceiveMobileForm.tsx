@@ -19,6 +19,58 @@ export interface PartsReceiveMobileFormProps {
   onDismissError: () => void
   onSubmit: () => void
   onCancel: () => void
+  /** When true, renders shimmer skeleton for async data; header/footer stay real (Principle 2). */
+  loading?: boolean
+}
+
+/**
+ * Skeleton body — mirrors PartsReceiveSizedCatCard / SmallCatCard footprints.
+ * Header and footer are local chrome rendered real (Principle 2).
+ */
+function MobileLoadingBody() {
+  return (
+    <>
+      {/* 2 small-cat shimmer cards (PSU / Cooler) side-by-side */}
+      <div className="grid grid-cols-2 gap-2">
+        {[0, 1].map(i => (
+          <div key={i} className="bg-surface border border-border rounded-xl p-3">
+            <div className="flex items-center gap-1.5 mb-2.5">
+              <div className="w-5 h-5 rounded-md anim-skeleton" />
+              <div className="h-[12px] w-[45%] rounded anim-skeleton" />
+              <div className="ml-auto h-[10px] w-[38px] rounded anim-skeleton" />
+            </div>
+            {[0, 1].map(j => (
+              <div key={j} className="mb-2 last:mb-0">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="h-[11px] w-[55%] anim-skeleton rounded" />
+                  <div className="h-[10px] w-[24px] anim-skeleton rounded" />
+                </div>
+                <div className="h-8 rounded-lg anim-skeleton" />
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+      {/* 3 sized-cat shimmer cards (SSD / HDD / M.2 / RAM) full-width */}
+      {[0, 1, 2].map(i => (
+        <div key={i} className="bg-surface border border-border rounded-xl p-3">
+          <div className="flex items-center gap-2 mb-2.5">
+            <div className="w-5 h-5 rounded-md anim-skeleton" />
+            <div className="h-[13px] w-[30%] rounded anim-skeleton" />
+            <div className="ml-auto h-[10px] w-[48px] rounded anim-skeleton" />
+          </div>
+          <div className="flex gap-[7px] overflow-x-hidden pb-1">
+            {[0, 1, 2, 3].map(j => (
+              <div key={j} className="flex-shrink-0 w-[72px]">
+                <div className="h-[10px] w-[70%] mb-1 rounded anim-skeleton" />
+                <div className="h-7 rounded-md anim-skeleton" />
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </>
+  )
 }
 
 /**
@@ -41,6 +93,7 @@ export function PartsReceiveMobileForm({
   onDismissError,
   onSubmit,
   onCancel,
+  loading,
 }: PartsReceiveMobileFormProps) {
   const { t } = useTranslation('parts')
 
@@ -69,64 +122,70 @@ export function PartsReceiveMobileForm({
 
       {/* ── Scrollable body ────────────────────────────────────────────── */}
       <div className="flex-1 min-h-0 overflow-y-auto px-3.5 pt-3 pb-4 space-y-1.5">
-        {/* Submit-error banner */}
-        {submitError && (
-          <div
-            className="flex items-center gap-2.5 bg-rose-950/30 border border-rose-800/40 text-rose-400 px-3.5 py-2.5 rounded-xl text-[13px]"
-            role="alert"
-          >
-            <Icon name="triangle-alert" size={13} className="flex-shrink-0" />
-            <span className="flex-1">{submitError}</span>
-            <button
-              type="button"
-              onClick={onDismissError}
-              aria-label={t('actions.dismiss')}
-              className="p-1 rounded hover:bg-rose-500/20 transition-colors"
-            >
-              <Icon name="x" size={12} />
-            </button>
-          </div>
-        )}
-
-        {/* Empty state */}
-        {visibleCats.length === 0 ? (
-          <div className="py-16 text-center">
-            <p className="text-[15px] font-semibold text-text-primary mb-1">
-              {t('warehouse.emptyTitle')}
-            </p>
-            <p className="text-[13.5px] text-text-tertiary">{t('warehouse.emptyDesc')}</p>
-          </div>
+        {loading === true ? (
+          <MobileLoadingBody />
         ) : (
           <>
-            {/* PSU + Cooler — 2-col grid */}
-            {smallCats.length > 0 && (
-              <div className="grid grid-cols-2 gap-2">
-                {smallCats.map(cat => (
-                  <PartsReceiveSmallCatCard
+            {/* Submit-error banner */}
+            {submitError && (
+              <div
+                className="flex items-center gap-2.5 bg-rose-950/30 border border-rose-800/40 text-rose-400 px-3.5 py-2.5 rounded-xl text-[13px]"
+                role="alert"
+              >
+                <Icon name="triangle-alert" size={13} className="flex-shrink-0" />
+                <span className="flex-1">{submitError}</span>
+                <button
+                  type="button"
+                  onClick={onDismissError}
+                  aria-label={t('actions.dismiss')}
+                  className="p-1 rounded hover:bg-rose-500/20 transition-colors"
+                >
+                  <Icon name="x" size={12} />
+                </button>
+              </div>
+            )}
+
+            {/* Empty state */}
+            {visibleCats.length === 0 ? (
+              <div className="py-16 text-center">
+                <p className="text-[15px] font-semibold text-text-primary mb-1">
+                  {t('warehouse.emptyTitle')}
+                </p>
+                <p className="text-[13.5px] text-text-tertiary">{t('warehouse.emptyDesc')}</p>
+              </div>
+            ) : (
+              <>
+                {/* PSU + Cooler — 2-col grid */}
+                {smallCats.length > 0 && (
+                  <div className="grid grid-cols-2 gap-2">
+                    {smallCats.map(cat => (
+                      <PartsReceiveSmallCatCard
+                        key={cat.id}
+                        cat={cat}
+                        catParts={partsByCategory[cat.id] ?? []}
+                        qtys={qtys}
+                        bumpQty={bumpQty}
+                        t={t}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {/* Sized cats (SSD / HDD / M.2 / RAM) — full-width each */}
+                {sizedCats.map(cat => (
+                  <PartsReceiveSizedCatCard
                     key={cat.id}
                     cat={cat}
                     catParts={partsByCategory[cat.id] ?? []}
                     qtys={qtys}
                     bumpQty={bumpQty}
+                    ramDdr={ramDdr}
+                    setRamDdr={setRamDdr}
                     t={t}
                   />
                 ))}
-              </div>
+              </>
             )}
-
-            {/* Sized cats (SSD / HDD / M.2 / RAM) — full-width each */}
-            {sizedCats.map(cat => (
-              <PartsReceiveSizedCatCard
-                key={cat.id}
-                cat={cat}
-                catParts={partsByCategory[cat.id] ?? []}
-                qtys={qtys}
-                bumpQty={bumpQty}
-                ramDdr={ramDdr}
-                setRamDdr={setRamDdr}
-                t={t}
-              />
-            ))}
           </>
         )}
       </div>

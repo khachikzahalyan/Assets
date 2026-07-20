@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
-  PageHeader, SectionCard, Field, Chip, ErrorState, EmptyState,
+  PageHeader, SectionCard, Field, Chip, ErrorState, EmptyState, Icon,
 } from '@/components/ui'
 import { useAuth } from '@/contexts/AuthContext'
 import type { Employee, EmployeeRepository } from '@/domain/employee'
@@ -71,25 +71,49 @@ export function ProfilePage({ repository, loadRefData }: ProfilePageProps) {
   if (loading) {
     return (
       <div className="space-y-5" aria-busy="true">
-        <div className="h-8 w-[140px] rounded-lg anim-skeleton" />
-        <div className="bg-surface border border-border rounded-xl overflow-hidden">
-          <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-border">
-            <div className="w-7 h-7 rounded-lg anim-skeleton flex-shrink-0" />
-            <div className="h-[10px] w-[80px] rounded anim-skeleton" />
-          </div>
-          <div className="p-5">
-            <div className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="space-y-2">
-                  {/* field label — shimmer */}
-                  <div className="h-[10px] w-[60%] rounded anim-skeleton" />
-                  {/* field value — shimmer */}
-                  <div className="h-[13px] rounded anim-skeleton" style={{ width: `${50 + (i % 3) * 15}%` }} />
-                </div>
-              ))}
+        {/* PageHeader footprint — real icon tile (local chrome); only title (fullName) is async.
+            Replicates PageHeader's exact wrapper classes + max-md:hidden from real loaded state. */}
+        <header className="flex items-start justify-between gap-4 mb-5 max-md:mb-2 max-md:hidden">
+          <div className="flex items-start gap-3 min-w-0">
+            <span className="w-10 h-10 rounded-xl bg-surface border border-border text-accent inline-flex items-center justify-center flex-shrink-0">
+              <Icon name="user" size={18} />
+            </span>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                {/* Title shimmer — text-[18px] font-bold leading-normal ≈ 22px */}
+                <div className="h-[22px] w-[140px] rounded anim-skeleton" />
+              </div>
             </div>
           </div>
-        </div>
+          {/* Status chip placeholder — employee status is also async */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="h-[22px] w-[56px] rounded-full anim-skeleton" />
+          </div>
+        </header>
+        {/* SectionCard: title and icon are local i18n — render real */}
+        <SectionCard title={t('detail.profile')} icon="user">
+          <dl className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
+            {/* Field labels are local i18n — render real; only values are async */}
+            <Field label={t('form.firstName')}>
+              <div className="h-[13px] w-[65%] rounded anim-skeleton" />
+            </Field>
+            <Field label={t('form.lastName')}>
+              <div className="h-[13px] w-[55%] rounded anim-skeleton" />
+            </Field>
+            <Field label={t('form.email')}>
+              <div className="h-[13px] w-[80%] rounded anim-skeleton" />
+            </Field>
+            <Field label={t('form.position')}>
+              <div className="h-[13px] w-[60%] rounded anim-skeleton" />
+            </Field>
+            <Field label={t('form.branch')}>
+              <div className="h-[13px] w-[50%] rounded anim-skeleton" />
+            </Field>
+            <Field label={t('form.department')}>
+              <div className="h-[13px] w-[55%] rounded anim-skeleton" />
+            </Field>
+          </dl>
+        </SectionCard>
       </div>
     )
   }

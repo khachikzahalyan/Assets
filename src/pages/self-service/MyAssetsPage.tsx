@@ -69,25 +69,20 @@ export function MyAssetsPage({ repository }: MyAssetsPageProps) {
   if (loading) {
     return (
       <div className="space-y-5" aria-busy="true">
-        <div className="h-8 w-[180px] rounded-lg anim-skeleton" />
-        <div className="bg-surface border border-border rounded-xl overflow-hidden">
-          <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-border">
-            <div className="w-7 h-7 rounded-lg anim-skeleton flex-shrink-0" />
-            <div className="h-[10px] w-[100px] rounded anim-skeleton" />
-          </div>
-          <div className="p-5 space-y-2">
+        {/* PageHeader: title is local i18n — render real; max-md:hidden matches real loaded state */}
+        <PageHeader icon="package" title={t('self.myAssets')} className="max-md:hidden" />
+        {/* SectionCard: title and icon are local — render real; only body rows are async */}
+        <SectionCard title={t('self.myAssets')} icon="package">
+          <div className="space-y-2">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-3 rounded-md border border-border bg-bg px-3 py-2 min-h-[44px]">
-                {/* inv-code stub — DB data */}
+              <div key={i} className="flex items-center gap-3 rounded-md border border-[#1E293B] bg-[#0F172A] px-3 py-2 min-h-[44px]">
                 <div className="h-[12px] w-[80px] rounded anim-skeleton flex-shrink-0" />
-                {/* name (flex-1) — DB data */}
                 <div className="h-[13px] flex-1 rounded anim-skeleton" style={{ maxWidth: `${40 + (i % 4) * 10}%` }} />
-                {/* status chip — DB data */}
                 <div className="h-[20px] w-[60px] rounded-md anim-skeleton flex-shrink-0" />
               </div>
             ))}
           </div>
-        </div>
+        </SectionCard>
       </div>
     )
   }

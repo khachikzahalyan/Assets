@@ -241,38 +241,8 @@ export function AuthSettingsPanel({ repository }: AuthSettingsPanelProps) {
   }
 
   // ── render ──────────────────────────────────────────────────────────────────
-
-  if (loading) {
-    return (
-      <SectionCard title={t('auth.title')} icon="shield-check">
-        <div className="space-y-5" aria-hidden="true">
-          {/* Subtitle — shimmer */}
-          <div className="h-[13px] w-[70%] rounded anim-skeleton" />
-          {/* Domain list rows — shimmer (DB: the actual saved domains) */}
-          <div className="space-y-1.5">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="flex items-center justify-between px-3 py-2 rounded-lg border border-border bg-bg min-h-[36px]">
-                <div className="h-[13px] rounded anim-skeleton" style={{ width: `${40 + i * 12}%` }} />
-                <div className="w-6 h-6 rounded anim-skeleton flex-shrink-0" />
-              </div>
-            ))}
-          </div>
-          {/* Add-domain row — shimmer label + shimmer input + shimmer button */}
-          <div className="space-y-1.5">
-            <div className="h-[9px] w-[100px] rounded anim-skeleton" />
-            <div className="flex gap-2">
-              <div className="flex-1 h-9 rounded-lg anim-skeleton" />
-              <div className="h-9 w-[88px] rounded-lg anim-skeleton flex-shrink-0" />
-            </div>
-          </div>
-          {/* Save button — shimmer */}
-          <div className="flex justify-end pt-2 border-t border-border">
-            <div className="h-9 w-[96px] rounded-lg anim-skeleton" />
-          </div>
-        </div>
-      </SectionCard>
-    )
-  }
+  // Chrome (subtitle, add-row, save button) is shared between loading and loaded states.
+  // Only the domain-list region branches: shimmer during load, real rows when loaded.
 
   if (loadError) {
     return (
@@ -285,11 +255,11 @@ export function AuthSettingsPanel({ repository }: AuthSettingsPanelProps) {
   return (
     <SectionCard title={t('auth.title')} icon="shield-check">
       <div className="space-y-5">
-        {/* subtitle */}
+        {/* subtitle — always real (local i18n, not async) */}
         <p className="text-[13px] text-text-subtle">{t('auth.subtitle')}</p>
 
-        {/* fail-closed banner */}
-        {working.length === 0 && (
+        {/* fail-closed banner — only when loaded and list is empty */}
+        {!loading && working.length === 0 && (
           <div
             role="alert"
             className="flex items-start gap-2.5 px-4 py-3 rounded-lg border"
@@ -303,8 +273,17 @@ export function AuthSettingsPanel({ repository }: AuthSettingsPanelProps) {
           </div>
         )}
 
-        {/* domain list */}
-        {working.length > 0 ? (
+        {/* domain list — shimmer rows while loading, real list when loaded */}
+        {loading ? (
+          <div className="space-y-1.5" aria-hidden="true">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="flex items-center justify-between px-3 py-2 rounded-lg border border-border bg-bg min-h-[36px]">
+                <div className="h-[13px] rounded anim-skeleton" style={{ width: `${40 + i * 12}%` }} />
+                <div className="w-6 h-6 max-md:w-8 max-md:h-8 rounded anim-skeleton flex-shrink-0" />
+              </div>
+            ))}
+          </div>
+        ) : working.length > 0 ? (
           <ul className="space-y-1.5" aria-label={t('auth.domainsListLabel')}>
             {working.map(domain => (
               <li
@@ -327,7 +306,7 @@ export function AuthSettingsPanel({ repository }: AuthSettingsPanelProps) {
           <p className="text-[13px] text-text-subtle italic">{t('auth.empty')}</p>
         )}
 
-        {/* add row */}
+        {/* add row — always real; inputs disabled while loading */}
         <div className="space-y-1.5">
           <Field label={t('auth.addLabel')}>
             <div
@@ -339,14 +318,15 @@ export function AuthSettingsPanel({ repository }: AuthSettingsPanelProps) {
                 value={draft}
                 onChange={setDraft}
                 placeholder={t('auth.addPlaceholder')}
+                disabled={loading}
               />
-              <Btn variant="secondary" size="sm" onClick={handleAdd}>
+              <Btn variant="secondary" size="sm" onClick={handleAdd} disabled={loading}>
                 <Icon name="plus" size={13} />
                 {t('auth.addBtn')}
               </Btn>
             </div>
           </Field>
-          {addError && (
+          {!loading && addError && (
             <p role="alert" className="text-[12px] text-[#FDA4AF]">{addError}</p>
           )}
         </div>
@@ -361,12 +341,12 @@ export function AuthSettingsPanel({ repository }: AuthSettingsPanelProps) {
           <p className="text-[12px] text-emerald-400">{t('saved')}</p>
         )}
 
-        {/* save button */}
+        {/* save button — always real; disabled while loading or when no changes */}
         <div className="flex justify-end pt-2 border-t border-border">
           <Btn
             variant="primary"
             size="md"
-            disabled={!dirty || saving}
+            disabled={loading || !dirty || saving}
             onClick={openSaveDialog}
           >
             {saving ? t('saving') : t('auth.saveBtn')}

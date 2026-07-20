@@ -268,57 +268,7 @@ export function PartsReceivePage({ repository }: PartsReceivePageProps = {}) {
     return elements
   }
 
-  // ── Loading state ────────────────────────────────────────────────────────────
-  if (loading) {
-    return (
-      /*
-       * PartsReceive skeleton — mirrors real layout:
-       *   Back-button stub + stat strip (4 tiles, always 4-col) + form card skeleton
-       */
-      <div className="flex flex-col h-full gap-2.5" aria-hidden="true">
-        <div className="flex-shrink-0 space-y-2.5">
-          {/* Back-button stub */}
-          <div className="h-[20px] w-[80px] rounded anim-skeleton" />
-          {/* Stat strip — 4 cols desktop, 2 cols mobile */}
-          <div className="grid grid-cols-4 max-md:grid-cols-2 gap-2.5 max-md:gap-[10px]">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="bg-surface border border-border rounded-xl p-3 flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg anim-skeleton flex-shrink-0" />
-                <div className="flex-1 min-w-0 space-y-2">
-                  <div className="h-[10px] w-[60%] rounded anim-skeleton" />
-                  <div className="h-[16px] w-[45%] rounded anim-skeleton" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-        {/* Form area skeleton */}
-        <div className="flex-1 min-h-0 rounded-xl bg-surface-2 px-4 py-3 space-y-3">
-          {Array.from({ length: 3 }).map((_, s) => (
-            <div key={s} className="space-y-2">
-              {/* Section header: icon + title */}
-              <div className="flex items-center gap-2 mb-1.5">
-                <div className="w-7 h-7 rounded-lg anim-skeleton flex-shrink-0" />
-                <div className="h-[14px] w-[25%] rounded anim-skeleton" />
-                <div className="flex-1 h-px bg-border" />
-              </div>
-              {/* SKU cards row */}
-              <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))' }}>
-                {Array.from({ length: 4 }).map((__, c) => (
-                  <div key={c} className="bg-surface border border-border rounded-lg p-2 space-y-2">
-                    <div className="h-[14px] w-[60%] rounded anim-skeleton" />
-                    <div className="h-[28px] rounded-md anim-skeleton" />
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    )
-  }
-
-  // ── Error state ──────────────────────────────────────────────────────────────
+  // ── Error state (both breakpoints) ──────────────────────────────────────────
   if (error) {
     return (
       <div className="space-y-5">
@@ -327,10 +277,12 @@ export function PartsReceivePage({ repository }: PartsReceivePageProps = {}) {
     )
   }
 
-  // ── Mobile branch (≤767px) ──────────────────────────────────────────────
+  // ── Mobile branch (≤767px) — always render PartsReceiveMobileForm; the loading
+  //    prop overrides body rendering inside while header/footer stay real (Principle 2).
   if (isMobile) {
     return (
       <PartsReceiveMobileForm
+        {...(loading ? { loading: true } : {})}
         partsByCategory={partsByCategory}
         visibleCats={visibleCats}
         qtys={qtys}
@@ -348,10 +300,13 @@ export function PartsReceivePage({ repository }: PartsReceivePageProps = {}) {
     )
   }
 
-  // ── Desktop branch (≥768px — unchanged) ─────────────────────────────────
+  // ── Desktop branch (≥768px) ──────────────────────────────────────────────────
+  // Skeleton = exact copy of real block by construction: back-button + stats are
+  // shared real chrome; ONLY the scrollable middle is shimmerized during loading
+  // (Principle 1 & 2). Footer is always real — Confirm naturally disabled (!canSubmit).
   return (
     <div className="flex flex-col h-full gap-2.5">
-      {/* Fixed top: back button + stat strip (do not scroll) */}
+      {/* Fixed top: back button + stat strip — local chrome, renders real immediately */}
       <div className="flex-shrink-0 space-y-2.5">
         <button
           type="button"
@@ -362,47 +317,82 @@ export function PartsReceivePage({ repository }: PartsReceivePageProps = {}) {
           {t('actions.back')}
         </button>
         <div className="grid grid-cols-4 max-md:grid-cols-2 gap-2.5 max-md:gap-[10px]">
-          <StatTile tone="emerald" icon="inbox" label={t('stats.onHand')} value={stats.onHand} />
-          <StatTile tone="violet" icon="wrench" label={t('stats.installed')} value={stats.installed} />
-          <StatTile tone="rose" icon="x-octagon" label={t('stats.broken')} value={stats.broken} />
-          <StatTile tone="blue" icon="monitor-smartphone" label={t('stats.devices')} value={stats.devices} />
+          <StatTile tone="emerald" icon="inbox" label={t('stats.onHand')} value={stats.onHand} loading={loading} />
+          <StatTile tone="violet" icon="wrench" label={t('stats.installed')} value={stats.installed} loading={loading} />
+          <StatTile tone="rose" icon="x-octagon" label={t('stats.broken')} value={stats.broken} loading={loading} />
+          <StatTile tone="blue" icon="monitor-smartphone" label={t('stats.devices')} value={stats.devices} loading={loading} />
         </div>
       </div>
-      {/* Scrollable form — sits between the fixed strip and the fixed footer */}
-      <div className="flex-1 min-h-0 overflow-y-auto space-y-2.5">
-      {/* Error banner for submit failures */}
-      {submitError && (
-        <div
-          className="flex items-center gap-2.5 bg-rose-950/30 border border-rose-800/40 text-rose-400 px-4 py-3 rounded-xl text-[13.5px]"
-          role="alert"
-        >
-          <Icon name="triangle-alert" size={14} className="flex-shrink-0" />
-          <span className="flex-1">{submitError}</span>
-          <button
-            type="button"
-            onClick={() => setSubmitError(null)}
-            aria-label={t('actions.dismiss')}
-            className="p-1 rounded hover:bg-rose-500/20 transition-colors"
-          >
-            <Icon name="x" size={13} />
-          </button>
+
+      {/* Scrollable middle — only async Firebase data is skeletonized */}
+      {loading ? (
+        /* Loading skeleton — mirrors real section layout exactly (Principle 1) */
+        <div className="flex-1 min-h-0 overflow-y-auto space-y-2.5">
+          <div className="rounded-xl bg-surface-2 px-4 py-3 space-y-3">
+            {Array.from({ length: 3 }).map((_, s) => (
+              <div key={s} className="space-y-2">
+                {/* Section header: icon + title + real divider + count shimmer */}
+                <div className="flex items-center gap-2 mb-1.5">
+                  <div className="w-7 h-7 rounded-lg anim-skeleton flex-shrink-0" />
+                  <div className="h-[14px] w-[25%] rounded anim-skeleton" />
+                  <div className="flex-1 h-px bg-border" />
+                  <div className="h-[12px] w-[64px] rounded anim-skeleton" />
+                </div>
+                {/* SKU card grid — mirrors real: p-2, top row label + chip, stepper */}
+                <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))' }}>
+                  {Array.from({ length: 4 }).map((__, c) => (
+                    <div key={c} className="bg-surface border border-border rounded-lg p-2">
+                      {/* top row: mono label + chip footprint */}
+                      <div className="flex items-center justify-between gap-2 mb-1.5">
+                        <div className="h-[14px] w-[55%] rounded anim-skeleton" />
+                        <div className="h-[18px] w-[26px] rounded-full anim-skeleton" />
+                      </div>
+                      {/* stepper row */}
+                      <div className="h-7 rounded-md anim-skeleton" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        /* Loaded content */
+        <div className="flex-1 min-h-0 overflow-y-auto space-y-2.5">
+          {/* Error banner for submit failures */}
+          {submitError && (
+            <div
+              className="flex items-center gap-2.5 bg-rose-950/30 border border-rose-800/40 text-rose-400 px-4 py-3 rounded-xl text-[13.5px]"
+              role="alert"
+            >
+              <Icon name="triangle-alert" size={14} className="flex-shrink-0" />
+              <span className="flex-1">{submitError}</span>
+              <button
+                type="button"
+                onClick={() => setSubmitError(null)}
+                aria-label={t('actions.dismiss')}
+                className="p-1 rounded hover:bg-rose-500/20 transition-colors"
+              >
+                <Icon name="x" size={13} />
+              </button>
+            </div>
+          )}
+
+          {/* Category sections — full-width, bg-surface-2 band */}
+          <div className="rounded-xl bg-surface-2 px-4 py-3 space-y-3">
+            {visibleCats.length === 0 ? (
+              <div className="py-12 text-center">
+                <p className="text-[15px] font-semibold text-text-primary mb-1">{t('warehouse.emptyTitle')}</p>
+                <p className="text-[13.5px] text-text-tertiary">{t('warehouse.emptyDesc')}</p>
+              </div>
+            ) : (
+              buildSectionElements()
+            )}
+          </div>
         </div>
       )}
 
-      {/* Category sections — full-width, bg-surface-2 band */}
-      <div className="rounded-xl bg-surface-2 px-4 py-3 space-y-3">
-        {visibleCats.length === 0 ? (
-          <div className="py-12 text-center">
-            <p className="text-[15px] font-semibold text-text-primary mb-1">{t('warehouse.emptyTitle')}</p>
-            <p className="text-[13.5px] text-text-tertiary">{t('warehouse.emptyDesc')}</p>
-          </div>
-        ) : (
-          buildSectionElements()
-        )}
-      </div>
-      </div>
-
-      {/* Footer: summary + actions — pinned to the bottom */}
+      {/* Footer: summary + actions — shared real chrome; Confirm naturally disabled when !canSubmit */}
       <div className="flex-shrink-0 flex items-center justify-between gap-4 border-t border-border pt-3 pb-1 mt-3 max-md:flex-col max-md:items-stretch max-md:gap-2">
         <div className="text-[14.5px] text-text-tertiary min-w-0 truncate max-md:text-[13.5px]">
           {itemsCount > 0 ? (
