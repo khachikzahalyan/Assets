@@ -5,8 +5,12 @@ import type { AssetWriteRepository } from '@/domain/asset/AssetRepository'
 import type { Asset } from '@/domain/asset/types'
 
 let fireScan: (raw: string) => void = () => {}
+let lastScannerProps: any
+vi.mock('zxing-wasm/reader/zxing_reader.wasm?url', () => ({ default: '/mock-zxing.wasm' }))
 vi.mock('@yudiel/react-qr-scanner', () => ({
-  Scanner: (props: { onScan: (codes: { rawValue: string }[]) => void }) => {
+  prepareZXingModule: vi.fn(),
+  Scanner: (props: { onScan: (codes: { rawValue: string }[]) => void; [key: string]: unknown }) => {
+    lastScannerProps = props
     fireScan = (raw: string) => props.onScan([{ rawValue: raw }])
     return <div data-testid="scanner-mock" />
   },
@@ -61,5 +65,10 @@ describe('ScanPage', () => {
     render(<MemoryRouter><ScanPage repository={repoWith(null, ASSET)} /></MemoryRouter>)
     fireScan('LAP/00123')
     await waitFor(() => expect(navigateSpy).toHaveBeenCalledWith('/assets/a_005'))
+  })
+  it('passes ean_13/code_128/qr_code formats and HD-resolution constraints to Scanner', () => {
+    render(<MemoryRouter><ScanPage repository={repoWith(null)} /></MemoryRouter>)
+    expect(lastScannerProps.formats).toEqual(expect.arrayContaining(['ean_13', 'code_128', 'qr_code']))
+    expect((lastScannerProps.constraints as { width: { ideal: number } }).width.ideal).toBeGreaterThanOrEqual(1280)
   })
 })

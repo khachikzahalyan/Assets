@@ -35,11 +35,14 @@ export function BarcodeSvg({ value, height = 110 }: BarcodeSvgProps) {
       } else {
         JsBarcode(svg, value, { format: 'CODE128', displayValue: false, height, margin: 10, width: 2 })
       }
-      // JsBarcode sets fixed px width/height; convert to a viewBox so CSS (width:100%) scales
-      // the bars to fill the label regardless of how many digits the code has.
-      const w = svg.getAttribute('width')
-      const h = svg.getAttribute('height')
-      if (w && h) {
+      // JsBarcode sets width/height WITH a "px" suffix (e.g. "210px") AND its own valid
+      // viewBox. Previously we rebuilt the viewBox from the raw attribute values, producing
+      // an INVALID `viewBox="0 0 210px 110px"` that browsers ignore — the barcode printed
+      // unscaled (~56mm instead of the full label width) and vertically clipped. parseFloat
+      // strips the suffix so the viewBox is valid and CSS (width:100%) scales the bars.
+      const w = parseFloat(svg.getAttribute('width') ?? '')
+      const h = parseFloat(svg.getAttribute('height') ?? '')
+      if (Number.isFinite(w) && w > 0 && Number.isFinite(h) && h > 0) {
         svg.setAttribute('viewBox', `0 0 ${w} ${h}`)
         svg.removeAttribute('width')
         svg.removeAttribute('height')

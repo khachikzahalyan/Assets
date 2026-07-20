@@ -1,7 +1,8 @@
 import { useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Scanner } from '@yudiel/react-qr-scanner'
+import { Scanner, prepareZXingModule } from '@yudiel/react-qr-scanner'
+import zxingReaderWasmUrl from 'zxing-wasm/reader/zxing_reader.wasm?url'
 import { db } from '@/lib/firebase'
 import { FirestoreAssetRepository } from '@/infra/repositories/firestoreAssetRepository'
 import type { AssetWriteRepository } from '@/domain/asset/AssetRepository'
@@ -9,6 +10,16 @@ import { PageHeader } from '@/components/ui/page-header'
 import { SectionCard } from '@/components/ui/section-card'
 import { Btn } from '@/components/ui/btn'
 import { useToast } from '@/contexts/ToastContext'
+
+// Self-host the zxing decoder wasm. By default zxing-wasm fetches it from the
+// jsDelivr CDN at runtime; if that host is unreachable the scanner silently
+// decodes nothing. Bundling it as a local Vite asset removes the network dependency.
+prepareZXingModule({
+  overrides: {
+    locateFile: (path: string, prefix: string) =>
+      path.endsWith('.wasm') ? zxingReaderWasmUrl : prefix + path,
+  },
+})
 
 export interface ScanPageProps {
   /** Test seam — production builds the Firestore repo lazily. */
@@ -64,13 +75,13 @@ export function ScanPage({ repository }: ScanPageProps) {
           </div>
         ) : (
           <div className="mx-auto w-full max-w-md">
-            <div className="relative aspect-square overflow-hidden rounded-xl bg-black">
+            <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-black">
               <Scanner
                 formats={['ean_13', 'code_128', 'qr_code']}
                 onScan={handleScan}
-                onError={() => setError(t('permissionDenied'))}
+                onError={(err) => setError(err.kind === 'permission-denied' ? t('permissionDenied') : t('cameraError'))}
                 paused={resolving}
-                constraints={{ facingMode: 'environment' }}
+                constraints={{ facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } }}
               />
             </div>
             <p className="mt-3 text-center text-sm text-text-secondary">
