@@ -43,8 +43,7 @@ export function ProfileMenu() {
         </span>
         <span className="ams-profile-name-text hidden sm:flex flex-col items-start leading-tight">
           <span className="text-[12px] font-semibold text-text-primary truncate max-w-[120px]">{user.name}</span>
-          <span className="inline-flex items-center gap-0.5 text-[10px] text-text-subtle">
-              <RoleIcon role={role} size={14} />
+          <span className="text-[10px] text-text-subtle">
               {t(`roles.${role}`, { ns: 'nav' })}
             </span>
         </span>
@@ -56,20 +55,18 @@ export function ProfileMenu() {
           className="ams-profile-dropdown absolute right-0 top-full mt-1.5 w-64 bg-surface-2 border border-border rounded-xl anim-dropdown-in overflow-hidden z-[200]"
           style={{ boxShadow: '0 12px 32px rgba(0,0,0,0.55)' }}
         >
-          {/* User header */}
-          <div className="flex items-center gap-3 px-3.5 py-3 border-b border-border">
-            <div className="ams-profile-dropdown-avatar flex-shrink-0">
+          {/* User header — compact centered profile card: everything on the
+              vertical axis, tight spacing so the menu stays short. */}
+          <div className="flex flex-col items-center text-center px-3.5 pt-3 pb-2.5 border-b border-border">
+            <div className="ams-profile-dropdown-avatar mb-1.5">
               <Avatar user={user} size="md" role={role} />
             </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-[13px] font-semibold text-text-primary truncate">{user.name}</div>
-              <div className="text-[11px] text-text-subtle truncate">{user.email}</div>
-              <div className="mt-1">
-                <Chip color="indigo" size="sm" dot>
-                    <RoleIcon role={role} size={16} />
-                    {t(`roles.${role}`, { ns: 'nav' })}
-                  </Chip>
-              </div>
+            <div className="w-full text-[13px] font-semibold text-text-primary truncate leading-tight">{user.name}</div>
+            <div className="w-full text-[11px] text-text-subtle truncate leading-tight">{user.email}</div>
+            <div className="mt-1.5">
+              <Chip color="indigo" size="sm" dot>
+                {t(`roles.${role}`, { ns: 'nav' })}
+              </Chip>
             </div>
           </div>
 
