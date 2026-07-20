@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import ReactDOM from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { Icon, MobileSheet, Btn, Select } from '@/components/ui'
 import { useIsMobile } from '@/hooks/useIsMobile'
@@ -203,7 +204,7 @@ export function ServiceRecordModal({ open, onClose, asset, onConfirm }: ServiceR
 
   return (
     <>
-      {!isMobile && (
+      {!isMobile && ReactDOM.createPortal(
         <div className="fixed inset-0 z-[80]">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" onClick={handleClose} />
           <div
@@ -214,7 +215,8 @@ export function ServiceRecordModal({ open, onClose, asset, onConfirm }: ServiceR
           >
             {content}
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
       {isMobile && (
         <MobileSheet open={open} onClose={handleClose} title={t('serviceModal.title')}>

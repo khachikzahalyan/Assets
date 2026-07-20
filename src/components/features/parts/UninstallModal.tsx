@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import ReactDOM from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { Btn, Icon, MobileSheet } from '@/components/ui'
 import { useIsMobile } from '@/hooks/useIsMobile'
@@ -251,7 +252,7 @@ export function UninstallModal({ open, onClose, sku, asset, slot: _slot, stock, 
 
   return (
     <>
-      {!isMobile && (
+      {!isMobile && ReactDOM.createPortal(
         <div className="fixed inset-0 z-[80]">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" onClick={handleClose} />
           <div
@@ -262,7 +263,8 @@ export function UninstallModal({ open, onClose, sku, asset, slot: _slot, stock, 
           >
             {content}
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
       {isMobile && (
         <MobileSheet open={open} onClose={handleClose} title={t('uninstallModal.title')}>

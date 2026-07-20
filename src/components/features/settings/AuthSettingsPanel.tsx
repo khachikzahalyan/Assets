@@ -1,9 +1,10 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
+import ReactDOM from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import type { TFunction } from 'i18next'
 import { useAuth } from '@/contexts/AuthContext'
 import {
-  SectionCard, Btn, Icon, Field, Input, ErrorState, MODAL_SHEET,
+  SectionCard, Btn, Icon, Field, Input, ErrorState, DIALOG_BACKDROP, MODAL_SHEET,
 } from '@/components/ui'
 import {
   normalizeDomain, isValidDomain,
@@ -26,22 +27,23 @@ function DialogShell({ onBackdropClick, children, labelledBy }: DialogShellProps
     return () => document.removeEventListener('keydown', onKey)
   }, [onBackdropClick])
 
-  return (
+  return ReactDOM.createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 max-md:items-end"
+      className={DIALOG_BACKDROP}
       onClick={onBackdropClick}
       role="dialog"
       aria-modal="true"
       aria-labelledby={labelledBy}
     >
       <div
-        className={`w-[440px] max-w-[90vw] rounded-lg border border-border bg-surface p-5 ${MODAL_SHEET}`}
+        className={`w-[440px] max-w-[90vw] rounded-lg border border-border bg-surface p-5 mx-4 max-md:mx-0 ${MODAL_SHEET}`}
         onClick={e => e.stopPropagation()}
       >
         <div className="max-md:block hidden mx-auto h-1 w-9 rounded-full bg-white/20 mb-3" />
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
 
