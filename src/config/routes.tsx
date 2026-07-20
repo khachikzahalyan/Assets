@@ -2,7 +2,7 @@ import { lazy, Suspense, type ComponentType } from 'react'
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import { AppShell } from '@/components/common'
 import { AppLoader } from '@/components/ui'
-import { RequireAuth, RoleGate } from '@/components/routing'
+import { RequireAuth, RoleGate, RouteChunkFallback } from '@/components/routing'
 import { routeRoles } from './access'
 
 /**
@@ -43,13 +43,14 @@ const PartsReceivePage   = lazyPage(() => import('@/pages/parts/PartsReceivePage
 const ScanPage           = lazyPage(() => import('@/pages/scan/ScanPage'), 'ScanPage')
 
 /** Shell layout wrapper — renders the persistent AppShell around routed content.
-    Suspense sits INSIDE the shell so the chrome (sidebar/topbar/bottom-nav)
-    stays mounted while a page chunk downloads; only the content area shows
-    the loader. */
+    Suspense sits INSIDE the shell so the chrome stays mounted between
+    navigations, but its fallback is a fullscreen overlay (RouteChunkFallback):
+    while a page chunk downloads the user sees ONLY the centered AMS loader —
+    identical to the auth loader — never a second loader inside the shell. */
 function ShellLayout() {
   return (
     <AppShell>
-      <Suspense fallback={<AppLoader />}>
+      <Suspense fallback={<RouteChunkFallback />}>
         <Outlet />
       </Suspense>
     </AppShell>
