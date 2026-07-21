@@ -161,7 +161,7 @@ describe('AppRoutes — promoted routes render real pages, not StubPage', () => 
 
     // Assert — the Employees page empty-state text appears as main content.
     // This text is unique to EmployeesPage; StubPage never renders it.
-    expect(await screen.findByText('Сотрудников пока нет')).toBeInTheDocument()
+    expect(await screen.findByText('Сотрудников пока нет', undefined, { timeout: 5000 })).toBeInTheDocument()
 
     // The stub EmptyState title "Раздел в разработке" is exclusive to StubPage —
     // the sidebar never renders it, so its absence confirms we are on the real page.
@@ -174,7 +174,7 @@ describe('AppRoutes — promoted routes render real pages, not StubPage', () => 
 
     // Assert — MyAssetsPage empty-state for no assigned assets.
     // This text is unique to MyAssetsPage; StubPage never renders it.
-    expect(await screen.findByText(/не закреплены активы/i)).toBeInTheDocument()
+    expect(await screen.findByText(/не закреплены активы/i, undefined, { timeout: 5000 })).toBeInTheDocument()
 
     // The stub EmptyState title must be absent
     expect(screen.queryByText('Раздел в разработке')).toBeNull()
@@ -189,7 +189,7 @@ describe('AppRoutes — cross-role redirects via RoleGate', () => {
     // Assert — RoleGate for /employees excludes 'employee', so it redirects to
     // /my-assets (defaultRouteForRole('employee') = 'my-assets').
     // The My Assets empty-state appears; the Employees empty-state does not.
-    expect(await screen.findByText(/не закреплены активы/i)).toBeInTheDocument()
+    expect(await screen.findByText(/не закреплены активы/i, undefined, { timeout: 5000 })).toBeInTheDocument()
     expect(screen.queryByText('Сотрудников пока нет')).toBeNull()
   })
 

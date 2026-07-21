@@ -104,10 +104,6 @@
     "title": "Տեխնիկայի ընդունելություն",
     "unmarkAll": "Հանել բոլորը"
   },
-  "kind": {
-    "all": "Բոլորը",
-    "staff": "Աշխատակիցներ"
-  },
   "pagination": {
     "range": "{{from}}–{{to}} / {{total}}",
     "showing": "Ցուցադրված է {{from}}–{{to}} {{total}}-ից",

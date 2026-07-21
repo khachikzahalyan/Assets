@@ -24,10 +24,6 @@
     "desc": "Add the first employee",
     "title": "No employees yet"
   },
-  "kind": {
-    "all": "All",
-    "staff": "Employees"
-  },
   "filter": {
     "all": "All",
     "branch": "Branch",

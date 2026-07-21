@@ -102,7 +102,6 @@ export function useEmployeesData({
   // ── Query / filter state ──────────────────────────────────────────────────
   const [query, setQuery]             = useState<EmployeeListQuery>({ ...DEFAULT_QUERY })
   const [search, setSearch]           = useState('')
-  const [kind, setKind]               = useState<'all' | 'staff'>('all')
   const [page, setPage]               = useState(1)
 
   // ── Data state — seeded from cache when available (SWR instant render) ───
@@ -239,22 +238,14 @@ export function useEmployeesData({
 
   const statusFiltered = displaySet
 
-  const kindCounts = useMemo(() => ({
-    all: statusFiltered.length,
-    staff: statusFiltered.length,
-  }), [statusFiltered])
-
-  // After kind filter (no-op for now — staff === all)
-  const kindFiltered = statusFiltered
-
   const deptBranchFiltered = useMemo(() => {
-    let result = kindFiltered
+    let result = statusFiltered
     const dept = query.departmentId ?? 'all'
     const branch = query.branchId ?? 'all'
     if (dept !== 'all') result = result.filter(e => e.departmentId === dept)
     if (branch !== 'all') result = result.filter(e => e.branchId === branch)
     return result
-  }, [kindFiltered, query.departmentId, query.branchId])
+  }, [statusFiltered, query.departmentId, query.branchId])
 
   const searched = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -307,9 +298,9 @@ export function useEmployeesData({
     // Derived
     branchMap, deptMap, catMap, deptNameOf, assetCountOf, headOfficeBranchId,
     // Query / filter state
-    query, setQuery, search, setSearch, kind, setKind, page, setPage,
+    query, setQuery, search, setSearch, page, setPage,
     // Filter results
-    sorted, kindCounts, hasActiveFilters,
+    sorted, hasActiveFilters,
     // Query helpers
     handleQueryChange, resetFilters,
     // Modal state

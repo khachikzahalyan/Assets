@@ -191,11 +191,11 @@ describe('EmployeesPage', () => {
     })
   })
 
-  it('renders KindTabs with Все and Сотрудники', async () => {
+  it('does not render the removed KindTabs (Все/Сотрудники) chips', async () => {
     renderPage([emp()])
     await screen.findByText('Иван Петров')
-    expect(screen.getByRole('button', { name: /Все/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Сотрудники/i })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^Все/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^Сотрудники/i })).not.toBeInTheDocument()
   })
 
   // ── Transfer tests (Task 3) ────────────────────────────────────────────────

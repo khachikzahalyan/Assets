@@ -4,13 +4,12 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import {
   Btn, Icon, EmptyState, ErrorState,
-  ListCard, ListPageShell, TableSkeleton, CardListSkeleton,
+  ListCard, ListPageShell, TableSkeleton, CardListSkeleton, SearchInput,
   MobileAddButton,
 } from '@/components/ui'
 import {
   EmployeesFilterBar,
   EmployeesTable,
-  EmployeeKindTabs,
 } from '@/components/features/employees'
 import type { AssetRepository, AssetWriteRepository, RefRow } from '@/domain/asset'
 import type { Employee, EmployeeRepository } from '@/domain/employee'
@@ -69,10 +68,10 @@ export function EmployeesPage({
   }, [data.loading, initialModal, initialDetailId])
 
   const {
-    loading, error, sorted, kindCounts, hasActiveFilters,
-    query, search, setSearch, kind, setKind, page, setPage,
+    loading, error, sorted,
+    query, search, setSearch, page, setPage,
     branches, departments, assetCounts, headOfficeBranchId,
-    handleQueryChange, resetFilters,
+    handleQueryChange,
     reload,
   } = data
 
@@ -105,7 +104,6 @@ export function EmployeesPage({
   const paginationProps = { from, to, totalCount, page, totalPages, goTo }
 
   // ── Shared handlers ───────────────────────────────────────────────────────
-  const handleKindSelect = (v: string) => { setKind(v as 'all' | 'staff'); setPage(1) }
   const handleSearchChange = (v: string) => { setSearch(v); setPage(1) }
   const handleFilterChange = (patch: Partial<typeof query>) => {
     handleQueryChange(patch)
@@ -145,35 +143,20 @@ export function EmployeesPage({
   }
 
   // ── Mobile toolbar (matchMedia branch — no element duplication) ───────────
-  // KindTabs + search + add live either in ListPageShell header (desktop)
-  // or in ListCard Zone-1 (mobile). Using isMobile avoids double-DOM and
-  // keeps getByRole() queries unambiguous in tests (jsdom = isMobile false).
+  // Search + add live either in the filter row (desktop) or in ListCard
+  // Zone-1 (mobile). Using isMobile avoids double-DOM and keeps getByRole()
+  // queries unambiguous in tests (jsdom = isMobile false).
   const mobileToolbarRows = isMobile ? (
     <>
-      {/* Row 1: KindTabs underline strip */}
-      <div className="bg-surface-2 border-b border-border px-[14px] w-full">
-        <EmployeeKindTabs
-          selected={kind}
-          onSelect={handleKindSelect}
-          counts={kindCounts}
-        />
-      </div>
-      {/* Row 2: Search input + MobileAddButton */}
+      {/* Search input + MobileAddButton */}
       <div className="bg-bg px-[14px] py-[7px] flex items-center gap-[8px]">
-        <div className="relative flex-1">
-          <span className="absolute top-1/2 -translate-y-1/2 left-[10px] text-text-subtle pointer-events-none">
-            <Icon name="search" size={13} />
-          </span>
-          <input
-            type="search"
-            autoComplete="off"
-            value={search}
-            onChange={e => handleSearchChange(e.target.value)}
-            placeholder={t('filter.search')}
-            aria-label={t('filter.search')}
-            className="w-full h-auto rounded-[9px] py-[9px] pl-[30px] pr-[12px] text-[11.5px] bg-surface border border-border text-text-primary placeholder:text-text-subtle caret-accent focus:outline-none focus:border-accent-light focus:ring-2 focus:ring-accent-light/15 transition-all duration-150"
-          />
-        </div>
+        <SearchInput
+          value={search}
+          onChange={handleSearchChange}
+          placeholder={t('filter.search')}
+          aria-label={t('filter.search')}
+          containerClassName="flex-1"
+        />
         {canMutate && (
           <MobileAddButton
             onClick={actions.handleCreate}
@@ -186,55 +169,7 @@ export function EmployeesPage({
 
   return (
     <>
-      <ListPageShell
-        flushMobile
-        header={
-          /* Desktop header row — only rendered on desktop (isMobile=false).
-             Mobile gets its toolbar rows inside the ListCard below.
-             This avoids element duplication that would break getByRole queries. */
-          !isMobile ? (
-            <div className="flex items-center justify-between gap-3 flex-wrap">
-              <EmployeeKindTabs
-                selected={kind}
-                onSelect={handleKindSelect}
-                counts={kindCounts}
-              />
-              <div className="flex items-center gap-2">
-                <div
-                  className="flex items-center gap-2 bg-bg rounded-xl px-3 py-1.5 ring-1 ring-border"
-                  style={{ width: 220 }}
-                >
-                  <Icon name="search" size={13} className="text-text-subtle shrink-0" />
-                  <input
-                    type="text"
-                    value={search}
-                    onChange={e => handleSearchChange(e.target.value)}
-                    placeholder={t('filter.search')}
-                    aria-label={t('filter.search')}
-                    className="flex-1 text-[14px] bg-transparent border-none outline-none placeholder:text-text-subtle text-text-primary min-w-0"
-                  />
-                  {search && (
-                    <button
-                      type="button"
-                      onClick={() => handleSearchChange('')}
-                      className="text-text-subtle hover:text-text-tertiary transition-colors"
-                      aria-label={t('filter.reset')}
-                    >
-                      <Icon name="x" size={11} />
-                    </button>
-                  )}
-                </div>
-                {canMutate && (
-                  <Btn variant="primary" size="md" onClick={actions.handleCreate}>
-                    <Icon name="user-plus" size={14} />
-                    {t('addButton')}
-                  </Btn>
-                )}
-              </div>
-            </div>
-          ) : undefined
-        }
-      >
+      <ListPageShell flushMobile>
         {/* Same floating-card model as AssetsPage: NO flushMobile (keeps the
             rounded-lg border radius on mobile); 10px side gutters; the
             .app-shell-content-flush flex chain stretches the card to the
@@ -248,25 +183,37 @@ export function EmployeesPage({
               {/* Divider between toolbar / mobile-rows and filter bar */}
               <div className="border-t border-border" />
 
-              <EmployeesFilterBar
-                query={query}
-                onChange={handleFilterChange}
-                branches={branches}
-                departments={departments}
-                headOfficeBranchId={headOfficeBranchId}
-              />
-              {!loading && hasActiveFilters && sorted.length === 0 && (
-                <div className="px-4 pb-2">
-                  <button
-                    type="button"
-                    onClick={resetFilters}
-                    className="text-[13px] text-accent hover:underline"
-                  >
-                    {t('filter.reset')}
-                  </button>
+              {/* One line (owner request): filter chips left, search + add right.
+                  Mobile keeps its own search row above, so the right cluster is
+                  desktop-only. */}
+              <div className="flex items-center gap-2 md:pr-4">
+                <div className="flex-1 min-w-0">
+                  <EmployeesFilterBar
+                    query={query}
+                    onChange={handleFilterChange}
+                    branches={branches}
+                    departments={departments}
+                    headOfficeBranchId={headOfficeBranchId}
+                  />
                 </div>
-              )}
-
+                {!isMobile && (
+                  <div className="flex items-center gap-2 shrink-0">
+                    <SearchInput
+                      value={search}
+                      onChange={handleSearchChange}
+                      placeholder={t('filter.search')}
+                      aria-label={t('filter.search')}
+                      containerClassName="w-[280px]"
+                    />
+                    {canMutate && (
+                      <Btn variant="primary" size="sm" onClick={actions.handleCreate}>
+                        <Icon name="plus" size={13} />
+                        {t('addButton')}
+                      </Btn>
+                    )}
+                  </div>
+                )}
+              </div>
               <div className="border-t border-border" />
             </>
           }
