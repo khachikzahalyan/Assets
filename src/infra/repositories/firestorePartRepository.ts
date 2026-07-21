@@ -50,10 +50,29 @@ import { fsRecordService } from './firestorePartRepository.service'
 export class FirestorePartRepository implements PartRepository, PartWriteRepository {
   constructor(private readonly fsDb: Firestore) {}
 
+  // ---- P1.3: loadReferenceData cache -----------------------------------------
+  // Four full-collection reads (parts, movements, assets, categories) deduped and
+  // cached with a 60-second TTL. Pattern copied from FirestoreAssetRepository
+  // (src/infra/repositories/firestoreAssetRepository.ts:136-176).
+  // The cache is cleared on rejection so a transient error (e.g. permission-denied
+  // before rules are deployed) doesn't permanently poison the in-memory cache and
+  // make subsequent calls fail without hitting Firebase.
+  private refCache: Promise<PartReferenceData> | null = null
+  private refCacheAt = 0
+  private static readonly REF_TTL_MS = 60_000
+
   // ---- PartRepository (reads) -----------------------------------------------
 
   async loadReferenceData(): Promise<PartReferenceData> {
-    return fsLoadReferenceData(this.fsDb)
+    const expired = Date.now() - this.refCacheAt > FirestorePartRepository.REF_TTL_MS
+    if (!this.refCache || expired) {
+      this.refCacheAt = Date.now()
+      this.refCache = fsLoadReferenceData(this.fsDb).catch((err) => {
+        this.refCache = null
+        throw err
+      })
+    }
+    return this.refCache
   }
 
   async listMovementsForSku(skuId: string): Promise<PartMovement[]> {

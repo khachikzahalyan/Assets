@@ -3,8 +3,18 @@
  *   - fsInstallPart — port of prototype handleInstallConfirm (parts.html 3211-3312)
  *
  * ONE withAudit transaction atomically: reads asset + SKU docs, writes the
- * movement doc, mutates asset.upgradeCurrent, recomputes the SKU stock snapshot,
- * and writes one audit_logs entry.
+ * movement doc, mutates asset.upgradeCurrent, applies an incremental stock delta
+ * to the SKU snapshot, and writes one audit_logs entry.
+ *
+ * P1.1 (senior audit): getDocs(full collection) removed. Stock is maintained via
+ * an incremental delta:
+ *   - non-serviceReplace install  → onHand − 1
+ *   - serviceReplace install      → snapshot unchanged
+ *
+ * Server-side stock guard (senior audit): for in-house installs (not serviceReplace)
+ * the txn reads the SKU snapshot BEFORE writing and throws InsufficientStockError
+ * if onHand < 1. This prevents concurrent installs from overshooting the stock.
+ * No Math.max clamp — the error surfaces honestly.
  *
  * See firestorePartRepository.uninstall.ts for the counterpart fsUninstallPart.
  */
@@ -12,7 +22,6 @@
 import {
   collection,
   doc,
-  getDocs,
   serverTimestamp,
   type Firestore,
   type Transaction,
@@ -23,19 +32,18 @@ import type { Actor } from '@/domain/asset/AssetRepository'
 import type { AuditedResult } from '@/domain/audit'
 import { withAudit, firestoreAuditContext } from '@/lib/audit'
 import {
-  deriveStock,
   slotKindForSku,
   storageTypeForSku,
   assetFamilyOf,
   isServiceOnly,
   resolveUpgradeCurrent,
 } from '@/domain/part/partStock'
+import { InsufficientStockError } from '@/domain/part/errors'
 import type { AssetSpecs } from '@/domain/asset/types'
 import {
   COL_PARTS,
   COL_MOVEMENTS,
   COL_ASSETS,
-  toMovement,
   toUpgradeSlots,
 } from './firestorePartRepository.mappers'
 
@@ -49,12 +57,6 @@ export async function fsInstallPart(
   const skuRef = doc(fsDb, COL_PARTS, input.skuId)
   const assetRef = doc(fsDb, COL_ASSETS, input.assetId)
   const mvRef = doc(collection(fsDb, COL_MOVEMENTS))
-
-  // Load existing movements for recomputation (outside txn — acceptable for snapshot math)
-  const allMovementsSnap = await getDocs(collection(fsDb, COL_MOVEMENTS))
-  const allMovements = allMovementsSnap.docs.map(d =>
-    toMovement(d.id, d.data() as Record<string, unknown>),
-  )
 
   const serviceReplace = isServiceOnly(input.assetCategoryId) || input.serviceReplace
   const family = assetFamilyOf(input.assetCategoryId)
@@ -91,7 +93,7 @@ export async function fsInstallPart(
     async (txn) => {
       const t = txn as unknown as Transaction
 
-      // Read SKU + asset inside txn
+      // Read SKU + asset inside txn.
       const [skuSnap, assetSnap] = await Promise.all([
         t.get(skuRef),
         t.get(assetRef),
@@ -103,6 +105,14 @@ export async function fsInstallPart(
       const partName = String(partData['name'] ?? '')
       const variantLabel = (partData['variantLabel'] as string | null) ?? null
       const partCategory = partData['category'] as Part['category']
+      const currentOnHand = Number(partData['onHand'] ?? 0)
+      const currentBroken = Number(partData['broken'] ?? 0)
+
+      // Server-side stock guard: in-house installs require at least 1 unit on hand.
+      // serviceReplace operations bypass this — they never touch warehouse stock.
+      if (!serviceReplace && currentOnHand < 1) {
+        throw new InsufficientStockError(input.skuId, currentOnHand, 1)
+      }
 
       const assetData = assetSnap.data() as Record<string, unknown>
       const upgradeCurrent: UpgradeSlot[] = resolveUpgradeCurrent(
@@ -113,13 +123,13 @@ export async function fsInstallPart(
 
       const ucBefore = upgradeCurrent.map(s => ({ ...s }))
 
-      // Build newSpec and slot metadata
+      // Build newSpec and slot metadata.
       const newSpec = partName + (variantLabel ? ' ' + variantLabel : '')
       const slotKind = slotKindForSku(partCategory, family)
       const stType = storageTypeForSku(partCategory)
       const at = new Date().toISOString()
 
-      // Mutate upgradeCurrent copy
+      // Mutate upgradeCurrent copy.
       const ucMutated = [...upgradeCurrent.map(s => ({ ...s }))]
       if (
         input.action === 'replace' &&
@@ -145,7 +155,7 @@ export async function fsInstallPart(
 
       const ucAfter = ucMutated.map(s => ({ ...s }))
 
-      // 1. Write movement
+      // 1. Write movement.
       const mv: PartMovement = {
         id: mvRef.id,
         type: 'install',
@@ -168,23 +178,24 @@ export async function fsInstallPart(
         actorUid: mv.actorUid, actorRole: mv.actorRole, at: serverTimestamp(),
       })
 
-      // 2. Update asset.upgradeCurrent
+      // 2. Update asset.upgradeCurrent.
       t.set(assetRef, {
         upgradeCurrent: ucMutated,
         updatedAt: serverTimestamp(),
         updatedBy: actor.uid,
       }, { merge: true })
 
-      // 3. Recompute snapshot (service: serviceReplace movements skipped by deriveStock)
-      const combinedMovements = [...allMovements, mv]
-      const stockMap = deriveStock(combinedMovements)
-      const s = stockMap[input.skuId] ?? { onHand: 0, broken: 0 }
-      t.set(skuRef, {
-        onHand: s.onHand,
-        broken: s.broken,
-        updatedAt: serverTimestamp(),
-        updatedBy: actor.uid,
-      }, { merge: true })
+      // 3. Incremental delta on SKU snapshot.
+      //    serviceReplace → snapshot unchanged (movements skipped by deriveStock too).
+      //    in-house install → onHand − 1 (checked above ≥ 1 so result ≥ 0).
+      if (!serviceReplace) {
+        t.set(skuRef, {
+          onHand: currentOnHand - 1,
+          broken: currentBroken,
+          updatedAt: serverTimestamp(),
+          updatedBy: actor.uid,
+        }, { merge: true })
+      }
 
       return {
         value: mv,
@@ -195,4 +206,3 @@ export async function fsInstallPart(
   )
   return r
 }
-

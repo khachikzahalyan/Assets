@@ -5,12 +5,16 @@
  *
  * Each function runs ONE withAudit transaction that atomically writes data
  * doc(s) and exactly one audit_logs entry.
+ *
+ * P1.1 (senior audit): getDocs(full collection) removed from every write path.
+ * Stock is now maintained via incremental deltas applied to the SKU doc snapshot
+ * read inside the transaction. The SKU's onHand/broken snapshot is the
+ * authoritative value; no journal re-derivation is performed here.
  */
 
 import {
   collection,
   doc,
-  getDocs,
   serverTimestamp,
   type Firestore,
   type Transaction,
@@ -20,14 +24,13 @@ import type { Part, PartMovement } from '@/domain/part/types'
 import type { Actor } from '@/domain/asset/AssetRepository'
 import type { AuditedResult } from '@/domain/audit'
 import { withAudit, firestoreAuditContext } from '@/lib/audit'
-import { deriveStock } from '@/domain/part/partStock'
-import { COL_PARTS, COL_MOVEMENTS, toMovement } from './firestorePartRepository.mappers'
+import { COL_PARTS, COL_MOVEMENTS } from './firestorePartRepository.mappers'
 
 // ---- receiveParts -----------------------------------------------------------
 
 /**
- * One 'receive' movement per item; recompute snapshot for affected SKUs.
- * ONE withAudit transaction.
+ * One 'receive' movement per item; apply +qty delta to the onHand snapshot.
+ * ONE withAudit transaction. No full journal read.
  */
 export async function fsReceiveParts(
   fsDb: Firestore,
@@ -37,16 +40,9 @@ export async function fsReceiveParts(
   const validItems = items.filter(i => i.qty >= 1)
   if (validItems.length === 0) throw new Error('receiveParts: no items with qty >= 1')
 
-  // Pre-load affected SKU docs so we can recompute their snapshots inside the txn.
+  // Pre-compute affected SKU ids and refs.
   const affectedSkuIds = [...new Set(validItems.map(i => i.skuId))]
   const skuRefs = affectedSkuIds.map(id => doc(fsDb, COL_PARTS, id))
-
-  // Load existing movements for affected SKUs for stock recomputation.
-  // We load ALL movements in a single query then filter (MVP: acceptable volume).
-  const allMovementsSnap = await getDocs(collection(fsDb, COL_MOVEMENTS))
-  const allMovements = allMovementsSnap.docs.map(d =>
-    toMovement(d.id, d.data() as Record<string, unknown>),
-  )
 
   const newMovements: PartMovement[] = []
   const at = new Date().toISOString()
@@ -68,11 +64,17 @@ export async function fsReceiveParts(
     async (txn) => {
       const t = txn as unknown as Transaction
 
-      // Read current SKU docs inside txn (required for transactional snapshot update)
+      // Read current SKU docs inside txn for transactional snapshot update.
       const skuSnaps = await Promise.all(skuRefs.map(r => t.get(r)))
 
-      // Write movement docs
-      const pendingMovements = validItems.map(item => {
+      // Build a per-skuId delta map: sum of all receive quantities in this batch.
+      const deltaMap = new Map<string, number>()
+      for (const item of validItems) {
+        deltaMap.set(item.skuId, (deltaMap.get(item.skuId) ?? 0) + item.qty)
+      }
+
+      // Write movement docs.
+      for (const item of validItems) {
         const mvRef = doc(collection(fsDb, COL_MOVEMENTS))
         const mv: PartMovement = {
           id: mvRef.id,
@@ -96,20 +98,20 @@ export async function fsReceiveParts(
           actorUid: mv.actorUid, actorRole: mv.actorRole, at: serverTimestamp(),
         })
         newMovements.push(mv)
-        return mv
-      })
+      }
 
-      // Recompute snapshots for affected SKUs
-      const combinedMovements = [...allMovements, ...pendingMovements]
-      const stockMap = deriveStock(combinedMovements)
-
+      // Apply incremental delta to each affected SKU snapshot (receive → +onHand).
+      // No getDocs of the full journal — just read the SKU doc and add the delta.
       for (const skuSnap of skuSnaps) {
         if (!skuSnap.exists()) continue
         const skuId = skuSnap.id
-        const s = stockMap[skuId] ?? { onHand: 0, broken: 0 }
+        const data = skuSnap.data() as Record<string, unknown>
+        const currentOnHand = Number(data['onHand'] ?? 0)
+        const currentBroken = Number(data['broken'] ?? 0)
+        const delta = deltaMap.get(skuId) ?? 0
         t.set(skuSnap.ref, {
-          onHand: s.onHand,
-          broken: s.broken,
+          onHand: currentOnHand + delta,
+          broken: currentBroken,
           updatedAt: serverTimestamp(),
           updatedBy: actor.uid,
         }, { merge: true })
@@ -126,6 +128,7 @@ export async function fsReceiveParts(
 /**
  * Creates a new GPU SKU doc; if initialQty > 0 appends a 'receive' movement.
  * ONE withAudit transaction.
+ * No getDocs of the full journal — snapshot is set directly from initialQty.
  */
 export async function fsCreateGpu(
   fsDb: Firestore,
@@ -181,7 +184,7 @@ export async function fsCreateGpu(
           actorRole: actor.role,
           at: serverTimestamp(),
         })
-        // Update snapshot: onHand = initialQty (only this SKU has movements at creation)
+        // Incremental delta: brand-new SKU starts at 0, add initialQty.
         t.set(skuRef, {
           onHand: input.initialQty,
           updatedAt: serverTimestamp(),

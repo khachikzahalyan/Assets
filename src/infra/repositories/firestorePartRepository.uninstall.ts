@@ -3,8 +3,14 @@
  *   - fsUninstallPart — port of prototype handleUninstallConfirm (parts.html 3411-3463)
  *
  * ONE withAudit transaction atomically: reads asset + SKU docs, writes the
- * uninstall movement doc, removes the matching upgradeCurrent slot, recomputes
- * the SKU stock snapshot, and writes one audit_logs entry.
+ * uninstall movement doc, removes the matching upgradeCurrent slot, applies an
+ * incremental stock delta to the SKU snapshot, and writes one audit_logs entry.
+ *
+ * P1.1 (senior audit): getDocs(full collection) removed. Stock is maintained via
+ * an incremental delta applied to the SKU doc snapshot read inside the transaction:
+ *   - non-serviceReplace + broken   → broken + 1
+ *   - non-serviceReplace + !broken  → onHand + 1
+ *   - serviceReplace                → snapshot unchanged
  *
  * See firestorePartRepository.install.ts for the counterpart fsInstallPart.
  */
@@ -12,7 +18,6 @@
 import {
   collection,
   doc,
-  getDocs,
   serverTimestamp,
   type Firestore,
   type Transaction,
@@ -23,7 +28,6 @@ import type { Actor } from '@/domain/asset/AssetRepository'
 import type { AuditedResult } from '@/domain/audit'
 import { withAudit, firestoreAuditContext } from '@/lib/audit'
 import {
-  deriveStock,
   slotKindForSku,
   assetFamilyOf,
   currentPartsForSkuCategory,
@@ -35,7 +39,6 @@ import {
   COL_PARTS,
   COL_MOVEMENTS,
   COL_ASSETS,
-  toMovement,
   toUpgradeSlots,
 } from './firestorePartRepository.mappers'
 
@@ -47,11 +50,6 @@ export async function fsUninstallPart(
   const skuRef = doc(fsDb, COL_PARTS, input.skuId)
   const assetRef = doc(fsDb, COL_ASSETS, input.assetId)
   const mvRef = doc(collection(fsDb, COL_MOVEMENTS))
-
-  const allMovementsSnap = await getDocs(collection(fsDb, COL_MOVEMENTS))
-  const allMovements = allMovementsSnap.docs.map(d =>
-    toMovement(d.id, d.data() as Record<string, unknown>),
-  )
 
   const serviceReplace = isServiceOnly(input.assetCategoryId) || input.serviceReplace
   const family = assetFamilyOf(input.assetCategoryId)
@@ -90,6 +88,8 @@ export async function fsUninstallPart(
 
       const partData = skuSnap.data() as Record<string, unknown>
       const partCategory = partData['category'] as Part['category']
+      const currentOnHand = Number(partData['onHand'] ?? 0)
+      const currentBroken = Number(partData['broken'] ?? 0)
 
       const assetData = assetSnap.data() as Record<string, unknown>
       const upgradeCurrent: UpgradeSlot[] = resolveUpgradeCurrent(
@@ -122,7 +122,7 @@ export async function fsUninstallPart(
         actorUid: mv.actorUid, actorRole: mv.actorRole, at: serverTimestamp(),
       })
 
-      // Remove matching slot from upgradeCurrent
+      // Remove matching slot from upgradeCurrent.
       const ucMutated = [...upgradeCurrent.map(s => ({ ...s }))]
       const slotKind = slotKindForSku(partCategory, family)
       if (slotKind) {
@@ -136,23 +136,27 @@ export async function fsUninstallPart(
 
       const ucAfter = ucMutated.map(s => ({ ...s }))
 
-      // Write updated asset.upgradeCurrent
+      // Write updated asset.upgradeCurrent.
       t.set(assetRef, {
         upgradeCurrent: ucMutated,
         updatedAt: serverTimestamp(),
         updatedBy: actor.uid,
       }, { merge: true })
 
-      // Recompute stock snapshot
-      const combinedMovements = [...allMovements, mv]
-      const stockMap = deriveStock(combinedMovements)
-      const s = stockMap[input.skuId] ?? { onHand: 0, broken: 0 }
-      t.set(skuRef, {
-        onHand: s.onHand,
-        broken: s.broken,
-        updatedAt: serverTimestamp(),
-        updatedBy: actor.uid,
-      }, { merge: true })
+      // Incremental delta on SKU snapshot.
+      //   serviceReplace → snapshot unchanged (not warehouse stock).
+      //   in-house broken  → broken + 1.
+      //   in-house !broken → onHand + 1 (return to shelf).
+      if (!serviceReplace) {
+        const newOnHand = input.broken ? currentOnHand : currentOnHand + 1
+        const newBroken = input.broken ? currentBroken + 1 : currentBroken
+        t.set(skuRef, {
+          onHand: newOnHand,
+          broken: newBroken,
+          updatedAt: serverTimestamp(),
+          updatedBy: actor.uid,
+        }, { merge: true })
+      }
 
       return {
         value: mv,

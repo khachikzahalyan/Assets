@@ -14,6 +14,7 @@ import { InMemoryPartRepository } from './inMemoryPartRepository'
 import { createInMemoryAuditStore, inMemoryAuditContext } from '@/lib/audit'
 import type { Part, PartMovement, PartsAsset, UpgradeSlot } from '@/domain/part/types'
 import type { Actor } from '@/domain/asset/AssetRepository'
+import { isInsufficientStockError } from '@/domain/part/errors'
 
 // ---------------------------------------------------------------------------
 // Fixture factory
@@ -1002,6 +1003,149 @@ describe('InMemoryPartRepository', () => {
       expect(mv.type).toBe('service')
       expect(mv.broken).toBe(false)
       expect(mv.serviceReplace).toBe(false)
+    })
+  })
+
+  // -------------------------------------------------------------------------
+  // InsufficientStockError — P1.1 server-side stock guard
+  // -------------------------------------------------------------------------
+
+  describe('InsufficientStockError — server-side stock guard', () => {
+    it('installPart throws InsufficientStockError when onHand is 0 for an in-house device', async () => {
+      // Arrange — no stock seeded; onHand = 0
+      const { repo } = makeRepo()
+
+      // Act + Assert — must throw InsufficientStockError, NOT a generic error
+      let caught: unknown
+      try {
+        await repo.installPart({
+          skuId: SKU_SSD.id,
+          assetId: ASSET_DESKTOP_ID,
+          assetInvCode: 'INV/desktop',
+          assetCategoryId: CAT_DESKTOP,
+          action: 'install',
+          replaceUcIndex: null,
+          oldIsBroken: false,
+          serviceReplace: false,
+        }, ACTOR)
+      } catch (e) {
+        caught = e
+      }
+      expect(caught).toBeDefined()
+      expect(isInsufficientStockError(caught)).toBe(true)
+    })
+
+    it('installPart does NOT throw when onHand > 0 for an in-house device', async () => {
+      // Arrange — seed 1 unit
+      const { repo } = makeRepo()
+      await seedStock(repo, SKU_SSD.id, 1)
+
+      // Act — should succeed, no throw
+      await expect(
+        repo.installPart({
+          skuId: SKU_SSD.id,
+          assetId: ASSET_DESKTOP_ID,
+          assetInvCode: 'INV/desktop',
+          assetCategoryId: CAT_DESKTOP,
+          action: 'install',
+          replaceUcIndex: null,
+          oldIsBroken: false,
+          serviceReplace: false,
+        }, ACTOR),
+      ).resolves.toBeDefined()
+    })
+
+    it('serviceReplace (laptop) with onHand 0 does NOT throw — service bypasses stock', async () => {
+      // Arrange — no stock; laptop is service-only
+      const { repo } = makeRepo()
+
+      // Act — must NOT throw even with 0 stock
+      await expect(
+        repo.installPart({
+          skuId: SKU_SSD.id,
+          assetId: ASSET_LAPTOP_ID,
+          assetInvCode: 'INV/laptop',
+          assetCategoryId: CAT_LAPTOP,
+          action: 'install',
+          replaceUcIndex: null,
+          oldIsBroken: false,
+          serviceReplace: true,
+        }, ACTOR),
+      ).resolves.toBeDefined()
+    })
+
+    it('serviceReplace forced by assetCategoryId=cat_laptop with onHand 0 does NOT throw', async () => {
+      // Arrange — no stock; category forces isServiceOnly
+      const { repo } = makeRepo()
+
+      // Act — cat_laptop → isServiceOnly → serviceReplace=true → no stock debit
+      await expect(
+        repo.installPart({
+          skuId: SKU_RAM.id,
+          assetId: ASSET_LAPTOP_ID,
+          assetInvCode: 'INV/laptop',
+          assetCategoryId: CAT_LAPTOP,
+          action: 'install',
+          replaceUcIndex: null,
+          oldIsBroken: false,
+          serviceReplace: false, // overridden by isServiceOnly
+        }, ACTOR),
+      ).resolves.toBeDefined()
+    })
+
+    it('stock guard: no audit entry is written when InsufficientStockError is thrown', async () => {
+      // Arrange — no stock
+      const { repo, store } = makeRepo()
+      const logsBefore = store.logs.length
+
+      // Act
+      try {
+        await repo.installPart({
+          skuId: SKU_SSD.id,
+          assetId: ASSET_DESKTOP_ID,
+          assetInvCode: 'INV/desktop',
+          assetCategoryId: CAT_DESKTOP,
+          action: 'install',
+          replaceUcIndex: null,
+          oldIsBroken: false,
+          serviceReplace: false,
+        }, ACTOR)
+      } catch {
+        // expected
+      }
+
+      // Assert — no audit entry written (error thrown before withAudit commits)
+      expect(store.logs).toHaveLength(logsBefore)
+    })
+
+    it('snapshot integrity: two concurrent installs at onHand=1 — second must fail', async () => {
+      // Arrange — seed exactly 1 unit
+      const { repo } = makeRepo()
+      await seedStock(repo, SKU_SSD.id, 1)
+
+      const installInput = {
+        skuId: SKU_SSD.id,
+        assetId: ASSET_DESKTOP_ID,
+        assetInvCode: 'INV/desktop',
+        assetCategoryId: CAT_DESKTOP,
+        action: 'install' as const,
+        replaceUcIndex: null,
+        oldIsBroken: false,
+        serviceReplace: false,
+      }
+
+      // Act — first install succeeds, second should fail on snapshot check
+      await repo.installPart(installInput, ACTOR)
+
+      let secondCaught: unknown
+      try {
+        await repo.installPart(installInput, ACTOR)
+      } catch (e) {
+        secondCaught = e
+      }
+
+      // Assert — second install throws InsufficientStockError (onHand = 0 after first)
+      expect(isInsufficientStockError(secondCaught)).toBe(true)
     })
   })
 

@@ -35,6 +35,7 @@ import {
   currentPartsForSkuCategory,
   isServiceOnly,
 } from '@/domain/part/partStock'
+import { InsufficientStockError } from '@/domain/part/errors'
 
 // ---- helpers ---------------------------------------------------------------
 
@@ -194,6 +195,12 @@ export class InMemoryPartRepository implements PartRepository, PartWriteReposito
 
     const family = assetFamilyOf(input.assetCategoryId)
     const serviceReplace = isServiceOnly(input.assetCategoryId) || input.serviceReplace
+
+    // Server-side stock guard: in-house installs require at least 1 unit on hand.
+    // serviceReplace operations bypass this — they never touch warehouse stock.
+    if (!serviceReplace && part.onHand < 1) {
+      throw new InsufficientStockError(input.skuId, part.onHand, 1)
+    }
 
     // Determine reason string (prototype 3246-3260)
     let reason: string

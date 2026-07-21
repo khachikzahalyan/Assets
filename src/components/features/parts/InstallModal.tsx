@@ -14,6 +14,7 @@ import {
   currentPartsForSkuCategory,
   workingStock,
 } from '@/domain/part/partStock'
+import { isInsufficientStockError } from '@/domain/part/errors'
 
 export interface InstallModalProps {
   open: boolean
@@ -114,7 +115,10 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
   const effectiveAction = !selectedAsset ? 'install' : (actionMode === 'install' ? derivedAction : actionMode)
 
   const stockOk = sku ? workingStock(sku) > 0 : false
-  const canSubmit = !!selectedAsset && (isService || stockOk || effectiveAction !== 'install')
+  // Service devices (isService) bypass the stock requirement — they never debit the warehouse.
+  // For in-house devices all action modes (install, replace, add) consume 1 unit of stock,
+  // so stockOk is required regardless of effectiveAction.
+  const canSubmit = !!selectedAsset && (isService || stockOk)
 
   const handleSubmit = useCallback(async () => {
     if (!selectedAsset || !sku) return
@@ -135,8 +139,12 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
       }
       await onConfirm(input)
       handleClose()
-    } catch {
-      setError(t('installModal.errorFailed'))
+    } catch (err) {
+      if (isInsufficientStockError(err)) {
+        setError(t('installModal.insufficientStock'))
+      } else {
+        setError(t('installModal.errorFailed'))
+      }
     } finally {
       setSubmitting(false)
     }

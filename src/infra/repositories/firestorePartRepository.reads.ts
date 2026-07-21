@@ -1,23 +1,38 @@
 /**
  * Read-only query functions for the parts warehouse Firestore adapter.
  * These functions contain no mutations, no transactions, and no audit writes.
+ *
+ * P1.2 (senior audit): fsListMovementsForSku / fsListMovementsForAsset now use
+ * server-side where() + orderBy() instead of loading the full collection and
+ * filtering on the client. The composite indexes (skuId+at desc, assetId+at desc)
+ * already exist in firestore.indexes.json — no new indexes required.
+ *
+ * Read-path snapshot decision (senior audit):
+ *   After the P1.1 transition to transactional deltas the SKU onHand/broken
+ *   snapshot is the authoritative value. fsLoadReferenceData now trusts the stored
+ *   snapshot and does NOT re-derive stock from the full movement journal.
+ *   Rationale: the full-journal re-derive was the original "self-healing" fallback
+ *   for when snapshots were untrustworthy. With every write path going through
+ *   atomic transactions (withAudit + incremental delta) the snapshot IS the source
+ *   of truth. Removing the re-derive eliminates the last full-collection read in
+ *   the hot path. If a manual Firestore edit ever corrupts a snapshot, an admin
+ *   can trigger a one-time recalculation via a Cloud Function (deferred to Phase 2).
+ *   The domain helper deriveStock() is still used by components for display from
+ *   already-loaded movements — it is NOT called here.
  */
 
 import {
   collection,
   getDocs,
   query as fsQuery,
+  where,
   orderBy,
   type Firestore,
 } from 'firebase/firestore'
 import type { PartReferenceData } from '@/domain/part/PartRepository'
 import type { Part, PartMovement, PartsAsset } from '@/domain/part/types'
 import type { AssetSpecs } from '@/domain/asset/types'
-import {
-  deriveStock,
-  assetFamilyOf,
-  resolveUpgradeCurrent,
-} from '@/domain/part/partStock'
+import { assetFamilyOf, resolveUpgradeCurrent } from '@/domain/part/partStock'
 import {
   COL_PARTS,
   COL_MOVEMENTS,
@@ -30,7 +45,9 @@ import {
 } from './firestorePartRepository.mappers'
 
 export async function fsLoadReferenceData(fsDb: Firestore): Promise<PartReferenceData> {
-  // Read parts, movements, upgradeable assets, and categories in parallel.
+  // Read parts, upgradeable assets, and categories in parallel.
+  // movements are still fetched for the HistoryPanel / partsAssets tab — but we
+  // do NOT re-derive stock from them; we trust the SKU doc snapshot instead.
   const [partsSnap, movementsSnap, assetsSnap, categoriesSnap] = await Promise.all([
     getDocs(collection(fsDb, COL_PARTS)),
     getDocs(fsQuery(collection(fsDb, COL_MOVEMENTS), orderBy('at', 'desc'))),
@@ -52,16 +69,13 @@ export async function fsLoadReferenceData(fsDb: Firestore): Promise<PartReferenc
     toMovement(d.id, d.data() as Record<string, unknown>),
   )
 
-  // Recompute stock snapshots from the authoritative journal
-  const stockMap = deriveStock(movements)
+  // Trust the stored snapshot for onHand/broken — no re-derivation from journal.
+  // The snapshot is kept consistent by atomic transactional deltas in every write path.
+  const parts: Part[] = partsSnap.docs.map(d =>
+    toPart(d.id, d.data() as Record<string, unknown>),
+  )
 
-  const parts: Part[] = partsSnap.docs.map(d => {
-    const p = toPart(d.id, d.data() as Record<string, unknown>)
-    const s = stockMap[p.id] ?? { onHand: 0, broken: 0 }
-    return { ...p, onHand: s.onHand, broken: s.broken }
-  })
-
-  // Build partsAssets projection: only upgradeable categories
+  // Build partsAssets projection: only upgradeable categories.
   const partsAssets: PartsAsset[] = []
   for (const d of assetsSnap.docs) {
     const data = d.data() as Record<string, unknown>
@@ -75,7 +89,6 @@ export async function fsLoadReferenceData(fsDb: Firestore): Promise<PartReferenc
     const model = (data['model'] as string | null) ?? ''
     const name = [brand, model].filter(Boolean).join(' ') || d.id
 
-    // User: try assignment.employeeId display or fallback to empty
     const assignment = (data['assignment'] as Record<string, unknown> | null) ?? null
     const user = (assignment?.['employeeId'] as string | null) ?? ''
 
@@ -106,29 +119,38 @@ export async function fsLoadReferenceData(fsDb: Firestore): Promise<PartReferenc
   return { parts, movements, partsAssets }
 }
 
+/**
+ * P1.2: server-side filter on skuId using the composite index
+ * (part_movements: skuId ASC, at DESC) already registered in firestore.indexes.json.
+ */
 export async function fsListMovementsForSku(
   fsDb: Firestore,
   skuId: string,
 ): Promise<PartMovement[]> {
-  // Uses the composite index (skuId, at desc)
-  // Note: Firestore where() requires an index — caller must ensure it exists.
-  // For MVP simplicity, load all and filter (index on at desc is still used).
   const snap = await getDocs(
-    fsQuery(collection(fsDb, COL_MOVEMENTS), orderBy('at', 'desc')),
+    fsQuery(
+      collection(fsDb, COL_MOVEMENTS),
+      where('skuId', '==', skuId),
+      orderBy('at', 'desc'),
+    ),
   )
-  return snap.docs
-    .map(d => toMovement(d.id, d.data() as Record<string, unknown>))
-    .filter(m => m.skuId === skuId)
+  return snap.docs.map(d => toMovement(d.id, d.data() as Record<string, unknown>))
 }
 
+/**
+ * P1.2: server-side filter on assetId using the composite index
+ * (part_movements: assetId ASC, at DESC) already registered in firestore.indexes.json.
+ */
 export async function fsListMovementsForAsset(
   fsDb: Firestore,
   assetId: string,
 ): Promise<PartMovement[]> {
   const snap = await getDocs(
-    fsQuery(collection(fsDb, COL_MOVEMENTS), orderBy('at', 'desc')),
+    fsQuery(
+      collection(fsDb, COL_MOVEMENTS),
+      where('assetId', '==', assetId),
+      orderBy('at', 'desc'),
+    ),
   )
-  return snap.docs
-    .map(d => toMovement(d.id, d.data() as Record<string, unknown>))
-    .filter(m => m.assetId === assetId)
+  return snap.docs.map(d => toMovement(d.id, d.data() as Record<string, unknown>))
 }
