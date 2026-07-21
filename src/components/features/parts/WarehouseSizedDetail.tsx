@@ -1,10 +1,34 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Icon, EmptyState } from '@/components/ui'
+import { Icon } from '@/components/ui'
 import type { Part } from '@/domain/part/types'
 import { workingStock } from '@/domain/part/partStock'
 import type { PartStock } from '@/domain/part/types'
 import { categoryTint, categoryIcon, PART_CAT_BY_ID, variantRank } from './partsTokens'
+
+/** Placeholder slots for sized-category empty state (mobile-only component).
+ *  Slots match the per-size row height (py-3.5 ≈ 56px).
+ *  A compact hint line appears below — no icon, no big heading. */
+function SizedPlaceholder({ hint }: { hint: string }) {
+  return (
+    <div className="flex flex-col">
+      {Array.from({ length: 3 }).map((_, i) => (
+        <div
+          key={i}
+          aria-hidden="true"
+          className="relative border-b border-border/50 last:border-b-0"
+        >
+          {/* invisible height-anchor matching real per-size row */}
+          <div className="opacity-0 flex items-center justify-between px-3.5 py-3.5">
+            <span className="text-[13.5px] font-medium">&nbsp;</span>
+          </div>
+          <div className="absolute left-3.5 right-3.5 top-1/2 -translate-y-1/2 border-t border-dashed border-border/40" />
+        </div>
+      ))}
+      <div className="px-3.5 py-2 text-[11.5px] text-text-tertiary">{hint}</div>
+    </div>
+  )
+}
 
 export interface WarehouseSizedDetailProps {
   categoryId: string
@@ -72,13 +96,9 @@ export function WarehouseSizedDetail({ categoryId, skus, stockMap, onInstall }: 
         <Icon name="chevron-up" size={14} className="text-text-subtle flex-shrink-0" />
       </div>
 
-      {/* Whole category empty → simple empty state, no size rows */}
+      {/* Whole category empty → geometry-preserving placeholder, no icon/heading */}
       {totalOnHand === 0 ? (
-        <EmptyState
-          icon="package-open"
-          title={t('warehouse.noStock')}
-          description={t('warehouse.noneAvailableHint')}
-        />
+        <SizedPlaceholder hint={t('warehouse.noneAvailableHint')} />
       ) : (
         <>
           {/* DDR toggle for ОЗУ */}

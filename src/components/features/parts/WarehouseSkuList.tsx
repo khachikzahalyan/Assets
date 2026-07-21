@@ -1,9 +1,60 @@
 import { useTranslation } from 'react-i18next'
-import { Icon, Chip, EmptyState } from '@/components/ui'
+import { Icon, Chip } from '@/components/ui'
 import type { Part, PartStock } from '@/domain/part/types'
 import type { PartCatMeta } from './partsTokens'
 import { categoryTint, categoryIcon } from './partsTokens'
 import { WarehouseSkuRowMobile } from './WarehouseSkuRowMobile'
+
+/** Geometry-preserving placeholder slots used when stock is empty. */
+const SKU_PLACEHOLDER_COUNT = 3
+
+/**
+ * Desktop empty-stock placeholder: dashed slots matching real SKU row height.
+ * One compact hint line sits below with no icon/heading to avoid layout jumps.
+ */
+function SkuPlaceholderDesktop({ hint }: { hint: string }) {
+  return (
+    <div className="flex flex-col flex-shrink-0">
+      {Array.from({ length: SKU_PLACEHOLDER_COUNT }).map((_, i) => (
+        <div
+          key={i}
+          aria-hidden="true"
+          className="relative flex items-center gap-3 px-5 h-[54px] border-b border-border last:border-b-0"
+        >
+          <div className="absolute left-5 right-5 top-1/2 -translate-y-1/2 border-t border-dashed border-border/40" />
+        </div>
+      ))}
+      <div className="px-5 py-2 text-[12.5px] text-text-tertiary">{hint}</div>
+    </div>
+  )
+}
+
+/**
+ * Mobile empty-stock placeholder: dashed slots matching WarehouseSkuRowMobile height.
+ * Mobile rows rendered by MobileListRow have ~py-[7px] + two text lines ≈ 48px.
+ */
+function SkuPlaceholderMobile({ hint }: { hint: string }) {
+  return (
+    <div className="flex flex-col">
+      {Array.from({ length: SKU_PLACEHOLDER_COUNT }).map((_, i) => (
+        <div
+          key={i}
+          aria-hidden="true"
+          className="relative px-[14px] border-b border-border last:border-b-0"
+          style={{ minHeight: 48 }}
+        >
+          {/* invisible height-anchor matching MobileListRow two-line layout */}
+          <div className="opacity-0 py-[7px]">
+            <div className="text-[13px] font-bold leading-snug mb-[2px]">&nbsp;</div>
+            <div className="text-[11px] leading-snug">&nbsp;</div>
+          </div>
+          <div className="absolute left-[14px] right-[14px] top-1/2 -translate-y-1/2 border-t border-dashed border-border/40" />
+        </div>
+      ))}
+      <div className="px-[14px] py-2 text-[11.5px] text-text-tertiary">{hint}</div>
+    </div>
+  )
+}
 
 /** Categories whose SKUs collapse to one aggregate summary row (not enumerated). */
 export const AGG_CATS = new Set(['ssd', 'hdd', 'nvme', 'ram'])
@@ -44,18 +95,17 @@ export function WarehouseSkuList({
 
   if (visibleSkus.length === 0) {
     if (isGpuCat) {
+      /* GPU zero: preserve slot geometry, keep the Add button as compact action */
       return (
-        <div className="h-full flex items-center justify-center p-8">
-          <div className="text-center max-w-xs">
-            <span className="w-12 h-12 rounded-full bg-surface-2 text-text-subtle inline-flex items-center justify-center mb-3">
-              <Icon name="microchip" size={20} />
-            </span>
-            <div className="text-[15px] font-semibold text-text-secondary">{t('warehouse.emptyGpu')}</div>
-            <div className="text-[14px] text-text-tertiary mt-1">{t('warehouse.emptyGpuHint')}</div>
+        <div className="flex flex-col flex-shrink-0">
+          {isMobile
+            ? <SkuPlaceholderMobile hint={t('warehouse.emptyGpuHint')} />
+            : <SkuPlaceholderDesktop hint={t('warehouse.emptyGpuHint')} />}
+          <div className="px-5 pb-3 max-md:px-[14px]">
             <button
               type="button"
               onClick={onAddGpu}
-              className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[14.5px] font-semibold text-accent border border-[#F97316]/30 bg-[#F97316]/10 hover:bg-[#F97316]/15 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13.5px] font-semibold text-accent border border-[#F97316]/30 bg-[#F97316]/10 hover:bg-[#F97316]/15 transition-colors"
             >
               <Icon name="plus" size={12} />
               {t('gpu.addBtn')}
@@ -64,13 +114,10 @@ export function WarehouseSkuList({
         </div>
       )
     }
-    return (
-      <EmptyState
-        icon="package-open"
-        title={t('warehouse.noStock')}
-        description={t('warehouse.noneAvailableHint')}
-      />
-    )
+    if (isMobile) {
+      return <SkuPlaceholderMobile hint={t('warehouse.noneAvailableHint')} />
+    }
+    return <SkuPlaceholderDesktop hint={t('warehouse.noneAvailableHint')} />
   }
 
   /* Aggregated categories: one summary row with dual chips */
@@ -85,13 +132,8 @@ export function WarehouseSkuList({
       totalBroken += s.broken
     }
     if (totalWorking === 0 && totalBroken === 0) {
-      return (
-        <EmptyState
-          icon="package-open"
-          title={t('warehouse.noStock')}
-          description={t('warehouse.noneAvailableHint')}
-        />
-      )
+      if (isMobile) return <SkuPlaceholderMobile hint={t('warehouse.noneAvailableHint')} />
+      return <SkuPlaceholderDesktop hint={t('warehouse.noneAvailableHint')} />
     }
     if (isMobile) {
       return (

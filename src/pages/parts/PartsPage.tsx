@@ -350,6 +350,7 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
             onAddGpu={handleOpenGpuModal}
             selectedCatId={selectedCatId}
             onSelectCat={setSelectedCatId}
+            partsAssets={partsAssets}
           />
         ) : (
           <DevicesTab

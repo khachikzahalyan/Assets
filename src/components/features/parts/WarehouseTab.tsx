@@ -4,7 +4,7 @@ import { HistoryPanel } from './HistoryPanel'
 import { WarehouseSizedDetail } from './WarehouseSizedDetail'
 import { WarehouseMobileDetail } from './WarehouseMobileDetail'
 import { WarehouseSkuList, AGG_CATS } from './WarehouseSkuList'
-import type { Part, PartMovement, PartStock } from '@/domain/part/types'
+import type { Part, PartMovement, PartStock, PartsAsset } from '@/domain/part/types'
 import { PART_CATEGORY_META, groupSkusByCategory } from './partsTokens'
 import { deriveStock } from '@/domain/part/partStock'
 
@@ -18,6 +18,11 @@ export interface WarehouseTabProps {
   selectedCatId: string
   /** Lifted from PartsPage — category selection handler */
   onSelectCat: (id: string) => void
+  /**
+   * Upgradeable-asset projections from PartReferenceData — passed through to
+   * HistoryPanel so it can display asset category name on install/uninstall rows.
+   */
+  partsAssets?: PartsAsset[]
 }
 
 /**
@@ -37,6 +42,7 @@ export function WarehouseTab({
   onAddGpu,
   selectedCatId,
   onSelectCat,
+  partsAssets = [],
 }: WarehouseTabProps) {
   /* ── Derived stock map (from movements, authoritative) ── */
   const stockMap = useMemo<Record<string, PartStock>>(
@@ -73,6 +79,10 @@ export function WarehouseTab({
     const out: Record<string, number> = {}
     for (const m of catMovements) {
       const cur = running[m.skuId] ?? 0
+      // Mirror deriveStock (partStock.ts): serviceReplace movements never touch
+      // warehouse stock — skipping them here too keeps the "Осталось N шт"
+      // label consistent with the authoritative stock derivation.
+      if (m.serviceReplace) { out[m.id] = cur; continue }
       const q = m.qty ?? 1
       let next = cur
       if (m.type === 'receive') next = cur + q
@@ -105,6 +115,7 @@ export function WarehouseTab({
           isMobile={isMobile}
           categoryId={selectedCatId}
           remainingAfterMap={remainingAfterMap}
+          partsAssets={partsAssets}
         />
       </div>
     </div>
@@ -145,6 +156,7 @@ export function WarehouseTab({
               isMobile
               categoryId={selectedCatId}
               remainingAfterMap={remainingAfterMap}
+              partsAssets={partsAssets}
             />
           </div>
         ) : (
@@ -159,6 +171,7 @@ export function WarehouseTab({
             skuIds={selectedSkuIds}
             parts={parts}
             remainingAfterMap={remainingAfterMap}
+            partsAssets={partsAssets}
           />
         )}
       </div>

@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Icon, Chip } from '@/components/ui'
-import type { PartMovement, Part } from '@/domain/part/types'
+import type { PartMovement, Part, PartsAsset } from '@/domain/part/types'
 import { categoryIcon, categoryTint, fmtPartsDate } from './partsTokens'
 import { HistoryRowMobile, type MovementRuntime } from './HistoryRowMobile'
 
@@ -62,6 +62,12 @@ export interface HistoryPanelProps {
   categoryId?: string
   /** Running-stock snapshot per movement id (keyed by movement id) */
   remainingAfterMap?: Record<string, number>
+  /**
+   * Upgradeable-asset projections — used to resolve asset category name for
+   * install / uninstall rows (keyed by assetId). No new Firestore reads:
+   * this array is already loaded by PartsPage via PartReferenceData.
+   */
+  partsAssets?: PartsAsset[]
 }
 
 /**
@@ -80,6 +86,7 @@ export function HistoryPanel({
   isMobile = false,
   categoryId,
   remainingAfterMap = {},
+  partsAssets = [],
 }: HistoryPanelProps) {
   const { t } = useTranslation('parts')
   const [page, setPage] = useState(1)
@@ -109,6 +116,13 @@ export function HistoryPanel({
   const skuById = useMemo(
     () => Object.fromEntries(parts.map((p) => [p.id, p])),
     [parts],
+  )
+
+  /* Build assetById lookup — keyed by assetId (internal slug).
+     Used to resolve asset category name for install / uninstall rows. */
+  const assetById = useMemo(
+    () => Object.fromEntries(partsAssets.map((a) => [a.assetId, a])),
+    [partsAssets],
   )
 
   /* Filter movements to this category */
@@ -272,32 +286,62 @@ export function HistoryPanel({
         </div>
       )}
 
-      {/* ── Empty state — mirrors prototype lines 2268-2291 ── */}
+      {/* ── Empty / placeholder state — geometry-preserving: no icon circle, no big heading ── */}
       {filtered.length === 0 ? (
-        <div className="h-full flex items-center justify-center p-8 border-t border-border">
-          <div className="text-center max-w-xs">
-            <span className="w-12 h-12 rounded-full bg-surface-2 text-text-subtle inline-flex items-center justify-center mb-3">
-              <Icon name={eventFilter ? 'list-filter' : 'history'} size={20} />
-            </span>
-            <div className="text-[15px] font-semibold text-text-secondary">
-              {eventFilter ? t('warehouse.historyFilterTitle') : t('warehouse.historyEmpty')}
+        /* Placeholder slots matching real history row height (h-[56px] desktop, ~48px mobile).
+           Compact hint text sits in the last slot — no layout jump when first row arrives. */
+        <div
+          className={isMobile
+            ? 'ams-stock-history-list border-t border-border'
+            : 'ams-stock-history-list border-t border-border flex-shrink-0'}
+          style={isMobile ? undefined : { minHeight: 'min(700px, 62vh)' }}
+        >
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div
+              key={i}
+              aria-hidden="true"
+              className={isMobile
+                ? 'relative border-b border-border last:border-b-0'
+                : 'relative flex items-center px-5 h-[56px] border-b border-border last:border-b-0'}
+              style={isMobile ? { minHeight: 48 } : undefined}
+            >
+              {isMobile && (
+                /* invisible height-anchor matching MobileListRow two-line layout */
+                <div className="opacity-0 px-[14px] py-[7px]">
+                  <div className="text-[13px] font-bold leading-snug mb-[2px]">&nbsp;</div>
+                  <div className="text-[11px] leading-snug">&nbsp;</div>
+                </div>
+              )}
+              <div
+                className={isMobile
+                  ? 'absolute left-[14px] right-[14px] top-1/2 -translate-y-1/2 border-t border-dashed border-border/40'
+                  : 'absolute left-5 right-5 top-1/2 -translate-y-1/2 border-t border-dashed border-border/40'}
+              />
+              {/* Compact hint in the first slot, below the dashed rule */}
+              {i === 0 && (
+                <div
+                  className={[
+                    'absolute bottom-1 text-[11.5px] text-text-tertiary',
+                    isMobile ? 'left-[14px] right-[14px]' : 'left-5 right-5',
+                  ].join(' ')}
+                >
+                  {eventFilter
+                    ? t('warehouse.historyEmptyFilter')
+                    : t('warehouse.historyEmptyHint')}
+                  {eventFilter && (
+                    <button
+                      type="button"
+                      onClick={() => setEventFilter(null)}
+                      className="ml-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11.5px] font-semibold cursor-pointer bg-slate-500/15 text-slate-300 ring-1 ring-slate-500/30 hover:bg-slate-500/25"
+                    >
+                      <Icon name="x" size={9} />
+                      {t('warehouse.filterReset')}
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
-            <div className="text-[14px] text-text-tertiary mt-1">
-              {eventFilter
-                ? t('warehouse.historyFilterHint')
-                : t('warehouse.historyEmptyHint')}
-            </div>
-            {eventFilter && (
-              <button
-                type="button"
-                onClick={() => setEventFilter(null)}
-                className="mt-3 inline-flex items-center gap-1 px-2 py-1 rounded-md text-[13px] font-semibold transition-all cursor-pointer bg-slate-500/15 text-slate-300 ring-1 ring-slate-500/30 hover:bg-slate-500/25"
-              >
-                <Icon name="x" size={11} />
-                {t('warehouse.historyFilterReset')}
-              </button>
-            )}
-          </div>
+          ))}
         </div>
       ) : (
         <>
@@ -313,6 +357,9 @@ export function HistoryPanel({
                     ? rowSku.name + (rowSku.variantLabel ? ' ' + rowSku.variantLabel : '')
                     : mv.skuId || '—'
                   const catIconName = skuCat ? categoryIcon(skuCat) : 'package'
+                  /* Resolve asset category name for install/uninstall rows */
+                  const assetEntry = mv.assetId ? assetById[mv.assetId] ?? null : null
+                  const assetCategoryName = assetEntry?.categoryName ?? null
                   return (
                     <HistoryRowMobile
                       key={mv.id}
@@ -320,6 +367,8 @@ export function HistoryPanel({
                       skuLabel={skuLabel}
                       catIconName={catIconName}
                       remainingAfter={remainingAfterMap[mv.id] ?? 0}
+                      {...(assetCategoryName !== null ? { assetCategoryName } : {})}
+                      {...(mv.serviceReplace ? { isServiceReplace: true } : {})}
                     />
                   )
                 })}
@@ -334,6 +383,7 @@ export function HistoryPanel({
                   const dt = resolveDisplayType(mv)
                   const isBroken = mv.broken
                   const isInstall = dt === 'install' && !isBroken
+                  const isUninstall = dt === 'uninstall'
                   const qty = mv.qty ?? 1
 
                   const rowSku = skuById[mv.skuId] ?? null
@@ -341,6 +391,14 @@ export function HistoryPanel({
                   const skuLabel = rowSku
                     ? rowSku.name + (rowSku.variantLabel ? ' ' + rowSku.variantLabel : '')
                     : mv.skuId || '—'
+
+                  /* Resolve asset category name for install/uninstall rows */
+                  const assetEntry = mv.assetId ? assetById[mv.assetId] ?? null : null
+                  const assetCategoryName = assetEntry?.categoryName ?? null
+                  const isMovementWithAsset = isInstall || isBroken || isUninstall
+                  const mainLabel = (isMovementWithAsset && assetCategoryName)
+                    ? assetCategoryName
+                    : skuLabel
 
                   const catIconName = skuCat ? categoryIcon(skuCat) : null
                   const catTint = skuCat ? categoryTint(skuCat) : null
@@ -414,8 +472,13 @@ export function HistoryPanel({
                           </span>
                         )}
                         <div className="min-w-0 flex-1">
-                          <div className="text-[15.5px] text-text-secondary truncate">
-                            {skuLabel}
+                          <div className="text-[15.5px] text-text-secondary truncate flex items-center gap-1.5">
+                            <span className="truncate">{mainLabel}</span>
+                            {mv.serviceReplace && (
+                              <Chip color="teal" size="sm">
+                                {t('warehouse.serviceChip')}
+                              </Chip>
+                            )}
                           </div>
                           <div className="text-[14px] text-text-subtle mt-0.5 leading-tight flex items-center gap-1.5 min-w-0">
                             {subline}

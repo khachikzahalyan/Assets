@@ -45,6 +45,17 @@ export interface HistoryRowMobileProps {
   catIconName: string
   /** Warehouse stock remaining after this movement (used in install subline). */
   remainingAfter: number
+  /**
+   * Asset category display name (e.g. "Ноутбук", "Компьютер") — shown instead
+   * of skuLabel on install / uninstall rows so the user sees WHAT device was
+   * affected rather than the SKU name (which is obvious from the panel context).
+   */
+  assetCategoryName?: string | null
+  /**
+   * When true this install was a service replacement — stock was NOT debited.
+   * A compact "Сервис" chip is rendered to distinguish it from a regular install.
+   */
+  isServiceReplace?: boolean
 }
 
 export const HistoryRowMobile = memo(function HistoryRowMobile({
@@ -52,10 +63,19 @@ export const HistoryRowMobile = memo(function HistoryRowMobile({
   skuLabel,
   catIconName,
   remainingAfter,
+  assetCategoryName,
+  isServiceReplace = false,
 }: HistoryRowMobileProps) {
   const { t } = useTranslation('parts')
   const rt = mv as MovementRuntime
   const kind = resolveKind(mv)
+
+  /* For install / uninstall rows: show asset category name instead of SKU name.
+     Falls back to skuLabel when assetCategoryName is not available. */
+  const isMovementWithAsset = kind === 'install' || kind === 'broken' || mv.type === 'uninstall'
+  const displayTitle = (isMovementWithAsset && assetCategoryName)
+    ? assetCategoryName
+    : skuLabel
 
   /* Left accent bar — kind-keyed */
   const accentClass =
@@ -94,8 +114,16 @@ export const HistoryRowMobile = memo(function HistoryRowMobile({
   )
 
   const titleNode = (
-    <div className="text-[13px] font-bold text-text-primary truncate leading-snug mb-[2px]">
-      {skuLabel}
+    <div className="text-[13px] font-bold text-text-primary truncate leading-snug mb-[2px] flex items-center gap-1.5">
+      <span className="truncate">{displayTitle}</span>
+      {isServiceReplace && (
+        <span
+          className="inline-flex items-center border rounded-[4px] px-[5px] py-[1px] text-[9px] font-bold whitespace-nowrap leading-none flex-shrink-0 bg-teal-500/15 text-teal-300 border-teal-500/30"
+          aria-label={t('warehouse.serviceChip')}
+        >
+          {t('warehouse.serviceChip')}
+        </span>
+      )}
     </div>
   )
 

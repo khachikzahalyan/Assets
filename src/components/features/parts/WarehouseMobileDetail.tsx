@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@/components/ui'
 import { HistoryPanel } from './HistoryPanel'
-import type { Part, PartMovement, PartStock } from '@/domain/part/types'
+import type { Part, PartMovement, PartStock, PartsAsset } from '@/domain/part/types'
 import { categoryTint, categoryIcon } from './partsTokens'
 import { workingStock } from '@/domain/part/partStock'
 
@@ -22,11 +22,14 @@ export interface WarehouseMobileDetailProps {
   skuIds: Set<string>
   parts: Part[]
   remainingAfterMap: Record<string, number>
+  /** Forwarded to HistoryPanel for asset category name resolution. */
+  partsAssets?: PartsAsset[]
 }
 
 export function WarehouseMobileDetail({
   catId, skus, stockOf, catMeta, onInstall,
   movements, skuIds, parts, remainingAfterMap,
+  partsAssets = [],
 }: WarehouseMobileDetailProps) {
   const { t } = useTranslation('parts')
   const tint = categoryTint(catId)
@@ -77,6 +80,7 @@ export function WarehouseMobileDetail({
         isMobile={true}
         categoryId={catId}
         remainingAfterMap={remainingAfterMap}
+        partsAssets={partsAssets}
       />
     </div>
   )
