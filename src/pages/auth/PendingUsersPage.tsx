@@ -6,7 +6,7 @@ import { useIsMobile } from '@/hooks/useIsMobile'
 import {
   ListCard, ListPageShell,
   Btn, Icon, EmptyState, TableSkeleton, ErrorState, Field, Select, Input,
-  CardListSkeleton, DataTable,
+  CardListSkeleton, DataTable, SearchInput,
   MobileListPlaceholders,
   DIALOG_BACKDROP, MODAL_SHEET,
 } from '@/components/ui'
@@ -414,20 +414,14 @@ export function PendingUsersPage({ repository }: PendingUsersPageProps) {
             /* Zone 1: search — static content rendered immediately, no shimmer. */
             <>
               <div className="flex items-center gap-2 flex-wrap px-5 py-3 max-md:px-3 max-md:py-2.5">
-                <div className="relative flex-1 min-w-[180px]">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-subtle pointer-events-none">
-                    <Icon name="search" size={13} />
-                  </span>
-                  <input
-                    id="pending-users-search"
-                    type="search"
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                    placeholder={t('col.user')}
-                    aria-label={t('col.user')}
-                    className="w-full h-9 pl-8 pr-3 text-sm bg-bg border border-border rounded-lg text-text-primary placeholder:text-text-subtle focus:outline-none focus:border-accent focus:ring-2 focus:ring-[rgba(249,115,22,0.40)] transition-all duration-150"
-                  />
-                </div>
+                <SearchInput
+                  id="pending-users-search"
+                  value={search}
+                  onChange={setSearch}
+                  placeholder={t('col.user')}
+                  aria-label={t('col.user')}
+                  containerClassName="flex-1 min-w-[180px]"
+                />
               </div>
               <div className="border-t border-border" />
             </>

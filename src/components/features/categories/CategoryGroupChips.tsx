@@ -30,7 +30,7 @@ export function CategoryGroupChips({
     <div
       data-testid="category-group-chips"
       /* Desktop: wrapping chip cloud. Mobile: single-row horizontal scroll strip
-         (same pattern as assets GroupTabs / EmployeeKindTabs) — no vertical stack. */
+         (same pattern as assets GroupTabs) — no vertical stack. */
       className="flex flex-wrap items-center gap-2 max-md:flex-nowrap max-md:overflow-x-auto max-md:w-full no-scrollbar scroll-fade-x"
     >
       {groups.map(g => {

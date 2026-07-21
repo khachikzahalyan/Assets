@@ -267,11 +267,11 @@ export function CategoriesPage({ repository, categoryGroupRepository }: Categori
                   ) : (
                     <Btn
                       variant="primary"
-                      size="md"
+                      size="sm"
                       className="flex-shrink-0"
                       onClick={() => { setSaveError(null); setEditing('new') }}
                     >
-                      <Icon name="plus" size={14} />
+                      <Icon name="plus" size={13} />
                       {t('createSubcategory')}
                     </Btn>
                   )

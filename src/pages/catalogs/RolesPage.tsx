@@ -8,7 +8,7 @@ import {
   ListCard, ListPageShell,
   Btn, Icon, EmptyState, TableSkeleton, ErrorState, Field, Select, Input,
   SelectMini,
-  CardListSkeleton, DataTable,
+  CardListSkeleton, DataTable, SearchInput,
   MobileListPlaceholders,
   DIALOG_BACKDROP, MODAL_SHEET,
 } from '@/components/ui'
@@ -365,20 +365,14 @@ export function RolesPage({ repository }: RolesPageProps) {
               {/* Single row: search (flex-1) + both SelectMini chips (owner request).
                   Mobile: wraps — search takes the full first line, chips drop below. */}
               <div className="flex items-center gap-2 flex-wrap px-5 py-3 max-md:px-3 max-md:py-2.5 max-md:gap-[6px]">
-                <div className="relative flex-1 min-w-[180px]">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-subtle pointer-events-none">
-                    <Icon name="search" size={13} />
-                  </span>
-                  <input
-                    id="roles-search"
-                    type="search"
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                    placeholder={t('search')}
-                    aria-label={t('search')}
-                    className="w-full h-9 pl-8 pr-3 text-sm bg-bg border border-border rounded-lg text-text-primary placeholder:text-text-subtle focus:outline-none focus:border-accent focus:ring-2 focus:ring-[rgba(249,115,22,0.40)] transition-all duration-150"
-                  />
-                </div>
+                <SearchInput
+                  id="roles-search"
+                  value={search}
+                  onChange={setSearch}
+                  placeholder={t('search')}
+                  aria-label={t('search')}
+                  containerClassName="flex-1 min-w-[180px]"
+                />
                 <SelectMini
                   id="roles-role-filter"
                   label={t('filter.role')}

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Btn, Icon, MobileAddButton } from '@/components/ui'
+import { Btn, Icon, MobileAddButton, SearchInput } from '@/components/ui'
 import { GroupTabs } from './GroupTabs'
 import type { GroupTab } from './GroupTabs'
 import type { AssetListQuery, AssetGroupFilter } from '@/domain/asset'
@@ -118,38 +118,15 @@ export function AssetsToolbar({
           'max-md:bg-bg max-md:px-[14px] max-md:py-[7px]',
         ].join(' ')}
       >
-        {/* Search input */}
-        <div className="w-full max-w-[280px] max-md:max-w-none max-md:flex-1">
-          <div className="relative">
-            <span
-              className={[
-                'absolute top-1/2 -translate-y-1/2 text-text-subtle pointer-events-none',
-                'left-2.5 max-md:left-[10px]',
-              ].join(' ')}
-            >
-              <Icon name="search" size={13} />
-            </span>
-            <input
-              id="assets-search"
-              type="search"
-              autoComplete="off"
-              value={searchLocal}
-              onChange={e => handleSearchInput(e.target.value)}
-              placeholder={t('search')}
-              aria-label={t('search')}
-              className={[
-                // Desktop
-                'w-full h-8 pl-8 pr-3 text-[13.5px] bg-surface border border-border rounded-lg',
-                'text-text-primary placeholder:text-text-subtle',
-                'focus:outline-none focus:border-accent-light focus:ring-2 focus:ring-accent-light/15',
-                'transition-all duration-150',
-                // Mobile overrides
-                'max-md:h-auto max-md:rounded-[9px] max-md:py-[9px] max-md:pl-[30px] max-md:pr-[12px]',
-                'max-md:text-[11.5px] max-md:caret-accent',
-              ].join(' ')}
-            />
-          </div>
-        </div>
+        {/* Search input — shared SearchInput (this toolbar is the style etalon) */}
+        <SearchInput
+          id="assets-search"
+          value={searchLocal}
+          onChange={handleSearchInput}
+          placeholder={t('search')}
+          aria-label={t('search')}
+          containerClassName="w-full max-w-[280px] max-md:max-w-none max-md:flex-1"
+        />
 
         {/* Import — Phase 2 deferred. Hidden on mobile. */}
         <button

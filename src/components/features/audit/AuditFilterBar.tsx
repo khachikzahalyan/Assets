@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { Icon, SelectMini } from '@/components/ui'
+import { Icon, SearchInput, SelectMini } from '@/components/ui'
 import type { SelectMiniOption } from '@/components/ui/SelectMini'
 import type { AuditLogQuery, AuditLogReferenceData } from '@/domain/audit'
 import { AUDIT_ACTIONS } from '@/domain/audit'
@@ -93,19 +93,13 @@ export function AuditFilterBar({ query, onChange, ref: refData }: AuditFilterBar
        search row + scroll strip. */
     <div className="flex flex-col gap-2 md:flex-row md:items-center md:flex-wrap">
       {/* Search — flex-1 on desktop so it shrinks to fit everything in one row */}
-      <div className="relative max-md:w-full md:flex-1 md:min-w-[160px]">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-subtle pointer-events-none">
-          <Icon name="search" size={13} />
-        </span>
-        <input
-          type="search"
-          value={query.search}
-          onChange={e => onChange({ search: e.target.value })}
-          placeholder={t('search')}
-          aria-label={t('search')}
-          className="w-full h-9 pl-8 pr-3 text-sm bg-bg border border-border rounded-lg text-text-primary placeholder:text-text-subtle focus:outline-none focus:border-accent focus:ring-2 focus:ring-[rgba(249,115,22,0.40)] transition-all duration-150"
-        />
-      </div>
+      <SearchInput
+        value={query.search}
+        onChange={v => onChange({ search: v })}
+        placeholder={t('search')}
+        aria-label={t('search')}
+        containerClassName="max-md:w-full md:flex-1 md:min-w-[160px]"
+      />
 
       {/* Chips strip — mobile: horizontal scroll line; desktop: md:contents
           flattens the children into the outer row (search + chips + dates + reset

@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { Icon, MobileAddButton } from '@/components/ui'
+import { Btn, Icon, MobileAddButton, SearchInput } from '@/components/ui'
 import { CategoryChipStrip } from './CategoryChipStrip'
 import type { Part, PartStock } from '@/domain/part/types'
 
@@ -92,16 +92,17 @@ export function PartsTabsHeader({
           })}
         </div>
 
-        {/* Desktop «Получить» button — hidden on mobile */}
-        <button
-          type="button"
+        {/* Desktop «Получить» button — hidden on mobile; shared Btn (assets etalon) */}
+        <Btn
+          variant="primary"
+          size="sm"
           onClick={onAdd}
           aria-label={t('actions.add')}
-          className="mr-1 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-accent hover:bg-accent-light text-white text-[13.5px] font-semibold transition-colors max-md:hidden"
+          className="mr-1 max-md:hidden"
         >
-          <Icon name="plus" size={14} />
-          <span>{t('actions.add')}</span>
-        </button>
+          <Icon name="plus" size={13} />
+          {t('actions.add')}
+        </Btn>
 
         {/* Mobile «+» — shared MobileAddButton, inline at the right end of the tab strip */}
         <MobileAddButton
@@ -127,21 +128,13 @@ export function PartsTabsHeader({
             bare
           />
         ) : (
-          <div className="relative flex-1">
-            <Icon
-              name="search"
-              size={14}
-              className="absolute left-[10px] top-1/2 -translate-y-1/2 text-text-subtle pointer-events-none"
-            />
-            <input
-              type="search"
-              value={deviceSearch}
-              onChange={(e) => onDeviceSearchChange(e.target.value)}
-              placeholder={t('devices.searchPlaceholder')}
-              aria-label={t('devices.searchPlaceholder')}
-              className="w-full rounded-[9px] py-[9px] pl-[30px] pr-[12px] text-[11.5px] caret-accent bg-bg border border-border text-text-primary placeholder:text-text-subtle focus:outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/15 transition-all"
-            />
-          </div>
+          <SearchInput
+            value={deviceSearch}
+            onChange={onDeviceSearchChange}
+            placeholder={t('devices.searchPlaceholder')}
+            aria-label={t('devices.searchPlaceholder')}
+            containerClassName="flex-1"
+          />
         )}
       </div>
     </>

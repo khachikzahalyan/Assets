@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { EmptyState, Icon } from '@/components/ui'
+import { EmptyState, SearchInput } from '@/components/ui'
 import { DeviceGridCard } from './DeviceGridCard'
 import { InstalledDetailPanel } from './InstalledDetailPanel'
 import { DeviceDetailMobileView } from './DeviceDetailMobileView'
@@ -155,21 +155,13 @@ export function DevicesTab({
           </div>
 
           {/* Search input — desktop only; mobile gets the header row-2 input */}
-          <div className="relative flex-shrink-0 max-md:hidden">
-            <Icon
-              name="search"
-              size={14}
-              className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-subtle pointer-events-none"
-            />
-            <input
-              type="search"
-              value={search}
-              onChange={e => onSearchChange(e.target.value)}
-              placeholder={t('devices.searchPlaceholder')}
-              aria-label={t('devices.searchPlaceholder')}
-              className="w-full h-8 pl-7 pr-2.5 rounded-md bg-surface border border-border text-[14.5px] text-text-primary placeholder:text-text-subtle outline-none focus:border-accent transition-colors"
-            />
-          </div>
+          <SearchInput
+            value={search}
+            onChange={onSearchChange}
+            placeholder={t('devices.searchPlaceholder')}
+            aria-label={t('devices.searchPlaceholder')}
+            containerClassName="flex-shrink-0 max-md:hidden"
+          />
 
           {/* Device card list: 2-col grid on desktop, full-width 1-col on mobile */}
           {filtered.length === 0 ? (

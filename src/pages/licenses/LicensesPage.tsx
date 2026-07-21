@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
-import { Btn, Icon, ErrorState, TableSkeleton, CardListSkeleton, SectionCard } from '@/components/ui'
+import { Btn, Icon, ErrorState, TableSkeleton, CardListSkeleton, SearchInput, SectionCard } from '@/components/ui'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import {
   WindowsKeysSection,
@@ -398,26 +398,23 @@ export function LicensesPage({
             activeTab === 'keys' ? 'max-md:hidden' : 'max-md:self-center max-md:pb-0 max-md:pr-1'
           }`}>
             {activeTab === 'keys' && (
-              <div className="relative hidden md:block">
-                <Icon name="search" size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-subtle pointer-events-none" />
-                <input
-                  value={keySearch}
-                  onChange={e => setKeySearch(e.target.value)}
-                  placeholder={t('keys.searchPlaceholder')}
-                  aria-label={t('keys.searchPlaceholder')}
-                  className="w-60 h-9 pl-9 pr-3 text-[13.5px] rounded-lg bg-bg border border-border text-text-primary placeholder:text-text-subtle focus:outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/15 transition-all"
-                />
-              </div>
+              <SearchInput
+                value={keySearch}
+                onChange={setKeySearch}
+                placeholder={t('keys.searchPlaceholder')}
+                aria-label={t('keys.searchPlaceholder')}
+                containerClassName="hidden md:block w-[280px]"
+              />
             )}
             {/* Desktop: full-label button */}
             <Btn
               variant="primary"
-              size="md"
+              size="sm"
               onClick={() => { setAddError(null); setAddOpen(true) }}
               data-testid="add-subscription-btn"
               className="max-md:hidden"
             >
-              <Icon name="plus" size={14} />
+              <Icon name="plus" size={13} />
               {t('actions.addLicense')}
             </Btn>
             {/* Mobile square «+» here only on the subs tab (keys tab renders it in the

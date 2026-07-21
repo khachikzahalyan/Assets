@@ -34,8 +34,8 @@ export function CatalogToolbarHeader({
               ariaLabel={createLabel}
             />
           ) : (
-            <Btn variant="primary" size="md" onClick={onCreate}>
-              <Icon name={btnIcon} size={14} />{createLabel}
+            <Btn variant="primary" size="sm" onClick={onCreate}>
+              <Icon name={btnIcon} size={13} />{createLabel}
             </Btn>
           )
         )}
