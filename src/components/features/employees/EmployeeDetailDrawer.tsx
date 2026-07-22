@@ -40,6 +40,8 @@ export interface EmployeeDetailDrawerProps {
   departmentName: string
   linkedAssets: DrawerLinkedAsset[]
   onClose: () => void
+  /** Opens the employee form in edit mode (position / phone / department). */
+  onEdit?: (id: string) => void
   onArchive: (id: string) => void
   onRestore: (id: string) => void
   onLinkAssets: (id: string) => void
@@ -167,6 +169,7 @@ export function EmployeeDetailDrawer({
   departmentName,
   linkedAssets,
   onClose,
+  onEdit,
   onArchive,
   onRestore,
   onLinkAssets,
@@ -260,7 +263,7 @@ export function EmployeeDetailDrawer({
             {emp.firstName} {emp.lastName}
           </h2>
           <div className="mt-2 flex items-center gap-2 flex-wrap">
-            <Chip color={isActive ? 'green' : 'violet'} dot>
+            <Chip color={isActive ? 'green' : 'red'} dot>
               {t(`status.${emp.status}`)}
             </Chip>
             <span className="text-text-subtle text-[13px] select-none">·</span>
@@ -273,6 +276,19 @@ export function EmployeeDetailDrawer({
             </span>
           </div>
         </div>
+
+        {/* Edit button — opens the employee form (position / phone / department) */}
+        {onEdit && isActive && (
+          <button
+            type="button"
+            onClick={() => onEdit(emp.id)}
+            aria-label={tCommon('actions.edit')}
+            title={tCommon('actions.edit')}
+            className="w-7 h-7 rounded-md text-text-subtle hover:text-text-secondary hover:bg-surface-2 flex items-center justify-center transition-colors shrink-0 mt-0.5"
+          >
+            <Icon name="pencil" size={13} />
+          </button>
+        )}
 
         {/* Close button */}
         <button

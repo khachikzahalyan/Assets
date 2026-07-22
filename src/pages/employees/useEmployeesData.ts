@@ -4,41 +4,14 @@ import type { Employee, EmployeeListQuery, EmployeeRepository, SortValue } from 
 import type { AssetRepository, AssetWriteRepository, RefRow, CategoryRow } from '@/domain/asset'
 import type { AssignmentRepository } from '@/domain/assignment'
 import {
-  FirestoreEmployeeRepository,
-  FirestoreAssetRepository,
-  FirestoreAssignmentRepository,
-  FirestoreUserRepository,
+  getSharedEmployeeRepositoryWithGuard,
+  getSharedAssetRepository,
+  getSharedAssignmentRepository,
 } from '@/infra/repositories'
-import { db } from '@/lib/firebase'
+import { HEAD_OFFICE_BRANCH_ID } from '@/domain/asset/transferRules'
 import type { DrawerLinkedAsset, HandoverAsset, PickerStockRow } from '@/components/features/employees'
 import { DEFAULT_QUERY, sortEmployees, normalizePhone } from './employeesHelpers'
 import { cacheIdentity, readResourceCache, writeResourceCache } from '@/hooks/useCachedResource'
-
-// ── Module-level lazy singletons ────────────────────────────────────────────
-// Keep repo references stable across navigations so the SWR cache key stays constant.
-let _defaultEmpRepo: FirestoreEmployeeRepository | null = null
-function getDefaultEmpRepo(): FirestoreEmployeeRepository {
-  if (!_defaultEmpRepo) {
-    _defaultEmpRepo = new FirestoreEmployeeRepository(
-      db(),
-      async (targetUid: string) =>
-        (await new FirestoreUserRepository(db()).countSuperAdmins(targetUid)) === 0,
-    )
-  }
-  return _defaultEmpRepo
-}
-
-let _defaultAssetRepo: FirestoreAssetRepository | null = null
-function getDefaultAssetRepo(): FirestoreAssetRepository {
-  if (!_defaultAssetRepo) _defaultAssetRepo = new FirestoreAssetRepository(db())
-  return _defaultAssetRepo
-}
-
-let _defaultAsnRepo: FirestoreAssignmentRepository | null = null
-function getDefaultAsnRepo(): FirestoreAssignmentRepository {
-  if (!_defaultAsnRepo) _defaultAsnRepo = new FirestoreAssignmentRepository(db())
-  return _defaultAsnRepo
-}
 
 interface EmployeesSnapshot {
   employees: Employee[]
@@ -66,14 +39,14 @@ export function useEmployeesData({
 }: UseEmployeesDataOptions) {
   const { t } = useTranslation('employees')
 
-  // Use injected repos (test seam) or module-level singletons (production).
-  const repo = repository ?? getDefaultEmpRepo()
-  const assetRepo = assetRepository ?? getDefaultAssetRepo()
-  const asnRepo = assignmentRepository ?? getDefaultAsnRepo()
+  // Use injected repos (test seam) or shared production singletons.
+  const repo = repository ?? getSharedEmployeeRepositoryWithGuard()
+  const assetRepo = assetRepository ?? getSharedAssetRepository()
+  const asnRepo = assignmentRepository ?? getSharedAssignmentRepository()
 
   const defaultLoadRefData = useMemo(
     () => async () => {
-      const r = await getDefaultAssetRepo().loadReferenceData()
+      const r = await getSharedAssetRepository().loadReferenceData()
       return { branches: r.branches, departments: r.departments }
     },
     [],
@@ -150,7 +123,7 @@ export function useEmployeesData({
 
   // Derive head office branch id
   const headOfficeBranchId =
-    branches.find(b => b.id === 'br_main')?.id ??
+    branches.find(b => b.id === HEAD_OFFICE_BRANCH_ID)?.id ??
     branches.find(b => b.name === 'Головной офис')?.id ??
     branches[0]?.id ??
     null
@@ -195,7 +168,7 @@ export function useEmployeesData({
 
       let fetchedCategories: CategoryRow[] = []
       try {
-        const fullRef = await getDefaultAssetRepo().loadReferenceData()
+        const fullRef = await getSharedAssetRepository().loadReferenceData()
         fetchedCategories = fullRef.categories
         setCategories(fetchedCategories)
       } catch {

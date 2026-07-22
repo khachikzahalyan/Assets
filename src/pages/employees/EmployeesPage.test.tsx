@@ -494,6 +494,7 @@ describe('EmployeesPage', () => {
       listEmployees: vi.fn(async () => [emp()]),
       listFormerEmployees: listFormerSpy,
       getEmployee: vi.fn(async () => null),
+      findByEmail: vi.fn(async () => null),
       isEmailTaken: vi.fn(async () => false),
       createEmployee: vi.fn(),
       updateEmployee: vi.fn(),
@@ -555,6 +556,7 @@ describe('EmployeesPage', () => {
       listEmployees: vi.fn(async () => [targetEmp]),
       listFormerEmployees: vi.fn(async () => []),
       getEmployee: vi.fn(async () => null),
+      findByEmail: vi.fn(async () => null),
       isEmailTaken: vi.fn(async () => false),
       createEmployee: vi.fn(),
       updateEmployee: vi.fn(),
@@ -682,5 +684,91 @@ describe('EmployeesPage', () => {
     expect(assets[0]!.statusId).toBe('st_assigned')
     expect(assets[0]!.assignment?.mode).toBe('employee')
     expect(assets[0]!.assignment?.employeeId).toBe('uid_2')
+  })
+
+  // ── EmployeeEmailTerminatedError → RestoreConfirmModal (Fix 2г) ───────────
+
+  it('creating an employee with a terminated email opens RestoreConfirmModal and confirming restores the employee', async () => {
+    const user = userEvent.setup()
+
+    // Seed: one terminated employee with email that will be reused.
+    // The employee is stored in the employees array with status:'terminated'.
+    // listEmployees(status:'active') will filter it out; the page shows empty state.
+    const terminatedEmp: Employee = {
+      id: 'uid_old', firstName: 'Уволенный', lastName: 'Сотрудник', email: 'fired@x.com', phone: null,
+      position: null, branchId: null, departmentId: null, status: 'terminated',
+      terminatedAt: '2026-01-15T00:00:00.000Z',
+      createdAt: '2025-01-01T00:00:00.000Z', updatedAt: '2026-01-15T00:00:00.000Z',
+    }
+
+    // InMemoryEmployeeRepository is seeded with the terminated employee in its mutable employees array.
+    const repo = new InMemoryEmployeeRepository([terminatedEmp])
+    const refLoader = async () => ({
+      branches: [{ id: 'br_main', name: 'Головной офис' }],
+      departments: [{ id: 'dept_1', name: 'IT' }],
+    })
+
+    render(
+      <I18nextProvider i18n={i18n}>
+        <AuthContext.Provider value={authCtx('asset_admin')}>
+          <ToastProvider>
+            <MemoryRouter>
+              <EmployeesPage
+                repository={repo}
+                loadRefData={refLoader}
+                assetCounts={{}}
+              />
+            </MemoryRouter>
+          </ToastProvider>
+        </AuthContext.Provider>
+      </I18nextProvider>,
+    )
+
+    // Wait for the page to finish loading — the terminated emp shows in the list
+    // (listEmployees strips status from query; display of active-only is Firestore's job).
+    // We just wait for the page not to be in a loading skeleton state.
+    const addBtn = await screen.findByRole('button', { name: /Добавить/i })
+    await user.click(addBtn)
+
+    // The create modal opens
+    await waitFor(() => {
+      expect(screen.getByText('Новый сотрудник')).toBeInTheDocument()
+    })
+
+    // Fill the form using aria-label selectors (matches the Input's ariaLabel prop)
+    await user.type(screen.getByRole('textbox', { name: /^Имя$/i }), 'Новый')
+    await user.type(screen.getByRole('textbox', { name: /^Фамилия$/i }), 'Найм')
+    await user.type(screen.getByRole('textbox', { name: /^Должность$/i }), 'Инженер')
+    // Select department (native <select>, role=combobox, implicitly labelled by wrapping <label>)
+    await user.selectOptions(screen.getByRole('combobox'), 'dept_1')
+    await user.type(screen.getByRole('textbox', { name: /^Телефон$/i }), '094908978')
+    await user.type(screen.getByRole('textbox', { name: /^Gmail$/i }), 'fired@x.com')
+
+    // Submit — the button becomes enabled once all fields are valid
+    const createBtn = screen.getByRole('button', { name: /^Создать$/i })
+    await waitFor(() => { expect(createBtn).not.toBeDisabled() })
+    await user.click(createBtn)
+
+    // The form should close and RestoreConfirmModal should appear (it renders a dialog)
+    const restoreTitle = await screen.findByText('Восстановить сотрудника?')
+    expect(restoreTitle).toBeInTheDocument()
+
+    // The dialog containing the title has the full name
+    const dialog = restoreTitle.closest('[role="dialog"]') ?? restoreTitle
+    expect(dialog).toHaveTextContent('Уволенный Сотрудник')
+
+    // Confirm restore — scoped to the modal's dialog element
+    const restoreBtn = within(dialog as HTMLElement).getByRole('button', { name: /^Восстановить$/i })
+    await user.click(restoreBtn)
+
+    // After confirming, the success toast shows
+    await waitFor(() => {
+      expect(screen.getByText(/Сотрудник восстановлен/i)).toBeInTheDocument()
+    })
+
+    // The employee is now active in the repository
+    const restored = await repo.getEmployee('uid_old')
+    expect(restored?.status).toBe('active')
+    expect(restored?.terminatedAt).toBeNull()
   })
 })

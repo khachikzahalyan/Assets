@@ -58,10 +58,11 @@ export function EmployeesFilterBar({
     })),
   ]
 
+  // Status dots mirror the row chips: active = green, terminated = red
   const statusOptions: SelectMiniOption[] = [
     { value: 'all',        label: t('filter.all') },
-    { value: 'active',     label: t('status.active') },
-    { value: 'terminated', label: t('status.terminated') },
+    { value: 'active',     label: t('status.active'), dotColor: '#22C55E' },
+    { value: 'terminated', label: t('status.terminated'), dotColor: '#F43F5E' },
   ]
 
   const sortOptions: SelectMiniOption[] = [

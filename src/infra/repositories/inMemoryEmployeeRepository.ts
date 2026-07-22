@@ -1,11 +1,12 @@
 import type {
   Employee, EmployeeListQuery,
   EmployeeRepository, CreateEmployeeInput, UpdateEmployeeInput,
-  LastSuperAdminCheck,
+  LastSuperAdminCheck, ActiveAssetsCheck,
 } from '@/domain/employee'
-import { EmployeeArchiveError } from '@/domain/employee'
+import { EmployeeArchiveError, EmployeeEmailTerminatedError } from '@/domain/employee'
 import type { Actor } from '@/domain/asset'
 import { withAudit, type AuditContext, createInMemoryAuditStore, inMemoryAuditContext } from '@/lib/audit'
+import type { OnEmployeeDeptChange } from './firestoreEmployeeRepository'
 
 function fullName(e: { firstName: string; lastName: string }): string {
   return `${e.firstName} ${e.lastName}`.trim()
@@ -18,6 +19,8 @@ export class InMemoryEmployeeRepository implements EmployeeRepository {
     private readonly former: Employee[] = [],
     private readonly audit: AuditContext = inMemoryAuditContext(createInMemoryAuditStore()),
     private readonly lastSuperAdminCheck?: LastSuperAdminCheck,
+    private readonly activeAssetsCheck?: ActiveAssetsCheck,
+    private readonly onDeptChange?: OnEmployeeDeptChange,
   ) {}
 
   async listEmployees(query: EmployeeListQuery = {}): Promise<Employee[]> {
@@ -35,8 +38,17 @@ export class InMemoryEmployeeRepository implements EmployeeRepository {
   }
 
   async listFormerEmployees(query: EmployeeListQuery = {}): Promise<Employee[]> {
+    // Primary: in-place terminated docs in employees array
+    const inPlaceTerminated = this.employees.filter(e => e.status === 'terminated')
+
+    // Legacy: former array (backward compat for old move-semantics data)
+    // Deduplicate: employees doc wins over former doc with same id
+    const byId = new Map<string, Employee>()
+    for (const e of this.former) byId.set(e.id, e)
+    for (const e of inPlaceTerminated) byId.set(e.id, e) // overwrites if same id
+
     const search = (query.search ?? '').trim().toLowerCase()
-    return this.former.filter(e => {
+    return Array.from(byId.values()).filter(e => {
       if (query.branchId && query.branchId !== 'all' && e.branchId !== query.branchId) return false
       if (query.departmentId && query.departmentId !== 'all' && e.departmentId !== query.departmentId) return false
       if (search) {
@@ -51,6 +63,15 @@ export class InMemoryEmployeeRepository implements EmployeeRepository {
     return this.employees.find(e => e.id === id) ?? null
   }
 
+  async findByEmail(email: string): Promise<Employee | null> {
+    const needle = email.trim().toLowerCase()
+    // Search active employees first
+    const inEmp = this.employees.find(e => e.email.toLowerCase() === needle)
+    if (inEmp) return inEmp
+    // Legacy fallback: former array
+    return this.former.find(e => e.email.toLowerCase() === needle) ?? null
+  }
+
   async isEmailTaken(email: string, exceptId?: string): Promise<boolean> {
     const needle = email.trim().toLowerCase()
     return this.employees.some(e => e.email.toLowerCase() === needle && e.id !== exceptId)
@@ -58,7 +79,16 @@ export class InMemoryEmployeeRepository implements EmployeeRepository {
 
   async createEmployee(input: CreateEmployeeInput, actor: Actor) {
     if (this.employees.some(e => e.id === input.id)) throw new Error(`Employee already exists: ${input.id}`)
-    if (await this.isEmailTaken(input.email)) throw new Error(`Email already in use: ${input.email}`)
+
+    // Check terminated email BEFORE generic email-taken check
+    const emailMatch = await this.findByEmail(input.email)
+    if (emailMatch) {
+      if (emailMatch.status === 'terminated') {
+        throw new EmployeeEmailTerminatedError(emailMatch.id, input.email)
+      }
+      throw new Error(`Email already in use: ${input.email}`)
+    }
+
     const now = new Date().toISOString()
     const employee: Employee = {
       id: input.id,
@@ -77,7 +107,7 @@ export class InMemoryEmployeeRepository implements EmployeeRepository {
     return withAudit(this.audit,
       {
         entityType: 'employee', entityId: input.id, action: 'created',
-        actorUid: actor.uid, actorRole: actor.role,
+        actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
         after: { id: input.id, email: input.email } as Record<string, unknown>,
       },
       async () => { this.employees.push(employee); return { value: employee } },
@@ -96,15 +126,33 @@ export class InMemoryEmployeeRepository implements EmployeeRepository {
       ...stripUndefined(patch),
       updatedAt: new Date().toISOString(),
     }
-    return withAudit(this.audit,
+
+    // Build before-snapshot covering exactly the fields present in the patch.
+    const beforeSnapshot: Record<string, unknown> = {}
+    if (patch.email !== undefined) beforeSnapshot.email = before.email
+    if (patch.position !== undefined) beforeSnapshot.position = before.position
+    if (patch.phone !== undefined) beforeSnapshot.phone = before.phone
+    if (patch.departmentId !== undefined) beforeSnapshot.departmentId = before.departmentId
+    if (patch.branchId !== undefined) beforeSnapshot.branchId = before.branchId
+    if (patch.firstName !== undefined) beforeSnapshot.firstName = before.firstName
+    if (patch.lastName !== undefined) beforeSnapshot.lastName = before.lastName
+
+    const r = await withAudit(this.audit,
       {
         entityType: 'employee', entityId: id, action: 'updated',
-        actorUid: actor.uid, actorRole: actor.role,
-        before: { email: before.email, position: before.position } as Record<string, unknown>,
+        actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
+        before: beforeSnapshot,
         after: stripUndefined(patch) as Record<string, unknown>,
       },
       async () => { this.employees[idx] = next; return { value: next } },
     )
+
+    // Propagate department change to assigned assets (denormalized deptId field).
+    if (patch.departmentId !== undefined && this.onDeptChange) {
+      await this.onDeptChange(id, patch.departmentId ?? null)
+    }
+
+    return r
   }
 
   async archiveEmployee(id: string, actor: Actor) {
@@ -114,32 +162,53 @@ export class InMemoryEmployeeRepository implements EmployeeRepository {
     if (this.lastSuperAdminCheck && await this.lastSuperAdminCheck(id)) {
       throw new EmployeeArchiveError('last-super-admin')
     }
+    if (this.activeAssetsCheck && await this.activeAssetsCheck(id)) {
+      throw new EmployeeArchiveError('active-assets')
+    }
     const before = this.employees[idx]!
     const now = new Date().toISOString()
-    const archived: Employee = { ...before, status: 'terminated', terminatedAt: now, updatedAt: now }
+    // In-place status flip: update the record in employees array (do NOT splice/move)
+    const terminated: Employee = { ...before, status: 'terminated', terminatedAt: now, updatedAt: now }
     return withAudit(this.audit,
       {
         entityType: 'employee', entityId: id, action: 'terminated',
-        actorUid: actor.uid, actorRole: actor.role,
+        actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
         before: { status: before.status }, after: { status: 'terminated' },
       },
-      async () => { this.employees.splice(idx, 1); this.former.push(archived); return { value: archived } },
+      async () => { this.employees[idx] = terminated; return { value: terminated } },
     )
   }
 
   async restoreEmployee(id: string, actor: Actor) {
-    const idx = this.former.findIndex(e => e.id === id)
-    if (idx < 0) throw new Error(`Former employee not found: ${id}`)
-    const before = this.former[idx]!
+    // Primary path: find in employees array (in-place terminated)
+    const empIdx = this.employees.findIndex(e => e.id === id)
+    if (empIdx >= 0) {
+      const before = this.employees[empIdx]!
+      const now = new Date().toISOString()
+      const restored: Employee = { ...before, status: 'active', terminatedAt: null, updatedAt: now }
+      return withAudit(this.audit,
+        {
+          entityType: 'employee', entityId: id, action: 'reactivated',
+          actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
+          before: { status: 'terminated' }, after: { status: 'active' },
+        },
+        async () => { this.employees[empIdx] = restored; return { value: restored } },
+      )
+    }
+
+    // Legacy fallback: find in former array (old move-semantics data)
+    const formerIdx = this.former.findIndex(e => e.id === id)
+    if (formerIdx < 0) throw new Error(`Former employee not found: ${id}`)
+    const before = this.former[formerIdx]!
     const now = new Date().toISOString()
     const restored: Employee = { ...before, status: 'active', terminatedAt: null, updatedAt: now }
     return withAudit(this.audit,
       {
         entityType: 'employee', entityId: id, action: 'reactivated',
-        actorUid: actor.uid, actorRole: actor.role,
+        actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
         before: { status: 'terminated' }, after: { status: 'active' },
       },
-      async () => { this.former.splice(idx, 1); this.employees.push(restored); return { value: restored } },
+      async () => { this.former.splice(formerIdx, 1); this.employees.push(restored); return { value: restored } },
     )
   }
 }

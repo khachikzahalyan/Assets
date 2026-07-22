@@ -62,6 +62,44 @@ describe('InMemoryAssignmentRepository', () => {
     await expect(repo.returnAsset('a_1', ACTOR)).rejects.toThrow()
   })
 
+  it('assign(employee) with deptId writes deptId onto the asset', async () => {
+    await repo.assign(
+      { assetId: 'a_1', mode: 'employee', employeeId: 'e_1', deptId: 'dept_eng' },
+      ACTOR,
+    )
+    expect(assets[0]!.deptId).toBe('dept_eng')
+  })
+
+  it('assign(employee) with deptId: null clears deptId on the asset', async () => {
+    // Pre-set a deptId on the asset
+    assets[0]!.deptId = 'dept_old'
+    await repo.assign(
+      { assetId: 'a_1', mode: 'employee', employeeId: 'e_1', deptId: null },
+      ACTOR,
+    )
+    expect(assets[0]!.deptId).toBeNull()
+  })
+
+  it('assign(employee) without deptId does not touch existing deptId on the asset', async () => {
+    assets[0]!.deptId = 'dept_existing'
+    await repo.assign(
+      { assetId: 'a_1', mode: 'employee', employeeId: 'e_1' },
+      ACTOR,
+    )
+    // deptId field unchanged because deptId was not supplied in AssignInput
+    expect(assets[0]!.deptId).toBe('dept_existing')
+  })
+
+  it('assign(branch) ignores deptId even if supplied', async () => {
+    assets[0]!.deptId = 'dept_existing'
+    await repo.assign(
+      { assetId: 'a_1', mode: 'branch', branchId: 'br_2', deptId: 'dept_should_be_ignored' },
+      ACTOR,
+    )
+    // deptId spread is guarded by mode === 'employee'
+    expect(assets[0]!.deptId).toBe('dept_existing')
+  })
+
   it('listAssignments returns history newest first', async () => {
     await repo.assign({ assetId: 'a_1', mode: 'branch', branchId: 'br_2' }, ACTOR)
     await repo.returnAsset('a_1', ACTOR)

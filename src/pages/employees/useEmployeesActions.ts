@@ -1,11 +1,13 @@
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
-import { EmployeeArchiveError } from '@/domain/employee'
+import { EmployeeArchiveError, EmployeeEmailTerminatedError } from '@/domain/employee'
+import type { Employee } from '@/domain/employee'
 import type { DrawerLinkedAsset, HandoverAsset, PickerStockRow } from '@/components/features/employees'
 import type { EmployeeFormSubmit } from '@/components/features/employees/EmployeeFormModal'
 import type { Destination } from '@/components/features/employees/DestPicker'
 import { destToPatch } from './employeesHelpers'
+import { ASSET_STATUS } from '@/domain/asset'
 import type { EmployeesDataBag } from './useEmployeesData'
 
 export function useEmployeesActions(d: EmployeesDataBag) {
@@ -13,7 +15,7 @@ export function useEmployeesActions(d: EmployeesDataBag) {
   const { user, role } = useAuth()
   const { showToast } = useToast()
 
-  const actor = { uid: user.id, role }
+  const actor = { uid: user.id, role, displayName: user.name }
 
   const {
     repo, assetRepo, asnRepo, defaultLoadAssetCounts, assetCountsProp,
@@ -31,6 +33,13 @@ export function useEmployeesActions(d: EmployeesDataBag) {
 
   function handleCreate() {
     setFormInitial(null)
+    setFormOpen(true)
+  }
+
+  /** Open the employee form in edit mode (identity fields locked; position /
+      phone / department editable) — the only UI path for changing department. */
+  function handleEdit(emp: Employee) {
+    setFormInitial(emp)
     setFormOpen(true)
   }
 
@@ -67,11 +76,23 @@ export function useEmployeesActions(d: EmployeesDataBag) {
       setFormOpen(false)
       await reload()
     } catch (err: unknown) {
+      // Fix 2г: terminated-email gate — offer restore flow
+      if (err instanceof EmployeeEmailTerminatedError) {
+        setFormOpen(false)
+        showToast(t('validation.emailTerminated'), { variant: 'error' })
+        // Resolve the terminated employee to feed into RestoreConfirmModal
+        let emp = employees.find(e => e.id === err.employeeId) ?? former.find(e => e.id === err.employeeId) ?? null
+        if (!emp) {
+          try { emp = await repo.findByEmail(submit.email) } catch { emp = null }
+        }
+        if (emp) setRestoreTarget(emp)
+        return
+      }
       const msg = err instanceof Error ? err.message : String(err)
       if (/email already in use/i.test(msg)) {
-        showToast(t('validation.emailTaken'))
+        showToast(t('validation.emailTaken'), { variant: 'error' })
       } else {
-        showToast(t('validation.saveFailed'))
+        showToast(t('validation.saveFailed'), { variant: 'error' })
       }
     }
   }
@@ -94,7 +115,7 @@ export function useEmployeesActions(d: EmployeesDataBag) {
   }
 
   async function handleArchive(empId: string) {
-    if (empId === actor.uid) { showToast(t('guard.self-archive')); return }
+    if (empId === actor.uid) { showToast(t('guard.self-archive'), { variant: 'error' }); return }
     setDetailId(null)
     const emp = employees.find(e => e.id === empId)
     if (!emp) return
@@ -104,8 +125,8 @@ export function useEmployeesActions(d: EmployeesDataBag) {
         showToast(t('toast.archived'))
         await reload()
       } catch (err) {
-        if (err instanceof EmployeeArchiveError) { showToast(t(`guard.${err.reason}`)); return }
-        showToast(t('validation.saveFailed'))
+        if (err instanceof EmployeeArchiveError) { showToast(t(`guard.${err.reason}`), { variant: 'error' }); return }
+        showToast(t('validation.saveFailed'), { variant: 'error' })
       }
     } else {
       try {
@@ -147,8 +168,8 @@ export function useEmployeesActions(d: EmployeesDataBag) {
       setHandoverTarget(null)
       await reload()
     } catch (err) {
-      if (err instanceof EmployeeArchiveError) { showToast(t(`guard.${err.reason}`)); return }
-      showToast(t('validation.saveFailed'))
+      if (err instanceof EmployeeArchiveError) { showToast(t(`guard.${err.reason}`), { variant: 'error' }); return }
+      showToast(t('validation.saveFailed'), { variant: 'error' })
     }
   }
 
@@ -172,9 +193,9 @@ export function useEmployeesActions(d: EmployeesDataBag) {
     if (failCount === 0) {
       showToast(t('transfer.toastDone', { count: okCount }))
     } else if (okCount === 0) {
-      showToast(t('transfer.toastFailed'))
+      showToast(t('transfer.toastFailed'), { variant: 'error' })
     } else {
-      showToast(t('transfer.toastPartial', { ok: okCount, total, failed: failCount }))
+      showToast(t('transfer.toastPartial', { ok: okCount, total, failed: failCount }), { variant: 'error' })
     }
     if (okCount > 0) {
       if (detailId) await handleOpenDetail(detailId)
@@ -200,7 +221,7 @@ export function useEmployeesActions(d: EmployeesDataBag) {
       setRestoreTarget(null)
       await reload()
     } catch {
-      showToast(t('validation.saveFailed'))
+      showToast(t('validation.saveFailed'), { variant: 'error' })
     }
   }
 
@@ -209,7 +230,7 @@ export function useEmployeesActions(d: EmployeesDataBag) {
     const emp = employees.find(e => e.id === empId)
     if (!emp) return
     try {
-      const assets = await assetRepo.listAssets({ statusId: 'st_warehouse', branchId: emp.branchId ?? 'all' })
+      const assets = await assetRepo.listAssets({ statusId: ASSET_STATUS.warehouse, branchId: emp.branchId ?? 'all' })
       const stock: PickerStockRow[] = assets.map(a => {
         const cat = catMap.get(a.categoryId)
         const catName = cat?.name ?? ''
@@ -240,6 +261,7 @@ export function useEmployeesActions(d: EmployeesDataBag) {
             employeeEmail: pickerTarget.email,
             employeeName: `${pickerTarget.firstName} ${pickerTarget.lastName}`,
             invCode: row?.invCode ?? null,
+            deptId: pickerTarget.departmentId,
           },
           actor,
         )
@@ -248,12 +270,13 @@ export function useEmployeesActions(d: EmployeesDataBag) {
       setPickerTarget(null)
       await reload()
     } catch {
-      showToast(t('validation.saveFailed'))
+      showToast(t('validation.saveFailed'), { variant: 'error' })
     }
   }
 
   return {
     handleCreate,
+    handleEdit,
     handleSaveForm,
     handleOpenDetail,
     handleArchive,

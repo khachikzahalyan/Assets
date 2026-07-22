@@ -171,7 +171,7 @@ export function EmployeesTable({
       width: COL_WIDTHS[6],
       cellClassName: 'overflow-hidden min-w-0',
       cell: (emp) => {
-        const statusColor = emp.status === 'active' ? 'green' : 'violet'
+        const statusColor = emp.status === 'active' ? 'green' : 'red'
         return (
           <Chip color={statusColor} dot>
             {t(`status.${emp.status}`)}

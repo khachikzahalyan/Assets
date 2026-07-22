@@ -17,6 +17,12 @@ export interface AssignInput {
   employeeName?: string | null
   /** Asset inventory code — included in the mail body. */
   invCode?: string | null
+  /**
+   * Department id of the employee being assigned to (employee mode).
+   * Written as `deptId` on the asset document so the asset always reflects the
+   * employee's current department. Omit for branch-mode assignments.
+   */
+  deptId?: string | null
 }
 
 export interface AssignmentRepository {

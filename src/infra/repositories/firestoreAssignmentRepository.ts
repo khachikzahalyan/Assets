@@ -3,6 +3,7 @@ import {
   type Firestore, type Transaction,
 } from 'firebase/firestore'
 import type { Actor } from '@/domain/asset'
+import { ASSET_STATUS } from '@/domain/asset'
 import type { Assignment, AssignInput, AssignmentRepository } from '@/domain/assignment'
 import { firestoreAuditContext, withAudit } from '@/lib/audit'
 import type { AuditedResult } from '@/domain/audit'
@@ -71,7 +72,7 @@ export class FirestoreAssignmentRepository implements AssignmentRepository {
     const r = await withAudit(this.audit,
       {
         entityType: 'assignment', entityId: asnRef.id, action: 'assigned',
-        actorUid: actor.uid, actorRole: actor.role,
+        actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
         after: {
           assetId: input.assetId, mode: input.mode,
           assignedToEmployeeId: input.mode === 'employee' ? input.employeeId! : null,
@@ -84,7 +85,7 @@ export class FirestoreAssignmentRepository implements AssignmentRepository {
         const assetSnap = await t.get(assetRef)
         if (!assetSnap.exists()) throw new Error(`Asset not found: ${input.assetId}`)
         const status = String((assetSnap.data() as Record<string, unknown>).statusId ?? '')
-        if (status !== 'st_warehouse') throw new Error(`Asset not assignable (status ${status})`)
+        if (status !== ASSET_STATUS.warehouse) throw new Error(`Asset not assignable (status ${status})`)
 
         t.set(asnRef, {
           assetId: input.assetId, mode: input.mode,
@@ -96,10 +97,13 @@ export class FirestoreAssignmentRepository implements AssignmentRepository {
           createdBy: actor.uid, createdAt: serverTimestamp(),
         })
         t.set(assetRef, {
-          statusId: 'st_assigned',
+          statusId: ASSET_STATUS.assigned,
           assignment: input.mode === 'employee'
             ? { mode: 'employee', employeeId: input.employeeId! }
             : { mode: 'branch', branchId: input.branchId! },
+          ...(input.mode === 'employee' && input.deptId !== undefined
+            ? { deptId: input.deptId }
+            : {}),
           updatedBy: actor.uid, updatedAt: serverTimestamp(),
         }, { merge: true })
         if (input.mode === 'employee' && input.employeeEmail) {
@@ -130,7 +134,7 @@ export class FirestoreAssignmentRepository implements AssignmentRepository {
     const r = await withAudit(this.audit,
       {
         entityType: 'assignment', entityId: active.id, action: 'returned',
-        actorUid: actor.uid, actorRole: actor.role,
+        actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
         before: { assetId, mode: active.mode },
         after: { assetId, endedAt: now },
       },
@@ -145,7 +149,7 @@ export class FirestoreAssignmentRepository implements AssignmentRepository {
           throw new Error(`No active assignment for asset: ${assetId}`)
         }
         t.set(asnRef, { endedAt: serverTimestamp() }, { merge: true })
-        t.set(assetRef, { statusId: 'st_warehouse', assignment: null, updatedBy: actor.uid, updatedAt: serverTimestamp() }, { merge: true })
+        t.set(assetRef, { statusId: ASSET_STATUS.warehouse, assignment: null, updatedBy: actor.uid, updatedAt: serverTimestamp() }, { merge: true })
         return { value: undefined as unknown as void }
       })
 

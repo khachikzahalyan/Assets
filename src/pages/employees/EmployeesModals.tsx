@@ -76,6 +76,7 @@ export function EmployeesModals({ data, actions, currentUserId }: EmployeesModal
         departmentName={detailDeptName}
         linkedAssets={detailLinkedAssets}
         onClose={() => setDetailId(null)}
+        onEdit={() => { if (detailEmp) actions.handleEdit(detailEmp) }}
         onArchive={id => { void actions.handleArchive(id) }}
         onRestore={id => { actions.handleRestore(id) }}
         onLinkAssets={id => { void actions.handleLinkAssets(id) }}

@@ -1,4 +1,5 @@
 import type { Asset, Actor } from '@/domain/asset'
+import { ASSET_STATUS } from '@/domain/asset'
 import type { Assignment, AssignInput, AssignmentRepository } from '@/domain/assignment'
 import { withAudit, type AuditContext } from '@/lib/audit'
 import type { AuditedResult } from '@/domain/audit'
@@ -40,7 +41,7 @@ export class InMemoryAssignmentRepository implements AssignmentRepository {
   async assign(input: AssignInput, actor: Actor): Promise<AuditedResult<Assignment>> {
     const idx = this.assets.findIndex(a => a.id === input.assetId)
     if (idx < 0) throw new Error(`Asset not found: ${input.assetId}`)
-    if (this.assets[idx]!.statusId !== 'st_warehouse') {
+    if (this.assets[idx]!.statusId !== ASSET_STATUS.warehouse) {
       throw new Error(`Asset not assignable (status ${this.assets[idx]!.statusId})`)
     }
     if (input.mode === 'employee' && !input.employeeId) throw new Error('employeeId required')
@@ -62,7 +63,7 @@ export class InMemoryAssignmentRepository implements AssignmentRepository {
     const r = await withAudit(this.audit,
       {
         entityType: 'assignment', entityId: assignment.id, action: 'assigned',
-        actorUid: actor.uid, actorRole: actor.role,
+        actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
         after: {
           assetId: input.assetId, mode: input.mode,
           assignedToEmployeeId: assignment.assignedToEmployeeId,
@@ -74,10 +75,13 @@ export class InMemoryAssignmentRepository implements AssignmentRepository {
         this.history.push(assignment)
         this.assets[idx] = {
           ...this.assets[idx]!,
-          statusId: 'st_assigned',
+          statusId: ASSET_STATUS.assigned,
           assignment: input.mode === 'employee'
             ? { mode: 'employee', employeeId: input.employeeId! }
             : { mode: 'branch', branchId: input.branchId! },
+          ...(input.mode === 'employee' && input.deptId !== undefined
+            ? { deptId: input.deptId }
+            : {}),
           updatedAt: now,
         }
         if (input.mode === 'employee' && input.employeeEmail) {
@@ -105,13 +109,13 @@ export class InMemoryAssignmentRepository implements AssignmentRepository {
     const r = await withAudit(this.audit,
       {
         entityType: 'assignment', entityId: active.id, action: 'returned',
-        actorUid: actor.uid, actorRole: actor.role,
+        actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
         before: { assetId, mode: active.mode },
         after: { assetId, endedAt: now },
       },
       async () => {
         active.endedAt = now
-        this.assets[idx] = { ...this.assets[idx]!, statusId: 'st_warehouse', assignment: null, updatedAt: now }
+        this.assets[idx] = { ...this.assets[idx]!, statusId: ASSET_STATUS.warehouse, assignment: null, updatedAt: now }
         return { value: active }
       })
     return r
