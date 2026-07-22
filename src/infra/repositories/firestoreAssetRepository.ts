@@ -13,12 +13,21 @@ import type {
   SelfServiceRefData,
 } from '@/domain/asset'
 import type { UpgradeComponent, UpgradeEvent } from '@/domain/asset'
-import { deriveCreateStatus, isSpecTracked, SPEC_KEY } from '@/domain/asset'
+import { deriveCreateStatus, isSpecTracked, SPEC_KEY, ASSET_STATUS } from '@/domain/asset'
+import {
+  DuplicateInvCodeError, ConcurrentEditError, BatchTooLargeError, BatchLicenseUnsupportedError,
+  invCodeLockId,
+} from '@/domain/asset/errors'
 import { generateBarcodeCandidate } from '@/domain/asset/barcode'
 import { HEAD_OFFICE_BRANCH_ID } from '@/domain/asset/transferRules'
-import { firestoreAuditContext, withAudit } from '@/lib/audit'
+import { firestoreAuditContext, withAudit, buildAuditDocData } from '@/lib/audit'
 import type { AuditedResult, AuditLog } from '@/domain/audit'
 import type { WorkstationLicenseRepository } from '@/domain/license'
+
+/** Maximum number of assets allowed in a single atomic batch. 4 writes per asset
+ *  (asset doc + inv_codes lock + barcodes lock + audit_logs entry) and Firestore
+ *  transactions are capped at 500 operations. 100 × 4 = 400 < 500 → safe headroom. */
+const MAX_BATCH_SIZE = 100
 
 const SERVER_SORT: Record<AssetSort, [string, 'asc' | 'desc']> = {
   updated_desc: ['updatedAt', 'desc'],
@@ -286,7 +295,8 @@ export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepo
   }
 
   async createAsset(input: CreateAssetInput, actor: Actor): Promise<AuditedResult<Asset>> {
-    if (await this.isInvCodeTaken(input.invCode)) throw new Error(`Inventory code already in use: ${input.invCode}`)
+    // Fast pre-checks (outside the txn) for a friendly error before barcode reservation.
+    if (await this.isInvCodeTaken(input.invCode)) throw new DuplicateInvCodeError(input.invCode)
     if (input.serial && await this.isSerialTaken(input.serial)) throw new Error(`Serial already in use: ${input.serial}`)
     const ref = doc(collection(this.db, 'assets'))
     const barcode = await this.reserveBarcode(ref.id, input.barcode)
@@ -303,11 +313,20 @@ export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepo
       createdBy: actor.uid, updatedBy: actor.uid,
       createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
     })
+    // FIX 1: invCode uniqueness lock written inside the same txn as the asset doc.
+    // The get() comes FIRST (Firestore web SDK requires all reads before any writes).
+    const invLockRef = doc(this.db, 'inv_codes', invCodeLockId(input.invCode))
     const r = await withAudit(this.audit,
-      { entityType: 'asset', entityId: ref.id, action: 'created', actorUid: actor.uid, actorRole: actor.role,
+      { entityType: 'asset', entityId: ref.id, action: 'created', actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
         after: { invCode: input.invCode, statusId } },
       async (txn) => {
-        ;(txn as unknown as Transaction).set(ref, data)
+        const t = txn as unknown as Transaction
+        // READ phase: check the lock atomically (prevents TOCTOU window from pre-check).
+        const lockSnap = await t.get(invLockRef)
+        if (lockSnap.exists()) throw new DuplicateInvCodeError(input.invCode)
+        // WRITE phase: asset doc + invCode lock (barcode lock already committed by reserveBarcode).
+        t.set(ref, data)
+        t.set(invLockRef, { assetId: ref.id, invCode: input.invCode, createdAt: serverTimestamp() })
         return { value: undefined as unknown as void }
       })
     const created = await this.getAsset(ref.id)
@@ -356,38 +375,149 @@ export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepo
   }
 
   /**
-   * Group registration. Dual uniqueness is enforced up-front (GOLDEN RULE):
-   *  - within-batch duplicates of invCode/serial are rejected before any write;
-   *  - each invCode/serial is checked against existing assets via Firestore queries.
-   * Then each asset is created with its own audited transaction (createAsset).
-   * NOTE: a server-side guarantee (Firestore rule / Cloud Function) is the eventual
-   * hardening — not deployable now (no Blaze). Client-side checks are the current line.
+   * FIX 4 — Atomic group registration in a single Firestore transaction.
+   *
+   * Op count per asset: 1 asset doc + 1 inv_codes lock + 1 barcodes lock + 1 audit_logs entry = 4.
+   * Cap: 100 inputs × 4 = 400 ops < 500-op Firestore transaction limit.
+   *
+   * Transaction structure (reads MUST come before writes in the Firestore web SDK):
+   *   READ phase:  for each input, get inv_codes lock; for barcode candidates, get lock refs.
+   *   WRITE phase: set asset doc, inv_codes lock, barcodes lock, audit_logs entry.
    */
   async createAssetsBatch(inputs: CreateAssetInput[], actor: Actor): Promise<Asset[]> {
+    // Guard: batch size
+    if (inputs.length > MAX_BATCH_SIZE) throw new BatchTooLargeError(inputs.length, MAX_BATCH_SIZE)
+    // Guard: no oemLicense in batch (group-mode UI never sends it; fail fast)
+    for (const input of inputs) {
+      if (input.oemLicense) throw new BatchLicenseUnsupportedError()
+    }
+    // Pre-validation (friendly errors before touching the txn)
     assertBatchUnique(inputs)
     for (const input of inputs) {
-      if (await this.isInvCodeTaken(input.invCode)) throw new Error(`Inventory code already in use: ${input.invCode}`)
+      if (await this.isInvCodeTaken(input.invCode)) throw new DuplicateInvCodeError(input.invCode)
       if (input.serial && await this.isSerialTaken(input.serial)) throw new Error(`Serial already in use: ${input.serial}`)
     }
-    const created: Asset[] = []
-    for (const input of inputs) {
-      const r = await this.createAsset(input, actor)
-      created.push(r.value)
-    }
-    return created
+
+    // Pre-allocate asset doc refs (ids must be known before the txn for audit specs)
+    const assetRefs = inputs.map(() => doc(collection(this.db, 'assets')))
+    const invLockRefs = inputs.map(inp => doc(this.db, 'inv_codes', invCodeLockId(inp.invCode)))
+
+    // Build per-input barcode candidate lists (preferred + 20 generated)
+    const barcodeCandidateLists = inputs.map(inp =>
+      (inp.barcode ? [inp.barcode] : []).concat(Array.from({ length: 20 }, () => generateBarcodeCandidate())),
+    )
+
+    const ids = assetRefs.map(r => r.id)
+
+    await runTransaction(this.db, async (txn) => {
+      // ---- READ PHASE ----
+      // 1. Inv_code lock reads — detect race conditions missed by pre-check
+      const invLockSnaps = await Promise.all(invLockRefs.map(r => txn.get(r)))
+      for (let i = 0; i < inputs.length; i++) {
+        if (invLockSnaps[i]!.exists()) throw new DuplicateInvCodeError(inputs[i]!.invCode)
+      }
+
+      // 2. Barcode candidate reads — find a free slot per input (within-batch distinct)
+      const reservedBarcodes = new Set<string>()
+      const chosenBarcodes: string[] = []
+      for (let i = 0; i < inputs.length; i++) {
+        const candidates = barcodeCandidateLists[i]!
+        let chosen: string | null = null
+        for (const candidate of candidates) {
+          if (reservedBarcodes.has(candidate)) continue
+          const snap = await txn.get(doc(this.db, 'barcodes', candidate))
+          if (!snap.exists()) {
+            chosen = candidate
+            break
+          }
+        }
+        if (!chosen) throw new Error(`Could not reserve a unique barcode for asset ${i + 1} in the batch after multiple attempts`)
+        reservedBarcodes.add(chosen)
+        chosenBarcodes.push(chosen)
+      }
+
+      // ---- WRITE PHASE ----
+      const at = serverTimestamp()
+      for (let i = 0; i < inputs.length; i++) {
+        const input = inputs[i]!
+        const assetRef = assetRefs[i]!
+        const invLockRef = invLockRefs[i]!
+        const barcode = chosenBarcodes[i]!
+        const statusId = deriveCreateStatus(input.assignment)
+
+        const assetData: Record<string, unknown> = stripUndefinedFs({
+          categoryId: input.categoryId, brand: input.brand, model: input.model,
+          type: input.type,
+          invCode: input.invCode, serial: input.serial, barcode, statusId,
+          assignment: input.assignment, branchId: input.branchId, deptId: input.deptId,
+          currentSpecs: input.currentSpecs ?? null,
+          condition: input.condition,
+          purchaseDate: input.condition === 'new' ? input.purchaseDate : null,
+          warrantyEndsAt: input.condition === 'new' ? input.warrantyEndsAt : null,
+          createdBy: actor.uid, updatedBy: actor.uid,
+          createdAt: at, updatedAt: at,
+        })
+
+        txn.set(assetRef, assetData)
+        txn.set(invLockRef, { assetId: ids[i], invCode: input.invCode, createdAt: at })
+        txn.set(doc(this.db, 'barcodes', barcode), { assetId: ids[i], createdAt: at })
+
+        const auditRef = doc(collection(this.db, 'audit_logs'))
+        const auditSpec = {
+          entityType: 'asset' as const,
+          entityId: ids[i]!,
+          action: 'created' as const,
+          actorUid: actor.uid,
+          actorRole: actor.role,
+          actorName: actor.displayName ?? null,
+        }
+        txn.set(auditRef, buildAuditDocData(
+          auditSpec,
+          null,
+          { invCode: input.invCode, statusId },
+          at,
+        ))
+      }
+    })
+
+    // Read back all created assets in input order
+    const created = await Promise.all(ids.map(id => this.getAsset(id)))
+    return created.map((a, i) => {
+      if (!a) throw new Error(`Batch create succeeded but readback failed for asset at index ${i}`)
+      return a
+    })
   }
 
-  async updateAsset(id: string, patch: UpdateAssetInput, actor: Actor): Promise<AuditedResult<Asset>> {
-    const before = await this.getAsset(id)
-    if (!before) throw new Error(`Asset not found: ${id}`)
+  async updateAsset(id: string, patch: UpdateAssetInput, actor: Actor, opts?: { expectedUpdatedAt?: string }): Promise<AuditedResult<Asset>> {
+    // Serial pre-check runs outside the txn (queries are not allowed inside Firestore txns).
     if (patch.serial && await this.isSerialTaken(patch.serial, id)) throw new Error(`Serial already in use: ${patch.serial}`)
     const ref = doc(this.db, 'assets', id)
     const fields = stripUndefinedFs({ ...patch, updatedBy: actor.uid, updatedAt: serverTimestamp() })
+    // FIX 3: existence read + optimistic lock check INSIDE the txn for atomicity.
+    // The before snapshot is returned from the mutate callback so buildAuditDocData
+    // (inside firestoreAuditContext.run) picks it up via `before` — no spec.before needed.
     const r = await withAudit(this.audit,
-      { entityType: 'asset', entityId: id, action: 'updated', actorUid: actor.uid, actorRole: actor.role,
-        before: { brand: before.brand, model: before.model, serial: before.serial },
+      { entityType: 'asset', entityId: id, action: 'updated', actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
         after: patch as Record<string, unknown> },
-      async (txn) => { ;(txn as unknown as Transaction).set(ref, fields, { merge: true }); return { value: undefined as unknown as void } })
+      async (txn) => {
+        const t = txn as unknown as Transaction
+        // READ phase: existence + optimistic lock
+        const snap = await t.get(ref)
+        if (!snap.exists()) throw new Error(`Asset not found: ${id}`)
+        const d = snap.data() as Record<string, unknown>
+        if (opts?.expectedUpdatedAt !== undefined) {
+          const stored = toIso(d.updatedAt)
+          if (stored !== opts.expectedUpdatedAt) throw new ConcurrentEditError(id)
+        }
+        const before = {
+          brand: (d.brand as Asset['brand']) ?? null,
+          model: (d.model as Asset['model']) ?? null,
+          serial: (d.serial as Asset['serial']) ?? null,
+        }
+        // WRITE phase
+        t.set(ref, fields, { merge: true })
+        return { value: undefined as unknown as void, before }
+      })
     const next = await this.getAsset(id)
     if (!next) throw new Error('Asset update succeeded but readback failed')
     return { value: next, auditId: r.auditId }
@@ -411,7 +541,7 @@ export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepo
       ...(hasAssignment ? { assignment: opts!.assignment ?? null } : {}),
     }
     const r = await withAudit(this.audit,
-      { entityType: 'asset', entityId: id, action: 'status_changed', actorUid: actor.uid, actorRole: actor.role,
+      { entityType: 'asset', entityId: id, action: 'status_changed', actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
         before: auditBefore, after: auditAfter, comment: opts?.comment ?? null },
       async (txn) => { ;(txn as unknown as Transaction).set(ref, patch, { merge: true }); return { value: undefined as unknown as void } })
     const next = await this.getAsset(id)
@@ -426,7 +556,7 @@ export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepo
     const upRef = doc(collection(this.db, 'assets', id, 'upgrades'))
     const assetRef = doc(this.db, 'assets', id)
     const r = await withAudit(this.audit,
-      { entityType: 'upgrade', entityId: id, action: 'upgrade_added', actorUid: actor.uid, actorRole: actor.role,
+      { entityType: 'upgrade', entityId: id, action: 'upgrade_added', actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
         before: before === null ? null : { value: before }, after: { component: ev.component, value: ev.after } },
       async (txn) => {
         const t = txn as unknown as Transaction
@@ -475,7 +605,7 @@ export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepo
       const slice = ids.slice(i, i + CHUNK)
       const part = await Promise.all(
         slice.map(async (id) => {
-          const r = await this.changeStatus(id, 'st_assigned', actor, {
+          const r = await this.changeStatus(id, ASSET_STATUS.assigned, actor, {
             assignment,
             branchId: bulkBranchId,
             ...(bulkDeptId !== undefined ? { deptId: bulkDeptId } : {}),

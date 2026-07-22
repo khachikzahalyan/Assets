@@ -2,6 +2,10 @@ import { describe, it, expect } from 'vitest'
 import { InMemoryAssetRepository } from './inMemoryAssetRepository'
 import { createInMemoryAuditStore, inMemoryAuditContext } from '@/lib/audit'
 import type { AssetReferenceData, Asset } from '@/domain/asset'
+import {
+  DuplicateInvCodeError, ConcurrentEditError,
+  BatchTooLargeError, BatchLicenseUnsupportedError,
+} from '@/domain/asset/errors'
 
 const REF: AssetReferenceData = {
   statuses: [], branches: [{ id: 'b_main', name: 'HQ' }], departments: [],
@@ -228,5 +232,92 @@ describe('createAssetsBatch (group registration, dual uniqueness)', () => {
     expect(created[0]!.condition).toBe('new')
     expect(created[0]!.purchaseDate).toBe('2026-06-21')
     expect(created[0]!.warrantyEndsAt).toBe('2027-06-21')
+  })
+})
+
+// ---- FIX 1: invCode uniqueness lock — typed domain error ----
+describe('FIX 1 — DuplicateInvCodeError', () => {
+  it('createAsset throws DuplicateInvCodeError (instanceof) on duplicate invCode', async () => {
+    const { repo, store } = makeRepo()
+    await repo.createAsset(baseInput, ACTOR)
+    const err = await repo.createAsset({ ...baseInput, serial: 'SN-other' }, ACTOR).catch(e => e)
+    expect(err).toBeInstanceOf(DuplicateInvCodeError)
+    expect((err as DuplicateInvCodeError).invCode).toBe(baseInput.invCode)
+    // No extra audit entry should have been written
+    expect(store.logs).toHaveLength(1)
+  })
+
+  it('createAsset DuplicateInvCodeError message matches /inv/i (UI regex)', async () => {
+    const { repo } = makeRepo()
+    await repo.createAsset(baseInput, ACTOR)
+    const err = await repo.createAsset({ ...baseInput, serial: 'SN-z' }, ACTOR).catch(e => e)
+    expect(err.message).toMatch(/inv/i)
+  })
+})
+
+// ---- FIX 3: optimistic locking on updateAsset ----
+describe('FIX 3 — ConcurrentEditError (optimistic locking)', () => {
+  it('updateAsset with correct expectedUpdatedAt succeeds', async () => {
+    const { repo } = makeRepo()
+    const { value } = await repo.createAsset(baseInput, ACTOR)
+    const result = await repo.updateAsset(value.id, { model: 'XPS 15' }, ACTOR, { expectedUpdatedAt: value.updatedAt })
+    expect(result.value.model).toBe('XPS 15')
+  })
+
+  it('updateAsset with stale expectedUpdatedAt throws ConcurrentEditError (instanceof)', async () => {
+    const { repo } = makeRepo()
+    const { value } = await repo.createAsset(baseInput, ACTOR)
+    const err = await repo.updateAsset(value.id, { model: 'XPS 15' }, ACTOR, { expectedUpdatedAt: '2000-01-01T00:00:00.000Z' }).catch(e => e)
+    expect(err).toBeInstanceOf(ConcurrentEditError)
+    expect((err as ConcurrentEditError).assetId).toBe(value.id)
+  })
+
+  it('updateAsset with no opts (backward compat) succeeds without checking timestamp', async () => {
+    const { repo } = makeRepo()
+    const { value } = await repo.createAsset(baseInput, ACTOR)
+    const result = await repo.updateAsset(value.id, { model: 'Latitude' }, ACTOR)
+    expect(result.value.model).toBe('Latitude')
+  })
+})
+
+// ---- FIX 4: atomic batch create — additional guards ----
+describe('FIX 4 — createAssetsBatch guards', () => {
+  it('throws BatchTooLargeError when inputs.length > 100', async () => {
+    const { repo } = makeRepo()
+    const inputs = Array.from({ length: 101 }, (_, i) => ({
+      ...baseInput, invCode: `BC/${i}`, serial: `SN-BC-${i}`,
+    }))
+    const err = await repo.createAssetsBatch(inputs, ACTOR).catch(e => e)
+    expect(err).toBeInstanceOf(BatchTooLargeError)
+  })
+
+  it('throws BatchLicenseUnsupportedError when any input has oemLicense', async () => {
+    const { repo } = makeRepo()
+    const inputs = [
+      { ...baseInput, invCode: 'OEM/1', serial: 'SNOEM1', oemLicense: { kind: 'oem-digital' as const } },
+    ]
+    const err = await repo.createAssetsBatch(inputs, ACTOR).catch(e => e)
+    expect(err).toBeInstanceOf(BatchLicenseUnsupportedError)
+  })
+
+  it('all-or-nothing: Nth item duplicate invCode leaves store unchanged', async () => {
+    const { repo, store } = makeRepo()
+    // Pre-create an asset with invCode '450/99'
+    await repo.createAsset({ ...baseInput, invCode: '450/99', serial: 'SN99' }, ACTOR)
+    const lengthBefore = (await repo.listAssets({ sort: 'updated_desc' })).length
+    const logsBefore = store.logs.length
+
+    const inputs = [
+      { ...baseInput, invCode: '450/100', serial: 'SN100' }, // new
+      { ...baseInput, invCode: '450/99', serial: 'SN101' },  // duplicate — should trigger rollback
+    ]
+    const err = await repo.createAssetsBatch(inputs, ACTOR).catch(e => e)
+    expect(err).toBeInstanceOf(DuplicateInvCodeError)
+
+    // Store must be unchanged (all-or-nothing)
+    const lengthAfter = (await repo.listAssets({ sort: 'updated_desc' })).length
+    expect(lengthAfter).toBe(lengthBefore)
+    // No additional audit entries (the new asset was rolled back)
+    expect(store.logs.length).toBe(logsBefore)
   })
 })

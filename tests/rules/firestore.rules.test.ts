@@ -910,3 +910,139 @@ describe('audit_logs viewer read authorization', () => {
   // 'audit_logs employee read scoped by assignedToEmployeeId' (line ~507).
   // Adding it again would be an exact duplicate.
 })
+
+// ---- /part_categories — dynamic catalog rules --------------------------------
+
+const VALID_PART_CAT = {
+  name: { ru: 'Тест', en: 'Test', hy: 'Թ' },
+  icon: 'box',
+  tintToken: 'gray',
+  order: 99,
+  behavior: 'single',
+  slotKind: 'test',
+  storageType: null,
+  familyOverrides: null,
+  variants: null,
+  generations: null,
+  active: true,
+  createdBy: 'system',
+  updatedBy: 'system',
+  createdAt: serverTimestamp(),
+  updatedAt: serverTimestamp(),
+}
+
+describe('/part_categories rules', () => {
+  beforeEach(async () => {
+    await seedDoc(env, 'part_categories/psu', {
+      ...VALID_PART_CAT,
+      name: { ru: 'Блоки', en: 'Power supplies', hy: 'Սնուցման բլոկներ' },
+      behavior: 'single',
+      slotKind: 'psu',
+    })
+  })
+
+  // Read
+  it('super_admin CAN read part_categories', async () => {
+    await assertSucceeds(getDoc(doc(authedDb(env, SUPER), 'part_categories', 'psu')))
+  })
+  it('asset_admin CAN read part_categories', async () => {
+    await assertSucceeds(getDoc(doc(authedDb(env, ASSET), 'part_categories', 'psu')))
+  })
+  it('tech_admin CAN read part_categories', async () => {
+    await assertSucceeds(getDoc(doc(authedDb(env, TECH), 'part_categories', 'psu')))
+  })
+  it('employee CAN read part_categories (signed-in required)', async () => {
+    await assertSucceeds(getDoc(doc(authedDb(env, EMP), 'part_categories', 'psu')))
+  })
+  it('unauthenticated CANNOT read part_categories', async () => {
+    await assertFails(getDoc(doc(unauthedDb(env), 'part_categories', 'psu')))
+  })
+
+  // Create — super_admin only
+  it('super_admin CAN create a valid part_categories doc', async () => {
+    await assertSucceeds(setDoc(doc(authedDb(env, SUPER), 'part_categories', 'cooler'), VALID_PART_CAT))
+  })
+  it('asset_admin CANNOT create part_categories (super_admin only)', async () => {
+    await assertFails(setDoc(doc(authedDb(env, ASSET), 'part_categories', 'new1'), VALID_PART_CAT))
+  })
+  it('tech_admin CANNOT create part_categories', async () => {
+    await assertFails(setDoc(doc(authedDb(env, TECH), 'part_categories', 'new2'), VALID_PART_CAT))
+  })
+  it('employee CANNOT create part_categories', async () => {
+    await assertFails(setDoc(doc(authedDb(env, EMP), 'part_categories', 'new3'), VALID_PART_CAT))
+  })
+  it('create with empty name.ru is DENIED', async () => {
+    await assertFails(setDoc(doc(authedDb(env, SUPER), 'part_categories', 'bad1'), {
+      ...VALID_PART_CAT, name: { ru: '', en: 'X', hy: 'X' },
+    }))
+  })
+  it('create with invalid behavior is DENIED', async () => {
+    await assertFails(setDoc(doc(authedDb(env, SUPER), 'part_categories', 'bad2'), {
+      ...VALID_PART_CAT, behavior: 'unknown',
+    }))
+  })
+  it('create with an extra key outside the whitelist is DENIED', async () => {
+    await assertFails(setDoc(doc(authedDb(env, SUPER), 'part_categories', 'bad3'), {
+      ...VALID_PART_CAT, maliciousField: 'pwned',
+    }))
+  })
+
+  // Update — super_admin only; behavior immutable
+  it('super_admin CAN update a part_categories doc (rename)', async () => {
+    await assertSucceeds(updateDoc(doc(authedDb(env, SUPER), 'part_categories', 'psu'), {
+      name: { ru: 'Новое', en: 'New', hy: 'Ն' },
+      active: true,
+      behavior: 'single',  // must include behavior with same value (immutability guard)
+      updatedAt: serverTimestamp(),
+    }))
+  })
+  it('asset_admin CANNOT update part_categories', async () => {
+    await assertFails(updateDoc(doc(authedDb(env, ASSET), 'part_categories', 'psu'), {
+      name: { ru: 'X', en: 'X', hy: 'X' }, active: true, behavior: 'single',
+    }))
+  })
+  it('behavior change on update is DENIED (immutable class)', async () => {
+    await assertFails(updateDoc(doc(authedDb(env, SUPER), 'part_categories', 'psu'), {
+      name: { ru: 'X', en: 'X', hy: 'X' }, active: true, behavior: 'models',
+    }))
+  })
+
+  // Delete — always denied
+  it('super_admin CANNOT delete part_categories (delete: if false)', async () => {
+    await assertFails(deleteDoc(doc(authedDb(env, SUPER), 'part_categories', 'psu')))
+  })
+  it('employee CANNOT delete part_categories', async () => {
+    await assertFails(deleteDoc(doc(authedDb(env, EMP), 'part_categories', 'psu')))
+  })
+})
+
+describe('/parts category existence guard (exists() check against part_categories)', () => {
+  beforeEach(async () => {
+    // Seed one known part_categories doc (the guard needs it to exist for allowed create)
+    await seedDoc(env, 'part_categories/psu', {
+      name: { ru: 'Блоки', en: 'PSU', hy: 'Բ' }, icon: 'plug', tintToken: 'amber',
+      order: 0, behavior: 'single', slotKind: 'psu', storageType: null,
+      familyOverrides: null, variants: null, generations: null, active: true,
+      createdBy: 'system', updatedBy: 'system',
+      createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
+    })
+  })
+
+  it('creating a part with category=psu SUCCEEDS when part_categories/psu exists', async () => {
+    await assertSucceeds(setDoc(doc(authedDb(env, SUPER), 'parts', 'sku_psu'), {
+      name: 'Блок питания', category: 'psu', unit: 'шт',
+      onHand: 0, broken: 0, lowStockThreshold: 5,
+      createdBy: SUPER, updatedBy: SUPER,
+      createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
+    }))
+  })
+
+  it('creating a part with category=unknown FAILS when part_categories/unknown does not exist', async () => {
+    await assertFails(setDoc(doc(authedDb(env, SUPER), 'parts', 'sku_bad'), {
+      name: 'Bad Part', category: 'unknown_cat', unit: 'шт',
+      onHand: 0, broken: 0, lowStockThreshold: 5,
+      createdBy: SUPER, updatedBy: SUPER,
+      createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
+    }))
+  })
+})

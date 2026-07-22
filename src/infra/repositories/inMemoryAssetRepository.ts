@@ -3,17 +3,23 @@ import type {
 } from '@/domain/asset'
 import type { AssetRepository, AssetReferenceData, SelfServiceRefData } from '@/domain/asset'
 import {
-  deriveCreateStatus, isSpecTracked, SPEC_KEY,
+  deriveCreateStatus, isSpecTracked, SPEC_KEY, ASSET_STATUS,
   type AssetWriteRepository, type CreateAssetInput, type UpdateAssetInput,
   type ChangeStatusOpts, type Actor, type AssetStatusId, type AssetSpecs,
   type AssetAssignment, type UpgradeComponent, type UpgradeEvent,
 } from '@/domain/asset'
+import {
+  DuplicateInvCodeError, ConcurrentEditError, BatchTooLargeError, BatchLicenseUnsupportedError,
+} from '@/domain/asset/errors'
 import { HEAD_OFFICE_BRANCH_ID } from '@/domain/asset/transferRules'
 import { allocateUniqueBarcode } from '@/domain/asset/barcode'
 import { withAudit, type AuditContext, createInMemoryAuditStore, inMemoryAuditContext } from '@/lib/audit'
 import type { AuditLog } from '@/domain/audit'
 import type { WorkstationLicenseRepository } from '@/domain/license'
 import { assertBatchUnique } from './firestoreAssetRepository'
+
+/** Must match MAX_BATCH_SIZE in firestoreAssetRepository for parity. */
+const MAX_BATCH_SIZE = 100
 
 const SORTERS: Record<AssetSort, (a: Asset, b: Asset) => number> = {
   updated_desc: (a, b) => b.updatedAt.localeCompare(a.updatedAt),
@@ -130,8 +136,9 @@ export class InMemoryAssetRepository implements AssetRepository, AssetWriteRepos
   }
 
   async createAsset(input: CreateAssetInput, actor: Actor) {
+    // FIX 1: throw typed domain error so callers can instanceof-check.
     if (await this.isInvCodeTaken(input.invCode)) {
-      throw new Error(`Inventory code already in use: ${input.invCode}`)
+      throw new DuplicateInvCodeError(input.invCode)
     }
     if (input.serial && await this.isSerialTaken(input.serial)) {
       throw new Error(`Serial already in use: ${input.serial}`)
@@ -164,7 +171,7 @@ export class InMemoryAssetRepository implements AssetRepository, AssetWriteRepos
       this.audit,
       {
         entityType: 'asset', entityId: id, action: 'created',
-        actorUid: actor.uid, actorRole: actor.role,
+        actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
         after: { ...asset } as Record<string, unknown>,
       },
       async () => {
@@ -212,25 +219,44 @@ export class InMemoryAssetRepository implements AssetRepository, AssetWriteRepos
     return r
   }
 
-  /** Group registration with dual uniqueness (within-batch + existing). See interface doc. */
+  /** FIX 4 — All-or-nothing group registration (in-memory). Validate all inputs first,
+   *  then insert all assets atomically (rollback on any failure by truncating the array). */
   async createAssetsBatch(inputs: CreateAssetInput[], actor: Actor): Promise<Asset[]> {
+    // Guards mirroring firestore adapter for parity
+    if (inputs.length > MAX_BATCH_SIZE) throw new BatchTooLargeError(inputs.length, MAX_BATCH_SIZE)
+    for (const input of inputs) {
+      if (input.oemLicense) throw new BatchLicenseUnsupportedError()
+    }
+    // Pre-validation phase (all checks before any write)
     assertBatchUnique(inputs)
     for (const input of inputs) {
-      if (await this.isInvCodeTaken(input.invCode)) throw new Error(`Inventory code already in use: ${input.invCode}`)
+      if (await this.isInvCodeTaken(input.invCode)) throw new DuplicateInvCodeError(input.invCode)
       if (input.serial && await this.isSerialTaken(input.serial)) throw new Error(`Serial already in use: ${input.serial}`)
     }
+    // Atomic insert phase: snapshot the store length so we can roll back on failure
+    const rollbackLength = this.assets.length
     const created: Asset[] = []
-    for (const input of inputs) {
-      const r = await this.createAsset(input, actor)
-      created.push(r.value)
+    try {
+      for (const input of inputs) {
+        const r = await this.createAsset(input, actor)
+        created.push(r.value)
+      }
+    } catch (err) {
+      // Roll back any partially-pushed assets
+      this.assets.splice(rollbackLength)
+      throw err
     }
     return created
   }
 
-  async updateAsset(id: string, patch: UpdateAssetInput, actor: Actor) {
+  async updateAsset(id: string, patch: UpdateAssetInput, actor: Actor, opts?: { expectedUpdatedAt?: string }) {
     const idx = this.assets.findIndex(a => a.id === id)
     if (idx < 0) throw new Error(`Asset not found: ${id}`)
     const before = { ...this.assets[idx]! }
+    // FIX 3: optimistic locking
+    if (opts?.expectedUpdatedAt !== undefined && before.updatedAt !== opts.expectedUpdatedAt) {
+      throw new ConcurrentEditError(id)
+    }
     if (patch.serial && await this.isSerialTaken(patch.serial, id)) {
       throw new Error(`Serial already in use: ${patch.serial}`)
     }
@@ -239,7 +265,7 @@ export class InMemoryAssetRepository implements AssetRepository, AssetWriteRepos
       this.audit,
       {
         entityType: 'asset', entityId: id, action: 'updated',
-        actorUid: actor.uid, actorRole: actor.role,
+        actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
         before: { ...before } as Record<string, unknown>,
         after: { ...next } as Record<string, unknown>,
       },
@@ -281,7 +307,7 @@ export class InMemoryAssetRepository implements AssetRepository, AssetWriteRepos
       this.audit,
       {
         entityType: 'asset', entityId: id, action: 'status_changed',
-        actorUid: actor.uid, actorRole: actor.role,
+        actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
         before: auditBefore,
         after: auditAfter,
         comment: opts?.comment ?? null,
@@ -316,7 +342,7 @@ export class InMemoryAssetRepository implements AssetRepository, AssetWriteRepos
       this.audit,
       {
         entityType: 'upgrade', entityId: id, action: 'upgrade_added',
-        actorUid: actor.uid, actorRole: actor.role,
+        actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
         before: before === null ? null : { value: before },
         after: { component: ev.component, value: ev.after },
       },
@@ -352,7 +378,7 @@ export class InMemoryAssetRepository implements AssetRepository, AssetWriteRepos
       : null
     const results = await Promise.all(
       ids.map(async (id) => {
-        const r = await this.changeStatus(id, 'st_assigned', actor, {
+        const r = await this.changeStatus(id, ASSET_STATUS.assigned, actor, {
           assignment,
           branchId: bulkBranchId,
           ...(bulkDeptId !== undefined ? { deptId: bulkDeptId } : {}),
