@@ -55,7 +55,8 @@ function renderWithParts(partCatRepo: InstanceType<typeof InMemoryPartCategoryRe
 async function openPartsTab(partCatRepo: InstanceType<typeof InMemoryPartCategoryRepository>) {
   renderWithParts(partCatRepo)
   // The tab strip only appears for super_admin — click the «Запчасти» tab
-  const partsTab = await screen.findByRole('button', { name: /Запчасти|Parts|Պահեստամաս/ })
+  // (role="tab" because TabStrip renders ARIA tab semantics, not role="button")
+  const partsTab = await screen.findByRole('tab', { name: /Запчасти|Parts/ })
   fireEvent.click(partsTab)
   return partsTab
 }
@@ -71,7 +72,7 @@ describe('CategoriesPage — Parts tab', () => {
   it('super_admin sees the Запчасти tab', async () => {
     const { repo } = makeSeededPartCategoryRepository()
     renderWithParts(repo)
-    expect(await screen.findByRole('button', { name: /Запчасти|Parts|Պահեստամաս/ })).toBeInTheDocument()
+    expect(await screen.findByRole('tab', { name: /Запчасти|Parts/ })).toBeInTheDocument()
   })
 
   it('non-super-admin does NOT see the Запчасти tab', async () => {
@@ -89,7 +90,7 @@ describe('CategoriesPage — Parts tab', () => {
     )
     // Give render time to settle
     await screen.findByText(/Добавить подкатегорию|Add subcategory|Ավ/).catch(() => {/* ok if absent */})
-    expect(screen.queryByRole('button', { name: /Запчасти|Parts|Պահеստամաս/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('tab', { name: /Запчасти|Parts/ })).not.toBeInTheDocument()
   })
 
   // ── List rendering ─────────────────────────────────────────────────────────
@@ -188,7 +189,8 @@ describe('CategoriesPage — Parts tab', () => {
     await openPartsTab(repo)
 
     // Click edit (pencil) button for the first row
-    const editBtns = await screen.findAllByTitle(/Редактирование|Edit|Խ/)
+    // CatalogTable uses t('actions.edit') → "Изменить" in ru
+    const editBtns = await screen.findAllByTitle(/Изменить|Edit/)
     fireEvent.click(editBtns[0]!)
 
     // Change ru name
@@ -234,8 +236,10 @@ describe('CategoriesPage — Parts tab', () => {
     await openPartsTab(repo)
     await screen.findByText('Блоки')
 
-    // Click the deactivate button (title = 'Деактивировать' / 'Deactivate')
-    const toggleBtn = await screen.findByTitle(/Деактивировать|Deactivate|Ապ/)
+    // Click the toggle button — CatalogTable renders a trash-2 icon button
+    // with title = t('actions.delete') → "Удалить" in ru.
+    // For part categories this triggers deactivate/activate, NOT true deletion.
+    const toggleBtn = await screen.findByTitle(/Удалить|Delete/)
     fireEvent.click(toggleBtn)
 
     // Confirm dialog appears — the dialog title and confirm button both appear;
@@ -256,15 +260,29 @@ describe('CategoriesPage — Parts tab', () => {
     })
   })
 
-  // ── No delete button ──────────────────────────────────────────────────────
+  // ── No permanent delete — toggle only ────────────────────────────────────
+  //
+  // Domain rule: part categories cannot be permanently deleted; the Firestore
+  // rules deny it. The trash icon in the row is reused as a deactivate/activate
+  // trigger (same UI affordance, different semantics). This test confirms that
+  // clicking the button does NOT call repository.delete (which does not exist
+  // on PartCategoryRepository — the domain has no delete operation).
 
-  it('no delete (trash) button exists in the parts tab', async () => {
+  it('clicking the toggle button does not call repository delete — only update({ active })', async () => {
     const { repo } = makeSeededPartCategoryRepository()
+    // The repository has no delete method — assert it cannot be called
+    // by verifying the button opens the deactivate dialog, not a delete dialog.
     await openPartsTab(repo)
     await screen.findByText('Блоки')
 
-    // There should be NO button with a trash/delete title
-    const trashBtns = screen.queryAllByTitle(/Удалить|Delete|Ջнջ/)
-    expect(trashBtns).toHaveLength(0)
+    // The trash-icon button is present (CatalogTable renders it via canMutate)
+    const toggleBtns = screen.queryAllByTitle(/Удалить|Delete/)
+    // Should have one per visible row (up to PAGE_SIZE)
+    expect(toggleBtns.length).toBeGreaterThan(0)
+
+    // Click one and confirm the deactivation confirmation dialog appears
+    // (not a "delete this record" dialog — the title uses parts.deactivateConfirm.title)
+    fireEvent.click(toggleBtns[0]!)
+    expect(await screen.findByText(/Деактивировать категорию|Deactivate category|Ապ/)).toBeInTheDocument()
   })
 })

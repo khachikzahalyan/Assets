@@ -14,14 +14,14 @@
  * already run inside the repository adapter; this component is audit-free.
  */
 
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
 import {
-  Btn, Chip, Icon, IconBtn, MobileAddButton,
+  Chip, Icon,
   EmptyState, ErrorState, TableSkeleton, CardListSkeleton,
 } from '@/components/ui'
-import { CatalogPagination, ConfirmDeleteDialog } from '@/components/features/catalogs'
+import { CatalogTable, ConfirmDeleteDialog, type CatalogColumn } from '@/components/features/catalogs'
 import { PartCategoryFormDialog, type PartCategoryFormValues } from './PartCategoryFormDialog'
 import type { PartCategoryDef } from '@/domain/part/partCategory-types'
 import type { PartCategoryRepository, CreatePartCategoryInput, UpdatePartCategoryInput } from '@/domain/part/PartCategoryRepository'
@@ -34,9 +34,26 @@ const PAGE_SIZE = 10
 export interface PartCategoriesSectionProps {
   repository: PartCategoryRepository
   canMutate: boolean
+  /**
+   * Controlled page index (1-based). Provided by the parent so CategoriesPage
+   * can own pagination and render it in ListCard Zone 3.
+   */
+  page: number
+  onPage: (p: number) => void
+  /** Called whenever the total row count changes so the parent can size the paginator. */
+  onTotalChange: (total: number) => void
+  /**
+   * When flipped to true by the parent (e.g. toolbar "Add" button click),
+   * the section opens its create dialog and then calls onCreateHandled()
+   * so the parent can reset the flag.
+   */
+  openCreate: boolean
+  onCreateHandled: () => void
 }
 
-export function PartCategoriesSection({ repository, canMutate }: PartCategoriesSectionProps) {
+export function PartCategoriesSection({
+  repository, canMutate, page, onPage, onTotalChange, openCreate, onCreateHandled,
+}: PartCategoriesSectionProps) {
   const { t } = useTranslation('categories')
   const { user, role } = useAuth()
   const isMobile = useIsMobile()
@@ -53,7 +70,6 @@ export function PartCategoriesSection({ repository, canMutate }: PartCategoriesS
   const [editing, setEditing] = useState<PartCategoryDef | 'new' | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
-  const [page, setPage] = useState(1)
 
   // Deactivate / Activate confirmation
   const [toggling, setToggling] = useState<PartCategoryDef | null>(null)
@@ -64,6 +80,18 @@ export function PartCategoriesSection({ repository, canMutate }: PartCategoriesS
   // ── Pagination ───────────────────────────────────────────────────────────
   const pageRows = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
   const total = rows.length
+
+  // Notify parent of total count whenever it changes so CatalogPagination
+  // in Zone 3 of ListCard is sized correctly.
+  useEffect(() => { onTotalChange(total) }, [total, onTotalChange])
+
+  // When the parent toolbar "Add" button fires, open the create dialog.
+  useEffect(() => {
+    if (!openCreate) return
+    setSaveError(null)
+    setEditing('new')
+    onCreateHandled()
+  }, [openCreate, onCreateHandled])
 
   // ── Handlers ─────────────────────────────────────────────────────────────
   async function handleSubmit(v: PartCategoryFormValues) {
@@ -93,7 +121,7 @@ export function PartCategoriesSection({ repository, canMutate }: PartCategoriesS
         }
         await repository.create(input, actor)
       }
-      setEditing(null); setPage(1); await reloadAsync()
+      setEditing(null); onPage(1); await reloadAsync()
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e)
       setSaveError(/already exists/i.test(msg) ? t('validation.nameTaken') : t('validation.saveFailed'))
@@ -112,18 +140,81 @@ export function PartCategoriesSection({ repository, canMutate }: PartCategoriesS
     } finally { setToggleBusy(false) }
   }
 
-  // ── Tint swatch helper ────────────────────────────────────────────────────
-  function IconTile({ def }: { def: PartCategoryDef }) {
+  // ── Column definitions ────────────────────────────────────────────────────
+  const columns = useMemo<CatalogColumn<PartCategoryDef>[]>(() => [
+    {
+      key: 'name',
+      header: t('parts.col.name'),
+      width: 'minmax(160px,2fr)',
+      render: (def) => {
+        const tint = TINT_BY_TOKEN[def.tintToken] ?? TINT_FALLBACK
+        return (
+          <span className={`flex items-center gap-2 min-w-0 ${!def.active ? 'opacity-40' : ''}`}>
+            <span
+              className={`w-[22px] h-[22px] rounded-md flex-shrink-0 inline-flex items-center justify-center ${tint.iconBg} ${tint.iconText}`}
+              aria-hidden="true"
+            >
+              <Icon name={def.icon} size={12} />
+            </span>
+            <span className="truncate text-[13px] text-text-primary">{def.name.ru}</span>
+            {!def.active && (
+              <Chip color="gray" size="sm">{t('parts.status.inactive')}</Chip>
+            )}
+          </span>
+        )
+      },
+    },
+    {
+      key: 'behavior',
+      header: t('parts.col.behavior'),
+      render: (def) => (
+        <span className={!def.active ? 'opacity-40' : ''}>
+          <Chip
+            color={def.behavior === 'single' ? 'blue' : def.behavior === 'sized' ? 'amber' : 'violet'}
+          >
+            {t(`parts.behavior.${def.behavior}`)}
+          </Chip>
+        </span>
+      ),
+    },
+    {
+      key: 'order',
+      header: t('parts.col.order'),
+      width: '60px',
+      render: (def) => (
+        <span className={`text-[13px] text-text-tertiary tabular-nums ${!def.active ? 'opacity-40' : ''}`}>
+          {def.order}
+        </span>
+      ),
+    },
+  ], [t])
+
+  // ── Mobile icon tile ──────────────────────────────────────────────────────
+  const mobileIcon = useCallback((def: PartCategoryDef) => {
     const tint = TINT_BY_TOKEN[def.tintToken] ?? TINT_FALLBACK
     return (
       <span
-        className={`w-[22px] h-[22px] rounded-md flex-shrink-0 inline-flex items-center justify-center ${tint.iconBg} ${tint.iconText}`}
+        className={`w-[28px] h-[28px] rounded-[8px] flex-shrink-0 inline-flex items-center justify-center ${tint.iconBg} ${tint.iconText}`}
         aria-hidden="true"
       >
-        <Icon name={def.icon} size={12} />
+        <Icon name={def.icon} size={14} />
       </span>
     )
-  }
+  }, [])
+
+  // ── Mobile subline: behavior chip + sort order ────────────────────────────
+  const mobileSubline = useCallback((def: PartCategoryDef) => (
+    <div className="flex items-center gap-1.5 text-[11px] text-text-tertiary truncate leading-snug">
+      <Chip
+        color={def.behavior === 'single' ? 'blue' : def.behavior === 'sized' ? 'amber' : 'violet'}
+        size="sm"
+      >
+        {t(`parts.behavior.${def.behavior}`)}
+      </Chip>
+      <span aria-hidden="true">·</span>
+      <span className="tabular-nums">{def.order}</span>
+    </div>
+  ), [t])
 
   // ── Render ────────────────────────────────────────────────────────────────
   function renderTable() {
@@ -143,137 +234,20 @@ export function PartCategoriesSection({ repository, canMutate }: PartCategoriesS
       <EmptyState icon="cpu" title={t('parts.empty.title')} description={t('parts.empty.desc')} />
     )
 
-    if (isMobile) {
-      return (
-        <div className="flex flex-col">
-          {pageRows.map(def => {
-            const tint = TINT_BY_TOKEN[def.tintToken] ?? TINT_FALLBACK
-            return (
-              <div
-                key={def.id}
-                className="flex items-center gap-3 px-3 py-3 border-b border-border last:border-b-0"
-              >
-                {/* Icon tile */}
-                <span
-                  className={`w-[36px] h-[36px] rounded-[10px] flex-shrink-0 inline-flex items-center justify-center ${tint.iconBg} ${tint.iconText}`}
-                  aria-hidden="true"
-                >
-                  <Icon name={def.icon} size={16} />
-                </span>
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 mb-0.5">
-                    <span className={`text-[13px] font-bold truncate ${def.active ? 'text-text-primary' : 'text-text-tertiary line-through'}`}>
-                      {def.name.ru}
-                    </span>
-                    {!def.active && (
-                      <Chip color="gray" size="sm">{t('parts.status.inactive')}</Chip>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <Chip
-                      color={def.behavior === 'single' ? 'blue' : def.behavior === 'sized' ? 'amber' : 'violet'}
-                      size="sm"
-                    >
-                      {t(`parts.behavior.${def.behavior}`)}
-                    </Chip>
-                  </div>
-                </div>
-                {/* Actions */}
-                {canMutate && (
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    <IconBtn
-                      icon="pencil"
-                      title={t('form.save')}
-                      tone="slate"
-                      onClick={() => { setSaveError(null); setEditing(def) }}
-                      className="!w-11 !h-11"
-                    />
-                    <IconBtn
-                      icon={def.active ? 'archive-x' : 'circle-check'}
-                      title={def.active ? t('parts.deactivate') : t('parts.activate')}
-                      tone={def.active ? 'rose' : 'slate'}
-                      onClick={() => setToggling(def)}
-                      className="!w-11 !h-11"
-                    />
-                  </div>
-                )}
-              </div>
-            )
-          })}
-        </div>
-      )
-    }
-
-    // Desktop table
-    const gridTemplate = canMutate
-      ? 'minmax(160px,2fr) 1fr 60px 120px'
-      : 'minmax(160px,2fr) 1fr 60px'
-
     return (
-      <div className="w-full">
-        {/* Header row */}
-        <div
-          className="grid text-[11px] uppercase tracking-[0.06em] font-semibold text-text-subtle border-b border-border"
-          style={{ gridTemplateColumns: gridTemplate }}
-        >
-          <div className="px-4 py-2.5">{t('parts.col.name')}</div>
-          <div className="px-4 py-2.5">{t('parts.col.behavior')}</div>
-          <div className="px-4 py-2.5">{t('parts.col.order')}</div>
-          {canMutate && <div className="px-4 py-2.5" />}
-        </div>
-        {/* Data rows */}
-        {pageRows.map(def => (
-          <div
-            key={def.id}
-            className="grid items-center border-b border-border last:border-b-0 hover:bg-surface-2/40 transition-colors"
-            style={{ gridTemplateColumns: gridTemplate }}
-          >
-            <div className="px-4 py-3 flex items-center gap-2 min-w-0">
-              <IconTile def={def} />
-              <span className={`truncate text-[13px] ${def.active ? 'text-text-primary' : 'text-text-tertiary line-through'}`}>
-                {def.name.ru}
-              </span>
-              {!def.active && (
-                <Chip color="gray" size="sm">{t('parts.status.inactive')}</Chip>
-              )}
-            </div>
-            <div className="px-4 py-3">
-              <Chip
-                color={def.behavior === 'single' ? 'blue' : def.behavior === 'sized' ? 'amber' : 'violet'}
-              >
-                {t(`parts.behavior.${def.behavior}`)}
-              </Chip>
-            </div>
-            <div className="px-4 py-3 text-[13px] text-text-tertiary tabular-nums">{def.order}</div>
-            {canMutate && (
-              <div className="px-4 py-3 flex items-center gap-1 justify-end">
-                <IconBtn
-                  icon="pencil"
-                  title={t('form.editTitle')}
-                  tone="slate"
-                  onClick={() => { setSaveError(null); setEditing(def) }}
-                />
-                <IconBtn
-                  icon={def.active ? 'archive-x' : 'circle-check'}
-                  title={def.active ? t('parts.deactivate') : t('parts.activate')}
-                  tone={def.active ? 'rose' : 'slate'}
-                  onClick={() => setToggling(def)}
-                />
-              </div>
-            )}
-          </div>
-        ))}
-        {/* Filler rows to maintain height */}
-        {Array.from({ length: Math.max(0, PAGE_SIZE - pageRows.length) }).map((_, i) => (
-          <div
-            key={`filler-${i}`}
-            className="border-b border-border last:border-b-0"
-            style={{ height: 49 }}
-            aria-hidden="true"
-          />
-        ))}
-      </div>
+      <CatalogTable<PartCategoryDef>
+        rows={pageRows}
+        columns={columns}
+        canMutate={canMutate}
+        onEdit={(def) => { setSaveError(null); setEditing(def) }}
+        onDelete={(def) => setToggling(def)}
+        // Trash icon label becomes the toggle action; no row is ever truly blocked
+        canDeleteRow={() => true}
+        minRows={PAGE_SIZE}
+        mobileIcon={mobileIcon}
+        mobileMinRows={PAGE_SIZE}
+        mobileSubline={mobileSubline}
+      />
     )
   }
 
@@ -281,32 +255,9 @@ export function PartCategoriesSection({ repository, canMutate }: PartCategoriesS
 
   return (
     <>
-      {/* Section toolbar */}
-      <div className="flex items-center justify-end px-5 py-3 max-md:px-3 border-b border-border">
-        {canMutate && (
-          isMobile ? (
-            <MobileAddButton
-              onClick={() => { setSaveError(null); setEditing('new') }}
-              ariaLabel={t('parts.createBtn')}
-            />
-          ) : (
-            <Btn
-              variant="primary"
-              size="sm"
-              onClick={() => { setSaveError(null); setEditing('new') }}
-            >
-              <Icon name="plus" size={13} />
-              {t('parts.createBtn')}
-            </Btn>
-          )
-        )}
-      </div>
-
       {renderTable()}
 
-      <CatalogPagination page={page} pageSize={PAGE_SIZE} total={total} onPage={setPage} />
-
-      {/* Deactivate / Activate confirmation */}
+      {/* Deactivate / Activate confirmation — wired to the onDelete slot of CatalogTable */}
       <ConfirmDeleteDialog
         open={toggling !== null}
         title={toggleIsDeactivate ? t('parts.deactivateConfirm.title') : t('parts.activateConfirm.title')}

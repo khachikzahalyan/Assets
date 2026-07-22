@@ -7,6 +7,7 @@ import {
   Btn, MobileAddButton,
   EmptyState, ErrorState,
   TableSkeleton, CardListSkeleton,
+  TabStrip,
 } from '@/components/ui'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { CatalogTable, CatalogPagination, ConfirmDeleteDialog, type CatalogColumn } from '@/components/features/catalogs'
@@ -51,6 +52,11 @@ export function CategoriesPage({ repository, categoryGroupRepository, partCatego
 
   // ── Tab state ─────────────────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState<CategoriesTab>('assets')
+
+  // ── Parts tab pagination state (lifted so Zone 3 lives in ListCard) ──────
+  const [partPage, setPartPage]         = useState(1)
+  const [partTotal, setPartTotal]       = useState(0)
+  const [partAddRequested, setPartAddRequested] = useState(false)
 
   // ── Data ─────────────────────────────────────────────────────────────────
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null)
@@ -215,25 +221,41 @@ export function CategoriesPage({ repository, categoryGroupRepository, partCatego
           className="max-md:mx-[10px]"
           toolbar={
             <>
-              {/* Tab strip */}
+              {/* Tab strip — add button sits in the SAME row, right-aligned
+                  (licenses-page pattern: tabs left, primary action right) */}
               {canMutate && (
-                <div className="flex items-center gap-1 px-5 pt-3 pb-0 max-md:px-3 border-b border-border">
-                  {(['assets', 'parts'] as CategoriesTab[]).map(tab => (
-                    <button
-                      key={tab}
-                      type="button"
-                      onClick={() => setActiveTab(tab)}
-                      className={[
-                        'px-3 py-2 text-[13px] font-semibold tracking-tight whitespace-nowrap transition-colors',
-                        'border-b-2 -mb-px',
-                        activeTab === tab
-                          ? 'border-accent text-text-primary'
-                          : 'border-transparent text-text-tertiary hover:text-text-primary',
-                      ].join(' ')}
-                    >
-                      {t(`tabs.${tab}`)}
-                    </button>
-                  ))}
+                <div className="flex items-center justify-between gap-3 px-5 max-md:px-3 border-b border-border">
+                  <TabStrip<CategoriesTab>
+                    tabs={[
+                      { id: 'assets' as CategoriesTab, label: t('tabs.assets') },
+                      { id: 'parts'  as CategoriesTab, label: t('tabs.parts')  },
+                    ]}
+                    active={activeTab}
+                    onChange={setActiveTab}
+                    size="md"
+                  />
+                  <div className="shrink-0">
+                    {isMobile ? (
+                      <MobileAddButton
+                        onClick={activeTab === 'assets'
+                          ? () => { setSaveError(null); setEditing('new') }
+                          : () => setPartAddRequested(true)}
+                        ariaLabel={activeTab === 'assets' ? t('createSubcategory') : t('parts.createBtn')}
+                      />
+                    ) : (
+                      <Btn
+                        variant="primary"
+                        size="sm"
+                        className="flex-shrink-0"
+                        onClick={activeTab === 'assets'
+                          ? () => { setSaveError(null); setEditing('new') }
+                          : () => setPartAddRequested(true)}
+                      >
+                        <Icon name="plus" size={13} />
+                        {activeTab === 'assets' ? t('createSubcategory') : t('parts.createBtn')}
+                      </Btn>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -272,35 +294,16 @@ export function CategoriesPage({ repository, categoryGroupRepository, partCatego
                       />
                     )}
                   </div>
-
-                  {/* Right: add-subcategory button — flex-shrink-0 so it never collapses */}
-                  {canMutate && (
-                    isMobile ? (
-                      <MobileAddButton
-                        onClick={() => { setSaveError(null); setEditing('new') }}
-                        ariaLabel={t('createSubcategory')}
-                      />
-                    ) : (
-                      <Btn
-                        variant="primary"
-                        size="sm"
-                        className="flex-shrink-0"
-                        onClick={() => { setSaveError(null); setEditing('new') }}
-                      >
-                        <Icon name="plus" size={13} />
-                        {t('createSubcategory')}
-                      </Btn>
-                    )
-                  )}
                 </div>
               )}
 
               {activeTab === 'assets' && <div className="border-t border-border" />}
+
             </>
           }
           {...(activeTab === 'assets'
             ? { pagination: <CatalogPagination page={page} pageSize={PAGE_SIZE} total={total} onPage={setPage} /> }
-            : {}
+            : { pagination: <CatalogPagination page={partPage} pageSize={PAGE_SIZE} total={partTotal} onPage={setPartPage} /> }
           )}
         >
           {activeTab === 'assets'
@@ -309,6 +312,11 @@ export function CategoriesPage({ repository, categoryGroupRepository, partCatego
               <PartCategoriesSection
                 repository={partCatRepo}
                 canMutate={canMutate}
+                page={partPage}
+                onPage={setPartPage}
+                onTotalChange={setPartTotal}
+                openCreate={partAddRequested}
+                onCreateHandled={() => setPartAddRequested(false)}
               />
             )
           }
