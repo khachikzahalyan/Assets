@@ -77,7 +77,7 @@ export function AuditTable({ rows, ref: refData, minRows, mobileMinRows }: Audit
       width: 'minmax(120px,1.5fr)',
       cell: (log) => (
         <span className="text-[12.5px] text-text-primary">
-          {resolveActorName(log.actorUid, refData.actors)}
+          {resolveActorName(log.actorUid, refData.actors, log.actorName)}
         </span>
       ),
     },
@@ -133,7 +133,12 @@ export function AuditTable({ rows, ref: refData, minRows, mobileMinRows }: Audit
         )
       },
     },
-  ], [t, i18n.language, expanded, navigate, refData.actors])
+  // NOTE: `expanded` is intentionally omitted from deps.
+  // The chevron cell reads `expanded` via closure; DataTable re-renders each
+  // cell naturally when the component re-renders (which happens when `expanded`
+  // state changes), so the cell correctly shows the rotated chevron without
+  // forcing the ENTIRE columns array to be recreated on every expand/collapse.
+  ], [t, i18n.language, navigate, refData.actors])
 
   if (isMobile) {
     // ── Mobile card list via AuditRowMobile (wraps ui/MobileListRow) ────────

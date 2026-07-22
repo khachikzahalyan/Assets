@@ -2,6 +2,21 @@ import { describe, it, expect } from 'vitest'
 import { formatAuditTs, resolveActorName, computeDiff, entityLink } from './auditFormat'
 import type { AuditLog } from '@/domain/audit'
 
+describe('resolveActorName — denormalized actorName fast-path', () => {
+  it('returns actorName directly when present (bypasses actors array)', () => {
+    expect(resolveActorName('u_alice', [], 'Alice Иванова')).toBe('Alice Иванова')
+  })
+  it('falls back to actors array when actorName is absent', () => {
+    expect(resolveActorName('u_bob', [{ uid: 'u_bob', displayName: 'Bob' }])).toBe('Bob')
+  })
+  it('falls back to actors array when actorName is null', () => {
+    expect(resolveActorName('u_carol', [{ uid: 'u_carol', displayName: 'Carol' }], null)).toBe('Carol')
+  })
+  it('falls back to uid when nothing is known', () => {
+    expect(resolveActorName('u_unknown', [], null)).toBe('u_unknown')
+  })
+})
+
 describe('formatAuditTs', () => {
   it('formats as DD/Mon/YYYY HH:MM', () => {
     const out = formatAuditTs('2026-06-04T09:05:00.000Z')

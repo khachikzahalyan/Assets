@@ -48,7 +48,17 @@ export interface AssetRepository {
   loadSelfServiceRefData(): Promise<SelfServiceRefData>
 }
 
-export interface Actor { uid: string; role: Role }
+export interface Actor {
+  uid: string
+  role: Role
+  /**
+   * Optional display name to denormalize into the audit_log doc at write time.
+   * When provided, withAudit writes it as `actorName`; the /audit reader then
+   * uses it directly, bypassing the N+1 /users getDoc. All existing call sites
+   * that omit this field continue to compile unchanged (optional).
+   */
+  displayName?: string
+}
 
 export interface CreateAssetInput {
   categoryId: string
@@ -119,7 +129,13 @@ export interface AssetWriteRepository {
    * on the first duplicate before any write. Returns the created assets in input order.
    */
   createAssetsBatch(inputs: CreateAssetInput[], actor: Actor): Promise<Asset[]>
-  updateAsset(id: string, patch: UpdateAssetInput, actor: Actor): Promise<AuditedResult<Asset>>
+  /**
+   * Patch an asset's mutable fields. Optionally pass `opts.expectedUpdatedAt` (ISO string,
+   * obtained from the asset the caller last read) to enable optimistic locking: if the stored
+   * `updatedAt` differs the method throws `ConcurrentEditError`. Omitting opts preserves the
+   * previous behaviour (no lock check) for backwards compatibility.
+   */
+  updateAsset(id: string, patch: UpdateAssetInput, actor: Actor, opts?: { expectedUpdatedAt?: string }): Promise<AuditedResult<Asset>>
   changeStatus(id: string, toStatusId: AssetStatusId, actor: Actor, opts?: ChangeStatusOpts): Promise<AuditedResult<Asset>>
   addUpgrade(id: string, ev: { component: UpgradeComponent; after: string }, actor: Actor): Promise<AuditedResult<UpgradeEvent>>
   listUpgrades(id: string): Promise<UpgradeEvent[]>

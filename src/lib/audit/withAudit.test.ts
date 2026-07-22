@@ -26,6 +26,36 @@ describe('withAudit (in-memory)', () => {
     expect(store.logs).toHaveLength(0)
   })
 
+  it('writes actorName to the audit log when spec includes it', async () => {
+    const store = createInMemoryAuditStore()
+    const ctx = inMemoryAuditContext(store)
+    await withAudit(ctx,
+      { entityType: 'asset', entityId: 'a4', action: 'created', actorUid: 'u1', actorRole: 'asset_admin', actorName: 'Иван Петров' },
+      async () => ({ value: 1 }),
+    )
+    expect(store.logs[0]!.actorName).toBe('Иван Петров')
+  })
+
+  it('leaves actorName key absent when spec omits it (legacy shape)', async () => {
+    const store = createInMemoryAuditStore()
+    const ctx = inMemoryAuditContext(store)
+    await withAudit(ctx,
+      { entityType: 'asset', entityId: 'a5', action: 'updated', actorUid: 'u2', actorRole: 'super_admin' },
+      async () => ({ value: 1 }),
+    )
+    expect('actorName' in store.logs[0]!).toBe(false)
+  })
+
+  it('writes actorName: null when spec passes null explicitly', async () => {
+    const store = createInMemoryAuditStore()
+    const ctx = inMemoryAuditContext(store)
+    await withAudit(ctx,
+      { entityType: 'branch', entityId: 'b1', action: 'created', actorUid: 'u3', actorRole: 'super_admin', actorName: null },
+      async () => ({ value: 1 }),
+    )
+    expect(store.logs[0]!.actorName).toBeNull()
+  })
+
   it('spec.before/after override mutate-returned before/after', async () => {
     const store = createInMemoryAuditStore()
     const ctx = inMemoryAuditContext(store)

@@ -113,3 +113,18 @@ describe('InMemoryAuditLogRepository', () => {
     expect(page.rows.map(r => r.id)).toEqual(['al_1'])
   })
 })
+
+describe('loadReferenceData — denormalized actorName fast-path', () => {
+  it('prefers actorName from the log doc over the fallback map', async () => {
+    const logs: AuditLog[] = [
+      { ...log({ id: 'al_a', actorUid: 'u_alice' }), actorName: 'Alice' },
+      log({ id: 'al_b', actorUid: 'u_bob' }), // legacy: no actorName key
+    ]
+    // u_alice deliberately NOT in the fallback map: if the implementation used
+    // the fallback for her, displayName would be null instead of 'Alice'.
+    const repo = new InMemoryAuditLogRepository(logs, { u_bob: 'Bob' })
+    const { actors } = await repo.loadReferenceData()
+    expect(actors.find(a => a.uid === 'u_alice')?.displayName).toBe('Alice')
+    expect(actors.find(a => a.uid === 'u_bob')?.displayName).toBe('Bob')
+  })
+})

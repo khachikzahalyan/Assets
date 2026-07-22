@@ -12,8 +12,21 @@ export function formatAuditTs(iso: string, locale: string = 'en'): string {
   return `${dd}/${mon}/${yyyy} ${hh}:${mm}`
 }
 
-/** Best-effort actor name; falls back to the uid when no display name is known. */
-export function resolveActorName(uid: string, actors: ActorRef[]): string {
+/**
+ * Best-effort actor name. Resolution order:
+ * 1. `actorName` argument — the denormalized name from the audit doc itself (fast, zero reads).
+ * 2. `actors` lookup array — built from `loadReferenceData`.
+ * 3. `uid` as raw fallback when nothing is known.
+ *
+ * Pass `log.actorName` as the third argument at call sites to take the fast path.
+ * Existing call sites that omit the argument continue to work unchanged.
+ */
+export function resolveActorName(
+  uid: string,
+  actors: ActorRef[],
+  actorName?: string | null,
+): string {
+  if (actorName != null && actorName !== '') return actorName
   const found = actors.find(a => a.uid === uid)
   return found?.displayName ?? uid
 }

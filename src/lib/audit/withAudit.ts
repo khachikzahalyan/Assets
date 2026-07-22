@@ -44,6 +44,9 @@ export function inMemoryAuditContext(store: InMemoryAuditStore): AuditContext {
           action: spec.action,
           actorUid: spec.actorUid,
           actorRole: spec.actorRole,
+          // Denormalize actorName when provided; omit key entirely when undefined
+          // (keeps audit log shape clean for old-doc compatibility checks in tests).
+          ...(spec.actorName !== undefined ? { actorName: spec.actorName } : {}),
           before: (spec.before ?? (before as AuditLog['before']) ?? null),
           after: (spec.after ?? (after as AuditLog['after']) ?? null),
           comment: spec.comment ?? null,
@@ -60,6 +63,40 @@ export function inMemoryAuditContext(store: InMemoryAuditStore): AuditContext {
 }
 
 // ---- Firestore context (production) ---------------------------------------
+
+/**
+ * Builds the Firestore document data for an audit_logs entry.
+ * Extracted so that `firestoreAuditContext` and the atomic batch path in
+ * `firestoreAssetRepository.createAssetsBatch` share exactly one definition
+ * — preventing silent payload drift between the two write paths.
+ *
+ * @param spec   The AuditSpec from the caller (before/after already resolved).
+ * @param resolvedBefore  The effective `before` value (spec.before already applied by caller).
+ * @param resolvedAfter   The effective `after` value (spec.after already applied by caller).
+ * @param at     A Firestore serverTimestamp() sentinel (or any timestamp value).
+ */
+export function buildAuditDocData(
+  spec: AuditSpec,
+  resolvedBefore: unknown,
+  resolvedAfter: unknown,
+  at: unknown,
+): Record<string, unknown> {
+  return {
+    entityType: spec.entityType,
+    entityId: spec.entityId,
+    action: spec.action,
+    actorUid: spec.actorUid,
+    actorRole: spec.actorRole,
+    // Denormalize actorName when provided — eliminates /users reads on /audit.
+    // The Firestore rules `hasOnly` list includes 'actorName'; see firestore.rules.
+    ...(spec.actorName !== undefined ? { actorName: spec.actorName } : {}),
+    before: resolvedBefore ?? null,
+    after: resolvedAfter ?? null,
+    comment: spec.comment ?? null,
+    at,
+  }
+}
+
 export function firestoreAuditContext(db: Firestore): AuditContext {
   return {
     async run(spec, mutate) {
@@ -68,17 +105,12 @@ export function firestoreAuditContext(db: Firestore): AuditContext {
         const { value, before, after } = await mutate(txn as unknown as TxnLike)
         const ref = doc(collection(db, 'audit_logs'))
         auditId = ref.id
-        txn.set(ref, {
-          entityType: spec.entityType,
-          entityId: spec.entityId,
-          action: spec.action,
-          actorUid: spec.actorUid,
-          actorRole: spec.actorRole,
-          before: spec.before ?? before ?? null,
-          after: spec.after ?? after ?? null,
-          comment: spec.comment ?? null,
-          at: serverTimestamp(),
-        })
+        txn.set(ref, buildAuditDocData(
+          spec,
+          spec.before ?? before,
+          spec.after ?? after,
+          serverTimestamp(),
+        ))
         return value
       })
       return { value, auditId }

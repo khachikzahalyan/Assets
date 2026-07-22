@@ -3,7 +3,7 @@ import { Icon, SearchInput, SelectMini } from '@/components/ui'
 import type { SelectMiniOption } from '@/components/ui/SelectMini'
 import type { AuditLogQuery, AuditLogReferenceData } from '@/domain/audit'
 import { AUDIT_ACTIONS } from '@/domain/audit'
-import { DatePicker } from '@/components/features/assets/create/DatePicker'
+import { DatePicker } from '@/components/ui'
 
 const ENTITY_TYPES = [
   'asset', 'assignment', 'upgrade', 'license', 'employee', 'user',

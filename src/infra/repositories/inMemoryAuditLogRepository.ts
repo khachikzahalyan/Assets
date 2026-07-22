@@ -44,8 +44,26 @@ export class InMemoryAuditLogRepository implements AuditLogRepository {
   }
 
   async loadReferenceData(): Promise<AuditLogReferenceData> {
-    const uids = Array.from(new Set(this.logs.map(l => l.actorUid)))
-    const actors = uids.map(uid => ({ uid, displayName: this.actorNames[uid] ?? null }))
+    // Mirrors the Firestore adapter behaviour: prefer actorName from the log doc
+    // over the actorNames map (which stands in for the /users getDoc fallback).
+    // This ensures in-memory tests exercise the same resolution logic as production.
+    const resolved = new Map<string, string | null>()
+
+    for (const log of this.logs) {
+      const uid = log.actorUid
+      if (!uid) continue
+      if ('actorName' in log) {
+        // Denormalized name — prefer over fallback map.
+        if (!resolved.has(uid) || resolved.get(uid) == null) {
+          resolved.set(uid, log.actorName ?? null)
+        }
+      } else if (!resolved.has(uid)) {
+        // Legacy log without actorName — use the actorNames map (fallback).
+        resolved.set(uid, this.actorNames[uid] ?? null)
+      }
+    }
+
+    const actors = Array.from(resolved.entries()).map(([uid, displayName]) => ({ uid, displayName }))
     return { actors }
   }
 }

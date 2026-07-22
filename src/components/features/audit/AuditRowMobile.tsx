@@ -55,7 +55,7 @@ export const AuditRowMobile = memo(function AuditRowMobile({ log, refData, expan
 
   const titleNode = (
     <div className="text-[13px] font-bold text-text-primary truncate leading-snug mb-[2px]">
-      {resolveActorName(log.actorUid, refData.actors)}
+      {resolveActorName(log.actorUid, refData.actors, log.actorName)}
     </div>
   )
 

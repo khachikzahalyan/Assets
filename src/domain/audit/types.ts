@@ -4,6 +4,7 @@ export type AuditEntityType =
   | 'asset' | 'assignment' | 'upgrade' | 'part' | 'part_movement'
   | 'license' | 'server_license' | 'employee' | 'user'
   | 'branch' | 'department' | 'category' | 'categoryGroup' | 'asset_status' | 'settings' | 'subscription'
+  | 'part_category'
 
 export const AUDIT_ACTIONS = [
   'created', 'updated', 'status_changed', 'assigned', 'returned',
@@ -13,6 +14,13 @@ export const AUDIT_ACTIONS = [
   'activated', 'subscription_created', 'subscription_updated', 'subscription_assignees_changed',
   'part_received', 'part_installed', 'part_uninstalled', 'part_scrapped', 'part_returned', 'gpu_created',
   'part_serviced',
+  /**
+   * Generic audit action for createModelSku when categoryId !== 'gpu'.
+   * GPU SKUs continue to write 'gpu_created' for byte-for-byte backwards compatibility
+   * of the existing audit trail. Any future models-behavior category (e.g. 'dock')
+   * writes this action instead so new categories don't inherit GPU semantics.
+   */
+  'model_sku_created',
 ] as const
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[number]
@@ -28,6 +36,13 @@ export interface AuditLog {
   action: AuditAction
   actorUid: string
   actorRole: Role
+  /**
+   * Denormalized display name of the actor at the time of the write.
+   * Present on all NEW docs (post-denormalization). Old docs written before
+   * this feature land will have this field absent (undefined) — callers must
+   * treat undefined the same as null (no name known).
+   */
+  actorName?: string | null
   before: Record<string, unknown> | null
   after: Record<string, unknown> | null
   comment: string | null
@@ -40,6 +55,11 @@ export interface AuditSpec {
   action: AuditAction
   actorUid: string
   actorRole: Role
+  /**
+   * Pass `actor.displayName` here to have withAudit denormalize it into the
+   * audit_log doc. Optional — omitting it is backwards-compatible.
+   */
+  actorName?: string | null
   before?: Record<string, unknown> | null
   after?: Record<string, unknown> | null
   comment?: string | null
