@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
 import {
@@ -6,31 +7,30 @@ import {
   Icon,
   EmptyState, ErrorState,
   TableSkeleton, CardListSkeleton,
+  DIALOG_BACKDROP, MODAL_SHEET,
 } from '@/components/ui'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { CatalogTable, CatalogPagination, ConfirmDeleteDialog, CatalogToolbarHeader, type CatalogColumn } from '@/components/features/catalogs'
 import { DepartmentFormDialog, type DepartmentFormValues } from '@/components/features/departments'
 import type { Department, DepartmentRepository } from '@/domain/department'
-import { FirestoreDepartmentRepository } from '@/infra/repositories'
+import type { Employee, EmployeeRepository } from '@/domain/employee'
+import { getSharedDepartmentRepository, getSharedEmployeeRepository } from '@/infra/repositories'
 import { EntityInUseError } from '@/domain/shared'
-import { db } from '@/lib/firebase'
 import { useCachedResource, cacheIdentity } from '@/hooks/useCachedResource'
+import { useMemo } from 'react'
 
 const PAGE_SIZE = 10  // consistent with the other list pages so rows fill without scrolling
 
-// Module-level lazy singleton — cache key stays stable across navigations.
-let _sharedDeptRepo: FirestoreDepartmentRepository | null = null
-function getSharedDeptRepo(): FirestoreDepartmentRepository {
-  if (!_sharedDeptRepo) _sharedDeptRepo = new FirestoreDepartmentRepository(db())
-  return _sharedDeptRepo
+export interface DepartmentsPageProps {
+  repository?: DepartmentRepository
+  employeeRepository?: EmployeeRepository
 }
 
-export interface DepartmentsPageProps { repository?: DepartmentRepository }
-
-export function DepartmentsPage({ repository }: DepartmentsPageProps) {
+export function DepartmentsPage({ repository, employeeRepository }: DepartmentsPageProps) {
   const { t } = useTranslation('departments')
   const { user, role } = useAuth()
-  const repo = repository ?? getSharedDeptRepo()
+  const repo = repository ?? getSharedDepartmentRepository()
+  const empRepo = employeeRepository ?? getSharedEmployeeRepository()
   const canMutate = role === 'super_admin'
   const isMobile = useIsMobile()
 
@@ -41,6 +41,8 @@ export function DepartmentsPage({ repository }: DepartmentsPageProps) {
   const [deleting, setDeleting]     = useState<Department | null>(null)
   const [blockedMsg, setBlockedMsg] = useState<string | null>(null)
   const [delBusy, setDelBusy]       = useState(false)
+  // Department whose employee list is open in the roster dialog
+  const [viewing, setViewing]       = useState<Department | null>(null)
 
   const { data, loading, error: fetchError, reload } = useCachedResource<Department[]>(
     `departments:${cacheIdentity(repo)}`,
@@ -48,18 +50,54 @@ export function DepartmentsPage({ repository }: DepartmentsPageProps) {
   )
   const rows = data ?? []
 
+  // Active-employee headcount per department (owner request) — one cached fetch,
+  // counted client-side; terminated employees are excluded.
+  const { data: empData } = useCachedResource<Employee[]>(
+    `departments:headcount:${cacheIdentity(empRepo)}`,
+    () => empRepo.listEmployees(),
+  )
+  const headcount = useMemo<Record<string, number>>(() => {
+    const map: Record<string, number> = {}
+    for (const e of empData ?? []) {
+      if (e.status === 'terminated') continue
+      if (e.departmentId) map[e.departmentId] = (map[e.departmentId] ?? 0) + 1
+    }
+    return map
+  }, [empData])
+
   const total = rows.length
   const pageRows = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   const columns: CatalogColumn<Department>[] = [
-    { key: 'name', header: t('col.name'), render: d => <span className="text-text-primary">{d.name}</span> },
+    { key: 'name', header: t('col.name'), width: 'minmax(160px,2fr)', render: d => <span className="text-text-primary">{d.name}</span> },
+    {
+      key: 'employees',
+      header: t('col.employees'),
+      render: d => (
+        /* Click opens the department roster dialog (owner request) */
+        <button
+          type="button"
+          onClick={e => { e.stopPropagation(); setViewing(d) }}
+          className="inline-flex items-center gap-1.5 h-7 px-2 -ml-2 rounded-md text-[13px] text-text-tertiary tabular-nums hover:text-text-primary hover:bg-surface-2 transition-colors duration-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-border-strong"
+          aria-label={`${t('col.employees')} — ${d.name}`}
+        >
+          <Icon name="users" size={13} className="flex-shrink-0" />
+          {empData === undefined ? '—' : (headcount[d.id] ?? 0)}
+        </button>
+      ),
+    },
   ]
+
+  // Active employees of the department whose roster dialog is open
+  const viewingEmployees = viewing
+    ? (empData ?? []).filter(e => e.departmentId === viewing.id && e.status !== 'terminated')
+    : []
 
   const handleSubmit = useCallback(async (v: DepartmentFormValues) => {
     setSubmitting(true); setSaveError(null)
     try {
-      if (editing && editing !== 'new') await repo.updateDepartment(editing.id, v, { uid: user.id, role })
-      else await repo.createDepartment(v, { uid: user.id, role })
+      if (editing && editing !== 'new') await repo.updateDepartment(editing.id, v, { uid: user.id, role, displayName: user.name })
+      else await repo.createDepartment(v, { uid: user.id, role, displayName: user.name })
       setEditing(null); reload()
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e)
@@ -80,7 +118,7 @@ export function DepartmentsPage({ repository }: DepartmentsPageProps) {
     if (!deleting) return
     setDelBusy(true)
     try {
-      await repo.deleteDepartment(deleting.id, { uid: user.id, role })
+      await repo.deleteDepartment(deleting.id, { uid: user.id, role, displayName: user.name })
       setDeleting(null); setBlockedMsg(null); reload()
     } catch (e) {
       if (e instanceof EntityInUseError) setBlockedMsg(t('delete.inUse', { count: e.count }))
@@ -91,7 +129,7 @@ export function DepartmentsPage({ repository }: DepartmentsPageProps) {
   function renderTableRegion() {
     if (loading) return isMobile
       ? <CardListSkeleton rows={10} variant="catalog" />
-      : <TableSkeleton rows={PAGE_SIZE} columns={2} gridTemplate="minmax(160px,2fr) 80px" lastColAction />
+      : <TableSkeleton rows={PAGE_SIZE} columns={2} gridTemplate="minmax(160px,2fr) 80px" lastColAction headers={[t('col.name'), '']} />
     if (fetchError && rows.length === 0) return <ErrorState onRetry={reload} />
     if (rows.length === 0) return <EmptyState icon="network" title={t('empty.title')} description={t('empty.desc')} />
     return (
@@ -154,6 +192,69 @@ export function DepartmentsPage({ repository }: DepartmentsPageProps) {
         blockedMessage={blockedMsg} busy={delBusy}
         onConfirm={confirmDelete} onCancel={() => { setDeleting(null); setBlockedMsg(null) }}
       />
+
+      {/* Department roster dialog — active employees of the clicked department.
+          Portalled to document.body (project standard: the shell is a stacking
+          context, inline fixed backdrops get clipped). */}
+      {viewing !== null && createPortal(
+        <div
+          role="presentation"
+          className={`${DIALOG_BACKDROP} backdrop-blur-sm`}
+          onClick={e => { if (e.target === e.currentTarget) setViewing(null) }}
+        >
+          <div
+            role="dialog" aria-modal="true" aria-labelledby="dept-roster-title"
+            className={`w-full max-w-md bg-surface border border-border rounded-xl max-md:rounded-b-none max-md:rounded-t-[18px] max-md:max-h-[85vh] max-md:overflow-y-auto shadow-2xl mx-4 max-md:mx-0 ${MODAL_SHEET}`}
+          >
+            <header className="flex items-center justify-between gap-3 px-5 pt-5 pb-3">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <span className="w-7 h-7 rounded-md bg-sky-500/15 text-sky-300 inline-flex items-center justify-center flex-shrink-0">
+                  <Icon name="network" size={14} />
+                </span>
+                <h2 id="dept-roster-title" className="text-[15px] font-bold text-text-primary truncate">
+                  {viewing.name}
+                </h2>
+                <span className="text-[12px] text-text-subtle tabular-nums flex-shrink-0">
+                  {viewingEmployees.length}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setViewing(null)}
+                aria-label={t('delete.cancel')}
+                className="w-7 h-7 rounded-md text-text-subtle hover:text-text-primary hover:bg-surface-2 flex items-center justify-center transition-colors flex-shrink-0"
+              >
+                <Icon name="x" size={15} />
+              </button>
+            </header>
+
+            <div className="px-2 pb-4 max-h-[60vh] overflow-y-auto">
+              {viewingEmployees.length === 0 ? (
+                <p className="px-3 py-8 text-center text-[13px] text-text-tertiary">
+                  {t('employeesDialog.empty')}
+                </p>
+              ) : (
+                viewingEmployees.map(e => (
+                  <div key={e.id} className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-2 transition-colors">
+                    <span className="w-[28px] h-[28px] rounded-[8px] inline-flex items-center justify-center flex-shrink-0 bg-surface-2 text-text-subtle" aria-hidden="true">
+                      <Icon name="user" size={13} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[13px] font-semibold text-text-primary truncate leading-snug">
+                        {e.firstName} {e.lastName}
+                      </div>
+                      {e.position && (
+                        <div className="text-[11.5px] text-text-tertiary truncate leading-snug">{e.position}</div>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>,
+        document.body,
+      )}
     </>
   )
 }
