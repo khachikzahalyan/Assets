@@ -119,3 +119,56 @@ describe('InMemoryAuthSettingsRepository', () => {
     expect(r.value.updatedBy).toBe('u_bob')
   })
 })
+
+// ─── updateSeedAdmins ─────────────────────────────────────────────────────────
+
+describe('InMemoryAuthSettingsRepository.updateSeedAdmins', () => {
+  it('saves a normalised (lowercase + trimmed) deduplicated list', async () => {
+    const repo = new InMemoryAuthSettingsRepository({ allowedEmailDomains: [] })
+    const r = await repo.updateSeedAdmins(['  Admin@Corp.com', 'ADMIN@CORP.COM', 'other@Corp.com'], actor)
+    expect(r.value.seedSuperAdmins).toEqual(['admin@corp.com', 'other@corp.com'])
+  })
+
+  it('writes exactly one audit row with correct before/after', async () => {
+    const store = createInMemoryAuditStore()
+    const repo = new InMemoryAuthSettingsRepository(
+      { allowedEmailDomains: [], seedSuperAdmins: ['old@seed.example'] },
+      inMemoryAuditContext(store),
+    )
+    await repo.updateSeedAdmins(['new@seed.example'], actor)
+    expect(store.logs).toHaveLength(1)
+    expect(store.logs[0]).toMatchObject({
+      entityType: 'settings',
+      entityId: 'auth',
+      action: 'updated',
+      before: { seedSuperAdmins: ['old@seed.example'] },
+      after: { seedSuperAdmins: ['new@seed.example'] },
+    })
+  })
+
+  it('allows saving an empty list (removes all seed bypasses)', async () => {
+    const repo = new InMemoryAuthSettingsRepository({
+      allowedEmailDomains: [],
+      seedSuperAdmins: ['admin@corp.example'],
+    })
+    const r = await repo.updateSeedAdmins([], actor)
+    expect(r.value.seedSuperAdmins).toEqual([])
+  })
+
+  it('does not disturb allowedEmailDomains', async () => {
+    const repo = new InMemoryAuthSettingsRepository({ allowedEmailDomains: ['corp.example'] })
+    const r = await repo.updateSeedAdmins(['admin@other.example'], actor)
+    expect(r.value.allowedEmailDomains).toEqual(['corp.example'])
+  })
+
+  it('getAuthSettings returns a copy — mutating seedSuperAdmins does not mutate repo state', async () => {
+    const repo = new InMemoryAuthSettingsRepository({
+      allowedEmailDomains: [],
+      seedSuperAdmins: ['safe@seed.example'],
+    })
+    const first = await repo.getAuthSettings()
+    first.seedSuperAdmins!.push('injected@seed.example')
+    const second = await repo.getAuthSettings()
+    expect(second.seedSuperAdmins).toEqual(['safe@seed.example'])
+  })
+})

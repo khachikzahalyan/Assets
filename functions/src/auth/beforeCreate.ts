@@ -6,16 +6,29 @@ import { logger } from 'firebase-functions/v2'
 /**
  * AMS — beforeCreate auth blocking trigger.
  *
- * Account creation is gated by the OAuth allowed-domain list stored in
- * /settings/auth.allowedEmailDomains. The list is read from Firestore at
- * runtime — there is NO hardcoded domain anywhere in this file. If the
- * settings doc or the field is missing, we FAIL CLOSED (reject everyone).
+ * Gate order (fail-closed throughout — if /settings/auth is unreadable, ALL
+ * sign-ups are rejected):
+ *
+ *  1. /settings/auth unreadable / missing → DENY (fail closed).
+ *  2. email ∈ seedSuperAdmins → ALLOW (exact, case-insensitive + trimmed).
+ *  3. email already registered in the system → ALLOW. Two sub-checks run in
+ *     parallel (fail-closed on read error):
+ *       a. /users where email == X (approved admin accounts)
+ *       b. /employees where email == X (employees invited by an admin)
+ *     Both queries are issued in two variants — trimmed-as-is and
+ *     lowercase-trimmed — to handle emails stored without normalisation.
+ *  4. domain ∈ allowedEmailDomains → ALLOW (optional corporate-domain path).
+ *  5. Otherwise → DENY.
+ *
+ * There is NO hardcoded email or domain anywhere in this file.
  */
 
 // Initialize the Admin SDK exactly once.
 if (getApps().length === 0) {
   initializeApp()
 }
+
+// ─── pure helpers ─────────────────────────────────────────────────────────────
 
 /**
  * Pure, unit-testable domain check. Returns true iff `email` has a domain that
@@ -31,27 +44,185 @@ export function isDomainAllowed(email: string | undefined, domains: string[]): b
 }
 
 /**
- * Reads the allowed-domain list from /settings/auth and throws an HttpsError
- * if the email's domain is not allowed. Delegated to so it can be unit-tested
- * with a mocked Firestore, without the full Functions runtime.
+ * Pure, unit-testable seed-admin check. Returns true iff `email` exactly
+ * matches (case-insensitive, whitespace-trimmed) any entry in `seedEmails`.
+ * A missing/empty email or empty list always yields false.
+ */
+export function isSeedAdmin(email: string | undefined, seedEmails: string[]): boolean {
+  if (!email || seedEmails.length === 0) return false
+  const normalized = email.trim().toLowerCase()
+  return seedEmails.some((e) => e.trim().toLowerCase() === normalized)
+}
+
+/** Shape of the /settings/auth settings doc fields we care about here. */
+export interface GateSettings {
+  allowedEmailDomains: string[]
+  seedSuperAdmins: string[]
+}
+
+/**
+ * Result of the pre-decision lookup — whether the email was found in the
+ * /users or /employees collections. Produced by I/O; consumed by the pure
+ * decision function.
+ */
+export interface SystemLookup {
+  inUsers: boolean
+  inEmployees: boolean
+}
+
+/**
+ * Pure decision function — no I/O, no side-effects, fully unit-testable.
+ *
+ * Returns `{ allow: true }` when the email passes any gate, or
+ * `{ allow: false; reason: string }` when all gates reject.
+ *
+ * Gate order:
+ *   1. Seed bypass (exact, case-insensitive).
+ *   2. Already registered in /users or /employees.
+ *   3. Domain allow-list (optional corporate path).
+ *   4. Deny.
+ */
+export function decideSignIn(
+  email: string | undefined,
+  settings: GateSettings,
+  lookup: SystemLookup = { inUsers: false, inEmployees: false },
+): { allow: true } | { allow: false; reason: string } {
+  if (isSeedAdmin(email, settings.seedSuperAdmins)) {
+    return { allow: true }
+  }
+  if (lookup.inUsers || lookup.inEmployees) {
+    return { allow: true }
+  }
+  if (isDomainAllowed(email, settings.allowedEmailDomains)) {
+    return { allow: true }
+  }
+  return { allow: false, reason: 'Email not registered in the system' }
+}
+
+// ─── I/O helpers ──────────────────────────────────────────────────────────────
+
+/**
+ * Returns true if `email` exists in `collectionPath` (case-insensitive,
+ * trimmed). Issues up to two Firestore queries in parallel when the trimmed
+ * and the lowercase-trimmed variants differ, so emails stored in either
+ * casing are found reliably.
+ *
+ * Throws on Firestore read error — callers must treat that as fail-closed.
+ */
+async function emailExistsInCollection(
+  db: Firestore,
+  collectionPath: string,
+  email: string,
+): Promise<boolean> {
+  const trimmed = email.trim()
+  const lower = trimmed.toLowerCase()
+
+  const queries: Array<Promise<FirebaseFirestore.QuerySnapshot>> = [
+    db.collection(collectionPath).where('email', '==', trimmed).limit(5).get(),
+  ]
+  // Only add the second query if the lowercase variant differs from as-typed
+  if (lower !== trimmed) {
+    queries.push(
+      db.collection(collectionPath).where('email', '==', lower).limit(5).get(),
+    )
+  }
+
+  const results = await Promise.all(queries)
+  return results.some((snap) => !snap.empty)
+}
+
+/**
+ * Returns true if `email` exists in the employees collection AND at least one
+ * matching doc is ACTIVE (status field missing = legacy = treated as active;
+ * status === 'terminated' = denied individually).
+ *
+ * This prevents terminated employees from bypassing the beforeCreate gate via
+ * the employees lookup while still allowing active employees through.
+ *
+ * Throws on Firestore read error — callers must treat that as fail-closed.
+ */
+async function activeEmployeeExistsByEmail(
+  db: Firestore,
+  email: string,
+): Promise<boolean> {
+  const trimmed = email.trim()
+  const lower = trimmed.toLowerCase()
+
+  const queries: Array<Promise<FirebaseFirestore.QuerySnapshot>> = [
+    db.collection('employees').where('email', '==', trimmed).limit(5).get(),
+  ]
+  if (lower !== trimmed) {
+    queries.push(
+      db.collection('employees').where('email', '==', lower).limit(5).get(),
+    )
+  }
+
+  const results = await Promise.all(queries)
+  for (const snap of results) {
+    for (const docSnap of snap.docs) {
+      const data = docSnap.data() as Record<string, unknown>
+      // Missing/undefined status = legacy doc = treat as active (backward compat)
+      if (data['status'] !== 'terminated') return true
+    }
+  }
+  return false
+}
+
+/**
+ * Reads gate settings from /settings/auth and queries /users + /employees to
+ * decide whether `email` is allowed. Throws HttpsError on any failure.
+ * Delegated to a standalone function so it can be tested with mocked Firestore.
  */
 export async function assertEmailAllowed(
   email: string | undefined,
   db: Firestore,
 ): Promise<void> {
   const snap = await db.doc('settings/auth').get()
-  const data = snap.exists ? snap.data() : undefined
-  const raw = data?.allowedEmailDomains
-  const domains: string[] = Array.isArray(raw) ? raw.filter((d): d is string => typeof d === 'string') : []
 
-  if (domains.length === 0) {
+  // Fail closed: if the doc doesn't exist we cannot know what is allowed.
+  if (!snap.exists) {
     logger.warn(
-      'beforeCreate: /settings/auth.allowedEmailDomains is missing or empty — rejecting all sign-ups (fail closed).',
+      'beforeCreate: /settings/auth document does not exist — rejecting all sign-ups (fail closed).',
     )
+    throw new HttpsError('permission-denied', 'Email not registered in the system')
   }
 
-  if (!isDomainAllowed(email, domains)) {
-    throw new HttpsError('permission-denied', 'Email domain not allowed')
+  const data = snap.data()
+
+  const rawDomains = data?.allowedEmailDomains
+  const domains: string[] = Array.isArray(rawDomains)
+    ? rawDomains.filter((d): d is string => typeof d === 'string')
+    : []
+
+  const rawSeed = data?.seedSuperAdmins
+  const seedEmails: string[] = Array.isArray(rawSeed)
+    ? rawSeed.filter((e): e is string => typeof e === 'string')
+    : []
+
+  // Shortcut: seed bypass requires no collection lookup.
+  if (isSeedAdmin(email, seedEmails)) {
+    return
+  }
+
+  // Perform system-registration lookup (fail-closed on error).
+  let lookup: SystemLookup = { inUsers: false, inEmployees: false }
+  if (email) {
+    try {
+      const [inUsers, inEmployees] = await Promise.all([
+        emailExistsInCollection(db, 'users', email),
+        // employees leg: only active employees pass — terminated employees are denied
+        activeEmployeeExistsByEmail(db, email),
+      ])
+      lookup = { inUsers, inEmployees }
+    } catch (err) {
+      logger.error('beforeCreate: failed to query /users or /employees — rejecting (fail closed).', err)
+      throw new HttpsError('permission-denied', 'Email not registered in the system')
+    }
+  }
+
+  const decision = decideSignIn(email, { allowedEmailDomains: domains, seedSuperAdmins: seedEmails }, lookup)
+  if (!decision.allow) {
+    throw new HttpsError('permission-denied', decision.reason)
   }
 }
 

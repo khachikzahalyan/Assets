@@ -11,6 +11,18 @@ import {
   type AuthSettingsRepository,
 } from '@/domain/settings'
 
+// ─── helpers ─────────────────────────────────────────────────────────────────
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+function isValidEmail(input: string): boolean {
+  return EMAIL_RE.test(input.trim().toLowerCase())
+}
+
+function normalizeEmail(input: string): string {
+  return input.trim().toLowerCase()
+}
+
 // ─── inline dialog markup ────────────────────────────────────────────────────
 
 interface DialogShellProps {
@@ -140,6 +152,39 @@ function DangerConfirmDialog({ saving, onConfirm, onCancel, t }: DangerConfirmPr
   )
 }
 
+// ─── seed admin confirm dialog ────────────────────────────────────────────────
+
+interface SeedConfirmProps {
+  working: string[]
+  saving: boolean
+  onConfirm: () => void
+  onCancel: () => void
+  t: TFunction<'settings'>
+}
+
+function SeedConfirmDialog({ working, saving, onConfirm, onCancel, t }: SeedConfirmProps) {
+  return (
+    <DialogShell onBackdropClick={onCancel} labelledBy="seed-confirm-title">
+      <h3 id="seed-confirm-title" className="text-[15px] font-semibold text-text-primary mb-2">
+        {t('seedAdmins.confirmTitle')}
+      </h3>
+      <p className="text-[13px] text-text-tertiary mb-4">
+        {working.length > 0
+          ? t('seedAdmins.confirmBody', { list: working.join(', ') })
+          : t('seedAdmins.empty')}
+      </p>
+      <div className="flex justify-end gap-2">
+        <Btn variant="secondary" size="sm" onClick={onCancel} disabled={saving}>
+          {t('confirm.cancel')}
+        </Btn>
+        <Btn variant="primary" size="sm" onClick={onConfirm} disabled={saving}>
+          {saving ? t('confirm.saving') : t('confirm.ok')}
+        </Btn>
+      </div>
+    </DialogShell>
+  )
+}
+
 // ─── main panel ──────────────────────────────────────────────────────────────
 
 export interface AuthSettingsPanelProps {
@@ -154,26 +199,45 @@ export function AuthSettingsPanel({ repository }: AuthSettingsPanelProps) {
   const [loading, setLoading]       = useState(true)
   const [loadError, setLoadError]   = useState<string | null>(null)
 
-  // domain list state
-  const [saved, setSaved]     = useState<string[]>([])
-  const [working, setWorking] = useState<string[]>([])
+  // ── domain list state ──────────────────────────────────────────────────────
+  const [savedDomains, setSavedDomains]     = useState<string[]>([])
+  const [workingDomains, setWorkingDomains] = useState<string[]>([])
 
-  // add-row state
-  const [draft, setDraft]         = useState('')
-  const [addError, setAddError]   = useState<string | null>(null)
+  // add-row state (domains)
+  const [draftDomain, setDraftDomain]         = useState('')
+  const [addDomainError, setAddDomainError]   = useState<string | null>(null)
 
-  // save-flow state
-  const [saving, setSaving]           = useState(false)
-  const [saveError, setSaveError]     = useState<string | null>(null)
-  const [saveSuccess, setSaveSuccess] = useState(false)
-  const [dialogOpen, setDialogOpen]   = useState<'standard' | 'danger' | null>(null)
+  // save-flow state (domains)
+  const [savingDomains, setSavingDomains]             = useState(false)
+  const [saveDomainError, setSaveDomainError]         = useState<string | null>(null)
+  const [saveDomainSuccess, setSaveDomainSuccess]     = useState(false)
+  const [domainDialogOpen, setDomainDialogOpen]       = useState<'standard' | 'danger' | null>(null)
+
+  // ── seed-admin list state ──────────────────────────────────────────────────
+  const [savedSeed, setSavedSeed]     = useState<string[]>([])
+  const [workingSeed, setWorkingSeed] = useState<string[]>([])
+
+  // add-row state (seed emails)
+  const [draftSeed, setDraftSeed]       = useState('')
+  const [addSeedError, setAddSeedError] = useState<string | null>(null)
+
+  // save-flow state (seed emails)
+  const [savingSeed, setSavingSeed]           = useState(false)
+  const [saveSeedError, setSaveSeedError]     = useState<string | null>(null)
+  const [saveSeedSuccess, setSaveSeedSuccess] = useState(false)
+  const [seedDialogOpen, setSeedDialogOpen]   = useState(false)
+
+  // ── load ───────────────────────────────────────────────────────────────────
 
   const load = useCallback(async () => {
     setLoading(true); setLoadError(null)
     try {
       const settings = await repository.getAuthSettings()
-      setSaved(settings.allowedEmailDomains)
-      setWorking(settings.allowedEmailDomains)
+      setSavedDomains(settings.allowedEmailDomains)
+      setWorkingDomains(settings.allowedEmailDomains)
+      const seed = settings.seedSuperAdmins ?? []
+      setSavedSeed(seed)
+      setWorkingSeed(seed)
     } catch {
       setLoadError('error')
     } finally {
@@ -183,68 +247,114 @@ export function AuthSettingsPanel({ repository }: AuthSettingsPanelProps) {
 
   useEffect(() => { void load() }, [load])
 
-  const savedSet = new Set(saved)
-  const dirty = working.length !== saved.length || working.some(d => !savedSet.has(d))
+  // ── domain dirty check ─────────────────────────────────────────────────────
 
-  function handleAdd() {
-    setAddError(null)
-    const d = normalizeDomain(draft)
-    if (draft.trim() === '' || d === '') {
-      setAddError(t('validation.empty'))
+  const savedDomainSet = new Set(savedDomains)
+  const domainDirty = workingDomains.length !== savedDomains.length ||
+    workingDomains.some(d => !savedDomainSet.has(d))
+
+  // ── seed dirty check ───────────────────────────────────────────────────────
+
+  const savedSeedSet = new Set(savedSeed)
+  const seedDirty = workingSeed.length !== savedSeed.length ||
+    workingSeed.some(e => !savedSeedSet.has(e))
+
+  // ── domain handlers ────────────────────────────────────────────────────────
+
+  function handleAddDomain() {
+    setAddDomainError(null)
+    const d = normalizeDomain(draftDomain)
+    if (draftDomain.trim() === '' || d === '') {
+      setAddDomainError(t('validation.empty'))
       return
     }
     if (!isValidDomain(d)) {
-      setAddError(t('validation.invalid'))
+      setAddDomainError(t('validation.invalid'))
       return
     }
-    if (working.some(x => x.toLowerCase() === d.toLowerCase())) {
-      setAddError(t('validation.duplicate'))
+    if (workingDomains.some(x => x.toLowerCase() === d.toLowerCase())) {
+      setAddDomainError(t('validation.duplicate'))
       return
     }
-    setWorking(prev => [...prev, d])
-    setDraft('')
+    setWorkingDomains(prev => [...prev, d])
+    setDraftDomain('')
   }
 
-  function handleRemove(domain: string) {
-    setWorking(prev => prev.filter(x => x !== domain))
+  function handleRemoveDomain(domain: string) {
+    setWorkingDomains(prev => prev.filter(x => x !== domain))
   }
 
-  function handleKeyDown(e: React.KeyboardEvent) {
-    if (e.key === 'Enter') { e.preventDefault(); handleAdd() }
+  function handleDomainKeyDown(e: React.KeyboardEvent) {
+    if (e.key === 'Enter') { e.preventDefault(); handleAddDomain() }
   }
 
-  function openSaveDialog() {
-    setSaveError(null)
-    setSaveSuccess(false)
-    if (working.length === 0) {
-      setDialogOpen('danger')
-    } else {
-      setDialogOpen('standard')
-    }
+  function openDomainSaveDialog() {
+    setSaveDomainError(null)
+    setSaveDomainSuccess(false)
+    setDomainDialogOpen(workingDomains.length === 0 ? 'danger' : 'standard')
   }
 
-  async function performSave() {
-    setSaving(true)
+  async function performDomainSave() {
+    setSavingDomains(true)
     try {
-      const { value } = await repository.updateAllowedDomains(working, { uid: user.id, role })
-      setSaved(value.allowedEmailDomains)
-      setWorking(value.allowedEmailDomains)
-      setDialogOpen(null)
-      setSaveSuccess(true)
+      const { value } = await repository.updateAllowedDomains(workingDomains, { uid: user.id, role, displayName: user.name })
+      setSavedDomains(value.allowedEmailDomains)
+      setWorkingDomains(value.allowedEmailDomains)
+      setDomainDialogOpen(null)
+      setSaveDomainSuccess(true)
     } catch {
-      setSaveError(t('saveFailed'))
+      setSaveDomainError(t('saveFailed'))
     } finally {
-      setSaving(false)
+      setSavingDomains(false)
     }
   }
 
-  function handleCancel() {
-    setDialogOpen(null)
+  // ── seed-admin handlers ────────────────────────────────────────────────────
+
+  function handleAddSeed() {
+    setAddSeedError(null)
+    const e = normalizeEmail(draftSeed)
+    if (!e) {
+      setAddSeedError(t('seedAdmins.validation.empty'))
+      return
+    }
+    if (!isValidEmail(e)) {
+      setAddSeedError(t('seedAdmins.validation.invalid'))
+      return
+    }
+    if (workingSeed.some(x => x.toLowerCase() === e.toLowerCase())) {
+      setAddSeedError(t('seedAdmins.validation.duplicate'))
+      return
+    }
+    setWorkingSeed(prev => [...prev, e])
+    setDraftSeed('')
+  }
+
+  function handleRemoveSeed(email: string) {
+    setWorkingSeed(prev => prev.filter(x => x !== email))
+  }
+
+  function handleSeedKeyDown(e: React.KeyboardEvent) {
+    if (e.key === 'Enter') { e.preventDefault(); handleAddSeed() }
+  }
+
+  async function performSeedSave() {
+    setSavingSeed(true)
+    try {
+      const { value } = await repository.updateSeedAdmins(workingSeed, { uid: user.id, role, displayName: user.name })
+      const next = value.seedSuperAdmins ?? []
+      setSavedSeed(next)
+      setWorkingSeed(next)
+      setSeedDialogOpen(false)
+      setSaveSeedSuccess(true)
+    } catch {
+      setSaveSeedError(t('seedAdmins.saveFailed'))
+    } finally {
+      setSavingSeed(false)
+    }
   }
 
   // ── render ──────────────────────────────────────────────────────────────────
-  // Chrome (subtitle, add-row, save button) is shared between loading and loaded states.
-  // Only the domain-list region branches: shimmer during load, real rows when loaded.
 
   if (loadError) {
     return (
@@ -256,121 +366,213 @@ export function AuthSettingsPanel({ repository }: AuthSettingsPanelProps) {
 
   return (
     <SectionCard title={t('auth.title')} icon="shield-check">
-      <div className="space-y-5">
-        {/* subtitle — always real (local i18n, not async) */}
-        <p className="text-[13px] text-text-subtle">{t('auth.subtitle')}</p>
+      <div className="space-y-8">
 
-        {/* fail-closed banner — only when loaded and list is empty */}
-        {!loading && working.length === 0 && (
-          <div
-            role="alert"
-            className="flex items-start gap-2.5 px-4 py-3 rounded-lg border"
-            style={{
-              borderColor: '#7c2d12',
-              background: 'rgba(249,115,22,0.08)',
-            }}
-          >
-            <Icon name="triangle-alert" size={15} className="text-[#FDBA74] flex-shrink-0 mt-0.5" />
-            <p className="text-[13px] text-[#FDBA74]">{t('failClosed.banner')}</p>
-          </div>
-        )}
+        {/* ── DOMAIN LIST SECTION ────────────────────────────────────────── */}
+        <div className="space-y-5">
+          {/* subtitle — always real (local i18n, not async) */}
+          <p className="text-[13px] text-text-subtle">{t('auth.subtitle')}</p>
 
-        {/* domain list — shimmer rows while loading, real list when loaded */}
-        {loading ? (
-          <div className="space-y-1.5" aria-hidden="true">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="flex items-center justify-between px-3 py-2 rounded-lg border border-border bg-bg min-h-[36px]">
-                <div className="h-[13px] rounded anim-skeleton" style={{ width: `${40 + i * 12}%` }} />
-                <div className="w-6 h-6 max-md:w-8 max-md:h-8 rounded anim-skeleton flex-shrink-0" />
-              </div>
-            ))}
-          </div>
-        ) : working.length > 0 ? (
-          <ul className="space-y-1.5" aria-label={t('auth.domainsListLabel')}>
-            {working.map(domain => (
-              <li
-                key={domain}
-                className="flex items-center justify-between px-3 py-2 rounded-lg border border-border bg-bg"
-              >
-                <span className="font-mono text-[13px] text-text-primary">{domain}</span>
-                <button
-                  type="button"
-                  aria-label={t('auth.removeAria', { domain })}
-                  onClick={() => handleRemove(domain)}
-                  className="w-6 h-6 max-md:w-8 max-md:h-8 rounded flex items-center justify-center text-text-subtle hover:text-[#FDA4AF] hover:bg-rose-950/40 transition-colors"
-                >
-                  <Icon name="x" size={13} />
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-[13px] text-text-subtle italic">{t('auth.empty')}</p>
-        )}
-
-        {/* add row — always real; inputs disabled while loading */}
-        <div className="space-y-1.5">
-          <Field label={t('auth.addLabel')}>
+          {/* fail-closed banner — only when loaded and list is empty */}
+          {!loading && workingDomains.length === 0 && (
             <div
-              className="flex gap-2"
-              onKeyDown={handleKeyDown}
+              role="alert"
+              className="flex items-start gap-2.5 px-4 py-3 rounded-lg border"
+              style={{
+                borderColor: '#7c2d12',
+                background: 'rgba(249,115,22,0.08)',
+              }}
             >
-              <Input
-                id="auth-add-domain"
-                value={draft}
-                onChange={setDraft}
-                placeholder={t('auth.addPlaceholder')}
-                disabled={loading}
-              />
-              <Btn variant="secondary" size="sm" onClick={handleAdd} disabled={loading}>
-                <Icon name="plus" size={13} />
-                {t('auth.addBtn')}
-              </Btn>
+              <Icon name="triangle-alert" size={15} className="text-[#FDBA74] flex-shrink-0 mt-0.5" />
+              <p className="text-[13px] text-[#FDBA74]">{t('failClosed.banner')}</p>
             </div>
-          </Field>
-          {!loading && addError && (
-            <p role="alert" className="text-[12px] text-[#FDA4AF]">{addError}</p>
           )}
+
+          {/* domain list — shimmer rows while loading, real list when loaded */}
+          {loading ? (
+            <div className="space-y-1.5" aria-hidden="true">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="flex items-center justify-between px-3 py-2 rounded-lg border border-border bg-bg min-h-[36px]">
+                  <div className="h-[13px] rounded anim-skeleton" style={{ width: `${40 + i * 12}%` }} />
+                  <div className="w-6 h-6 max-md:w-8 max-md:h-8 rounded anim-skeleton flex-shrink-0" />
+                </div>
+              ))}
+            </div>
+          ) : workingDomains.length > 0 ? (
+            <ul className="space-y-1.5" aria-label={t('auth.domainsListLabel')}>
+              {workingDomains.map(domain => (
+                <li
+                  key={domain}
+                  className="flex items-center justify-between px-3 py-2 rounded-lg border border-border bg-bg"
+                >
+                  <span className="font-mono text-[13px] text-text-primary">{domain}</span>
+                  <button
+                    type="button"
+                    aria-label={t('auth.removeAria', { domain })}
+                    onClick={() => handleRemoveDomain(domain)}
+                    className="w-6 h-6 max-md:w-8 max-md:h-8 rounded flex items-center justify-center text-text-subtle hover:text-[#FDA4AF] hover:bg-rose-950/40 transition-colors"
+                  >
+                    <Icon name="x" size={13} />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-[13px] text-text-subtle italic">{t('auth.empty')}</p>
+          )}
+
+          {/* add row — always real; inputs disabled while loading */}
+          <div className="space-y-1.5">
+            <Field label={t('auth.addLabel')}>
+              <div className="flex gap-2" onKeyDown={handleDomainKeyDown}>
+                <Input
+                  id="auth-add-domain"
+                  value={draftDomain}
+                  onChange={setDraftDomain}
+                  placeholder={t('auth.addPlaceholder')}
+                  disabled={loading}
+                />
+                <Btn variant="secondary" size="sm" onClick={handleAddDomain} disabled={loading}>
+                  <Icon name="plus" size={13} />
+                  {t('auth.addBtn')}
+                </Btn>
+              </div>
+            </Field>
+            {!loading && addDomainError && (
+              <p role="alert" className="text-[12px] text-[#FDA4AF]">{addDomainError}</p>
+            )}
+          </div>
+
+          {/* domain save feedback */}
+          {saveDomainError && (
+            <p role="alert" className="text-[12px] text-[#FDA4AF]">{saveDomainError}</p>
+          )}
+          {saveDomainSuccess && !domainDirty && (
+            <p className="text-[12px] text-emerald-400">{t('saved')}</p>
+          )}
+
+          <div className="flex justify-end pt-2 border-t border-border">
+            <Btn
+              variant="primary"
+              size="md"
+              disabled={loading || !domainDirty || savingDomains}
+              onClick={openDomainSaveDialog}
+            >
+              {savingDomains ? t('saving') : t('auth.saveBtn')}
+            </Btn>
+          </div>
         </div>
 
-        {/* save error */}
-        {saveError && (
-          <p role="alert" className="text-[12px] text-[#FDA4AF]">{saveError}</p>
-        )}
+        {/* ── SEED ADMINS SECTION ────────────────────────────────────────── */}
+        <div className="space-y-5 pt-2 border-t border-border">
+          <div>
+            <h3 className="text-[13px] font-semibold text-text-primary mb-1">
+              {t('seedAdmins.title')}
+            </h3>
+            <p className="text-[13px] text-text-subtle">{t('seedAdmins.subtitle')}</p>
+          </div>
 
-        {/* save success */}
-        {saveSuccess && !dirty && (
-          <p className="text-[12px] text-emerald-400">{t('saved')}</p>
-        )}
+          {/* seed email list */}
+          {loading ? (
+            <div className="space-y-1.5" aria-hidden="true">
+              {Array.from({ length: 2 }).map((_, i) => (
+                <div key={i} className="flex items-center justify-between px-3 py-2 rounded-lg border border-border bg-bg min-h-[36px]">
+                  <div className="h-[13px] rounded anim-skeleton" style={{ width: `${50 + i * 15}%` }} />
+                  <div className="w-6 h-6 max-md:w-8 max-md:h-8 rounded anim-skeleton flex-shrink-0" />
+                </div>
+              ))}
+            </div>
+          ) : workingSeed.length > 0 ? (
+            <ul className="space-y-1.5" aria-label={t('seedAdmins.listLabel')}>
+              {workingSeed.map(email => (
+                <li
+                  key={email}
+                  className="flex items-center justify-between px-3 py-2 rounded-lg border border-border bg-bg"
+                >
+                  <span className="font-mono text-[13px] text-text-primary">{email}</span>
+                  <button
+                    type="button"
+                    aria-label={t('seedAdmins.removeAria', { email })}
+                    onClick={() => handleRemoveSeed(email)}
+                    className="w-6 h-6 max-md:w-8 max-md:h-8 rounded flex items-center justify-center text-text-subtle hover:text-[#FDA4AF] hover:bg-rose-950/40 transition-colors"
+                  >
+                    <Icon name="x" size={13} />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-[13px] text-text-subtle italic">{t('seedAdmins.empty')}</p>
+          )}
 
-        {/* save button — always real; disabled while loading or when no changes */}
-        <div className="flex justify-end pt-2 border-t border-border">
-          <Btn
-            variant="primary"
-            size="md"
-            disabled={loading || !dirty || saving}
-            onClick={openSaveDialog}
-          >
-            {saving ? t('saving') : t('auth.saveBtn')}
-          </Btn>
+          {/* add seed email row */}
+          <div className="space-y-1.5">
+            <Field label={t('seedAdmins.addLabel')}>
+              <div className="flex gap-2" onKeyDown={handleSeedKeyDown}>
+                <Input
+                  id="auth-add-seed"
+                  value={draftSeed}
+                  onChange={setDraftSeed}
+                  placeholder={t('seedAdmins.addPlaceholder')}
+                  disabled={loading}
+                />
+                <Btn variant="secondary" size="sm" onClick={handleAddSeed} disabled={loading}>
+                  <Icon name="plus" size={13} />
+                  {t('seedAdmins.addBtn')}
+                </Btn>
+              </div>
+            </Field>
+            {!loading && addSeedError && (
+              <p role="alert" className="text-[12px] text-[#FDA4AF]">{addSeedError}</p>
+            )}
+          </div>
+
+          {/* seed save feedback */}
+          {saveSeedError && (
+            <p role="alert" className="text-[12px] text-[#FDA4AF]">{saveSeedError}</p>
+          )}
+          {saveSeedSuccess && !seedDirty && (
+            <p className="text-[12px] text-emerald-400">{t('seedAdmins.saved')}</p>
+          )}
+
+          <div className="flex justify-end pt-2 border-t border-border">
+            <Btn
+              variant="primary"
+              size="md"
+              disabled={loading || !seedDirty || savingSeed}
+              onClick={() => { setSaveSeedError(null); setSaveSeedSuccess(false); setSeedDialogOpen(true) }}
+            >
+              {savingSeed ? t('saving') : t('seedAdmins.saveBtn')}
+            </Btn>
+          </div>
         </div>
+
       </div>
 
-      {/* dialogs */}
-      {dialogOpen === 'standard' && (
+      {/* ── dialogs ─────────────────────────────────────────────────────── */}
+      {domainDialogOpen === 'standard' && (
         <StandardConfirmDialog
-          working={working}
-          saving={saving}
-          onConfirm={performSave}
-          onCancel={handleCancel}
+          working={workingDomains}
+          saving={savingDomains}
+          onConfirm={performDomainSave}
+          onCancel={() => setDomainDialogOpen(null)}
           t={t}
         />
       )}
-      {dialogOpen === 'danger' && (
+      {domainDialogOpen === 'danger' && (
         <DangerConfirmDialog
-          saving={saving}
-          onConfirm={performSave}
-          onCancel={handleCancel}
+          saving={savingDomains}
+          onConfirm={performDomainSave}
+          onCancel={() => setDomainDialogOpen(null)}
+          t={t}
+        />
+      )}
+      {seedDialogOpen && (
+        <SeedConfirmDialog
+          working={workingSeed}
+          saving={savingSeed}
+          onConfirm={performSeedSave}
+          onCancel={() => setSeedDialogOpen(false)}
           t={t}
         />
       )}
