@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { Btn, Icon, MobileAddButton, SearchInput } from '@/components/ui'
+import { TabStrip, type TabStripItem } from '@/components/ui'
 import { CategoryChipStrip } from './CategoryChipStrip'
 import type { Part, PartStock } from '@/domain/part/types'
 import type { PartCategoryDef } from '@/domain/part/partCategory-types'
@@ -59,48 +60,23 @@ export function PartsTabsHeader({
 }: PartsTabsHeaderProps) {
   const { t } = useTranslation('parts')
 
+  const tabItems: TabStripItem<ActiveTab>[] = TABS.map(tab => ({
+    id: tab.id,
+    label: t(tab.labelKey),
+    icon: tab.icon,
+    ...(tab.id === 'devices' && devicesCount > 0 ? { count: devicesCount } : {}),
+  }))
+
   return (
     <>
       {/* ── Tab strip ─────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between border-b border-border max-md:bg-surface-2 max-md:px-[6px]">
-        <div className="flex items-center gap-1" role="tablist">
-          {TABS.map((tab) => {
-            const isActive = activeTab === tab.id
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                role="tab"
-                aria-selected={isActive}
-                onClick={() => onTabChange(tab.id)}
-                className={[
-                  'inline-flex items-center gap-1.5 px-4 py-3',
-                  'text-[15px] font-semibold max-md:text-[13.5px] max-md:font-medium',
-                  'transition-all relative',
-                  isActive
-                    ? 'text-text-primary max-md:text-accent after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-accent after:rounded-t'
-                    : 'text-text-subtle max-md:text-text-primary hover:text-text-tertiary hover:bg-surface-2/50',
-                ].join(' ')}
-              >
-                <Icon name={tab.icon} size={14} className="max-md:hidden" />
-                {t(tab.labelKey)}
-                {tab.id === 'devices' && devicesCount > 0 && (
-                  <span
-                    className={[
-                      'ml-0.5 px-1.5 rounded text-[12.5px] tabular-nums',
-                      'max-md:text-[12px] max-md:font-semibold max-md:py-0.5 max-md:rounded-md',
-                      isActive
-                        ? 'bg-accent/15 text-accent max-md:text-accent-light'
-                        : 'bg-surface-2 text-text-subtle',
-                    ].join(' ')}
-                  >
-                    {devicesCount}
-                  </span>
-                )}
-              </button>
-            )
-          })}
-        </div>
+        <TabStrip<ActiveTab>
+          tabs={tabItems}
+          active={activeTab}
+          onChange={onTabChange}
+          size="md"
+        />
 
         {/* Desktop «Получить» button — hidden on mobile; shared Btn (assets etalon) */}
         <Btn

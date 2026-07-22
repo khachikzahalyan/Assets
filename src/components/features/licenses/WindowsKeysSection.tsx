@@ -9,8 +9,8 @@
  */
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Chip, Icon, DataTable } from '@/components/ui'
-import type { DataTableColumn } from '@/components/ui'
+import { Chip, Icon, DataTable, TabStrip } from '@/components/ui'
+import type { DataTableColumn, TabStripItem } from '@/components/ui'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import type { WorkstationLicense } from '@/domain/license'
 import type { AuditLog } from '@/domain/audit'
@@ -266,41 +266,18 @@ export function WindowsKeysSection({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [t, maskedKeys, assetNameMap, showAction])
 
-  const FILTERS: { id: KeyStatus; label: string }[] = [
-    { id: 'in_use', label: t('keys.statusInUse') },
-    { id: 'free',   label: t('keys.statusFree')  },
+  const filterItems: TabStripItem<KeyStatus>[] = [
+    { id: 'in_use', label: t('keys.statusInUse'), count: counts.in_use, testId: 'filter-in_use' },
+    { id: 'free',   label: t('keys.statusFree'),  count: counts.free,   testId: 'filter-free'   },
   ]
 
   const filterChips = (
-    <div className="flex items-center gap-0.5 overflow-x-auto no-scrollbar flex-nowrap">
-      {FILTERS.map(f => {
-        const active = filter === f.id
-        return (
-          <button
-            key={f.id}
-            type="button"
-            onClick={() => setFilter(f.id)}
-            data-testid={`filter-${f.id}`}
-            className={`relative py-3 max-md:py-2.5 px-3 text-[13px] font-medium transition-colors flex items-center gap-1.5 flex-shrink-0 ${
-              active ? 'text-accent' : 'text-text-primary hover:text-text-secondary'
-            }`}
-          >
-            {f.label}
-            <span className={`text-[11.5px] font-semibold px-1.5 py-0.5 rounded-md ${
-              active ? 'bg-accent/15 text-accent-light' : 'bg-surface-2 text-text-subtle'
-            }`}>
-              {counts[f.id]}
-            </span>
-            {active && (
-              <span
-                className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent-light rounded-full"
-                style={{ animation: 'tabIndicatorIn 160ms cubic-bezier(0.16,1,0.3,1) both' }}
-              />
-            )}
-          </button>
-        )
-      })}
-    </div>
+    <TabStrip<KeyStatus>
+      tabs={filterItems}
+      active={filter}
+      onChange={setFilter}
+      size="sm"
+    />
   )
 
   return (

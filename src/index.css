@@ -376,7 +376,7 @@ select:-webkit-autofill {
   to   { opacity: 1; transform: translateX(0); }
 }
 
-/* tabIndicatorIn — used by license tab strip underline indicator */
+/* tabIndicatorIn — used by TabStrip underline indicator */
 @keyframes tabIndicatorIn {
   from { opacity: 0; transform: translateY(2px); }
   to   { opacity: 1; transform: translateY(0); }

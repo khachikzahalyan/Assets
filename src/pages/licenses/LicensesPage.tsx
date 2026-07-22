@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
-import { Btn, Icon, ErrorState, TableSkeleton, CardListSkeleton, SearchInput, SectionCard } from '@/components/ui'
+import { Btn, Icon, ErrorState, TableSkeleton, CardListSkeleton, SearchInput, SectionCard, TabStrip } from '@/components/ui'
+import type { TabStripItem } from '@/components/ui'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import {
   WindowsKeysSection,
@@ -310,9 +311,9 @@ export function LicensesPage({
   }, [subRepo, actor, loadSubs, t])
 
   // ── Tab definitions ──────────────────────────────────────────────────────────
-  const TABS: { id: ActiveTab; icon: string; labelKey: string; count: number }[] = [
-    { id: 'keys', icon: 'key-round',  labelKey: 'tabs.keys',  count: keyCount },
-    { id: 'subs', icon: 'boxes',      labelKey: 'tabs.subs',  count: subs.length },
+  const tabItems: TabStripItem<ActiveTab>[] = [
+    { id: 'keys', icon: 'key-round', label: t('tabs.keys'), count: keyCount,    testId: 'tab-keys' },
+    { id: 'subs', icon: 'boxes',     label: t('tabs.subs'), count: subs.length, testId: 'tab-subs' },
   ]
 
   return (
@@ -333,36 +334,12 @@ export function LicensesPage({
       }`}>
         <div className="flex items-center justify-between gap-3 max-md:bg-surface-2 max-md:border-b max-md:border-border max-md:px-[6px]">
           {/* Tab buttons — scrollable on mobile */}
-          <div className="flex gap-0.5 overflow-x-auto no-scrollbar flex-nowrap min-w-0">
-            {TABS.map(tab => {
-              const active = activeTab === tab.id
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveTab(tab.id)}
-                  data-testid={`tab-${tab.id}`}
-                  className={`relative py-3 px-4 text-[13.5px] font-medium transition-colors flex items-center gap-2 whitespace-nowrap flex-shrink-0 ${
-                    active ? 'text-accent' : 'text-text-primary hover:text-text-secondary'
-                  }`}
-                >
-                  <Icon name={tab.icon} size={14} />
-                  {t(tab.labelKey)}
-                  <span className={`text-[12px] font-semibold px-1.5 py-0.5 rounded-md ${
-                    active ? 'bg-accent/15 text-accent-light' : 'bg-surface-2 text-text-subtle'
-                  }`}>
-                    {tab.count}
-                  </span>
-                  {active && (
-                    <span
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent-light rounded-full"
-                      style={{ animation: 'tabIndicatorIn 160ms cubic-bezier(0.16,1,0.3,1) both' }}
-                    />
-                  )}
-                </button>
-              )
-            })}
-          </div>
+          <TabStrip<ActiveTab>
+            tabs={tabItems}
+            active={activeTab}
+            onChange={setActiveTab}
+            size="md"
+          />
 
           {/* Right cluster — search (keys tab, desktop) + add button, one line.
               Mobile keys tab hides it (the «+» moves down next to the search row);
