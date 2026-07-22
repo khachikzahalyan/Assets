@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ReactDOM from 'react-dom'
-import { Icon } from '@/components/ui'
+import { Icon } from './icon'
 import { useExclusiveDropdown } from './dropdownBus'
 
 export interface MiniOption { value: string; label: string }
@@ -12,13 +12,15 @@ export interface MiniDropdownProps {
   placeholder?: string
   disabled?: boolean
   ariaLabel?: string
+  /** Extra classes appended to the trigger button (e.g. 'h-9 text-sm' for form fields). */
+  triggerClassName?: string
 }
 
 /**
  * Compact value+chevron dropdown (no label prefix) for inline spec slots.
  * Portal-to-body, keyboard nav, exclusive-open. Ported from the prototype MiniSelect.
  */
-export function MiniDropdown({ value, onChange, options, placeholder = 'Выберите…', disabled = false, ariaLabel }: MiniDropdownProps) {
+export function MiniDropdown({ value, onChange, options, placeholder = 'Выберите…', disabled = false, ariaLabel, triggerClassName = '' }: MiniDropdownProps) {
   const [open, setOpen] = useState(false)
   useExclusiveDropdown(open, setOpen)
   const [activeIndex, setActiveIndex] = useState(-1)
@@ -108,7 +110,7 @@ export function MiniDropdown({ value, onChange, options, placeholder = 'Выбе
         onKeyDown={onTriggerKey}
         aria-haspopup="listbox"
         aria-expanded={open}
-        className={`w-full px-3 py-2 text-[15px] border rounded-lg text-left outline-none transition-[background-color,border-color,box-shadow] duration-150 flex items-center justify-between gap-2 ${triggerCls}`}
+        className={`w-full px-3 py-2 text-[15px] border rounded-lg text-left outline-none transition-[background-color,border-color,box-shadow] duration-150 flex items-center justify-between gap-2 ${triggerCls} ${triggerClassName}`}
       >
         <span className={selectedLabel ? 'text-text-primary font-medium truncate' : 'text-text-subtle truncate'}>{selectedLabel || placeholder}</span>
         <span className={`inline-flex items-center transition-[transform,color] duration-150 ${open ? 'rotate-180 text-accent' : 'rotate-0 text-text-subtle'}`}><Icon name="chevron-down" size={14} /></span>

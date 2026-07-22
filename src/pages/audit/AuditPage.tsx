@@ -9,21 +9,13 @@ import { AuditFilterBar, AuditTable, AuditPagination } from '@/components/featur
 import { useAuditLogs } from '@/hooks'
 import type { AuditLogQuery } from '@/domain/audit'
 import type { AuditLogRepository } from '@/domain/audit'
-import { FirestoreAuditLogRepository } from '@/infra/repositories'
-import { db } from '@/lib/firebase'
+import { getSharedAuditLogRepository } from '@/infra/repositories'
 
 const PAGE_SIZE = 10  // consistent with the other list pages (table standard: ≤10 rows/page)
 
 const DEFAULT_QUERY: AuditLogQuery = {
   entityType: 'all', action: 'all', actorUid: 'all',
   fromDate: null, toDate: null, search: '', pageSize: PAGE_SIZE,
-}
-
-// Module-level lazy singleton — cache key stays stable across navigations.
-let _sharedAuditRepo: FirestoreAuditLogRepository | null = null
-function getSharedAuditRepo(): FirestoreAuditLogRepository {
-  if (!_sharedAuditRepo) _sharedAuditRepo = new FirestoreAuditLogRepository(db())
-  return _sharedAuditRepo
 }
 
 export interface AuditPageProps {
@@ -33,7 +25,7 @@ export interface AuditPageProps {
 export function AuditPage({ repository }: AuditPageProps) {
   const { t } = useTranslation('audit')
 
-  const repo = repository ?? getSharedAuditRepo()
+  const repo = repository ?? getSharedAuditLogRepository()
   const isMobile = useIsMobile()
 
   const [query, setQuery] = useState<AuditLogQuery>({ ...DEFAULT_QUERY })
@@ -46,7 +38,7 @@ export function AuditPage({ repository }: AuditPageProps) {
     useAuditLogs(repo, query)
 
   function renderBody() {
-    if (loading) return isMobile ? <CardListSkeleton rows={10} variant="audit" /> : <TableSkeleton rows={10} columns={7} gridTemplate="36px minmax(130px,1fr) minmax(120px,1.5fr) minmax(100px,1fr) minmax(90px,1fr) minmax(90px,1fr) minmax(120px,1.2fr)" />
+    if (loading) return isMobile ? <CardListSkeleton rows={10} variant="audit" /> : <TableSkeleton rows={10} columns={7} gridTemplate="36px minmax(130px,1fr) minmax(120px,1.5fr) minmax(100px,1fr) minmax(90px,1fr) minmax(90px,1fr) minmax(120px,1.2fr)" headers={['', t('col.time'), t('col.actor'), t('col.role'), t('col.entity'), t('col.action'), t('col.entityId')]} />
     // Any error with zero rows renders the ErrorState — NOT gated on `!ref`:
     // ref data loads without composite indexes, so a failed page query (e.g.
     // failed-precondition on a missing index) would otherwise be masked as an

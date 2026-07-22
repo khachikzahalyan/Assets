@@ -18,42 +18,15 @@ import type { EmployeeRepository, Employee } from '@/domain/employee'
 import type { AssetRepository, Actor } from '@/domain/asset'
 import type { CreateSubscriptionInput } from '@/domain/subscription'
 import {
-  FirestoreWorkstationLicenseRepository,
-  FirestoreAuditLogRepository,
-  FirestoreSubscriptionRepository,
-  FirestoreEmployeeRepository,
-  FirestoreAssetRepository,
+  getSharedWorkstationLicenseRepository,
+  getSharedAuditLogRepository,
+  getSharedSubscriptionRepository,
+  getSharedEmployeeRepository,
+  getSharedAssetRepository,
 } from '@/infra/repositories'
 import { db } from '@/lib/firebase'
 import { getMaskedLicenseKey } from '@/lib/licenses/maskedKey'
 import { cacheIdentity, readResourceCache, writeResourceCache } from '@/hooks/useCachedResource'
-
-// ── Module-level lazy singletons ────────────────────────────────────────────
-let _wRepo: FirestoreWorkstationLicenseRepository | null = null
-function getDefaultWRepo(): FirestoreWorkstationLicenseRepository {
-  if (!_wRepo) _wRepo = new FirestoreWorkstationLicenseRepository(db())
-  return _wRepo
-}
-let _auditRepo: FirestoreAuditLogRepository | null = null
-function getDefaultAuditRepo(): FirestoreAuditLogRepository {
-  if (!_auditRepo) _auditRepo = new FirestoreAuditLogRepository(db())
-  return _auditRepo
-}
-let _subRepo: FirestoreSubscriptionRepository | null = null
-function getDefaultSubRepo(): FirestoreSubscriptionRepository {
-  if (!_subRepo) _subRepo = new FirestoreSubscriptionRepository(db())
-  return _subRepo
-}
-let _empRepo: FirestoreEmployeeRepository | null = null
-function getDefaultEmpRepo(): FirestoreEmployeeRepository {
-  if (!_empRepo) _empRepo = new FirestoreEmployeeRepository(db())
-  return _empRepo
-}
-let _assRepo: FirestoreAssetRepository | null = null
-function getDefaultAssRepo(): FirestoreAssetRepository {
-  if (!_assRepo) _assRepo = new FirestoreAssetRepository(db())
-  return _assRepo
-}
 
 import { resolveCategoryCapabilities } from '@/domain/asset/categoryCapabilities'
 import type { KeylessAsset } from '@/components/features/licenses/ActivateKeyModal'
@@ -95,14 +68,14 @@ export function LicensesPage({
 
   const canReveal = role === 'super_admin' || role === 'tech_admin'
 
-  const actor = useMemo<Actor>(() => ({ uid: user.id, role }), [user.id, role])
+  const actor = useMemo<Actor>(() => ({ uid: user.id, role, displayName: user.name }), [user.id, role, user.name])
 
   // ── Composition root — use injected repos (tests) or module singletons ──────
-  const wRepo = workstationRepo ?? getDefaultWRepo()
-  const aRepo = auditRepo ?? getDefaultAuditRepo()
-  const subRepo = subscriptionRepo ?? getDefaultSubRepo()
-  const empRepo = employeeRepo ?? getDefaultEmpRepo()
-  const assRepo = assetRepo ?? getDefaultAssRepo()
+  const wRepo = workstationRepo ?? getSharedWorkstationLicenseRepository()
+  const aRepo = auditRepo ?? getSharedAuditLogRepository()
+  const subRepo = subscriptionRepo ?? getSharedSubscriptionRepository()
+  const empRepo = employeeRepo ?? getSharedEmployeeRepository()
+  const assRepo = assetRepo ?? getSharedAssetRepository()
 
   // ── Tab state ────────────────────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState<ActiveTab>('keys')
@@ -494,7 +467,7 @@ export function LicensesPage({
                   /* flex-1 min-h-0 gives TableSkeleton (height:100%) the remaining
                      card height so its flex rows stretch like the real DataTable */
                   <div className="flex-1 min-h-0">
-                    <TableSkeleton rows={10} columns={4} gridTemplate="minmax(160px,1.2fr) minmax(160px,1.1fr) minmax(120px,0.8fr) minmax(220px,1.3fr)" />
+                    <TableSkeleton rows={10} columns={4} gridTemplate="minmax(160px,1.2fr) minmax(160px,1.1fr) minmax(120px,0.8fr) minmax(220px,1.3fr)" headers={[t('keys.colAsset'), t('keys.colVersion'), t('keys.colStatus'), t('keys.colKey')]} />
                   </div>
                 )}
             </div>

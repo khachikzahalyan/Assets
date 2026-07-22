@@ -74,7 +74,7 @@ export class InMemoryUserRepository implements UserRepository {
         await withAudit(this.audit,
           {
             entityType: 'employee', entityId: input.uid, action: 'created',
-            actorUid: actor.uid, actorRole: actor.role,
+            actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
             after: { id: input.uid, email },
           },
           async () => { this.employees.push(employee); return { value: employee } },
@@ -86,7 +86,7 @@ export class InMemoryUserRepository implements UserRepository {
     const result = await withAudit(this.audit,
       {
         entityType: 'user', entityId: input.uid, action: 'role_assigned',
-        actorUid: actor.uid, actorRole: actor.role,
+        actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
         before: { role: before.role, status: before.status },
         after: { role: input.role, status: 'active' },
       },

@@ -1,9 +1,8 @@
-import { useState, useMemo, useEffect, useLayoutEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react'
 import ReactDOM from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@/components/ui/icon'
-import { FirestoreAssetRepository } from '@/infra/repositories'
-import { db } from '@/lib/firebase'
+import { getSharedAssetRepository } from '@/infra/repositories'
 import type { AssetRepository } from '@/domain/asset/AssetRepository'
 import { useHoldNotifications } from '@/hooks'
 import type { HoldNotification } from '@/domain/asset'
@@ -37,12 +36,7 @@ export function NotificationBell({ repository, onSelect }: NotificationBellProps
   const triggerRef = useRef<HTMLButtonElement>(null)
   const popoverRef = useRef<HTMLDivElement>(null)
 
-  const defaultRepo = useMemo<AssetRepository>(
-    () => new FirestoreAssetRepository(db()),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  )
-  const repo = repository ?? defaultRepo
+  const repo = repository ?? getSharedAssetRepository()
   const { notifications, count, error, reload } = useHoldNotifications(repo)
 
   const updatePos = useCallback(() => {

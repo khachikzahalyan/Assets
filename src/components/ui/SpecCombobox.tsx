@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ReactDOM from 'react-dom'
-import { Icon } from '@/components/ui'
-import { useExclusiveDropdown } from './dropdownBus'
+import { Icon } from '@/components/ui/icon'
+import { useExclusiveDropdown } from '@/components/ui/dropdownBus'
 
 export interface SpecComboboxProps {
   value: string

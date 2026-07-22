@@ -79,7 +79,7 @@ export class FirestoreCategoryGroupRepository implements CategoryGroupRepository
     const r = await withAudit(this.audit,
       {
         entityType: 'categoryGroup', entityId: ref.id, action: 'created',
-        actorUid: actor.uid, actorRole: actor.role,
+        actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
         after: { id: ref.id, name: input.name.trim() },
       },
       async (txn) => {
@@ -112,7 +112,7 @@ export class FirestoreCategoryGroupRepository implements CategoryGroupRepository
     const r = await withAudit(this.audit,
       {
         entityType: 'categoryGroup', entityId: id, action: 'updated',
-        actorUid: actor.uid, actorRole: actor.role,
+        actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
         before: { name: before.name },
         after: patch as Record<string, unknown>,
       },
@@ -139,7 +139,7 @@ export class FirestoreCategoryGroupRepository implements CategoryGroupRepository
     return withAudit(this.audit,
       {
         entityType: 'categoryGroup', entityId: id, action: 'deleted',
-        actorUid: actor.uid, actorRole: actor.role,
+        actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
         before: { id, name: before.name },
       },
       async (txn) => {

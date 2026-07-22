@@ -1,3 +1,5 @@
+import { MiniDropdown } from './MiniDropdown'
+
 export interface SelectOption {
   value: string
   label: string
@@ -13,6 +15,18 @@ export interface SelectProps {
   disabled?: boolean
 }
 
+/**
+ * Form-field select. Visible UI is the shared MiniDropdown (custom styled
+ * popup — native <select> popups can't be themed and broke the dark design).
+ *
+ * A visually-hidden native <select> renders FIRST in the DOM (ServiceRecordModal
+ * pattern) so that:
+ *  - a wrapping <label> / getByLabelText still resolves to a real combobox;
+ *  - tests keep driving the field via user.selectOptions / getByRole('combobox');
+ *  - form semantics (value submission) stay native.
+ * It is removed from the tab order — keyboard users interact with the styled
+ * trigger, which has full arrow/enter/escape handling.
+ */
 export function Select({
   id,
   value,
@@ -23,15 +37,26 @@ export function Select({
   disabled,
 }: SelectProps) {
   return (
-    <select
-      id={id}
-      value={value ?? ''}
-      onChange={e => onChange && onChange(e.target.value)}
-      disabled={disabled}
-      className={`w-full h-9 px-3 pr-9 text-sm bg-bg border border-border rounded-lg text-text-primary appearance-none focus:outline-none focus:border-accent focus:ring-2 focus:ring-[rgba(249,115,22,0.40)] transition-all duration-150 disabled:bg-surface ${className}`}
-    >
-      {placeholder && <option value="" disabled>{placeholder}</option>}
-      {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-    </select>
+    <div className={`relative ${className}`}>
+      <select
+        id={id}
+        value={value ?? ''}
+        onChange={e => onChange && onChange(e.target.value)}
+        disabled={disabled}
+        tabIndex={-1}
+        className="sr-only"
+      >
+        {placeholder && <option value="" disabled>{placeholder}</option>}
+        {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+      </select>
+      <MiniDropdown
+        value={value ?? ''}
+        onChange={v => onChange && onChange(v)}
+        options={options}
+        {...(placeholder !== undefined ? { placeholder } : {})}
+        disabled={disabled ?? false}
+        triggerClassName="h-9 py-0 text-sm"
+      />
+    </div>
   )
 }

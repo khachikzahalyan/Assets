@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Field } from './ui'
 import { Icon } from '@/components/ui'
-import { DatePicker } from './DatePicker'
+import { DatePicker } from '@/components/ui'
 import { addYearsISO } from './warranty'
 
 export interface ConditionWarrantyValue {

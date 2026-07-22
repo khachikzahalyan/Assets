@@ -6,8 +6,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext'
 import type { Employee, EmployeeRepository } from '@/domain/employee'
 import type { RefRow } from '@/domain/asset'
-import { FirestoreEmployeeRepository, FirestoreAssetRepository } from '@/infra/repositories'
-import { db } from '@/lib/firebase'
+import { getSharedEmployeeRepository, getSharedAssetRepository } from '@/infra/repositories'
 
 export interface ProfilePageProps {
   repository?: EmployeeRepository
@@ -18,20 +17,13 @@ export function ProfilePage({ repository, loadRefData }: ProfilePageProps) {
   const { t } = useTranslation('employees')
   const { user } = useAuth()
 
-  const defaultRepo = useMemo<EmployeeRepository>(
-    () => new FirestoreEmployeeRepository(db()),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  )
-  const repo = repository ?? defaultRepo
+  const repo = repository ?? getSharedEmployeeRepository()
 
   const defaultLoadRefData = useMemo(
     () => async () => {
-      const assetRepo = new FirestoreAssetRepository(db())
-      const r = await assetRepo.loadSelfServiceRefData()
+      const r = await getSharedAssetRepository().loadSelfServiceRefData()
       return { branches: r.branches, departments: r.departments }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   )
   const refLoader = loadRefData ?? defaultLoadRefData

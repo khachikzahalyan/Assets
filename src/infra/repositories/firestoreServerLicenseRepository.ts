@@ -99,7 +99,7 @@ export class FirestoreServerLicenseRepository implements ServerLicenseRepository
       entityId: id,
       action: 'created' as const,
       actorUid: actor.uid,
-      actorRole: actor.role,
+      actorRole: actor.role, actorName: actor.displayName ?? null,
       before: null,
       after: afterPayload,
     })
@@ -134,7 +134,7 @@ export class FirestoreServerLicenseRepository implements ServerLicenseRepository
       entityId: id,
       action: 'updated' as const,
       actorUid: actor.uid,
-      actorRole: actor.role,
+      actorRole: actor.role, actorName: actor.displayName ?? null,
       before: {
         name: existing.name,
         vendor: existing.vendor,
@@ -182,7 +182,7 @@ export class FirestoreServerLicenseRepository implements ServerLicenseRepository
       entityId: id,
       action: 'key_rotated' as const,
       actorUid: actor.uid,
-      actorRole: actor.role,
+      actorRole: actor.role, actorName: actor.displayName ?? null,
       before: null,
       after: { id, key: rawKey } as Record<string, unknown>,
     })

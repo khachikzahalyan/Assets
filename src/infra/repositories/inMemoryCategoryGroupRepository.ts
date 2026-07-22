@@ -57,7 +57,7 @@ export class InMemoryCategoryGroupRepository implements CategoryGroupRepository 
     return withAudit(this.audit,
       {
         entityType: 'categoryGroup', entityId: id, action: 'created',
-        actorUid: actor.uid, actorRole: actor.role,
+        actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
         after: { id, name: group.name } as Record<string, unknown>,
       },
       async () => { this.groups.push(group); return { value: group } },
@@ -84,7 +84,7 @@ export class InMemoryCategoryGroupRepository implements CategoryGroupRepository 
     return withAudit(this.audit,
       {
         entityType: 'categoryGroup', entityId: id, action: 'updated',
-        actorUid: actor.uid, actorRole: actor.role,
+        actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
         before: { name: before.name } as Record<string, unknown>,
         after: stripUndefined(patch) as Record<string, unknown>,
       },
@@ -101,7 +101,7 @@ export class InMemoryCategoryGroupRepository implements CategoryGroupRepository 
     return withAudit(this.audit,
       {
         entityType: 'categoryGroup', entityId: id, action: 'deleted',
-        actorUid: actor.uid, actorRole: actor.role,
+        actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
         before: { id, name: removed.name } as Record<string, unknown>,
       },
       async () => { this.groups.splice(idx, 1); return { value: { id } } },

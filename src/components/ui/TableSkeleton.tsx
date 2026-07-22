@@ -28,6 +28,13 @@ export interface TableSkeletonProps {
    * column present in AssetsTable and EmployeesTable. Default false.
    */
   lastColAction?: boolean
+  /**
+   * Real column captions. Column headers are local i18n chrome, not collection
+   * data — render them for real instead of shimmering (owner rule: chrome
+   * renders instantly, only async data shimmers). Length MUST equal `columns`;
+   * use '' for caption-less cells (e.g. the action column).
+   */
+  headers?: string[]
 }
 
 /** Width percentages for the header shimmer bars — varies per column for realism. */
@@ -48,6 +55,7 @@ export function TableSkeleton({
   firstColWide = false,
   gridTemplate,
   lastColAction = false,
+  headers,
 }: TableSkeletonProps) {
   const effectiveGrid = gridTemplate ?? `repeat(${columns}, minmax(0, 1fr))`
 
@@ -75,19 +83,29 @@ export function TableSkeleton({
         {Array.from({ length: columns }).map((_, colIdx) => {
           const isLast = lastColAction && colIdx === columns - 1
           const pl = colIdx === 0 ? 20 : 12
+          const caption = headers?.[colIdx] ?? ''
           return (
             <div
               key={colIdx}
               style={{ paddingLeft: pl, paddingRight: 12 }}
             >
-              {!isLast && (
-                <div
-                  className="anim-skeleton rounded"
-                  style={{
-                    height: 10,
-                    width: HEADER_WIDTHS[colIdx % HEADER_WIDTHS.length],
-                  }}
-                />
+              {headers ? (
+                /* Real caption — same typography as DataTable / AssetsTable headers */
+                caption !== '' && (
+                  <span className="text-[12px] uppercase tracking-[0.09em] font-semibold text-text-tertiary">
+                    {caption}
+                  </span>
+                )
+              ) : (
+                !isLast && (
+                  <div
+                    className="anim-skeleton rounded"
+                    style={{
+                      height: 10,
+                      width: HEADER_WIDTHS[colIdx % HEADER_WIDTHS.length],
+                    }}
+                  />
+                )
               )}
             </div>
           )

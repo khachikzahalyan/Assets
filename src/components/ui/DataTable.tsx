@@ -1,4 +1,4 @@
-import { Fragment, type ReactNode } from 'react'
+import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react'
 
 // ── Types ───────────────────────────────────────────────────────────────────────
 
@@ -52,6 +52,12 @@ export interface DataTableProps<T> {
    */
   placeholderTestId?: string
   /**
+   * Row key that should scroll into view and briefly highlight (~2.5s orange
+   * ring) — the /assets "focus after create/scan" behaviour. Re-triggers when
+   * the value changes.
+   */
+  focusRowKey?: string
+  /**
    * Opt into the AssetsTable full-height fill contract: the table takes flex:1 1 0
    * and every row (real + placeholder) gets flex:1 1 0 with minHeight:58 as the
    * floor, so rows distribute the available card height evenly and the paginator
@@ -92,10 +98,22 @@ export function DataTable<T>({
   emptyState,
   renderRowExpanded,
   placeholderTestId,
+  focusRowKey,
   fillHeight = false,
 }: DataTableProps<T>) {
   const gridTemplateColumns = columns.map(c => c.width).join(' ')
   const placeholderCount = Math.max(0, (minRows ?? rows.length) - rows.length)
+
+  // ── Focus-row behaviour: scroll into view + transient highlight ring ──────
+  const focusedRowEl = useRef<HTMLDivElement | null>(null)
+  const [highlightKey, setHighlightKey] = useState<string | null>(null)
+  useEffect(() => {
+    if (focusRowKey === undefined) return
+    focusedRowEl.current?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    setHighlightKey(focusRowKey)
+    const timer = setTimeout(() => setHighlightKey(null), 2500)
+    return () => clearTimeout(timer)
+  }, [focusRowKey])
 
   if (emptyState !== undefined && rows.length === 0) {
     return <>{emptyState}</>
@@ -162,11 +180,15 @@ export function DataTable<T>({
         {rows.map(row => {
           const key = getRowKey(row)
           const isClickable = onRowClick !== undefined
+          const isHighlighted = highlightKey !== null && key === highlightKey
           const expandedContent = renderRowExpanded ? renderRowExpanded(row) : null
           return (
             <Fragment key={key}>
               <div
                 role="row"
+                ref={focusRowKey !== undefined && key === focusRowKey
+                  ? (el) => { focusedRowEl.current = el }
+                  : undefined}
                 tabIndex={isClickable ? 0 : undefined}
                 data-testid={getRowDataTestId?.(row)}
                 onClick={isClickable ? () => onRowClick(row) : undefined}
@@ -178,10 +200,14 @@ export function DataTable<T>({
                 } : undefined}
                 className={[
                   'border-t border-border group',
-                  'transition-[background-color] duration-200',
-                  isClickable
-                    ? 'cursor-pointer hover:bg-[rgba(249,115,22,0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[rgba(249,115,22,0.40)]'
+                  'transition-[background-color,box-shadow] duration-200',
+                  isHighlighted
+                    ? 'bg-[rgba(249,115,22,0.05)] ring-2 ring-inset ring-[rgba(249,115,22,0.45)]'
                     : '',
+                  isClickable
+                    ? 'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[rgba(249,115,22,0.40)]'
+                    : '',
+                  isClickable && !isHighlighted ? 'hover:bg-[rgba(249,115,22,0.08)]' : '',
                   rowClassName?.(row) ?? '',
                 ].filter(Boolean).join(' ')}
                 style={{

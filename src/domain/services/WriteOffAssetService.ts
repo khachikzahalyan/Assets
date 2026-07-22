@@ -1,4 +1,5 @@
 import type { Actor, AssetWriteRepository, Asset } from '@/domain/asset'
+import { ASSET_STATUS } from '@/domain/asset'
 import type { WorkstationLicenseRepository } from '@/domain/license'
 import type { AuditedResult } from '@/domain/audit'
 
@@ -38,7 +39,7 @@ export class WriteOffAssetService {
    * and retire write absolute values, listForAsset only returns active bindings).
    */
   async writeOff(assetId: string, actor: Actor, comment?: string): Promise<AuditedResult<Asset>> {
-    const result = await this.assets.changeStatus(assetId, 'st_disposed', actor, comment ? { comment } : undefined)
+    const result = await this.assets.changeStatus(assetId, ASSET_STATUS.disposed, actor, comment ? { comment } : undefined)
     const bound = await this.licenses.listForAsset(assetId)
     for (const lic of bound) {
       if (lic.isReusable) await this.licenses.decoupleLicense(lic.id, actor)

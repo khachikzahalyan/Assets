@@ -12,16 +12,9 @@ import {
 } from '@/components/features/dashboard'
 import { useDashboard } from '@/hooks'
 import type { DashboardRepository } from '@/domain/dashboard'
-import { FirestoreDashboardRepository } from '@/infra/repositories'
-import { db } from '@/lib/firebase'
+import { ASSET_STATUS } from '@/domain/asset'
+import { getSharedDashboardRepository } from '@/infra/repositories'
 import { cn } from '@/lib/utils'
-
-// Module-level lazy singleton — survives navigation so cached data loads instantly.
-let _sharedDashRepo: FirestoreDashboardRepository | null = null
-function getSharedDashRepo(): FirestoreDashboardRepository {
-  if (!_sharedDashRepo) _sharedDashRepo = new FirestoreDashboardRepository(db())
-  return _sharedDashRepo
-}
 
 export interface DashboardPageProps {
   repo?: DashboardRepository
@@ -31,7 +24,7 @@ export function DashboardPage({ repo }: DashboardPageProps) {
   const { t } = useTranslation('dashboard')
   const { role } = useAuth()
 
-  const activeRepo = repo ?? getSharedDashRepo()
+  const activeRepo = repo ?? getSharedDashboardRepository()
   const { data, loading, error, reload } = useDashboard(activeRepo, role)
 
   // ── Loading skeleton (mirrors the 4-row layout — plain shimmer blocks only) ──
@@ -170,10 +163,10 @@ export function DashboardPage({ repo }: DashboardPageProps) {
   const assets = data.assets
 
   const statuses = [
-    { id: 'st_warehouse', name: t('status.st_warehouse'), color: 'gray'   },
-    { id: 'st_assigned',  name: t('status.st_assigned'),  color: 'green'  },
-    { id: 'st_repair',    name: t('status.st_repair'),    color: 'orange' },
-    { id: 'st_disposed',  name: t('status.st_disposed'),  color: 'red'    },
+    { id: ASSET_STATUS.warehouse, name: t('status.st_warehouse'), color: 'gray'   },
+    { id: ASSET_STATUS.assigned,  name: t('status.st_assigned'),  color: 'green'  },
+    { id: ASSET_STATUS.repair,    name: t('status.st_repair'),    color: 'orange' },
+    { id: ASSET_STATUS.disposed,  name: t('status.st_disposed'),  color: 'red'    },
   ] as const
 
   return (
@@ -196,12 +189,12 @@ export function DashboardPage({ repo }: DashboardPageProps) {
             featured
             heroStats={[
               {
-                value: assets.byStatus.st_assigned,
+                value: assets.byStatus[ASSET_STATUS.assigned],
                 label: t('kpi.heroAssigned'),
                 tone: 'success',
               },
               {
-                value: assets.byStatus.st_warehouse,
+                value: assets.byStatus[ASSET_STATUS.warehouse],
                 label: t('kpi.heroWarehouse'),
                 tone: 'info',
               },
@@ -212,7 +205,7 @@ export function DashboardPage({ repo }: DashboardPageProps) {
           <StatCard
             icon="arrow-right"
             label={t('kpi.currentlyOut')}
-            value={assets.byStatus.st_assigned}
+            value={assets.byStatus[ASSET_STATUS.assigned]}
             to="/assets"
             accent="green"
           />
@@ -221,7 +214,7 @@ export function DashboardPage({ repo }: DashboardPageProps) {
           <StatCard
             icon="inbox"
             label={t('kpi.inWarehouse')}
-            value={assets.byStatus.st_warehouse}
+            value={assets.byStatus[ASSET_STATUS.warehouse]}
             to="/assets"
             accent="blue"
           />

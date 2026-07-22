@@ -1,10 +1,9 @@
-import { useMemo, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Scanner, prepareZXingModule } from '@yudiel/react-qr-scanner'
 import zxingReaderWasmUrl from 'zxing-wasm/reader/zxing_reader.wasm?url'
-import { db } from '@/lib/firebase'
-import { FirestoreAssetRepository } from '@/infra/repositories/firestoreAssetRepository'
+import { getSharedAssetRepository } from '@/infra/repositories'
 import type { AssetWriteRepository } from '@/domain/asset/AssetRepository'
 import { PageHeader } from '@/components/ui/page-header'
 import { SectionCard } from '@/components/ui/section-card'
@@ -31,12 +30,7 @@ export function ScanPage({ repository }: ScanPageProps) {
   const navigate = useNavigate()
   const { showToast } = useToast()
 
-  const defaultRepo = useMemo<AssetWriteRepository>(
-    () => new FirestoreAssetRepository(db()),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  )
-  const repo = repository ?? defaultRepo
+  const repo = repository ?? getSharedAssetRepository()
 
   const [resolving, setResolving] = useState(false)
   const [error, setError] = useState<string | null>(null)

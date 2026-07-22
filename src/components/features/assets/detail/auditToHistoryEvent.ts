@@ -3,6 +3,7 @@ import type { AssetReferenceData, EmployeeRow } from '@/domain/asset'
 import type { HistoryEventVM } from './detailFormat'
 import type { AssetAssignment } from '@/domain/asset'
 import { describeAssignment } from './detailFormat'
+import { ASSET_STATUS } from '@/domain/asset'
 
 // ---------------------------------------------------------------------------
 // Actor resolution context — allows the page to inject current-user identity
@@ -161,9 +162,9 @@ export function auditToHistoryEvent(log: AuditLog, ref: AssetReferenceData, acto
       }
 
       // Lifecycle status change — no assignment delta
-      if (statusId === 'st_disposed')  return { ...base, icon: 'archive-x',       action: 'Списан'              }
-      if (statusId === 'st_repair')    return { ...base, icon: 'hammer',           action: 'Отправлен в ремонт'  }
-      if (statusId === 'st_warehouse') return { ...base, icon: 'arrow-right-left', action: 'Возврат на склад'    }
+      if (statusId === ASSET_STATUS.disposed)  return { ...base, icon: 'archive-x',       action: 'Списан'              }
+      if (statusId === ASSET_STATUS.repair)    return { ...base, icon: 'hammer',           action: 'Отправлен в ремонт'  }
+      if (statusId === ASSET_STATUS.warehouse) return { ...base, icon: 'arrow-right-left', action: 'Возврат на склад'    }
       return { ...base, icon: 'arrow-right-left', action: 'Передача' }
     }
 

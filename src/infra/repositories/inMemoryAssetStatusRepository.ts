@@ -58,7 +58,7 @@ export class InMemoryAssetStatusRepository implements AssetStatusRepository {
     return withAudit(this.audit,
       {
         entityType: 'asset_status', entityId: id, action: 'created',
-        actorUid: actor.uid, actorRole: actor.role,
+        actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
         after: { id, name: status.name } as Record<string, unknown>,
       },
       async () => { this.statuses.push(status); return { value: status } },
@@ -99,7 +99,7 @@ export class InMemoryAssetStatusRepository implements AssetStatusRepository {
     return withAudit(this.audit,
       {
         entityType: 'asset_status', entityId: id, action: 'updated',
-        actorUid: actor.uid, actorRole: actor.role,
+        actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
         before: { name: before.name, isFinal: before.isFinal } as Record<string, unknown>,
         after: stripUndefined(effectivePatch) as Record<string, unknown>,
       },
@@ -122,7 +122,7 @@ export class InMemoryAssetStatusRepository implements AssetStatusRepository {
     return withAudit(this.audit,
       {
         entityType: 'asset_status', entityId: id, action: 'deleted',
-        actorUid: actor.uid, actorRole: actor.role,
+        actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
         before: { id, name: before.name } as Record<string, unknown>,
       },
       async () => { this.statuses.splice(idx, 1); return { value: { id } } },

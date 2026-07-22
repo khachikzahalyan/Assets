@@ -179,7 +179,7 @@ export class FirestoreWorkstationLicenseRepository implements WorkstationLicense
       entityId: id,
       action: 'created' as const,
       actorUid: actor.uid,
-      actorRole: actor.role,
+      actorRole: actor.role, actorName: actor.displayName ?? null,
       before: null,
       after: afterPayload,
     })
@@ -231,7 +231,7 @@ export class FirestoreWorkstationLicenseRepository implements WorkstationLicense
       entityId: id,
       action: 'assigned' as const,
       actorUid: actor.uid,
-      actorRole: actor.role,
+      actorRole: actor.role, actorName: actor.displayName ?? null,
       before: beforeAssignment as Record<string, unknown>,
       after: afterAssignment as Record<string, unknown>,
     })
@@ -275,7 +275,7 @@ export class FirestoreWorkstationLicenseRepository implements WorkstationLicense
       entityId: id,
       action: 'license_decoupled' as const,
       actorUid: actor.uid,
-      actorRole: actor.role,
+      actorRole: actor.role, actorName: actor.displayName ?? null,
       before: before as Record<string, unknown>,
       after: { assignmentType: 'unassigned' },
     })
@@ -324,7 +324,7 @@ export class FirestoreWorkstationLicenseRepository implements WorkstationLicense
       entityId: id,
       action: 'license_retired_with_asset' as const,
       actorUid: actor.uid,
-      actorRole: actor.role,
+      actorRole: actor.role, actorName: actor.displayName ?? null,
       before: before as Record<string, unknown>,
       after: { lifecycleStatus: 'retired', retiredWithAssetId: assetId },
     })
@@ -360,7 +360,7 @@ export class FirestoreWorkstationLicenseRepository implements WorkstationLicense
       entityId: id,
       action: 'key_rotated' as const,
       actorUid: actor.uid,
-      actorRole: actor.role,
+      actorRole: actor.role, actorName: actor.displayName ?? null,
       before: null,
       after: { id, key: rawKey } as Record<string, unknown>,
     })

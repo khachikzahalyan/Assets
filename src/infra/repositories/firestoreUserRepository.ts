@@ -102,7 +102,7 @@ export class FirestoreUserRepository implements UserRepository {
     const r = await withAudit(this.audit,
       {
         entityType: 'user', entityId: input.uid, action: 'role_assigned',
-        actorUid: actor.uid, actorRole: actor.role,
+        actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
         before: { role: before.role, status: before.status },
         after: { role: input.role, status: 'active' },
       },

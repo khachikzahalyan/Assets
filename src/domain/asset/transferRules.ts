@@ -1,4 +1,5 @@
 import type { AssetAssignment, AssetStatusId } from './types'
+import { ASSET_STATUS } from './types'
 
 /**
  * PURE transfer-rules helper for the Asset Detail screen.
@@ -63,14 +64,14 @@ export function buildTransferPatch(
   switch (target.mode) {
     case 'warehouse':
       return {
-        toStatusId: 'st_warehouse',
+        toStatusId: ASSET_STATUS.warehouse,
         assignment: null,
         branchId: HEAD_OFFICE_BRANCH_ID,
         deptId: null,
       }
     case 'employee':
       return {
-        toStatusId: 'st_assigned',
+        toStatusId: ASSET_STATUS.assigned,
         assignment: {
           mode: 'employee',
           employeeId: target.employeeId,
@@ -81,21 +82,21 @@ export function buildTransferPatch(
       }
     case 'branch':
       return {
-        toStatusId: 'st_assigned',
+        toStatusId: ASSET_STATUS.assigned,
         assignment: { mode: 'branch', branchId: target.branchId },
         branchId: target.branchId,
         deptId: null,
       }
     case 'department':
       return {
-        toStatusId: 'st_assigned',
+        toStatusId: ASSET_STATUS.assigned,
         assignment: { mode: 'department', departmentId: target.departmentId },
         branchId: HEAD_OFFICE_BRANCH_ID,
         deptId: target.departmentId,
       }
     case 'temporary':
       return {
-        toStatusId: 'st_assigned',
+        toStatusId: ASSET_STATUS.assigned,
         assignment: {
           mode: 'temporary',
           tempKind: target.tempKind,

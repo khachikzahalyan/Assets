@@ -60,7 +60,7 @@ export class InMemoryCategoryRepository implements CategoryRepository {
     return withAudit(this.audit,
       {
         entityType: 'category', entityId: id, action: 'created',
-        actorUid: actor.uid, actorRole: actor.role,
+        actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
         after: { id, name: category.name } as Record<string, unknown>,
       },
       async () => { this.categories.push(category); return { value: category } },
@@ -88,7 +88,7 @@ export class InMemoryCategoryRepository implements CategoryRepository {
     return withAudit(this.audit,
       {
         entityType: 'category', entityId: id, action: 'updated',
-        actorUid: actor.uid, actorRole: actor.role,
+        actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
         before: { name: before.name } as Record<string, unknown>,
         after: stripUndefined(patch) as Record<string, unknown>,
       },
@@ -105,7 +105,7 @@ export class InMemoryCategoryRepository implements CategoryRepository {
     return withAudit(this.audit,
       {
         entityType: 'category', entityId: id, action: 'deleted',
-        actorUid: actor.uid, actorRole: actor.role,
+        actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
         before: { id, name: removed.name } as Record<string, unknown>,
       },
       async () => { this.categories.splice(idx, 1); return { value: { id } } },

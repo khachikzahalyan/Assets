@@ -16,6 +16,7 @@ import type {
   CategoryRow,
   StatusRow,
 } from '@/domain/asset'
+import { ASSET_STATUS } from '@/domain/asset'
 import type { AuditLog } from '@/domain/audit'
 import type { Assignment, AssignmentRepository } from '@/domain/assignment'
 import type { TransferPatch } from '@/domain/asset/transferRules'
@@ -44,7 +45,7 @@ interface Params {
 export function useAssetDetail({ id, repo, repoAsn, licenseRepo, onPersistOemSecret }: Params) {
   const { t } = useTranslation('assets')
   const { user, role } = useAuth()
-  const actor = useMemo(() => ({ uid: user.id, role }), [user.id, role])
+  const actor = useMemo(() => ({ uid: user.id, role, displayName: user.name }), [user.id, role, user.name])
 
   // Keep the latest `t` in a ref so `load` can read fresh error strings WITHOUT
   // depending on `t` — otherwise a new `t` identity (e.g. language switch) would
@@ -137,7 +138,7 @@ export function useAssetDetail({ id, repo, repoAsn, licenseRepo, onPersistOemSec
   const canRepair  = role === 'super_admin' || role === 'tech_admin'
   const canAssign  = role === 'super_admin' || role === 'asset_admin'
   const canWriteOff = role === 'super_admin' || role === 'asset_admin'
-  const isDisposed = asset?.statusId === 'st_disposed'
+  const isDisposed = asset?.statusId === ASSET_STATUS.disposed
   const canManageLicense = (role === 'super_admin' || role === 'tech_admin') && !isDisposed && Boolean(caps?.hasOemLicense)
 
   // Derived once here so the effect dep is a stable boolean (not a full object ref).
@@ -181,7 +182,7 @@ export function useAssetDetail({ id, repo, repoAsn, licenseRepo, onPersistOemSec
     setBusy(true)
     setActionError(null)
     try {
-      await (repo as AssetWriteRepository).changeStatus(asset.id, 'st_repair', actor, { comment: reason })
+      await (repo as AssetWriteRepository).changeStatus(asset.id, ASSET_STATUS.repair, actor, { comment: reason })
       await load()
     } catch {
       setActionError(t('validation.saveFailed'))
@@ -195,7 +196,7 @@ export function useAssetDetail({ id, repo, repoAsn, licenseRepo, onPersistOemSec
     setBusy(true)
     setActionError(null)
     try {
-      await (repo as AssetWriteRepository).changeStatus(asset.id, 'st_assigned', actor)
+      await (repo as AssetWriteRepository).changeStatus(asset.id, ASSET_STATUS.assigned, actor)
       await load()
     } catch {
       setActionError(t('validation.saveFailed'))

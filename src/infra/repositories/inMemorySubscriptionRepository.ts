@@ -80,7 +80,7 @@ export class InMemorySubscriptionRepository implements SubscriptionRepository {
       entityId: id,
       action: 'subscription_created' as const,
       actorUid: actor.uid,
-      actorRole: actor.role,
+      actorRole: actor.role, actorName: actor.displayName ?? null,
       before: null,
       after: {
         id,
@@ -117,7 +117,7 @@ export class InMemorySubscriptionRepository implements SubscriptionRepository {
       entityId: id,
       action: 'subscription_assignees_changed' as const,
       actorUid: actor.uid,
-      actorRole: actor.role,
+      actorRole: actor.role, actorName: actor.displayName ?? null,
       before: { assignedCount: existing.assignedEmployeeIds.length } as Record<string, unknown>,
       after: { assignedCount: employeeIds.length } as Record<string, unknown>,
     })

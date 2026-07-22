@@ -31,7 +31,7 @@ interface AssignDialogProps {
   onClose: () => void
   onAssigned: (uid: string) => void
   repo: UserRepository
-  actor: { uid: string; role: Role }
+  actor: { uid: string; role: Role; displayName?: string }
 }
 
 function AssignDialog({ pendingUser, onClose, onAssigned, repo, actor }: AssignDialogProps) {
@@ -310,6 +310,7 @@ export function PendingUsersPage({ repository }: PendingUsersPageProps) {
           columns={4}
           gridTemplate={gridTemplate}
           lastColAction
+          headers={[t('col.user'), t('col.email'), t('col.signedIn'), '']}
         />
 
     if (error) return <ErrorState onRetry={load} />
@@ -452,7 +453,7 @@ export function PendingUsersPage({ repository }: PendingUsersPageProps) {
           onClose={() => setDialogUser(null)}
           onAssigned={handleAssigned}
           repo={repo}
-          actor={{ uid: user.id, role }}
+          actor={{ uid: user.id, role, displayName: user.name }}
         />
       )}
     </>

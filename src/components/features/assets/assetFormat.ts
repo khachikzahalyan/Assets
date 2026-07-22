@@ -1,4 +1,5 @@
 import type { Asset, StatusRow } from '@/domain/asset'
+import { ASSET_STATUS } from '@/domain/asset'
 import type { ChipColor } from '@/components/ui/chip'
 
 // ---------------------------------------------------------------------------
@@ -12,10 +13,10 @@ import type { ChipColor } from '@/components/ui/chip'
 export function deriveDisplayStatusId(
   asset: Asset,
 ): 'st_warehouse' | 'st_assigned' | 'st_repair' | 'st_disposed' {
-  if (asset.statusId === 'st_repair' || asset.statusId === 'st_disposed') {
+  if (asset.statusId === ASSET_STATUS.repair || asset.statusId === ASSET_STATUS.disposed) {
     return asset.statusId as 'st_repair' | 'st_disposed'
   }
-  return asset.assignment ? 'st_assigned' : 'st_warehouse'
+  return asset.assignment ? ASSET_STATUS.assigned : ASSET_STATUS.warehouse
 }
 
 /** Resolves the StatusRow to render, given loaded statuses. Falls back to a synthetic row. */
@@ -30,10 +31,10 @@ export function deriveDisplayStatus(asset: Asset, statuses: StatusRow[]): Status
 
 /** Maps derived status id → Chip color for the status chip in asset tables/cards. */
 export const STATUS_CHIP_COLOR: Record<string, ChipColor> = {
-  st_warehouse: 'blue',
-  st_assigned:  'green',
-  st_repair:    'amber',
-  st_disposed:  'red',
+  [ASSET_STATUS.warehouse]: 'blue',
+  [ASSET_STATUS.assigned]:  'green',
+  [ASSET_STATUS.repair]:    'amber',
+  [ASSET_STATUS.disposed]:  'red',
 }
 
 // ---------------------------------------------------------------------------
@@ -135,7 +136,7 @@ export function assigneeKind(
   a: Asset,
 ): 'employee' | 'department' | 'branch' | 'warehouse' | 'temporary' | 'none' {
   if (!a.assignment) {
-    return a.statusId === 'st_warehouse' ? 'warehouse' : 'none'
+    return a.statusId === ASSET_STATUS.warehouse ? 'warehouse' : 'none'
   }
   return a.assignment.mode
 }

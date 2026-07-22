@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import type { AssetSpecs } from '@/domain/asset'
-import { SpecCombobox } from './SpecCombobox'
+import { SpecCombobox } from '@/components/ui'
 import { RamSlots } from './RamSlots'
 import { StorageSlots } from './StorageSlots'
 import { CPU_SUGGESTIONS } from './specSuggestions'

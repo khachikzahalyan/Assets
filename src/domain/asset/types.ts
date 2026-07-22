@@ -8,6 +8,14 @@ export function isAssetStatusId(v: string): v is AssetStatusId {
   return (ASSET_STATUS_IDS as readonly string[]).includes(v)
 }
 
+/** Named accessors for the four fixed status ids (avoid scattering string literals). */
+export const ASSET_STATUS = {
+  warehouse: 'st_warehouse',
+  assigned: 'st_assigned',
+  repair: 'st_repair',
+  disposed: 'st_disposed',
+} as const satisfies Record<string, AssetStatusId>
+
 /**
  * The transfer modes available from the Asset Detail screen.
  *

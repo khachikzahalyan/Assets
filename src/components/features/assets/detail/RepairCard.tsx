@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { Asset } from '@/domain/asset'
+import { ASSET_STATUS } from '@/domain/asset'
 import { SectionCard, Icon, Btn } from '@/components/ui'
 
 interface RepairCardProps {
@@ -24,7 +25,7 @@ export function RepairCard({
 
   if (!canRepair) return null
 
-  const isInRepair = asset.statusId === 'st_repair'
+  const isInRepair = asset.statusId === ASSET_STATUS.repair
 
   function openForm() { setShowForm(true); setReason('') }
   function closeForm() { setShowForm(false); setReason('') }

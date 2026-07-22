@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next'
 import { Field } from '@/components/features/assets/create/ui'
 import { Icon } from '@/components/ui'
 import { ProductKeyInput } from '@/components/ui/ProductKeyInput'
-import { SpecCombobox } from '@/components/features/assets/create/SpecCombobox'
+import { SpecCombobox } from '@/components/ui'
 
 // ---------------------------------------------------------------------------
 // Public types

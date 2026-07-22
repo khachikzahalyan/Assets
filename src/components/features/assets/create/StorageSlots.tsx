@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Icon } from '@/components/ui'
-import { MiniDropdown } from './MiniDropdown'
+import { MiniDropdown } from '@/components/ui'
 import { STORAGE_SIZES, STORAGE_TYPES, parseStorageValue, serializeStorage, type StorageRow } from './ramStorage'
 
 export interface StorageSlotsProps {

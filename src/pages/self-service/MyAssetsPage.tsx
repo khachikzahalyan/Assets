@@ -6,8 +6,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext'
 import type { Asset, AssetRepository, SelfServiceRefData } from '@/domain/asset'
 import type { ChipColor } from '@/components/ui/chip'
-import { FirestoreAssetRepository } from '@/infra/repositories'
-import { db } from '@/lib/firebase'
+import { getSharedAssetRepository } from '@/infra/repositories'
 
 const VALID_CHIP_COLORS: ReadonlySet<string> = new Set<ChipColor>([
   'gray', 'green', 'blue', 'red', 'amber', 'orange', 'indigo', 'violet', 'teal', 'cyan',
@@ -24,12 +23,7 @@ export function MyAssetsPage({ repository }: MyAssetsPageProps) {
   const { t } = useTranslation('employees')
   const { user } = useAuth()
 
-  const defaultRepo = useMemo<AssetRepository>(
-    () => new FirestoreAssetRepository(db()),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  )
-  const repo = repository ?? defaultRepo
+  const repo = repository ?? getSharedAssetRepository()
 
   const [loading, setLoading]     = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)

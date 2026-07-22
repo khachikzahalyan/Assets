@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import type { Asset, CategoryRow, StatusRow } from '@/domain/asset'
 import { assetTitle, STATUS_CHIP_COLOR } from '@/components/features/assets/assetFormat'
-import { CATEGORY_COLOR } from '@/components/features/assets/categoryColors'
+import { CATEGORY_COLOR } from '@/components/common/categoryColors'
 import { Chip, Icon } from '@/components/ui'
 import { CHIP_PALETTE, CHIP_DOT } from '@/components/ui/chip'
 

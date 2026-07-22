@@ -7,8 +7,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import type { Asset, AssetReferenceData, CreateAssetInput } from '@/domain/asset'
 import type { AssetRepository, AssetWriteRepository } from '@/domain/asset'
 import type { WorkstationLicenseRepository } from '@/domain/license'
-import { FirestoreAssetRepository, FirestoreWorkstationLicenseRepository } from '@/infra/repositories'
-import { db } from '@/lib/firebase'
+import { getSharedAssetRepositoryWithLicenses, getSharedWorkstationLicenseRepository } from '@/infra/repositories'
 import { setLicenseKey } from '@/lib/licenses/revealKey'
 
 export interface AssetCreatePageProps {
@@ -36,7 +35,7 @@ export function AssetCreatePage({ repository, licenseRepository, onCreated, onPe
   // Build the default Firestore repo lazily — only when no test repo is injected.
   // The useMemo factory only executes if repository is undefined at mount time.
   const defaultRepo = useMemo<AssetRepository & AssetWriteRepository | null>(
-    () => (repository ? null : new FirestoreAssetRepository(db(), new FirestoreWorkstationLicenseRepository(db()))),
+    () => (repository ? null : getSharedAssetRepositoryWithLicenses()),
     // repository identity is stable across renders (passed from parent or undefined)
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
@@ -47,7 +46,7 @@ export function AssetCreatePage({ repository, licenseRepository, onCreated, onPe
   // When licenseRepository is injected (test path) use it directly; otherwise build
   // Firestore one only when no non-Firestore asset repo is injected (production path).
   const defaultLicenseRepo = useMemo<WorkstationLicenseRepository | null>(
-    () => (licenseRepository || repository ? null : new FirestoreWorkstationLicenseRepository(db())),
+    () => (licenseRepository || repository ? null : getSharedWorkstationLicenseRepository()),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   )
@@ -87,7 +86,7 @@ export function AssetCreatePage({ repository, licenseRepository, onCreated, onPe
     setSaveError(null)
     setOemKeyWarning(null)
     try {
-      const actor = { uid: user.id, role }
+      const actor = { uid: user.id, role, displayName: user.name }
       const { value } = await (repo as AssetWriteRepository).createAsset(input, actor)
 
       // OEM secret persistence — only when the input carried a rawKey.
@@ -101,7 +100,7 @@ export function AssetCreatePage({ repository, licenseRepository, onCreated, onPe
             // Resolve the real licenseId before calling the injected stub — never
             // pass an empty string. Use the injected licenseRepository if available
             // (test path), otherwise fall back to Firestore.
-            const licRepo = licenseRepository ?? (!repository ? new FirestoreWorkstationLicenseRepository(db()) : null)
+            const licRepo = licenseRepository ?? (!repository ? getSharedWorkstationLicenseRepository() : null)
             const resolvedLicenseId = licRepo ? (await licRepo.listForAsset(value.id))[0]?.id : undefined
             if (!resolvedLicenseId) {
               // Cannot resolve licenseId — non-fatal warning; asset + license doc exist.
@@ -113,7 +112,7 @@ export function AssetCreatePage({ repository, licenseRepository, onCreated, onPe
             // Production Firestore path: look up the newly created license by asset id.
             // This is a best-effort call — the asset + license DOC already exist; only
             // the secret write could fail.
-            const licRepo = new FirestoreWorkstationLicenseRepository(db())
+            const licRepo = getSharedWorkstationLicenseRepository()
             const bound = await licRepo.listForAsset(value.id)
             const licenseId = bound[0]?.id
             if (licenseId) {
@@ -149,7 +148,7 @@ export function AssetCreatePage({ repository, licenseRepository, onCreated, onPe
     setSaveError(null)
     setOemKeyWarning(null)
     try {
-      const actor = { uid: user.id, role }
+      const actor = { uid: user.id, role, displayName: user.name }
       const created = await (repo as AssetWriteRepository).createAssetsBatch(inputs, actor)
       onCreated?.(created[0] ?? (undefined as unknown as Asset))
       navigate('/assets')

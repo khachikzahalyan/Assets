@@ -34,7 +34,7 @@ interface ChangeDialogProps {
   onClose: () => void
   onChanged: (u: User) => void
   repo: UserRepository
-  actor: { uid: string; role: Role }
+  actor: { uid: string; role: Role; displayName?: string }
 }
 
 function ChangeRoleDialog({ target, isSelf, onClose, onChanged, repo, actor }: ChangeDialogProps) {
@@ -251,6 +251,7 @@ export function RolesPage({ repository }: RolesPageProps) {
           columns={5}
           gridTemplate={gridTemplate}
           lastColAction
+          headers={[t('col.user'), t('col.email'), t('col.role'), t('col.status'), '']}
         />
     if (error) return <ErrorState onRetry={load} />
     if (filtered.length === 0) return <EmptyState icon="shield-check" title={t('empty.title')} description={t('empty.desc')} />
@@ -420,7 +421,7 @@ export function RolesPage({ repository }: RolesPageProps) {
           onClose={() => setDialogUser(null)}
           onChanged={handleChanged}
           repo={repo}
-          actor={{ uid: user.id, role }}
+          actor={{ uid: user.id, role, displayName: user.name }}
         />
       )}
     </>

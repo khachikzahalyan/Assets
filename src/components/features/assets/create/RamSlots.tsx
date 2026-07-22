@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Icon } from '@/components/ui'
-import { MiniDropdown } from './MiniDropdown'
+import { MiniDropdown } from '@/components/ui'
 import { RAM_SIZES, RAM_TYPES, parseRamValue, serializeRam, type RamSlot } from './ramStorage'
 
 export interface RamSlotsProps {

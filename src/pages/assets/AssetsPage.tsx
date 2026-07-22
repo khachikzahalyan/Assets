@@ -9,8 +9,7 @@ import { PaginationBar } from '@/components/features/assets/PaginationBar'
 import { useAssets } from '@/hooks'
 import type { AssetListQuery, Asset } from '@/domain/asset'
 import type { AssetRepository } from '@/domain/asset/AssetRepository'
-import { FirestoreAssetRepository } from '@/infra/repositories'
-import { db } from '@/lib/firebase'
+import { getSharedAssetRepository } from '@/infra/repositories'
 import type { ExportRow } from '@/lib/exportXlsx'
 import { deriveDisplayStatusId, isTemporaryAssignment } from '@/components/features/assets/assetFormat'
 
@@ -28,21 +27,15 @@ export interface AssetsPageProps {
   repository?: AssetRepository
 }
 
-// Module-level singleton: keeps the repo's reference-data cache (60s TTL) alive
-// across navigations, so returning to /assets doesn't refetch 7 catalog
-// collections before the toolbar can render. Test callers pass their own repo.
-let sharedRepo: FirestoreAssetRepository | null = null
-function getSharedRepo(): FirestoreAssetRepository {
-  if (!sharedRepo) sharedRepo = new FirestoreAssetRepository(db())
-  return sharedRepo
-}
-
 export function AssetsPage({ repository }: AssetsPageProps) {
   const { t } = useTranslation(['assets', 'nav'])
   const navigate = useNavigate()
   const { role } = useAuth()
 
-  const repo = repository ?? getSharedRepo()
+  // Shared singleton keeps the repo's reference-data cache (60s TTL) alive across
+  // navigations, so returning to /assets doesn't refetch 7 catalog collections
+  // before the toolbar can render. Test callers pass their own repo.
+  const repo = repository ?? getSharedAssetRepository()
 
   const canMutate = role === 'super_admin' || role === 'asset_admin'
   const isMobile = useIsMobile()
@@ -241,6 +234,7 @@ export function AssetsPage({ repository }: AssetsPageProps) {
           firstColWide
           lastColAction
           gridTemplate="minmax(240px,2.4fr) minmax(130px,1fr) minmax(100px,0.85fr) minmax(150px,1.2fr) minmax(110px,1fr) 56px"
+          headers={[t('cols.asset'), t('cols.branch'), t('cols.code'), t('cols.assignee'), t('cols.status'), '']}
         />
     if (error && !ref) return <ErrorState onRetry={reload} />
     if (displayed.length === 0) {

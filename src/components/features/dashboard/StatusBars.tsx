@@ -1,17 +1,17 @@
 import { useTranslation } from 'react-i18next'
-import { ASSET_STATUS_IDS } from '@/domain/asset'
+import { ASSET_STATUS_IDS, ASSET_STATUS } from '@/domain/asset'
 import type { AssetStatusId, StatusRow } from '@/domain/asset'
 import { Icon } from '@/components/ui/icon'
 import { cn } from '@/lib/utils'
 
 /** Tailwind token-based color config per status id. */
 const STATUS_CFG: Record<string, { dot: string; bar: string }> = {
-  st_warehouse: { dot: 'bg-info',    bar: 'from-info to-info/25' },
-  st_assigned:  { dot: 'bg-success', bar: 'from-success to-success/25' },
-  st_repair:    { dot: 'bg-warning', bar: 'from-warning to-warning/25' },
-  st_disposed:  { dot: 'bg-error',   bar: 'from-error to-error/25' },
+  [ASSET_STATUS.warehouse]: { dot: 'bg-info',    bar: 'from-info to-info/25' },
+  [ASSET_STATUS.assigned]:  { dot: 'bg-success', bar: 'from-success to-success/25' },
+  [ASSET_STATUS.repair]:    { dot: 'bg-warning', bar: 'from-warning to-warning/25' },
+  [ASSET_STATUS.disposed]:  { dot: 'bg-error',   bar: 'from-error to-error/25' },
 }
-const DEFAULT_STATUS_CFG = STATUS_CFG['st_warehouse'] as { dot: string; bar: string }
+const DEFAULT_STATUS_CFG = STATUS_CFG[ASSET_STATUS.warehouse] as { dot: string; bar: string }
 
 export interface StatusBarsProps {
   byStatus: Record<AssetStatusId, number>

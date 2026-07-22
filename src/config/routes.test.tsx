@@ -25,6 +25,15 @@ import { AppRoutes } from './routes'
 // ── Firebase / repo mocks ──────────────────────────────────────────────────────
 // Mirror exactly what EmployeesPage.test.tsx uses so all lazily-constructed
 // default repos are satisfied without touching the network.
+//
+// Pages migrated from `new Firestore*Repository(db())` to shared factory getters
+// (getSharedAssetRepository, getSharedAssignmentRepository, etc.) exported from
+// src/infra/repositories/factories.ts.  The mock therefore overrides BOTH the
+// class exports (harmless, kept for completeness) AND the factory-getter exports
+// so pages that call `getSharedXxxRepository()` receive stub instances instead of
+// real Firestore-backed ones.  getSharedDashboardRepository is intentionally NOT
+// overridden — test 4 relies on the real (broken) dashboard repo to produce the
+// `dashboard-error` testid that confirms the redirect to /dashboard landed.
 
 vi.mock('@/lib/firebase', () => ({
   app:       () => ({}),
@@ -43,45 +52,71 @@ vi.mock('@/lib/auth', () => ({
   fetchUserRole:              vi.fn(async () => null),
 }))
 
-// Stub all Firestore repository classes so their constructors never call db().
+// Stub all Firestore repository classes AND shared factory getters so pages that
+// call getSharedXxxRepository() receive stubs instead of real Firestore classes.
 vi.mock('@/infra/repositories', async () => {
   const actual = await vi.importActual<typeof import('@/infra/repositories')>('@/infra/repositories')
+
+  // ── Stub class definitions (hoisted inside the factory) ──────────────────
+  class StubEmployeeRepo {
+    async listEmployees()        { return [] }
+    async listFormerEmployees()  { return [] }
+    async getEmployee()          { return null }
+    async createEmployee()       { return { value: { id: 'e_1' } } }
+    async updateEmployee()       { return }
+    async setStatus()            { return }
+    async countSuperAdmins()     { return 1 }
+  }
+
+  class StubAssetRepo {
+    async loadReferenceData()      { return { statuses: [], branches: [], departments: [], categories: [], employees: [], categoryGroups: [] } }
+    async listAssets()             { return [] }
+    async listAssetsForEmployee()  { return [] }
+    async loadSelfServiceRefData() { return { statuses: [], categories: [], branches: [], departments: [] } }
+    async changeStatus()           { return }
+  }
+
+  class StubAssignmentRepo {
+    async listAssignmentsForEmployee() { return [] }
+  }
+
+  class StubUserRepo {
+    async listPendingUsers() { return [] }
+    async assignRole()       { return { value: { id: 'u_1', email: 'x@example.test', displayName: 'X', role: 'super_admin', status: 'active', createdAt: null }, auditId: 'a_1' } }
+    async countSuperAdmins() { return 1 }
+  }
+
+  // Singleton stub instances — must be stable references so hook dependency
+  // arrays (useMemo/useCallback) see the same object across renders and do not
+  // trigger infinite re-render loops.
+  const stubAssetRepo      = new StubAssetRepo()
+  const stubAssignmentRepo = new StubAssignmentRepo()
+  const stubEmployeeRepo   = new StubEmployeeRepo()
+  const stubUserRepo       = new StubUserRepo()
+
   return {
     ...actual,
-    FirestoreEmployeeRepository: class {
-      async listEmployees()          { return [] }
-      async getEmployee()            { return null }
-      async createEmployee()        { return { value: { id: 'e_1' } } }
-      async updateEmployee()        { return }
-      async setStatus()             { return }
-    },
-    FirestoreAssetRepository: class {
-      async loadReferenceData()      { return { statuses: [], branches: [], departments: [], categories: [], employees: [], categoryGroups: [] } }
-      async listAssets()             { return [] }
-      async listAssetsForEmployee()  { return [] }
-      async loadSelfServiceRefData() { return { statuses: [], categories: [], branches: [], departments: [] } }
-    },
-    FirestoreAssignmentRepository: class {
-      async listAssignmentsForEmployee() { return [] }
-    },
-    FirestoreUserRepository: class {
-      async listPendingUsers() { return [] }
-      async assignRole() { return { value: { id: 'u_1', email: 'x@x.com', displayName: 'X', role: 'super_admin', status: 'active', createdAt: null }, auditId: 'a_1' } }
-    },
+
+    // ── Class overrides (kept for any code that still news them up) ──────────
+    FirestoreEmployeeRepository: StubEmployeeRepo,
+    FirestoreAssetRepository:    StubAssetRepo,
+    FirestoreAssignmentRepository: StubAssignmentRepo,
+    FirestoreUserRepository:     StubUserRepo,
+
     FirestoreBranchRepository: class {
-      async listBranches() { return [] }
-      async getBranch()    { return null }
-      async isNameTaken()  { return false }
-      async countReferences() { return 0 }
-      async createBranch() { return { value: { id: 'b_1', name: '', type: 'branch', city: null, address: null, createdAt: '', updatedAt: '' }, auditId: 'a_1' } }
-      async updateBranch() { return { value: { id: 'b_1', name: '', type: 'branch', city: null, address: null, createdAt: '', updatedAt: '' }, auditId: 'a_1' } }
-      async deleteBranch() { return { value: { id: 'b_1' }, auditId: 'a_1' } }
+      async listBranches()     { return [] }
+      async getBranch()        { return null }
+      async isNameTaken()      { return false }
+      async countReferences()  { return 0 }
+      async createBranch()     { return { value: { id: 'b_1', name: '', type: 'branch', city: null, address: null, createdAt: '', updatedAt: '' }, auditId: 'a_1' } }
+      async updateBranch()     { return { value: { id: 'b_1', name: '', type: 'branch', city: null, address: null, createdAt: '', updatedAt: '' }, auditId: 'a_1' } }
+      async deleteBranch()     { return { value: { id: 'b_1' }, auditId: 'a_1' } }
     },
     FirestoreDepartmentRepository: class {
-      async listDepartments() { return [] }
-      async getDepartment()   { return null }
-      async isNameTaken()     { return false }
-      async countReferences() { return 0 }
+      async listDepartments()  { return [] }
+      async getDepartment()    { return null }
+      async isNameTaken()      { return false }
+      async countReferences()  { return 0 }
       async createDepartment() { return { value: { id: 'dp_1', name: '', createdAt: '', updatedAt: '' }, auditId: 'a_1' } }
       async updateDepartment() { return { value: { id: 'dp_1', name: '', createdAt: '', updatedAt: '' }, auditId: 'a_1' } }
       async deleteDepartment() { return { value: { id: 'dp_1' }, auditId: 'a_1' } }
@@ -97,14 +132,30 @@ vi.mock('@/infra/repositories', async () => {
       async deleteCategory()   { return { value: { id: 'cat_1' }, auditId: 'a_1' } }
     },
     FirestoreAssetStatusRepository: class {
-      async listAssetStatuses()   { return [] }
-      async getAssetStatus()      { return null }
-      async isNameTaken()         { return false }
-      async countReferences()     { return 0 }
-      async createAssetStatus()   { return { value: { id: 'st_1', name: '', color: 'gray', isFinal: false, isSystem: false, sortOrder: 0, createdAt: '', updatedAt: '' }, auditId: 'a_1' } }
-      async updateAssetStatus()   { return { value: { id: 'st_1', name: '', color: 'gray', isFinal: false, isSystem: false, sortOrder: 0, createdAt: '', updatedAt: '' }, auditId: 'a_1' } }
-      async deleteAssetStatus()   { return { value: { id: 'st_1' }, auditId: 'a_1' } }
+      async listAssetStatuses() { return [] }
+      async getAssetStatus()    { return null }
+      async isNameTaken()       { return false }
+      async countReferences()   { return 0 }
+      async createAssetStatus() { return { value: { id: 'st_1', name: '', color: 'gray', isFinal: false, isSystem: false, sortOrder: 0, createdAt: '', updatedAt: '' }, auditId: 'a_1' } }
+      async updateAssetStatus() { return { value: { id: 'st_1', name: '', color: 'gray', isFinal: false, isSystem: false, sortOrder: 0, createdAt: '', updatedAt: '' }, auditId: 'a_1' } }
+      async deleteAssetStatus() { return { value: { id: 'st_1' }, auditId: 'a_1' } }
     },
+
+    // ── Factory-getter overrides: pages call these instead of constructors ───
+    // Stable singleton instances are REQUIRED: hooks compare the repo reference
+    // in useMemo/useCallback dependency arrays. A new instance on every call would
+    // break referential equality and trigger an infinite re-render loop.
+    // The _cache in factories.ts is bypassed because the entire module is replaced
+    // by this mock, so we replicate the singleton pattern manually here.
+    getSharedAssetRepository:              () => stubAssetRepo,
+    getSharedAssetRepositoryWithLicenses:  () => stubAssetRepo,
+    getSharedAssignmentRepository:         () => stubAssignmentRepo,
+    getSharedEmployeeRepository:           () => stubEmployeeRepo,
+    getSharedEmployeeRepositoryWithGuard:  () => stubEmployeeRepo,
+    getSharedUserRepository:               () => stubUserRepo,
+    // getSharedDashboardRepository — intentionally NOT overridden:
+    //   test 4 ("asset_admin hitting /my-assets is bounced to /dashboard") depends
+    //   on the real dashboard repo failing over db()={} to produce `dashboard-error`.
   }
 })
 

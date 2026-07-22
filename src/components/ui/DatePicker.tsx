@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import ReactDOM from 'react-dom'
-import { Icon } from '@/components/ui'
+import { Icon } from '@/components/ui/icon'
 import { useIsMobile } from '@/hooks/useIsMobile'
-import { useExclusiveDropdown } from './dropdownBus'
-import { DPPortal } from './DatePickerPortal'
+import { useExclusiveDropdown } from '@/components/ui/dropdownBus'
+import { DPPortal } from '@/components/ui/DatePickerPortal'
 
 const RU_MONTHS = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь']
 const RU_WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']

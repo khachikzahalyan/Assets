@@ -1,13 +1,13 @@
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   PageHeader, SectionCard, Btn, Icon, ErrorState, EmptyState,
 } from '@/components/ui'
 import { useAuth } from '@/contexts/AuthContext'
 import type { Assignment, AssignmentRepository } from '@/domain/assignment'
-import { FirestoreAssignmentRepository } from '@/infra/repositories'
+import { getSharedAssignmentRepository } from '@/infra/repositories'
 import { actScanUrl } from '@/infra/storage'
-import { db, storage } from '@/lib/firebase'
+import { storage } from '@/lib/firebase'
 
 export interface MyActsPageProps {
   repository?: AssignmentRepository
@@ -17,12 +17,7 @@ export function MyActsPage({ repository }: MyActsPageProps) {
   const { t } = useTranslation('employees')
   const { user } = useAuth()
 
-  const defaultRepo = useMemo<AssignmentRepository>(
-    () => new FirestoreAssignmentRepository(db()),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  )
-  const repo = repository ?? defaultRepo
+  const repo = repository ?? getSharedAssignmentRepository()
 
   const [loading, setLoading]       = useState(true)
   const [loadError, setLoadError]   = useState<string | null>(null)

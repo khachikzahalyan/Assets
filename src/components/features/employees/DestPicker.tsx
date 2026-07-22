@@ -8,7 +8,7 @@ import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react
 import ReactDOM from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@/components/ui'
-import { DatePicker } from '@/components/features/assets/create/DatePicker'
+import { DatePicker } from '@/components/ui'
 import { rafThrottle } from '@/lib/rafThrottle'
 
 // ── Types ─────────────────────────────────────────────────────────────────────

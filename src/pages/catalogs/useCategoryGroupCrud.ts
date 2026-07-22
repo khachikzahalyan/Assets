@@ -22,7 +22,7 @@ export function useCategoryGroupCrud(
 
   async function handleGroupSubmit(v: CategoryGroupFormValues) {
     setGroupSubmitting(true); setGroupSaveError(null)
-    const actor = { uid: user.id, role }
+    const actor = { uid: user.id, role, displayName: user.name }
     try {
       if (groupEditing && groupEditing !== 'new') {
         await groupRepo.updateCategoryGroup(groupEditing.id, v, actor)
@@ -51,7 +51,7 @@ export function useCategoryGroupCrud(
     if (!groupDeleting) return
     setGroupDelBusy(true)
     try {
-      await groupRepo.deleteCategoryGroup(groupDeleting.id, { uid: user.id, role })
+      await groupRepo.deleteCategoryGroup(groupDeleting.id, { uid: user.id, role, displayName: user.name })
       setGroupDeleting(null); setGroupBlockedMsg(null); await load()
     } catch (e) {
       if (e instanceof EntityInUseError) {

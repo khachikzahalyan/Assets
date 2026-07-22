@@ -5,7 +5,7 @@ import type { CategoryCapabilities } from '@/components/features/assets/create/C
 import type { TransferPatch, TransferTarget } from '@/domain/asset/transferRules'
 import { buildTransferPatch } from '@/domain/asset/transferRules'
 import { Icon } from '@/components/ui'
-import { DatePicker } from '@/components/features/assets/create/DatePicker'
+import { DatePicker } from '@/components/ui'
 import { SearchSelect } from '@/components/features/assets/create/SearchSelect'
 import { ModeTile } from './ModeTile'
 

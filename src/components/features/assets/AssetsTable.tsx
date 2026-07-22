@@ -2,6 +2,7 @@ import { useMemo, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { Asset } from '@/domain/asset'
 import type { AssetReferenceData } from '@/domain/asset/AssetRepository'
+import { HEAD_OFFICE_BRANCH_ID } from '@/domain/asset/transferRules'
 import type { ChipColor } from '@/components/ui/chip'
 import {
   deriveDisplayStatus,
@@ -10,10 +11,11 @@ import {
   isTemporaryAssignment,
   assigneeKind,
 } from './assetFormat'
-import { CATEGORY_COLOR } from './categoryColors'
-import { AssetRow, GRID_COLS } from './AssetRow'
+import { CATEGORY_COLOR } from '@/components/common/categoryColors'
+import { AssigneeCell } from './AssigneeCell'
 import { MobileCard } from './AssetRowMobile'
-import { MobileListPlaceholders } from '@/components/ui'
+import { Chip, DataTable, Icon, MobileListPlaceholders } from '@/components/ui'
+import type { DataTableColumn } from '@/components/ui'
 
 // ── AssetsTable ──────────────────────────────────────────────────────────────
 
@@ -35,7 +37,9 @@ export interface AssetsTableProps {
 export function AssetsTable({
   rows,
   ref: refData,
-  canMutate,
+  // Kept in the public API for callers/tests; the desktop edit affordance was
+  // never wired (no onEditClick), so the prop is currently unused.
+  canMutate: _canMutate,
   onRowClick,
   minRows = 10,
   focusId,
@@ -76,6 +80,8 @@ export function AssetsTable({
   const tempLabel      = t('assignee.temp')
   const kindAuditLabel = t('assignee.kindAudit')
   const kindInternLabel = t('assignee.kindIntern')
+
+  const desktopColumns = buildDesktopColumns()
 
   // ── Mobile subline builder ──────────────────────────────────────────────────
   /**
@@ -180,130 +186,145 @@ export function AssetsTable({
       <MobileListPlaceholders count={placeholderCount} dataTestId="asset-card-placeholder" />
     </div>}
 
-    {/* ── Desktop grid table (≥ 768px) ── */}
-    {!isMobile && <div role="table" aria-label={t('title')} style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%' }}>
-      {/* Header */}
-      <div
-        role="rowgroup"
-        style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 2,
-          background: '#111315',
-          borderBottom: '1px solid rgba(42,47,54,0.9)',
-          flexShrink: 0,
-        }}
-      >
-        <div
-          role="row"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: GRID_COLS,
-            alignItems: 'center',
-            height: 44,
-          }}
-        >
-          <div
-            role="columnheader"
-            className="flex items-center gap-2 text-[12px] uppercase tracking-[0.09em] font-semibold text-text-tertiary"
-            style={{ paddingLeft: 20 }}
-          >
-            {t('cols.asset')}
-          </div>
-          <div role="columnheader" className="px-3 text-[12px] uppercase tracking-[0.09em] font-semibold text-text-tertiary">
-            {t('cols.branch')}
-          </div>
-          <div role="columnheader" className="px-3 text-[12px] uppercase tracking-[0.09em] font-semibold text-text-tertiary">
-            {t('cols.code')}
-          </div>
-          <div role="columnheader" className="px-3 text-[12px] uppercase tracking-[0.09em] font-semibold text-text-tertiary">
-            {t('cols.assignee')}
-          </div>
-          <div role="columnheader" className="px-3 text-[12px] uppercase tracking-[0.09em] font-semibold text-text-tertiary">
-            {t('cols.status')}
-          </div>
-          <div role="columnheader" className="px-3" aria-label="" />
-        </div>
-      </div>
+    {/* ── Desktop grid table (≥ 768px) — shared DataTable (this table is the
+        style etalon the component was extracted from; one table everywhere). ── */}
+    {!isMobile && (
+      <DataTable<Asset>
+        aria-label={t('title')}
+        columns={desktopColumns}
+        rows={rows}
+        getRowKey={a => a.id}
+        {...(onRowClick !== undefined ? { onRowClick } : {})}
+        {...(focusId !== undefined ? { focusRowKey: focusId } : {})}
+        minRows={minRows}
+        fillHeight
+        placeholderTestId="asset-table-placeholder"
+      />
+    )}
+    </>
+  )
 
-      {/* Body */}
-      <div role="rowgroup" style={{ display: 'flex', flexDirection: 'column', flex: '1 1 0', minHeight: 0 }}>
-        {rows.map(a => {
+  // ── Desktop column definitions — cells moved verbatim from the old AssetRow ──
+  function buildDesktopColumns(): DataTableColumn<Asset>[] {
+    return [
+      {
+        key: 'asset',
+        header: t('cols.asset'),
+        width: 'minmax(240px,2.4fr)',
+        cellClassName: 'flex items-center gap-2.5 min-w-0',
+        cell: (a) => {
           const cat          = categoryMap.get(a.categoryId)
           const categoryName = cat?.name ?? ''
-          const group        = cat?.group
-          const title        = assetTitle(a, categoryName, group)
-
+          const title        = assetTitle(a, categoryName, cat?.group)
+          const catColor     = CATEGORY_COLOR[a.categoryId] ?? null
+          const isRemote     = a.assignment?.workMode === 'remote'
+          const subBase      = categoryName || a.brand || '—'
+          const sub          = a.serial ? `${subBase} · ${a.serial}` : subBase
+          return (
+            <>
+              {/* Category icon box */}
+              <span
+                className="w-9 h-9 rounded-lg bg-surface-2 border border-border text-text-tertiary inline-flex items-center justify-center flex-shrink-0 transition-colors duration-[180ms]"
+                style={catColor ? { backgroundColor: catColor.bg, color: catColor.icon, borderColor: catColor.icon } : undefined}
+              >
+                <Icon name={cat?.lucideIcon ?? 'box'} size={16} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className="text-[15.5px] font-semibold text-text-primary truncate leading-tight">
+                    {title}
+                  </span>
+                  {isRemote && (
+                    <span className="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-semibold uppercase tracking-wide bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+                      <Icon name="house" size={10} />
+                      {t('badges.remote')}
+                    </span>
+                  )}
+                </div>
+                <div className="text-[13.5px] text-text-tertiary truncate leading-tight mt-0.5">
+                  {sub}
+                </div>
+              </div>
+            </>
+          )
+        },
+      },
+      {
+        key: 'branch',
+        header: t('cols.branch'),
+        width: 'minmax(130px,1fr)',
+        cellClassName: 'flex items-center gap-1.5 min-w-0',
+        cell: (a) => {
+          const isMainBranch = a.branchId === HEAD_OFFICE_BRANCH_ID
+          return (
+            <>
+              <span className="shrink-0 inline-flex" style={{ color: isMainBranch ? '#10B981' : '#38BDF8' }}>
+                <Icon name={isMainBranch ? 'landmark' : 'building'} size={12} />
+              </span>
+              <span className="text-[14.5px] text-text-secondary truncate">
+                {branchMap.get(a.branchId) ?? '—'}
+              </span>
+            </>
+          )
+        },
+      },
+      {
+        key: 'code',
+        header: t('cols.code'),
+        width: 'minmax(100px,0.85fr)',
+        cell: (a) => (
+          <span className="inline-block max-w-full truncate font-mono text-[14px] font-semibold text-text-secondary bg-bg border border-border rounded-md px-1.5 py-0.5">
+            {a.invCode}
+          </span>
+        ),
+      },
+      {
+        key: 'assignee',
+        header: t('cols.assignee'),
+        width: 'minmax(150px,1.2fr)',
+        cellClassName: 'min-w-0',
+        cell: (a) => (
+          <AssigneeCell
+            asset={a}
+            employeeMap={employeeMap}
+            deptMap={deptMap}
+            branchMap={branchMap}
+            onShelf={onShelf}
+            onShelfSub={onShelfSub}
+            deptLabel={deptLabel}
+            branchLabel={branchLabel}
+            tempLabel={tempLabel}
+            kindAuditLabel={kindAuditLabel}
+            kindInternLabel={kindInternLabel}
+          />
+        ),
+      },
+      {
+        key: 'status',
+        header: t('cols.status'),
+        width: 'minmax(110px,1fr)',
+        cell: (a) => {
           const displayStatus = deriveDisplayStatus(a, refData.statuses)
-          const statusName    = displayStatus.name
           const statusColor: ChipColor =
             STATUS_CHIP_COLOR[displayStatus.id] ??
             (displayStatus.color as ChipColor) ??
             'gray'
-
-          const branchName   = branchMap.get(a.branchId) ?? '—'
-          const isMainBranch = a.branchId === 'br_main'
-          const catColor     = CATEGORY_COLOR[a.categoryId] ?? null
-
-          return (
-            <AssetRow
-              key={a.id}
-              asset={a}
-              title={title}
-              categoryName={categoryName}
-              categoryIcon={cat?.lucideIcon ?? 'box'}
-              catColor={catColor}
-              statusName={statusName}
-              statusColor={statusColor}
-              branchName={branchName}
-              isMainBranch={isMainBranch}
-              employeeMap={employeeMap}
-              deptMap={deptMap}
-              branchMap={branchMap}
-              onShelf={onShelf}
-              onShelfSub={onShelfSub}
-              deptLabel={deptLabel}
-              branchLabel={branchLabel}
-              tempLabel={tempLabel}
-              kindAuditLabel={kindAuditLabel}
-              kindInternLabel={kindInternLabel}
-              canMutate={canMutate}
-              onRowClick={onRowClick ?? (() => {})}
-              isFocused={focusId === a.id}
-            />
-          )
-        })}
-
-        {/* Placeholder rows — desktop only — maintain fixed table height */}
-        {Array.from({ length: placeholderCount }).map((_, i) => (
-          <div
-            key={`__ph_${i}`}
-            aria-hidden="true"
-            data-testid="asset-table-placeholder"
-            className="max-md:hidden"
-            style={{
-              position: 'relative',
-              flex: '1 1 0',
-              minHeight: 58,
-              borderTop: '1px solid rgba(42,47,54,0.35)',
-              pointerEvents: 'none',
-            }}
-          >
-            <div
-              style={{
-                position: 'absolute',
-                left: 20,
-                right: 20,
-                top: '50%',
-                height: 1,
-                borderTop: '1px dashed rgba(42,47,54,0.5)',
-                transform: 'translateY(-50%)',
-              }}
-            />
-          </div>
-        ))}
-      </div>
-    </div>}
-    </>
-  )
+          return <Chip color={statusColor} dot>{displayStatus.name}</Chip>
+        },
+      },
+      {
+        key: 'actions',
+        header: '',
+        width: '56px',
+        cellClassName: 'flex items-center justify-end',
+        cell: () => (
+          <Icon
+            name="chevron-right"
+            size={14}
+            className="text-text-subtle group-hover:text-accent-light transition-colors ml-0.5"
+          />
+        ),
+      },
+    ]
+  }
 }

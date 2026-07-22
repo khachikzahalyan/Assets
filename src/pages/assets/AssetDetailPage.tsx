@@ -1,4 +1,3 @@
-import { useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useIsMobile } from '@/hooks/useIsMobile'
@@ -15,8 +14,7 @@ import type {
 } from '@/domain/asset'
 import type { AssignmentRepository } from '@/domain/assignment'
 import type { WorkstationLicenseRepository } from '@/domain/license'
-import { FirestoreAssetRepository, FirestoreAssignmentRepository, FirestoreWorkstationLicenseRepository } from '@/infra/repositories'
-import { db } from '@/lib/firebase'
+import { getSharedAssetRepository, getSharedAssignmentRepository, getSharedWorkstationLicenseRepository } from '@/infra/repositories'
 
 // ---------------------------------------------------------------------------
 // Component props
@@ -42,27 +40,10 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
   const { id } = useParams<{ id: string }>()
   const isMobile = useIsMobile()
 
-  // Build default repos lazily — test callers inject their own
-  const defaultRepo = useMemo<AssetRepository & AssetWriteRepository>(
-    () => new FirestoreAssetRepository(db()),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  )
-  const repo = repository ?? defaultRepo
-
-  const defaultAsnRepo = useMemo<AssignmentRepository>(
-    () => new FirestoreAssignmentRepository(db()),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  )
-  const repoAsn = assignmentRepository ?? defaultAsnRepo
-
-  const defaultLicenseRepo = useMemo<WorkstationLicenseRepository>(
-    () => new FirestoreWorkstationLicenseRepository(db()),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  )
-  const licenseRepo = licenseRepository ?? defaultLicenseRepo
+  // Shared production singletons — test callers inject their own repos.
+  const repo = repository ?? getSharedAssetRepository()
+  const repoAsn = assignmentRepository ?? getSharedAssignmentRepository()
+  const licenseRepo = licenseRepository ?? getSharedWorkstationLicenseRepository()
 
   const {
     loading, loadError, load,

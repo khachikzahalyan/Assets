@@ -11,26 +11,18 @@ import { useIsMobile } from '@/hooks/useIsMobile'
 import { CatalogTable, CatalogPagination, ConfirmDeleteDialog, CatalogToolbarHeader, type CatalogColumn } from '@/components/features/catalogs'
 import { BranchFormDialog, type BranchFormValues } from '@/components/features/branches'
 import type { Branch, BranchListQuery, BranchRepository } from '@/domain/branch'
-import { FirestoreBranchRepository } from '@/infra/repositories'
+import { getSharedBranchRepository } from '@/infra/repositories'
 import { EntityInUseError } from '@/domain/shared'
-import { db } from '@/lib/firebase'
 import { useCachedResource, cacheIdentity } from '@/hooks/useCachedResource'
 
 const PAGE_SIZE = 10  // consistent with the other list pages so rows fill without scrolling
-
-// Module-level lazy singleton — cache key stays stable across navigations.
-let _sharedBranchRepo: FirestoreBranchRepository | null = null
-function getSharedBranchRepo(): FirestoreBranchRepository {
-  if (!_sharedBranchRepo) _sharedBranchRepo = new FirestoreBranchRepository(db())
-  return _sharedBranchRepo
-}
 
 export interface BranchesPageProps { repository?: BranchRepository }
 
 export function BranchesPage({ repository }: BranchesPageProps) {
   const { t } = useTranslation('branches')
   const { user, role } = useAuth()
-  const repo = repository ?? getSharedBranchRepo()
+  const repo = repository ?? getSharedBranchRepository()
   const canMutate = role === 'super_admin' || role === 'asset_admin'
   const isMobile = useIsMobile()
 
@@ -62,8 +54,8 @@ export function BranchesPage({ repository }: BranchesPageProps) {
   const handleSubmit = useCallback(async (v: BranchFormValues) => {
     setSubmitting(true); setSaveError(null)
     try {
-      if (editing && editing !== 'new') await repo.updateBranch(editing.id, v, { uid: user.id, role })
-      else await repo.createBranch(v, { uid: user.id, role })
+      if (editing && editing !== 'new') await repo.updateBranch(editing.id, v, { uid: user.id, role, displayName: user.name })
+      else await repo.createBranch(v, { uid: user.id, role, displayName: user.name })
       setEditing(null); reload()
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e)
@@ -84,7 +76,7 @@ export function BranchesPage({ repository }: BranchesPageProps) {
     if (!deleting) return
     setDelBusy(true)
     try {
-      await repo.deleteBranch(deleting.id, { uid: user.id, role })
+      await repo.deleteBranch(deleting.id, { uid: user.id, role, displayName: user.name })
       setDeleting(null); setBlockedMsg(null); reload()
     } catch (e) {
       if (e instanceof EntityInUseError) setBlockedMsg(t('delete.inUse', { count: e.count }))
@@ -95,7 +87,7 @@ export function BranchesPage({ repository }: BranchesPageProps) {
   function renderTableRegion() {
     if (loading) return isMobile
       ? <CardListSkeleton rows={10} variant="catalog" />
-      : <TableSkeleton rows={PAGE_SIZE} columns={4} gridTemplate="minmax(160px,2fr) 1fr 1fr 80px" lastColAction />
+      : <TableSkeleton rows={PAGE_SIZE} columns={4} gridTemplate="minmax(160px,2fr) 1fr 1fr 80px" lastColAction headers={[t('col.name'), t('col.type'), t('col.city'), '']} />
     if (fetchError && rows.length === 0) return <ErrorState onRetry={reload} />
     if (rows.length === 0) return <EmptyState icon="building" title={t('empty.title')} description={t('empty.desc')} />
     return (

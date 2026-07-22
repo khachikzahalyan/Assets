@@ -5,6 +5,7 @@ import type { AssetReferenceData } from '@/domain/asset/AssetRepository'
 import type { SelectMiniOption } from '@/components/ui/SelectMini'
 import { ViewPopover } from './ViewPopover'
 import type { ViewSortOption } from './ViewPopover'
+import { HEAD_OFFICE_BRANCH_ID } from '@/domain/asset/transferRules'
 
 export interface AssetsFilterBarProps {
   query: AssetListQuery
@@ -64,8 +65,8 @@ export function AssetsFilterBar({
     ...(refData?.branches ?? []).map(b => ({
       value: b.id,
       label: b.name,
-      icon:      b.id === 'br_main' ? 'landmark' : 'building',
-      iconColor: b.id === 'br_main' ? '#10B981'  : '#38BDF8',
+      icon:      b.id === HEAD_OFFICE_BRANCH_ID ? 'landmark' : 'building',
+      iconColor: b.id === HEAD_OFFICE_BRANCH_ID ? '#10B981'  : '#38BDF8',
     })),
   ]
 

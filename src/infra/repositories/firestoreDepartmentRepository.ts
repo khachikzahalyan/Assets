@@ -84,7 +84,7 @@ export class FirestoreDepartmentRepository implements DepartmentRepository {
     const r = await withAudit(this.audit,
       {
         entityType: 'department', entityId: ref.id, action: 'created',
-        actorUid: actor.uid, actorRole: actor.role,
+        actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
         after: { id: ref.id, name: input.name.trim() },
       },
       async (txn) => { (txn as unknown as Transaction).set(ref, data); return { value: undefined as unknown as void } },
@@ -108,7 +108,7 @@ export class FirestoreDepartmentRepository implements DepartmentRepository {
     const r = await withAudit(this.audit,
       {
         entityType: 'department', entityId: id, action: 'updated',
-        actorUid: actor.uid, actorRole: actor.role,
+        actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
         before: { name: before.name },
         after: patch as Record<string, unknown>,
       },
@@ -128,7 +128,7 @@ export class FirestoreDepartmentRepository implements DepartmentRepository {
     return withAudit(this.audit,
       {
         entityType: 'department', entityId: id, action: 'deleted',
-        actorUid: actor.uid, actorRole: actor.role,
+        actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
         before: { id, name: before.name },
       },
       async (txn) => { (txn as unknown as Transaction).delete(ref); return { value: { id } } },
