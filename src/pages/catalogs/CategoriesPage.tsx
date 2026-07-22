@@ -14,46 +14,43 @@ import {
   CategoryFormDialog, type CategoryFormValues,
   CategoryGroupFormDialog,
   CategoryGroupChips,
+  PartCategoriesSection,
 } from '@/components/features/categories'
 import type { Category, CategoryGroup, CategoryRepository, CategoryGroupRepository } from '@/domain/category'
-import { FirestoreCategoryRepository, FirestoreCategoryGroupRepository } from '@/infra/repositories'
+import { getSharedCategoryRepository, getSharedCategoryGroupRepository, getSharedPartCategoryRepository } from '@/infra/repositories'
 import { EntityInUseError } from '@/domain/shared'
-import { db } from '@/lib/firebase'
 import { useCachedResource, cacheIdentity } from '@/hooks/useCachedResource'
 import { useCategoryGroupCrud } from './useCategoryGroupCrud'
+import type { PartCategoryRepository } from '@/domain/part/PartCategoryRepository'
 
 const PAGE_SIZE = 10
+
+type CategoriesTab = 'assets' | 'parts'
 
 interface CategoriesSnapshot {
   groups: CategoryGroup[]
   categories: Category[]
 }
 
-// Module-level lazy singletons — cache keys stay stable across navigations.
-let _sharedCatRepo: FirestoreCategoryRepository | null = null
-function getSharedCatRepo(): FirestoreCategoryRepository {
-  if (!_sharedCatRepo) _sharedCatRepo = new FirestoreCategoryRepository(db())
-  return _sharedCatRepo
-}
-let _sharedCatGroupRepo: FirestoreCategoryGroupRepository | null = null
-function getSharedCatGroupRepo(): FirestoreCategoryGroupRepository {
-  if (!_sharedCatGroupRepo) _sharedCatGroupRepo = new FirestoreCategoryGroupRepository(db())
-  return _sharedCatGroupRepo
-}
-
 export interface CategoriesPageProps {
   repository?: CategoryRepository
   categoryGroupRepository?: CategoryGroupRepository
+  /** Injected for tests; production uses the shared singleton. */
+  partCategoryRepository?: PartCategoryRepository
 }
 
-export function CategoriesPage({ repository, categoryGroupRepository }: CategoriesPageProps) {
+export function CategoriesPage({ repository, categoryGroupRepository, partCategoryRepository }: CategoriesPageProps) {
   const { t } = useTranslation('categories')
   const { user, role } = useAuth()
   const isMobile = useIsMobile()
 
-  const repo      = repository ?? getSharedCatRepo()
-  const groupRepo = categoryGroupRepository ?? getSharedCatGroupRepo()
-  const canMutate = role === 'super_admin'
+  const repo         = repository ?? getSharedCategoryRepository()
+  const groupRepo    = categoryGroupRepository ?? getSharedCategoryGroupRepository()
+  const partCatRepo  = partCategoryRepository ?? getSharedPartCategoryRepository()
+  const canMutate    = role === 'super_admin'
+
+  // ── Tab state ─────────────────────────────────────────────────────────────
+  const [activeTab, setActiveTab] = useState<CategoriesTab>('assets')
 
   // ── Data ─────────────────────────────────────────────────────────────────
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null)
@@ -155,7 +152,7 @@ export function CategoriesPage({ repository, categoryGroupRepository }: Categori
   async function handleSubmit(v: CategoryFormValues) {
     if (!selectedGroupId || !selectedGroup) return
     setSubmitting(true); setSaveError(null)
-    const actor = { uid: user.id, role }
+    const actor = { uid: user.id, role, displayName: user.name }
     try {
       if (editing && editing !== 'new') {
         await repo.updateCategory(editing.id, { ...v, categoryGroupId: selectedGroupId, group: selectedGroup.behavior }, actor)
@@ -180,7 +177,7 @@ export function CategoriesPage({ repository, categoryGroupRepository }: Categori
     if (!deleting) return
     setDelBusy(true)
     try {
-      await repo.deleteCategory(deleting.id, { uid: user.id, role })
+      await repo.deleteCategory(deleting.id, { uid: user.id, role, displayName: user.name })
       setDeleting(null); setBlockedMsg(null); setPage(1); reload()
     } catch (e) {
       if (e instanceof EntityInUseError) setBlockedMsg(t('delete.inUse', { count: e.count }))
@@ -192,7 +189,7 @@ export function CategoriesPage({ repository, categoryGroupRepository }: Categori
   function renderTableRegion() {
     if (loading) return isMobile
       ? <CardListSkeleton rows={10} variant="catalog" />
-      : <TableSkeleton rows={PAGE_SIZE} columns={3} gridTemplate="minmax(160px,2fr) 1fr 80px" lastColAction />
+      : <TableSkeleton rows={PAGE_SIZE} columns={3} gridTemplate="minmax(160px,2fr) 1fr 80px" lastColAction headers={[t('col.name'), t('col.specs'), '']} />
     if ((fetchError || pageError) && !data) return <ErrorState onRetry={reload} />
     if (!selectedGroupId || filtered.length === 0) return (
       <EmptyState icon="tags" title={t('empty.title')} description={t('empty.desc')} />
@@ -214,78 +211,107 @@ export function CategoriesPage({ repository, categoryGroupRepository }: Categori
   return (
     <>
       <ListPageShell flushMobile>
-        {/* Floating-card model (same as AssetsPage/EmployeesPage): NO flushMobile
-            on the card — keeps rounded-lg radius on mobile; 10px side gutters;
-            the .app-shell-content-flush flex chain stretches the card to the
-            BottomNav top ('categories' is in AppShell FLUSH_ROUTES). */}
         <ListCard
           className="max-md:mx-[10px]"
           toolbar={
             <>
-              {/* Single toolbar row: group chips (left, scrollable) + add-subcategory button (right, fixed) */}
-              <div className="flex items-center gap-3 px-5 py-3 max-md:px-3">
-                {/* Left: chips — overflow-hidden so they don't push the button off-screen */}
-                <div className="flex-1 min-w-0 overflow-hidden">
-                  {loading ? (
-                    <div className="flex flex-wrap gap-2 max-md:flex-nowrap max-md:overflow-x-auto no-scrollbar">
-                      {[80, 100, 72].map(w => (
-                        <div key={w} style={{ width: w }} className="h-8 rounded-lg bg-surface-2 animate-pulse flex-shrink-0" />
-                      ))}
-                      {/* "+ add group" dashed chip: always visible so footprint matches loaded state */}
-                      {canMutate && (
-                        <button
-                          type="button"
-                          disabled
-                          className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg border border-dashed border-border text-text-tertiary text-[13px] font-semibold tracking-tight whitespace-nowrap flex-shrink-0 opacity-50 cursor-not-allowed"
-                        >
-                          <Icon name="plus" size={13} />
-                          {t('create')}
-                        </button>
-                      )}
-                    </div>
-                  ) : (
-                    <CategoryGroupChips
-                      groups={groups}
-                      counts={counts}
-                      selectedId={selectedGroupId ?? ''}
-                      onSelect={id => { setSelectedGroupId(id); setPage(1) }}
-                      onEdit={g => { setGroupSaveError(null); setGroupEditing(g) }}
-                      onDelete={askDeleteGroup}
-                      onAdd={() => { setGroupSaveError(null); setGroupEditing('new') }}
-                      canMutate={canMutate}
-                    />
+              {/* Tab strip */}
+              {canMutate && (
+                <div className="flex items-center gap-1 px-5 pt-3 pb-0 max-md:px-3 border-b border-border">
+                  {(['assets', 'parts'] as CategoriesTab[]).map(tab => (
+                    <button
+                      key={tab}
+                      type="button"
+                      onClick={() => setActiveTab(tab)}
+                      className={[
+                        'px-3 py-2 text-[13px] font-semibold tracking-tight whitespace-nowrap transition-colors',
+                        'border-b-2 -mb-px',
+                        activeTab === tab
+                          ? 'border-accent text-text-primary'
+                          : 'border-transparent text-text-tertiary hover:text-text-primary',
+                      ].join(' ')}
+                    >
+                      {t(`tabs.${tab}`)}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Asset categories sub-toolbar (chips + add subcategory) */}
+              {activeTab === 'assets' && (
+                <div className="flex items-center gap-3 px-5 py-3 max-md:px-3">
+                  {/* Left: chips — overflow-hidden so they don't push the button off-screen */}
+                  <div className="flex-1 min-w-0 overflow-hidden">
+                    {loading ? (
+                      <div className="flex flex-wrap gap-2 max-md:flex-nowrap max-md:overflow-x-auto no-scrollbar">
+                        {[80, 100, 72].map(w => (
+                          <div key={w} style={{ width: w }} className="h-8 rounded-lg bg-surface-2 animate-pulse flex-shrink-0" />
+                        ))}
+                        {/* "+ add group" dashed chip: always visible so footprint matches loaded state */}
+                        {canMutate && (
+                          <button
+                            type="button"
+                            disabled
+                            className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg border border-dashed border-border text-text-tertiary text-[13px] font-semibold tracking-tight whitespace-nowrap flex-shrink-0 opacity-50 cursor-not-allowed"
+                          >
+                            <Icon name="plus" size={13} />
+                            {t('create')}
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <CategoryGroupChips
+                        groups={groups}
+                        counts={counts}
+                        selectedId={selectedGroupId ?? ''}
+                        onSelect={id => { setSelectedGroupId(id); setPage(1) }}
+                        onEdit={g => { setGroupSaveError(null); setGroupEditing(g) }}
+                        onDelete={askDeleteGroup}
+                        onAdd={() => { setGroupSaveError(null); setGroupEditing('new') }}
+                        canMutate={canMutate}
+                      />
+                    )}
+                  </div>
+
+                  {/* Right: add-subcategory button — flex-shrink-0 so it never collapses */}
+                  {canMutate && (
+                    isMobile ? (
+                      <MobileAddButton
+                        onClick={() => { setSaveError(null); setEditing('new') }}
+                        ariaLabel={t('createSubcategory')}
+                      />
+                    ) : (
+                      <Btn
+                        variant="primary"
+                        size="sm"
+                        className="flex-shrink-0"
+                        onClick={() => { setSaveError(null); setEditing('new') }}
+                      >
+                        <Icon name="plus" size={13} />
+                        {t('createSubcategory')}
+                      </Btn>
+                    )
                   )}
                 </div>
+              )}
 
-                {/* Right: add-subcategory button — flex-shrink-0 so it never collapses */}
-                {canMutate && (
-                  isMobile ? (
-                    <MobileAddButton
-                      onClick={() => { setSaveError(null); setEditing('new') }}
-                      ariaLabel={t('createSubcategory')}
-                    />
-                  ) : (
-                    <Btn
-                      variant="primary"
-                      size="sm"
-                      className="flex-shrink-0"
-                      onClick={() => { setSaveError(null); setEditing('new') }}
-                    >
-                      <Icon name="plus" size={13} />
-                      {t('createSubcategory')}
-                    </Btn>
-                  )
-                )}
-              </div>
-              <div className="border-t border-border" />
+              {activeTab === 'assets' && <div className="border-t border-border" />}
             </>
           }
-          pagination={
-            /* Always mounted — total=0 during load renders disabled prev/next (EmployeesPage precedent). */
-            <CatalogPagination page={page} pageSize={PAGE_SIZE} total={total} onPage={setPage} />
-          }
+          {...(activeTab === 'assets'
+            ? { pagination: <CatalogPagination page={page} pageSize={PAGE_SIZE} total={total} onPage={setPage} /> }
+            : {}
+          )}
         >
-          {renderTableRegion()}
+          {activeTab === 'assets'
+            ? renderTableRegion()
+            : (
+              <PartCategoriesSection
+                repository={partCatRepo}
+                canMutate={canMutate}
+              />
+            )
+          }
         </ListCard>
       </ListPageShell>
 

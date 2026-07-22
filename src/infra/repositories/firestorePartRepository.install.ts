@@ -86,7 +86,7 @@ export async function fsInstallPart(
       entityId: input.assetId,
       action: auditAction,
       actorUid: actor.uid,
-      actorRole: actor.role,
+      actorRole: actor.role, actorName: actor.displayName ?? null,
       before: null, // filled from txn reads below
       after: null,
     },

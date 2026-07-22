@@ -11,13 +11,13 @@
  *   partsAssets array. `currentSpecs` (the create-form spec object) is intentionally NOT
  *   touched by install/uninstall — the two fields are complementary.
  *
- * Resolution §9.B (deleteGpu in Firestore):
- *   deleteGpu is fully implemented here (in-memory) for test coverage.
- *   The Firestore adapter throws 'not supported in MVP' because /parts client delete is
- *   denied by security rules. See firestorePartRepository.ts.
+ * Resolution §9.B (deleteGpu/deleteModelSku in Firestore):
+ *   deleteModelSku (and its legacy alias deleteGpu) are fully implemented here
+ *   (in-memory) for test coverage. The Firestore adapter throws 'not supported in MVP'
+ *   because /parts client delete is denied by security rules. See firestorePartRepository.ts.
  */
 
-import type { PartRepository, PartWriteRepository, PartReferenceData, ReceiveItem, InstallInput, UninstallInput, CreateGpuInput } from '@/domain/part/PartRepository'
+import type { PartRepository, PartWriteRepository, PartReferenceData, ReceiveItem, InstallInput, UninstallInput, CreateGpuInput, CreateModelSkuInput } from '@/domain/part/PartRepository'
 import type { Part, PartMovement, PartsAsset, UpgradeSlot } from '@/domain/part/types'
 import type { Actor } from '@/domain/asset/AssetRepository'
 import type { AuditedResult } from '@/domain/audit'
@@ -35,7 +35,18 @@ import {
   currentPartsForSkuCategory,
   isServiceOnly,
 } from '@/domain/part/partStock'
-import { InsufficientStockError } from '@/domain/part/errors'
+import { InsufficientStockError, InvalidCategoryBehaviorError } from '@/domain/part/errors'
+import type { PartCategoryDef } from '@/domain/part/partCategory-types'
+import { DEFAULT_PART_CATEGORY_DEFS } from '@/domain/part/partCategoryDefaults'
+
+const FALLBACK_ISO = '1970-01-01T00:00:00.000Z'
+
+/** DEFAULT_PART_CATEGORY_DEFS stamped with a fixed ISO timestamp for deterministic tests. */
+const DEFAULT_CATEGORY_DEFS_WITH_TIMESTAMPS: PartCategoryDef[] = DEFAULT_PART_CATEGORY_DEFS.map(d => ({
+  ...d,
+  createdAt: FALLBACK_ISO,
+  updatedAt: FALLBACK_ISO,
+}))
 
 // ---- helpers ---------------------------------------------------------------
 
@@ -56,13 +67,22 @@ function slug(s: string): string {
 
 export class InMemoryPartRepository implements PartRepository, PartWriteRepository {
   private seq = 0
+  private readonly partCategories: PartCategoryDef[]
 
   constructor(
     private readonly parts: Part[],
     private readonly movements: PartMovement[],
     private readonly partsAssets: PartsAsset[],
     private readonly audit: AuditContext = inMemoryAuditContext(createInMemoryAuditStore()),
-  ) {}
+    /**
+     * Optional catalog injection. When omitted, DEFAULT_PART_CATEGORY_DEFS (with fixed
+     * timestamps) are used so tests and unseeded projects behave identically to the legacy
+     * hardcoded catalog. Pass a custom array to test non-standard categories.
+     */
+    partCategories?: PartCategoryDef[],
+  ) {
+    this.partCategories = partCategories ?? DEFAULT_CATEGORY_DEFS_WITH_TIMESTAMPS
+  }
 
   // ---- private helpers -------------------------------------------------------
 
@@ -104,6 +124,8 @@ export class InMemoryPartRepository implements PartRepository, PartWriteReposito
       parts: freshParts,
       movements: [...this.movements].reverse(), // newest-first
       partsAssets: this.partsAssets.map(a => ({ ...a, upgradeCurrent: [...a.upgradeCurrent] })),
+      // Return a sorted shallow copy; never the mutable internal array.
+      partCategories: [...this.partCategories].sort((a, b) => a.order - b.order),
     }
   }
 
@@ -139,7 +161,7 @@ export class InMemoryPartRepository implements PartRepository, PartWriteReposito
         entityId: this.nextId('recv'),
         action: 'part_received',
         actorUid: actor.uid,
-        actorRole: actor.role,
+        actorRole: actor.role, actorName: actor.displayName ?? null,
         before: null,
         after: {
           items: validItems.map(i => ({ skuId: i.skuId, qty: i.qty })),
@@ -239,7 +261,7 @@ export class InMemoryPartRepository implements PartRepository, PartWriteReposito
         entityId: input.assetId,
         action: auditAction,
         actorUid: actor.uid,
-        actorRole: actor.role,
+        actorRole: actor.role, actorName: actor.displayName ?? null,
         before: { upgradeCurrent: ucBefore },
         after: null, // filled in inside mutate via spec.after override — set after mutation
       },
@@ -347,7 +369,7 @@ export class InMemoryPartRepository implements PartRepository, PartWriteReposito
         entityId: input.assetId,
         action: auditAction,
         actorUid: actor.uid,
-        actorRole: actor.role,
+        actorRole: actor.role, actorName: actor.displayName ?? null,
         before: { upgradeCurrent: ucBefore },
         after: null,
       },
@@ -401,15 +423,41 @@ export class InMemoryPartRepository implements PartRepository, PartWriteReposito
   }
 
   /**
-   * createGpu — port of prototype handleGpuAdd (parts.html 3360-3387).
-   * Creates a new GPU SKU doc; if initialQty > 0 appends a 'receive' movement.
+   * Create a SKU in any models-behavior category.
+   *
+   * Id scheme: `<categoryId>_<slug>_<seq>` — for categoryId 'gpu' this is IDENTICAL
+   * to the legacy createGpu id scheme so no data migration is needed.
+   *
+   * Audit action:
+   *   - categoryId === 'gpu'  → 'gpu_created'  (byte-for-byte backward compat)
+   *   - any other category    → 'model_sku_created'
+   *
+   * Validation: resolves the category from this.partCategories by id.
+   * If missing AND categoryId === 'gpu', the create is allowed (legacy fallback).
+   * If missing for any other category, throws InvalidCategoryBehaviorError.
    */
-  async createGpu(
-    input: CreateGpuInput,
+  async createModelSku(
+    input: CreateModelSkuInput,
     actor: Actor,
   ): Promise<AuditedResult<Part>> {
-    const id = `gpu_${slug(input.name)}_${++this.seq}`
+    const { categoryId } = input
+
+    // Validate category behavior.
+    const catDef = this.partCategories.find(c => c.id === categoryId)
+    if (!catDef) {
+      // Legacy fallback: gpu is always models even without a catalog entry.
+      if (categoryId !== 'gpu') {
+        throw new InvalidCategoryBehaviorError(categoryId, 'models', 'unknown (not in catalog)')
+      }
+    } else if (catDef.behavior !== 'models') {
+      throw new InvalidCategoryBehaviorError(categoryId, 'models', catDef.behavior)
+    }
+
+    const id = `${categoryId}_${slug(input.name)}_${++this.seq}`
     const now = nowIso()
+
+    // Audit action: 'gpu_created' for gpu (backwards compat), 'model_sku_created' for others.
+    const auditAction = categoryId === 'gpu' ? 'gpu_created' as const : 'model_sku_created' as const
 
     let part!: Part
 
@@ -418,9 +466,9 @@ export class InMemoryPartRepository implements PartRepository, PartWriteReposito
       {
         entityType: 'part',
         entityId: id,
-        action: 'gpu_created',
+        action: auditAction,
         actorUid: actor.uid,
-        actorRole: actor.role,
+        actorRole: actor.role, actorName: actor.displayName ?? null,
         before: null,
         after: null, // set in mutate
       },
@@ -428,7 +476,7 @@ export class InMemoryPartRepository implements PartRepository, PartWriteReposito
         part = {
           id,
           name: input.name,
-          category: 'gpu',
+          category: categoryId,
           unit: 'шт',
           onHand: 0,
           broken: 0,
@@ -468,6 +516,18 @@ export class InMemoryPartRepository implements PartRepository, PartWriteReposito
   }
 
   /**
+   * @deprecated Use createModelSku({ categoryId: 'gpu', name, initialQty }, actor).
+   * Legacy alias delegating to createModelSku with categoryId 'gpu'.
+   * Kept for call-site compatibility until Phase-2 UI task migrates all callers.
+   */
+  async createGpu(
+    input: CreateGpuInput,
+    actor: Actor,
+  ): Promise<AuditedResult<Part>> {
+    return this.createModelSku({ categoryId: 'gpu', ...input }, actor)
+  }
+
+  /**
    * recordService — port of prototype handleServiceConfirm (parts.html ~3465-3487).
    *
    * Records a SKU-less maintenance event as a `type:'service'` journal movement.
@@ -489,7 +549,7 @@ export class InMemoryPartRepository implements PartRepository, PartWriteReposito
         entityId: this.nextId('svc'),
         action: 'part_serviced',
         actorUid: actor.uid,
-        actorRole: actor.role,
+        actorRole: actor.role, actorName: actor.displayName ?? null,
         before: null,
         after: {
           assetId: input.assetId,
@@ -526,16 +586,18 @@ export class InMemoryPartRepository implements PartRepository, PartWriteReposito
   }
 
   /**
-   * deleteGpu — GPU-only; blocked if any asset currently has the SKU installed.
+   * Delete a SKU from any models-behavior category.
+   * Blocked if any asset currently has the SKU installed (installedCount > 0).
    *
-   * NOTE: This method is fully implemented in the in-memory adapter for test coverage.
+   * This guard applies to ALL models categories (not just GPU).
+   *
+   * NOTE: Fully implemented in-memory for test coverage.
    * The Firestore adapter throws "not supported in MVP" because /parts client delete is
    * denied by security rules (plan §9.B resolution).
    */
-  async deleteGpu(skuId: string, actor: Actor): Promise<AuditedResult<void>> {
+  async deleteModelSku(skuId: string, actor: Actor): Promise<AuditedResult<void>> {
     const part = this.parts.find(p => p.id === skuId)
-    if (!part) throw new Error(`deleteGpu: SKU not found: ${skuId}`)
-    if (part.category !== 'gpu') throw new Error(`deleteGpu: SKU is not a GPU: ${skuId}`)
+    if (!part) throw new Error(`deleteModelSku: SKU not found: ${skuId}`)
 
     // Block if currently installed (net install count > 0 from movements)
     const stockMap = deriveStock(this.movements)
@@ -547,7 +609,7 @@ export class InMemoryPartRepository implements PartRepository, PartWriteReposito
     const installedCount = totalReceived - stock.onHand - stock.broken
     if (installedCount > 0) {
       throw new Error(
-        `deleteGpu: cannot delete GPU ${skuId} — ${installedCount} unit(s) currently installed in assets`,
+        `deleteModelSku: cannot delete SKU ${skuId} — ${installedCount} unit(s) currently installed in assets`,
       )
     }
 
@@ -558,7 +620,7 @@ export class InMemoryPartRepository implements PartRepository, PartWriteReposito
         entityId: skuId,
         action: 'deleted',
         actorUid: actor.uid,
-        actorRole: actor.role,
+        actorRole: actor.role, actorName: actor.displayName ?? null,
         before: { ...part } as unknown as Record<string, unknown>,
         after: null,
       },
@@ -569,5 +631,24 @@ export class InMemoryPartRepository implements PartRepository, PartWriteReposito
       },
     )
     return r
+  }
+
+  /**
+   * @deprecated Use deleteModelSku. Legacy alias kept for call-site compatibility until
+   * Phase-2 UI task migrates all callers; removal is a later cleanup.
+   *
+   * NOTE: The old deleteGpu enforced `part.category !== 'gpu'` as a guard.
+   * deleteModelSku removes that guard because any models-category SKU is deletable —
+   * the protection is the install-count check, not the category type check.
+   * For GPU skus the behavior is IDENTICAL to before (same guard path, same audit action).
+   */
+  async deleteGpu(skuId: string, actor: Actor): Promise<AuditedResult<void>> {
+    // Legacy compatibility: enforce that the SKU is a GPU before delegating,
+    // matching the old `part.category !== 'gpu'` check exactly.
+    const part = this.parts.find(p => p.id === skuId)
+    if (part && part.category !== 'gpu') {
+      throw new Error(`deleteGpu: SKU is not a GPU: ${skuId}`)
+    }
+    return this.deleteModelSku(skuId, actor)
   }
 }

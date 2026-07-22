@@ -31,8 +31,12 @@ import {
 } from 'firebase/firestore'
 import type { PartReferenceData } from '@/domain/part/PartRepository'
 import type { Part, PartMovement, PartsAsset } from '@/domain/part/types'
+import { SERVER_FAMILY_KIND_LABEL } from '@/domain/part/types'
 import type { AssetSpecs } from '@/domain/asset/types'
 import { assetFamilyOf, resolveUpgradeCurrent } from '@/domain/part/partStock'
+import type { PartCategoryDef, PartCategoryBehavior, PartCategoryVariant } from '@/domain/part/partCategory-types'
+import { DEFAULT_PART_CATEGORY_DEFS } from '@/domain/part/partCategoryDefaults'
+import { toIso } from './firestoreUtils'
 import {
   COL_PARTS,
   COL_MOVEMENTS,
@@ -44,15 +48,43 @@ import {
   toUpgradeSlots,
 } from './firestorePartRepository.mappers'
 
+const COL_PART_CATEGORIES = 'part_categories'
+
+const FALLBACK_PART_CATEGORY_DEFS: PartCategoryDef[] = DEFAULT_PART_CATEGORY_DEFS.map(d => ({
+  ...d,
+  createdAt: '1970-01-01T00:00:00.000Z',
+  updatedAt: '1970-01-01T00:00:00.000Z',
+}))
+
+function toPartCategoryDef(id: string, d: Record<string, unknown>): PartCategoryDef {
+  return {
+    id,
+    name: (d['name'] as { ru: string; en: string; hy: string }) ?? { ru: '', en: '', hy: '' },
+    icon: String(d['icon'] ?? ''),
+    tintToken: String(d['tintToken'] ?? ''),
+    order: Number(d['order'] ?? 0),
+    behavior: (d['behavior'] as PartCategoryBehavior) ?? 'single',
+    slotKind: String(d['slotKind'] ?? ''),
+    storageType: (d['storageType'] as 'SSD' | 'HDD' | 'M.2' | null) ?? null,
+    familyOverrides: (d['familyOverrides'] as Record<string, { slotKind: string }> | null) ?? null,
+    variants: (d['variants'] as PartCategoryVariant[] | null) ?? null,
+    generations: (d['generations'] as PartCategoryVariant[] | null) ?? null,
+    active: Boolean(d['active'] ?? true),
+    createdAt: toIso(d['createdAt']),
+    updatedAt: toIso(d['updatedAt']),
+  }
+}
+
 export async function fsLoadReferenceData(fsDb: Firestore): Promise<PartReferenceData> {
-  // Read parts, upgradeable assets, and categories in parallel.
+  // Read parts, upgradeable assets, asset-categories, and part-categories in parallel.
   // movements are still fetched for the HistoryPanel / partsAssets tab — but we
   // do NOT re-derive stock from them; we trust the SKU doc snapshot instead.
-  const [partsSnap, movementsSnap, assetsSnap, categoriesSnap] = await Promise.all([
+  const [partsSnap, movementsSnap, assetsSnap, categoriesSnap, partCategoriesSnap] = await Promise.all([
     getDocs(collection(fsDb, COL_PARTS)),
     getDocs(fsQuery(collection(fsDb, COL_MOVEMENTS), orderBy('at', 'desc'))),
     getDocs(collection(fsDb, COL_ASSETS)),
     getDocs(collection(fsDb, COL_CATEGORIES)),
+    getDocs(collection(fsDb, COL_PART_CATEGORIES)),
   ])
 
   // categoryId → { name, lucideIcon } so device cards match the Assets page exactly.
@@ -83,7 +115,7 @@ export async function fsLoadReferenceData(fsDb: Firestore): Promise<PartReferenc
     if (!UPGRADEABLE_CATEGORY_IDS.has(categoryId)) continue
 
     const family = assetFamilyOf(categoryId)
-    const kind = family === 'server' ? 'Сетевые Устройство' : categoryId
+    const kind = family === 'server' ? SERVER_FAMILY_KIND_LABEL : categoryId
 
     const brand = (data['brand'] as string | null) ?? ''
     const model = (data['model'] as string | null) ?? ''
@@ -116,7 +148,18 @@ export async function fsLoadReferenceData(fsDb: Firestore): Promise<PartReferenc
     })
   }
 
-  return { parts, movements, partsAssets }
+  // Build partCategories — fallback to DEFAULT_PART_CATEGORY_DEFS when collection is empty.
+  // Sort by order ascending (consistent with PartCategoryRepository.listAll()).
+  let partCategories: PartCategoryDef[]
+  if (partCategoriesSnap.empty) {
+    partCategories = FALLBACK_PART_CATEGORY_DEFS
+  } else {
+    partCategories = partCategoriesSnap.docs
+      .map(d => toPartCategoryDef(d.id, d.data() as Record<string, unknown>))
+      .sort((a, b) => a.order - b.order)
+  }
+
+  return { parts, movements, partsAssets, partCategories }
 }
 
 /**

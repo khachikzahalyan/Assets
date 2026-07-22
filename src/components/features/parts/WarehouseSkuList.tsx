@@ -1,8 +1,10 @@
 import { useTranslation } from 'react-i18next'
 import { Icon, Chip } from '@/components/ui'
 import type { Part, PartStock } from '@/domain/part/types'
-import type { PartCatMeta } from './partsTokens'
+import type { PartCatMeta, Tint } from './partsTokens'
 import { categoryTint, categoryIcon } from './partsTokens'
+import type { PartCategoryDef } from '@/domain/part/partCategory-types'
+import { isSizedCategory, isModelsCategory } from '@/domain/part/partCategory-types'
 import { WarehouseSkuRowMobile } from './WarehouseSkuRowMobile'
 
 /** Geometry-preserving placeholder slots used when stock is empty. */
@@ -56,7 +58,7 @@ function SkuPlaceholderMobile({ hint }: { hint: string }) {
   )
 }
 
-/** Categories whose SKUs collapse to one aggregate summary row (not enumerated). */
+/** @deprecated Use isSizedCategory(def) with a live PartCategoryDef. Legacy fallback. */
 export const AGG_CATS = new Set(['ssd', 'hdd', 'nvme', 'ram'])
 
 export interface WarehouseSkuListProps {
@@ -66,6 +68,10 @@ export interface WarehouseSkuListProps {
   isMobile: boolean
   onAddGpu: () => void
   catMeta: PartCatMeta | undefined
+  /** Resolved PartCategoryDef for selectedCatId — enables behavior-dispatch */
+  catDef?: PartCategoryDef
+  /** Tint for the selected category */
+  tint?: Tint
 }
 
 /**
@@ -79,14 +85,17 @@ export interface WarehouseSkuListProps {
  * Non-GPU zero: shared EmptyState (warehouse.noStock + warehouse.noneAvailableHint).
  */
 export function WarehouseSkuList({
-  selectedCatId, selectedSkus, stockOf, isMobile, onAddGpu, catMeta,
+  selectedCatId, selectedSkus, stockOf, isMobile, onAddGpu, catMeta, catDef, tint,
 }: WarehouseSkuListProps) {
   const { t } = useTranslation('parts')
-  const isGpuCat = selectedCatId === 'gpu'
+
+  // Behavior dispatch — use def when available, fall back to legacy AGG_CATS
+  const isAggCat = catDef ? isSizedCategory(catDef) : AGG_CATS.has(selectedCatId)
+  const isModelsCat = catDef ? isModelsCategory(catDef) : selectedCatId === 'gpu'
 
   // Per-SKU (non-agg) cats: hide rows with no stock at all.
   // Broken parts stay visible — red chip shows them and they are physically on the shelf.
-  const visibleSkus = AGG_CATS.has(selectedCatId)
+  const visibleSkus = isAggCat
     ? selectedSkus
     : selectedSkus.filter((s) => {
         const st = stockOf(s.id)
@@ -94,8 +103,8 @@ export function WarehouseSkuList({
       })
 
   if (visibleSkus.length === 0) {
-    if (isGpuCat) {
-      /* GPU zero: preserve slot geometry, keep the Add button as compact action */
+    if (isModelsCat) {
+      /* Models (GPU) zero: preserve slot geometry, keep the Add button as compact action */
       return (
         <div className="flex flex-col flex-shrink-0">
           {isMobile
@@ -121,8 +130,8 @@ export function WarehouseSkuList({
   }
 
   /* Aggregated categories: one summary row with dual chips */
-  if (AGG_CATS.has(selectedCatId)) {
-    const tint = categoryTint(selectedCatId)
+  if (isAggCat) {
+    const resolvedTint = tint ?? categoryTint(selectedCatId)
     const icon = categoryIcon(selectedCatId)
     let totalWorking = 0
     let totalBroken = 0
@@ -141,7 +150,7 @@ export function WarehouseSkuList({
           <WarehouseSkuRowMobile
             name={catMeta?.label ?? selectedCatId}
             icon={icon}
-            tint={tint}
+            tint={resolvedTint}
             onHand={totalWorking}
             broken={totalBroken}
           />
@@ -151,7 +160,7 @@ export function WarehouseSkuList({
     return (
       <ul className="divide-y divide-border flex-shrink-0">
         <li className="flex items-center gap-3 px-5 py-3 hover:bg-[#22272E]/60 transition-colors">
-          <span className={`w-8 h-8 rounded-lg ${tint.iconBg} ${tint.iconText} inline-flex items-center justify-center flex-shrink-0`}>
+          <span className={`w-8 h-8 rounded-lg ${resolvedTint.iconBg} ${resolvedTint.iconText} inline-flex items-center justify-center flex-shrink-0`}>
             <Icon name={icon} size={14} />
           </span>
           <div className="flex-1 min-w-0">
@@ -194,7 +203,7 @@ export function WarehouseSkuList({
   return (
     <ul className="divide-y divide-border flex-shrink-0">
       {visibleSkus.map((sku) => {
-        const tint = categoryTint(sku.category)
+        const skuTint = categoryTint(sku.category)
         const icon = categoryIcon(sku.category)
         const s = stockOf(sku.id)
         return (
@@ -202,7 +211,7 @@ export function WarehouseSkuList({
             key={sku.id}
             className="flex items-center gap-3 px-5 py-3 hover:bg-[#22272E]/60 transition-colors"
           >
-            <span className={`w-8 h-8 rounded-lg ${tint.iconBg} ${tint.iconText} inline-flex items-center justify-center flex-shrink-0`}>
+            <span className={`w-8 h-8 rounded-lg ${skuTint.iconBg} ${skuTint.iconText} inline-flex items-center justify-center flex-shrink-0`}>
               <Icon name={icon} size={14} />
             </span>
             <div className="flex-1 min-w-0">

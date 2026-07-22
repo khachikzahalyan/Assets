@@ -6,3 +6,9 @@ export type { CategoryGroupFormValues, CategoryGroupFormDialogProps } from './Ca
 
 export { CategoryGroupChips } from './CategoryGroupChips'
 export type { CategoryGroupChipsProps } from './CategoryGroupChips'
+
+export { PartCategoryFormDialog } from './PartCategoryFormDialog'
+export type { PartCategoryFormValues, PartCategoryFormDialogProps } from './PartCategoryFormDialog'
+
+export { PartCategoriesSection } from './PartCategoriesSection'
+export type { PartCategoriesSectionProps } from './PartCategoriesSection'

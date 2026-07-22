@@ -16,19 +16,11 @@ import { useParts } from '@/hooks/useParts'
 import type { Part, PartsAsset, UpgradeSlot } from '@/domain/part/types'
 import { workingStock, deriveStock } from '@/domain/part/partStock'
 import type { PartRepository, PartWriteRepository } from '@/domain/part/PartRepository'
-import { createDefaultPartRepository } from '@/infra/repositories/factories'
-import { PART_CATEGORY_META, groupSkusByCategory } from '@/components/features/parts/partsTokens'
+import { getSharedPartRepository } from '@/infra/repositories'
+import { buildPartCatMeta, buildCategoryTint, buildComponentOrder, groupSkusByCategoryDef } from '@/components/features/parts/partsTokens'
 import { PartsPageSkeleton } from './PartsPageSkeleton'
 
 type ActiveTab = 'warehouse' | 'devices'
-
-// Module-level lazy singleton: keeps the repo's reference-data cache alive
-// across navigations. Test callers pass their own repo via the prop.
-let _sharedPartRepo: (PartRepository & PartWriteRepository) | null = null
-function getSharedPartRepo(): PartRepository & PartWriteRepository {
-  if (!_sharedPartRepo) _sharedPartRepo = createDefaultPartRepository()
-  return _sharedPartRepo
-}
 
 export interface PartsPageProps {
   /** Injected repo — for tests. Production callers omit this; the page uses the singleton. */
@@ -48,7 +40,7 @@ export interface PartsPageProps {
  * Composes WarehouseTab, DevicesTab, and all the write modals.
  */
 export function PartsPage({ repository }: PartsPageProps = {}) {
-  const { t } = useTranslation('parts')
+  const { t, i18n } = useTranslation('parts')
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
 
@@ -57,9 +49,33 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
   const urlTab = searchParams.get('tab')
   const urlAssetId = searchParams.get('assetId')
 
-  const repo = repository ?? getSharedPartRepo()
+  const repo = repository ?? getSharedPartRepository()
 
-  const { ref, loading, error, reload, installPart, uninstallPart, recordService, createGpu } = useParts(repo)
+  const { ref, partCategories, loading, error, reload, installPart, uninstallPart, recordService, createModelSku } = useParts(repo)
+
+  // Localize helper — uses i18n.language with ru fallback
+  const localizeName = useCallback(
+    (name: { ru: string; en: string; hy: string }) =>
+      name[i18n.language as 'ru' | 'en' | 'hy'] ?? name.ru,
+    [i18n.language],
+  )
+
+  const partCatMeta = useMemo(
+    () => buildPartCatMeta(partCategories, localizeName),
+    [partCategories, localizeName],
+  )
+
+  const categoryTints = useMemo(
+    () => buildCategoryTint(partCategories),
+    [partCategories],
+  )
+
+  const componentOrder = useMemo(
+    () => buildComponentOrder(partCategories),
+    [partCategories],
+  )
+  // componentOrder is available for future consumers (e.g. DevicesTab installed-row sorting)
+  void componentOrder
 
   const [activeTab, setActiveTab] = useState<ActiveTab>(
     urlTab === 'warehouse' ? 'warehouse' : 'devices',
@@ -71,7 +87,7 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
   // ── Lifted state (T2) ───────────────────────────────────────────────────────
   // Warehouse category selection — lifted so PartsTabsHeader can drive the chip strip.
   const [selectedCatId, setSelectedCatId] = useState<string>(
-    PART_CATEGORY_META[0]?.id ?? 'psu',
+    partCatMeta[0]?.id ?? 'psu',
   )
   // Device search — lifted so PartsTabsHeader row-2 can own the input on mobile.
   const [deviceSearch, setDeviceSearch] = useState('')
@@ -153,8 +169,8 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
   // ── SKUs grouped by category — computed before early returns so it can be
   //    passed to PartsTabsHeader (for the mobile CategoryChipStrip) ──────────
   const skusByCategory = useMemo(
-    () => groupSkusByCategory(ref?.parts ?? []),
-    [ref],
+    () => groupSkusByCategoryDef(ref?.parts ?? [], partCategories),
+    [ref, partCategories],
   )
 
   // ── Install handler ──────────────────────────────────────────────────────────
@@ -202,12 +218,12 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
   const handleGpuConfirm = useCallback(async (name: string, qty: number) => {
     setWriteError(null)
     try {
-      await createGpu({ name, initialQty: qty })
+      await createModelSku({ categoryId: 'gpu', name, initialQty: qty })
       setToast(t('toast.gpuCreated', { name, qty }))
     } catch (err) {
       setWriteError(err instanceof Error ? err.message : t('gpuModal.errorFailed'))
     }
-  }, [createGpu, t])
+  }, [createModelSku, t])
 
   // ── Service record handler ───────────────────────────────────────────────────
   const handleServiceConfirm = useCallback(async (kindId: string, kindLabel: string, note: string | null) => {
@@ -306,6 +322,9 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
           selectedCatId={selectedCatId}
           onSelectCat={setSelectedCatId}
           stockMap={stockMap}
+          partCategories={partCategories}
+          partCatMeta={partCatMeta}
+          categoryTints={categoryTints}
         />
       </div>
 
@@ -351,6 +370,9 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
             selectedCatId={selectedCatId}
             onSelectCat={setSelectedCatId}
             partsAssets={partsAssets}
+            partCategories={partCategories}
+            partCatMeta={partCatMeta}
+            categoryTints={categoryTints}
           />
         ) : (
           <DevicesTab

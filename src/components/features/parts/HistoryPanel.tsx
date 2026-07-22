@@ -25,7 +25,7 @@ function resolveDisplayType(mv: PartMovement): DisplayType {
   if (t === 'receive') return 'receive'
   if (t === 'install') return 'install'
   if (t === 'uninstall') return 'uninstall'
-  if ((mv as any).displayType === 'move') return 'move'
+  if (mv.displayType === 'move') return 'move'
   return 'receive'
 }
 

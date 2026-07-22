@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   STATUS_SEED, BRANCH_SEED, DEPARTMENT_SEED,
   CORE_CATEGORY_SEED, ALL_CATEGORY_SOURCE, buildAllCategorySeed,
-  PART_SEED,
+  PART_CATEGORY_SEED, PART_SEED,
 } from './referenceData'
 import type { Part } from '../../src/domain/part/types'
 import { buildSeedDocs } from './buildSeed'
@@ -10,6 +10,11 @@ import type { AssetStatus } from '../../src/domain/asset_status'
 import type { Category } from '../../src/domain/category'
 import { InMemoryCategoryRepository } from '../../src/infra/repositories/inMemoryCategoryRepository'
 import { InMemoryAssetStatusRepository } from '../../src/infra/repositories/inMemoryAssetStatusRepository'
+import {
+  DEFAULT_STORAGE_VARIANTS,
+  DEFAULT_RAM_VARIANTS,
+  DEFAULT_DDR_GENERATIONS,
+} from '../../src/domain/part/partCategoryDefaults'
 
 describe('reference data', () => {
   it('has the 4 canonical system statuses with correct ids/flags', () => {
@@ -338,5 +343,144 @@ describe('emitted docs round-trip through InMemory repositories', () => {
     const repo = new InMemoryAssetStatusRepository(statuses)
     const out = await repo.listAssetStatuses()
     expect(out.map(s => s.id)).toEqual(['st_warehouse', 'st_assigned', 'st_repair', 'st_disposed'])
+  })
+})
+
+// === part_categories seed ====================================================
+
+describe('PART_CATEGORY_SEED (referenceData)', () => {
+  it('has exactly 7 rows matching the 7 legacy PartCategory ids', () => {
+    expect(PART_CATEGORY_SEED).toHaveLength(7)
+    expect(PART_CATEGORY_SEED.map(c => c.id)).toEqual(
+      ['psu', 'cooler', 'ssd', 'hdd', 'nvme', 'ram', 'gpu'],
+    )
+  })
+
+  it('gpu has behavior "models"', () => {
+    expect(PART_CATEGORY_SEED.find(c => c.id === 'gpu')!.behavior).toBe('models')
+  })
+
+  it('psu has behavior "single" and familyOverrides.laptop.slotKind === "battery"', () => {
+    const psu = PART_CATEGORY_SEED.find(c => c.id === 'psu')!
+    expect(psu.behavior).toBe('single')
+    expect(psu.familyOverrides?.laptop?.slotKind).toBe('battery')
+  })
+
+  it('sized cats (ssd/hdd/nvme) carry 9 storage variants with correct orders', () => {
+    for (const id of ['ssd', 'hdd', 'nvme'] as const) {
+      const def = PART_CATEGORY_SEED.find(c => c.id === id)!
+      expect(def.behavior).toBe('sized')
+      expect(def.variants).toHaveLength(DEFAULT_STORAGE_VARIANTS.length)
+      expect(def.variants!.map(v => v.order)).toEqual(DEFAULT_STORAGE_VARIANTS.map(v => v.order))
+      expect(def.variants!.map(v => v.id)).toEqual(DEFAULT_STORAGE_VARIANTS.map(v => v.id))
+    }
+  })
+
+  it('ram carries 8 capacity variants with correct orders', () => {
+    const ram = PART_CATEGORY_SEED.find(c => c.id === 'ram')!
+    expect(ram.variants).toHaveLength(DEFAULT_RAM_VARIANTS.length)
+    expect(ram.variants!.map(v => v.id)).toEqual(DEFAULT_RAM_VARIANTS.map(v => v.id))
+  })
+
+  it('ram carries 3 DDR generations', () => {
+    const ram = PART_CATEGORY_SEED.find(c => c.id === 'ram')!
+    expect(ram.generations).toHaveLength(3)
+    expect(ram.generations!.map(g => g.id)).toEqual(
+      DEFAULT_DDR_GENERATIONS.map(g => g.id),
+    )
+  })
+
+  it('every row is active: true', () => {
+    expect(PART_CATEGORY_SEED.every(c => c.active)).toBe(true)
+  })
+
+  it('every row has ru/en/hy name strings', () => {
+    for (const c of PART_CATEGORY_SEED) {
+      expect(typeof c.name.ru).toBe('string')
+      expect(c.name.ru.length).toBeGreaterThan(0)
+      expect(typeof c.name.en).toBe('string')
+      expect(typeof c.name.hy).toBe('string')
+    }
+  })
+})
+
+describe('buildSeedDocs — part_categories collection', () => {
+  const RULES_WHITELIST = new Set([
+    'name', 'icon', 'tintToken', 'order', 'behavior', 'slotKind',
+    'storageType', 'familyOverrides', 'variants', 'generations',
+    'active', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy',
+  ])
+
+  it('emits 7 part_categories docs', () => {
+    const docs = buildSeedDocs({ nowIso: '2026-06-20T00:00:00.000Z' })
+    expect(docs.filter(d => d.collection === 'part_categories')).toHaveLength(7)
+  })
+
+  it('part_categories ids match the 7 legacy PartCategory ids', () => {
+    const docs = buildSeedDocs({ nowIso: '2026-06-20T00:00:00.000Z' })
+    const ids = docs.filter(d => d.collection === 'part_categories').map(d => d.id)
+    expect(ids).toEqual(['psu', 'cooler', 'ssd', 'hdd', 'nvme', 'ram', 'gpu'])
+  })
+
+  it('part_categories docs carry only whitelisted keys', () => {
+    const docs = buildSeedDocs({ nowIso: '2026-06-20T00:00:00.000Z' })
+    const catDocs = docs.filter(d => d.collection === 'part_categories')
+    for (const d of catDocs) {
+      for (const k of Object.keys(d.data)) {
+        expect(RULES_WHITELIST.has(k)).toBe(true)
+      }
+    }
+  })
+
+  it('part_categories docs appear BEFORE parts docs in the seed sequence', () => {
+    const docs = buildSeedDocs({ nowIso: '2026-06-20T00:00:00.000Z' })
+    const firstCatIdx = docs.findIndex(d => d.collection === 'part_categories')
+    const firstPartIdx = docs.findIndex(d => d.collection === 'parts')
+    expect(firstCatIdx).toBeGreaterThanOrEqual(0)
+    expect(firstPartIdx).toBeGreaterThan(firstCatIdx)
+  })
+
+  it('ssd doc has storageType "SSD" and 9 variants', () => {
+    const docs = buildSeedDocs({ nowIso: '2026-06-20T00:00:00.000Z' })
+    const ssd = docs.find(d => d.collection === 'part_categories' && d.id === 'ssd')!
+    expect((ssd.data as Record<string, unknown>).storageType).toBe('SSD')
+    expect((ssd.data as Record<string, unknown>).variants).toHaveLength(9)
+  })
+
+  it('ram doc has 3 generations', () => {
+    const docs = buildSeedDocs({ nowIso: '2026-06-20T00:00:00.000Z' })
+    const ram = docs.find(d => d.collection === 'part_categories' && d.id === 'ram')!
+    expect((ram.data as Record<string, unknown>).generations).toHaveLength(3)
+  })
+
+  it('gpu doc has behavior "models"', () => {
+    const docs = buildSeedDocs({ nowIso: '2026-06-20T00:00:00.000Z' })
+    const gpu = docs.find(d => d.collection === 'part_categories' && d.id === 'gpu')!
+    expect((gpu.data as Record<string, unknown>).behavior).toBe('models')
+  })
+
+  it('psu doc has familyOverrides with laptop.slotKind = "battery"', () => {
+    const docs = buildSeedDocs({ nowIso: '2026-06-20T00:00:00.000Z' })
+    const psu = docs.find(d => d.collection === 'part_categories' && d.id === 'psu')!
+    const fo = (psu.data as Record<string, unknown>).familyOverrides as Record<string, { slotKind: string }> | null
+    expect(fo?.laptop?.slotKind).toBe('battery')
+  })
+
+  it('psu/cooler/gpu docs have variants: null and generations: null', () => {
+    const docs = buildSeedDocs({ nowIso: '2026-06-20T00:00:00.000Z' })
+    for (const id of ['psu', 'cooler', 'gpu']) {
+      const d = docs.find(doc => doc.collection === 'part_categories' && doc.id === id)!
+      expect((d.data as Record<string, unknown>).variants).toBeNull()
+      expect((d.data as Record<string, unknown>).generations).toBeNull()
+    }
+  })
+
+  it('all part_categories docs carry active: true and createdBy: "system"', () => {
+    const docs = buildSeedDocs({ nowIso: '2026-06-20T00:00:00.000Z' })
+    const catDocs = docs.filter(d => d.collection === 'part_categories')
+    for (const d of catDocs) {
+      expect((d.data as Record<string, unknown>).active).toBe(true)
+      expect((d.data as Record<string, unknown>).createdBy).toBe('system')
+    }
   })
 })

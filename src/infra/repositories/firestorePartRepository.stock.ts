@@ -1,7 +1,7 @@
 /**
  * Stock-level write transactions for the parts warehouse Firestore adapter:
  *   - fsReceiveParts  — port of prototype handleAddConfirm (parts.html 3315-3354)
- *   - fsCreateGpu     — port of prototype handleGpuAdd    (parts.html 3360-3387)
+ *   - fsCreateModelSku — generic models-behavior SKU creation (supersedes old fsCreateGpu)
  *
  * Each function runs ONE withAudit transaction that atomically writes data
  * doc(s) and exactly one audit_logs entry.
@@ -15,16 +15,20 @@
 import {
   collection,
   doc,
+  getDoc,
   serverTimestamp,
   type Firestore,
   type Transaction,
 } from 'firebase/firestore'
-import type { ReceiveItem, CreateGpuInput } from '@/domain/part/PartRepository'
+import type { ReceiveItem, CreateModelSkuInput } from '@/domain/part/PartRepository'
+import { InvalidCategoryBehaviorError } from '@/domain/part/errors'
 import type { Part, PartMovement } from '@/domain/part/types'
 import type { Actor } from '@/domain/asset/AssetRepository'
 import type { AuditedResult } from '@/domain/audit'
 import { withAudit, firestoreAuditContext } from '@/lib/audit'
 import { COL_PARTS, COL_MOVEMENTS } from './firestorePartRepository.mappers'
+
+const COL_PART_CATEGORIES = 'part_categories'
 
 // ---- receiveParts -----------------------------------------------------------
 
@@ -54,7 +58,7 @@ export async function fsReceiveParts(
       entityId: doc(collection(fsDb, COL_MOVEMENTS)).id, // stable id for audit
       action: 'part_received',
       actorUid: actor.uid,
-      actorRole: actor.role,
+      actorRole: actor.role, actorName: actor.displayName ?? null,
       before: null,
       after: {
         items: validItems.map(i => ({ skuId: i.skuId, qty: i.qty })),
@@ -123,20 +127,59 @@ export async function fsReceiveParts(
   return r
 }
 
-// ---- createGpu --------------------------------------------------------------
+// ---- createModelSku ---------------------------------------------------------
 
 /**
- * Creates a new GPU SKU doc; if initialQty > 0 appends a 'receive' movement.
- * ONE withAudit transaction.
- * No getDocs of the full journal — snapshot is set directly from initialQty.
+ * Creates a new SKU doc in any models-behavior category.
+ *
+ * Id scheme: `<categoryId>_<slug>` — for categoryId 'gpu' the slug matches the
+ * legacy createGpu pattern exactly (same id format, same lowStockThreshold, same
+ * audit action 'gpu_created') so existing GPU SKU docs and audit_log entries need
+ * zero migration.
+ *
+ * For non-gpu categories the audit action is 'model_sku_created'.
+ *
+ * Validation: reads the part_categories/{categoryId} doc inside the transaction.
+ * If the doc is missing AND categoryId === 'gpu', the create is allowed (legacy
+ * fallback — DEFAULT_PART_CATEGORY_DEFS guarantees gpu is behavior:'models').
+ * If the doc is missing for any other category, the create is rejected.
  */
-export async function fsCreateGpu(
+export async function fsCreateModelSku(
   fsDb: Firestore,
-  input: CreateGpuInput,
+  input: CreateModelSkuInput,
   actor: Actor,
 ): Promise<AuditedResult<Part>> {
+  const { categoryId } = input
+
+  // Validate behavior by reading the category doc BEFORE the transaction
+  // (the category doc is immutable after creation so reading outside the txn is safe).
+  const catRef = doc(fsDb, COL_PART_CATEGORIES, categoryId)
+  const catSnap = await getDoc(catRef)
+
+  if (!catSnap.exists()) {
+    // Legacy fallback: gpu is always 'models' even without a Firestore doc.
+    if (categoryId !== 'gpu') {
+      throw new InvalidCategoryBehaviorError(categoryId, 'models', 'unknown (doc missing)')
+    }
+    // categoryId === 'gpu' and doc missing → allow (unseeded project).
+  } else {
+    const behavior = catSnap.data()?.['behavior'] as string | undefined
+    if (behavior !== 'models') {
+      throw new InvalidCategoryBehaviorError(categoryId, 'models', behavior ?? 'unknown')
+    }
+  }
+
+  // Slug-safe id fragment — matches legacy gpu id scheme when categoryId === 'gpu'.
+  const nameSlug = input.name
+    .toLowerCase()
+    .replace(/[^a-z0-9а-яёА-ЯЁ]+/gu, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 40)
   const skuRef = doc(collection(fsDb, COL_PARTS))
-  const id = skuRef.id
+  const id = `${categoryId}_${nameSlug}_${skuRef.id.slice(0, 8)}`
+
+  // Audit action: 'gpu_created' for gpu (backwards compat), 'model_sku_created' for others.
+  const auditAction = categoryId === 'gpu' ? 'gpu_created' as const : 'model_sku_created' as const
 
   let resultPart!: Part
 
@@ -145,18 +188,19 @@ export async function fsCreateGpu(
     {
       entityType: 'part',
       entityId: id,
-      action: 'gpu_created',
+      action: auditAction,
       actorUid: actor.uid,
-      actorRole: actor.role,
+      actorRole: actor.role, actorName: actor.displayName ?? null,
       before: null,
       after: null,
     },
     async (txn) => {
       const t = txn as unknown as Transaction
+      const skuDocRef = doc(fsDb, COL_PARTS, id)
 
       const partDoc = {
         name: input.name,
-        category: 'gpu' as const,
+        category: categoryId,
         unit: 'шт',
         onHand: 0,
         broken: 0,
@@ -166,7 +210,7 @@ export async function fsCreateGpu(
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       }
-      t.set(skuRef, partDoc)
+      t.set(skuDocRef, partDoc)
 
       if (input.initialQty > 0) {
         const mvRef = doc(collection(fsDb, COL_MOVEMENTS))
@@ -181,11 +225,10 @@ export async function fsCreateGpu(
           note: null,
           reason: 'Поставка',
           actorUid: actor.uid,
-          actorRole: actor.role,
+          actorRole: actor.role, actorName: actor.displayName ?? null,
           at: serverTimestamp(),
         })
-        // Incremental delta: brand-new SKU starts at 0, add initialQty.
-        t.set(skuRef, {
+        t.set(skuDocRef, {
           onHand: input.initialQty,
           updatedAt: serverTimestamp(),
           updatedBy: actor.uid,
@@ -196,7 +239,7 @@ export async function fsCreateGpu(
       resultPart = {
         id,
         name: input.name,
-        category: 'gpu',
+        category: categoryId,
         unit: 'шт',
         onHand: input.initialQty > 0 ? input.initialQty : 0,
         broken: 0,

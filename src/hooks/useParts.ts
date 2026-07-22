@@ -1,13 +1,20 @@
 import { useMemo, useCallback } from 'react'
-import type { PartRepository, PartWriteRepository, PartReferenceData, ReceiveItem, InstallInput, UninstallInput, CreateGpuInput, ServiceRecordInput } from '@/domain/part/PartRepository'
+import type {
+  PartRepository, PartWriteRepository, PartReferenceData,
+  ReceiveItem, InstallInput, UninstallInput,
+  CreateModelSkuInput, ServiceRecordInput,
+} from '@/domain/part/PartRepository'
 import type { PartMovement, Part } from '@/domain/part/types'
 import type { AuditedResult } from '@/domain/audit'
 import type { Actor } from '@/domain/asset/AssetRepository'
+import type { PartCategoryDef } from '@/domain/part/partCategory-types'
+import { DEFAULT_PART_CATEGORY_DEFS } from '@/domain/part/partCategoryDefaults'
 import { useAuth } from '@/contexts/AuthContext'
 import { useCachedResource, cacheIdentity } from './useCachedResource'
 
 export interface UsePartsResult {
   ref: PartReferenceData | null
+  partCategories: PartCategoryDef[]
   loading: boolean
   error: Error | null
   reload: () => void
@@ -15,7 +22,7 @@ export interface UsePartsResult {
   installPart: (input: InstallInput) => Promise<AuditedResult<PartMovement>>
   uninstallPart: (input: UninstallInput) => Promise<AuditedResult<PartMovement>>
   recordService: (input: ServiceRecordInput) => Promise<AuditedResult<PartMovement>>
-  createGpu: (input: CreateGpuInput) => Promise<AuditedResult<Part>>
+  createModelSku: (input: CreateModelSkuInput) => Promise<AuditedResult<Part>>
 }
 
 /**
@@ -37,11 +44,23 @@ export interface UsePartsResult {
 export function useParts(repo: PartRepository & PartWriteRepository): UsePartsResult {
   const { user, role } = useAuth()
 
-  const actor = useMemo<Actor>(() => ({ uid: user.id, role }), [user.id, role])
+  const actor = useMemo<Actor>(() => ({ uid: user.id, role, displayName: user.name }), [user.id, role, user.name])
 
   const { data: ref, loading, error, reload } = useCachedResource(
     `parts:${cacheIdentity(repo)}`,
     () => repo.loadReferenceData(),
+  )
+
+  // Derive partCategories with graceful fallback to defaults
+  const partCategories = useMemo<PartCategoryDef[]>(
+    () => {
+      const cats = ref?.partCategories
+      if (!cats || cats.length === 0) {
+        return (DEFAULT_PART_CATEGORY_DEFS as unknown as PartCategoryDef[])
+      }
+      return cats
+    },
+    [ref],
   )
 
   const receiveParts = useCallback(
@@ -80,14 +99,14 @@ export function useParts(repo: PartRepository & PartWriteRepository): UsePartsRe
     [repo, actor, reload],
   )
 
-  const createGpu = useCallback(
-    async (input: CreateGpuInput): Promise<AuditedResult<Part>> => {
-      const result = await repo.createGpu(input, actor)
+  const createModelSku = useCallback(
+    async (input: CreateModelSkuInput): Promise<AuditedResult<Part>> => {
+      const result = await repo.createModelSku(input, actor)
       reload()
       return result
     },
     [repo, actor, reload],
   )
 
-  return { ref, loading, error, reload, receiveParts, installPart, uninstallPart, recordService, createGpu }
+  return { ref, partCategories, loading, error, reload, receiveParts, installPart, uninstallPart, recordService, createModelSku }
 }

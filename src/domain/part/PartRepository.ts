@@ -1,12 +1,31 @@
 import type { Actor } from '@/domain/asset/AssetRepository'
 import type { AuditedResult } from '@/domain/audit'
 import type { Part, PartMovement, PartsAsset } from './types'
+import type { PartCategoryDef } from './partCategory-types'
 
-/** Reference data needed to render the parts warehouse + devices tab without N+1 reads. */
+/**
+ * Reference data needed to render the parts warehouse + devices tab without N+1 reads.
+ *
+ * `partCategories` is the FULL catalog including inactive entries (UI filters on `active`).
+ * Implementations MUST NOT return an empty array — when the Firestore part_categories
+ * collection is empty or unavailable they fall back to DEFAULT_PART_CATEGORY_DEFS (with
+ * fixed ISO timestamps) so an unseeded project behaves byte-for-byte identically to the
+ * old hardcoded 7-value catalog. Sorted by `order` ascending.
+ *
+ * Implementations MUST NOT return an empty array — fall back to DEFAULT_PART_CATEGORY_DEFS
+ * (with fixed ISO timestamps) when the Firestore part_categories collection is empty/unseeded.
+ */
 export interface PartReferenceData {
-  parts: Part[]                 // catalog with derived onHand/broken snapshots
-  movements: PartMovement[]     // full journal (MVP: load all; Phase 2 paginate)
-  partsAssets: PartsAsset[]     // upgradeable-asset projection for the Devices tab
+  parts: Part[]                        // catalog with derived onHand/broken snapshots
+  movements: PartMovement[]            // full journal (MVP: load all; Phase 2 paginate)
+  partsAssets: PartsAsset[]            // upgradeable-asset projection for the Devices tab
+  /**
+   * Full category catalog including inactive entries. UI filters on `active`.
+   * Sorted by `order` ascending.
+   * Implementations MUST NOT return an empty array — fall back to DEFAULT_PART_CATEGORY_DEFS
+   * (with fixed ISO timestamps) when the Firestore part_categories collection is empty/unseeded.
+   */
+  partCategories: PartCategoryDef[]
 }
 
 /**
@@ -52,6 +71,20 @@ export interface CreateGpuInput {
 }
 
 /**
+ * Generic input for creating a SKU in any models-behavior category.
+ * `categoryId` must refer to a PartCategoryDef with behavior === 'models';
+ * implementations throw a domain error (InvalidCategoryBehaviorError) otherwise.
+ *
+ * @see createModelSku
+ */
+export interface CreateModelSkuInput {
+  /** Id of the target PartCategoryDef. Must have behavior === 'models'. */
+  categoryId: string
+  name: string
+  initialQty: number
+}
+
+/**
  * A SKU-less service event recorded against an asset. Produces a `type:'service'`
  * journal movement (skuId=null, qty=0) that NEVER affects warehouse stock.
  * Mirrors prototype parts.html handleServiceConfirm (~3465-3487).
@@ -80,7 +113,45 @@ export interface PartWriteRepository {
    * action 'part_serviced'.
    */
   recordService(input: ServiceRecordInput, actor: Actor): Promise<AuditedResult<PartMovement>>
+  /**
+   * Create a SKU in any models-behavior category.
+   *
+   * SKU id scheme: `<categoryId>_<slug>` — for categoryId 'gpu' this produces ids
+   * IDENTICAL to the legacy createGpu pattern so no data migration is needed.
+   *
+   * Audit action:
+   *   - categoryId === 'gpu'  → 'gpu_created'  (byte-for-byte backward compat with
+   *                             existing audit_log docs)
+   *   - any other category    → 'model_sku_created'
+   *
+   * Validation: rejects with InvalidCategoryBehaviorError when the resolved category
+   * has behavior !== 'models'. Legacy fallback: if the catalog is empty (unseeded)
+   * AND categoryId === 'gpu', the create is allowed (mirrors DEFAULT_PART_CATEGORY_DEFS).
+   */
+  createModelSku(input: CreateModelSkuInput, actor: Actor): Promise<AuditedResult<Part>>
+
+  /**
+   * Delete a SKU from any models-behavior category.
+   * Blocked if any asset currently has the SKU installed (installedCount > 0).
+   *
+   * @deprecated Use deleteModelSku (same implementation; categoryId is derived from the
+   *   Part doc). Legacy alias kept for call-site compatibility until Phase-2 UI task
+   *   migrates all callers; removal is a later cleanup.
+   */
   createGpu(input: CreateGpuInput, actor: Actor): Promise<AuditedResult<Part>>
-  /** GPU-only. Blocked if any asset currently has the SKU installed. */
+
+  /**
+   * Delete a SKU from any models-behavior category.
+   * Blocked if any asset currently has the SKU installed.
+   *
+   * Guard applies uniformly to ALL models categories, not just GPU.
+   */
+  deleteModelSku(skuId: string, actor: Actor): Promise<AuditedResult<void>>
+
+  /**
+   * @deprecated Use deleteModelSku. Legacy alias delegating to deleteModelSku.
+   * Kept for call-site compatibility until Phase-2 UI task migrates all callers.
+   * GPU-only. Blocked if any asset currently has the SKU installed.
+   */
   deleteGpu(skuId: string, actor: Actor): Promise<AuditedResult<void>>
 }

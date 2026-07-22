@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Icon, Chip } from '@/components/ui'
-import { CATEGORY_COLOR } from '@/components/features/assets/categoryColors'
+import { CATEGORY_COLOR } from '@/components/common/categoryColors'
 import type { PartsAsset, UpgradeSlot, PartMovement, Part } from '@/domain/part/types'
 import {
   installedRowVisual,
@@ -87,7 +87,7 @@ function histDisplayType(mv: PartMovement): HistoryDisplayType {
   if (mv.type === 'install') return 'install'
   if (mv.type === 'uninstall') return 'uninstall'
   if (mv.type === 'service') return 'service'
-  if ((mv as any).displayType === 'move') return 'move'
+  if (mv.displayType === 'move') return 'move'
   return 'unknown'
 }
 
@@ -335,9 +335,9 @@ function HistoryBody({ movements, parts, t }: HistoryBodyProps) {
     <ul className="divide-y divide-border">
       {sorted.map((mv, i) => {
         const dt = histDisplayType(mv)
-        const isBroken = !!(mv as any).broken
-        const isFactory = !!(mv as any).factory && dt === 'install'
-        const isServiceReplace = !!(mv as any).serviceReplace && (dt === 'install' || dt === 'uninstall')
+        const isBroken = !!mv.broken
+        const isFactory = !!mv.factory && dt === 'install'
+        const isServiceReplace = !!mv.serviceReplace && (dt === 'install' || dt === 'uninstall')
 
         /* Dot colour — mirrors prototype lines 4351-4357 */
         const dotColor =
@@ -366,7 +366,7 @@ function HistoryBody({ movements, parts, t }: HistoryBodyProps) {
           if (dt === 'move')
             return <Chip color="amber" size="sm"><Icon name="arrow-left-right" size={11} />{t('journal.move')}</Chip>
           if (dt === 'service')
-            return <Chip color="cyan" size="sm"><Icon name="clipboard-list" size={11} />{(mv as any).kindLabel ?? t('device.service')}</Chip>
+            return <Chip color="cyan" size="sm"><Icon name="clipboard-list" size={11} />{mv.kindLabel ?? t('device.service')}</Chip>
           return null
         })()
 
@@ -374,7 +374,7 @@ function HistoryBody({ movements, parts, t }: HistoryBodyProps) {
         const rowSku = skuById[mv.skuId] ?? null
         const skuLabel =
           dt === 'service'
-            ? ((mv as any).note ?? (mv as any).kindLabel ?? t('device.service'))
+            ? (mv.note ?? mv.kindLabel ?? t('device.service'))
             : rowSku
               ? ((rowSku.name || '') + (rowSku.variantLabel ? ' ' + rowSku.variantLabel : ''))
               : (mv.skuId || '—')

@@ -36,13 +36,14 @@ import type {
   InstallInput,
   UninstallInput,
   CreateGpuInput,
+  CreateModelSkuInput,
   ServiceRecordInput,
 } from '@/domain/part/PartRepository'
 import type { Part, PartMovement } from '@/domain/part/types'
 import type { Actor } from '@/domain/asset/AssetRepository'
 import type { AuditedResult } from '@/domain/audit'
 import { fsLoadReferenceData, fsListMovementsForSku, fsListMovementsForAsset } from './firestorePartRepository.reads'
-import { fsReceiveParts, fsCreateGpu } from './firestorePartRepository.stock'
+import { fsReceiveParts, fsCreateModelSku } from './firestorePartRepository.stock'
 import { fsInstallPart } from './firestorePartRepository.install'
 import { fsUninstallPart } from './firestorePartRepository.uninstall'
 import { fsRecordService } from './firestorePartRepository.service'
@@ -113,30 +114,50 @@ export class FirestorePartRepository implements PartRepository, PartWriteReposit
     return fsRecordService(this.fsDb, input, actor)
   }
 
+  async createModelSku(
+    input: CreateModelSkuInput,
+    actor: Actor,
+  ): Promise<AuditedResult<Part>> {
+    return fsCreateModelSku(this.fsDb, input, actor)
+  }
+
+  /**
+   * @deprecated Use createModelSku({ categoryId: 'gpu', name, initialQty }, actor).
+   * Legacy alias delegating to fsCreateModelSku with categoryId 'gpu'.
+   * Kept for call-site compatibility until Phase-2 UI task migrates all callers.
+   */
   async createGpu(
     input: CreateGpuInput,
     actor: Actor,
   ): Promise<AuditedResult<Part>> {
-    return fsCreateGpu(this.fsDb, input, actor)
+    return fsCreateModelSku(this.fsDb, { categoryId: 'gpu', ...input }, actor)
   }
 
   /**
-   * deleteGpu — NOT SUPPORTED in the Firestore adapter (MVP).
+   * deleteModelSku — NOT SUPPORTED in the Firestore adapter (MVP).
    *
    * The Firestore security rules for /parts have `allow delete: if false`, so a client-side
    * delete would be denied. Routing deletion through a Cloud Function is deferred to a
-   * post-MVP plan. The UI should hide or disable the "delete GPU" button when running
+   * post-MVP plan. The UI should hide or disable the delete SKU button when running
    * against the production Firestore backend.
    *
    * The in-memory adapter (inMemoryPartRepository.ts) provides a full implementation
-   * for test coverage — all deleteGpu tests must use the in-memory adapter.
+   * for test coverage — all deleteModelSku / deleteGpu tests must use the in-memory adapter.
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async deleteGpu(_skuId: string, _actor: Actor): Promise<AuditedResult<void>> {
+  async deleteModelSku(_skuId: string, _actor: Actor): Promise<AuditedResult<void>> {
     throw new Error(
-      'deleteGpu is not supported in MVP — /parts client delete is denied by Firestore rules. ' +
-      'Route GPU deletion through a Cloud Function in a post-MVP plan, or use the in-memory ' +
+      'deleteModelSku is not supported in MVP — /parts client delete is denied by Firestore rules. ' +
+      'Route SKU deletion through a Cloud Function in a post-MVP plan, or use the in-memory ' +
       'adapter for testing this flow.',
     )
+  }
+
+  /**
+   * @deprecated Use deleteModelSku. Legacy alias kept for call-site compatibility.
+   * GPU-only. Blocked if any asset currently has the SKU installed.
+   */
+  async deleteGpu(skuId: string, actor: Actor): Promise<AuditedResult<void>> {
+    return this.deleteModelSku(skuId, actor)
   }
 }

@@ -3,13 +3,15 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { Icon, ErrorState, Chip } from '@/components/ui'
 import { StatTile, PartsReceiveMobileForm } from '@/components/features/parts'
-import { PART_CATEGORY_META, categoryTint, variantRank } from '@/components/features/parts/partsTokens'
+import { categoryTint, buildPartCatMeta, buildCategoryTint, variantRankDef } from '@/components/features/parts/partsTokens'
 import { useParts } from '@/hooks/useParts'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { workingStock, deriveStock } from '@/domain/part/partStock'
 import type { Part } from '@/domain/part/types'
 import type { PartRepository, PartWriteRepository } from '@/domain/part/PartRepository'
 import { createDefaultPartRepository } from '@/infra/repositories/factories'
+import type { PartCategoryDef } from '@/domain/part/partCategory-types'
+import { isModelsCategory } from '@/domain/part/partCategory-types'
 
 export interface PartsReceivePageProps {
   /** Injected repo — for tests. Production callers omit this; the page creates the default. */
@@ -26,7 +28,7 @@ export interface PartsReceivePageProps {
  * On cancel: navigate('/parts').
  */
 export function PartsReceivePage({ repository }: PartsReceivePageProps = {}) {
-  const { t } = useTranslation('parts')
+  const { t, i18n } = useTranslation('parts')
   const navigate = useNavigate()
 
   const defaultRepo = useMemo(
@@ -36,7 +38,7 @@ export function PartsReceivePage({ repository }: PartsReceivePageProps = {}) {
   )
   const repo = repository ?? defaultRepo
 
-  const { ref, loading, error, reload, receiveParts } = useParts(repo)
+  const { ref, partCategories, loading, error, reload, receiveParts } = useParts(repo)
   const isMobile = useIsMobile()
 
   const [qtys, setQtys] = useState<Record<string, string>>({})
@@ -79,6 +81,13 @@ export function PartsReceivePage({ repository }: PartsReceivePageProps = {}) {
     return { onHand: totalOnHand, installed, broken: totalBroken, devices: ref.partsAssets.length }
   }, [ref])
 
+  // Build localized meta and tint from live catalog
+  const partCatMeta = useMemo(
+    () => buildPartCatMeta(partCategories, n => n[i18n.language as 'ru' | 'en' | 'hy'] ?? n.ru),
+    [partCategories, i18n.language],
+  )
+  const categoryTints = useMemo(() => buildCategoryTint(partCategories), [partCategories])
+
   // Derived totals
   const totalQty = useMemo(
     () => Object.values(qtys).reduce((a, v) => a + (parseInt(v, 10) || 0), 0),
@@ -112,11 +121,11 @@ export function PartsReceivePage({ repository }: PartsReceivePageProps = {}) {
     }
   }, [parts, qtys, receiveParts, navigate, t])
 
-  // Group parts by category — preserve PART_CATEGORY_META order
+  // Group parts by category — preserve partCatMeta order
   const partsByCategory = useMemo(() => {
     const map: Record<string, Part[]> = {}
-    for (const cat of PART_CATEGORY_META) {
-      map[cat.id] = []
+    for (const meta of partCatMeta) {
+      map[meta.id] = []
     }
     for (const p of parts) {
       if (p.category in map) {
@@ -124,21 +133,31 @@ export function PartsReceivePage({ repository }: PartsReceivePageProps = {}) {
       }
     }
     return map
-  }, [parts])
+  }, [parts, partCatMeta])
 
   // Render a single category section
   const renderSection = (catId: string) => {
-    const cat = PART_CATEGORY_META.find(c => c.id === catId)
+    const cat = partCatMeta.find(c => c.id === catId)
     if (!cat) return null
 
     const catParts = partsByCategory[catId] ?? []
     if (catParts.length === 0) return null
 
-    const isRam = catId === 'ram'
+    const def: PartCategoryDef | undefined = partCategories.find(d => d.id === catId)
+    const isRam = def
+      ? (def.generations !== null && def.generations !== undefined && def.generations.length > 0)
+      : catId === 'ram'
+
+    // DDR generation labels from def or fallback
+    const ddrLabels = (def?.generations ?? [])
+      .sort((a, b) => a.order - b.order)
+      .map(g => g.label)
+    const effectiveDdrLabels = ddrLabels.length > 0 ? ddrLabels : ['DDR3', 'DDR4', 'DDR5']
+
     const visibleParts = (isRam ? catParts.filter(p => p.ddr === ramDdr) : catParts)
       .slice()
-      .sort((a, b) => variantRank(catId, a.variantId) - variantRank(catId, b.variantId))
-    const tint = categoryTint(catId)
+      .sort((a, b) => variantRankDef(def, a.variantId) - variantRankDef(def, b.variantId))
+    const tint = categoryTints[catId] ?? categoryTint(catId)
 
     return (
       <section key={catId}>
@@ -148,10 +167,10 @@ export function PartsReceivePage({ repository }: PartsReceivePageProps = {}) {
             <Icon name={cat.icon} size={13} />
           </span>
           <h2 className="text-[14.5px] font-bold text-text-primary">{cat.label}</h2>
-          {/* RAM DDR filter pills */}
+          {/* DDR filter pills for ram-like categories */}
           {isRam && (
             <div className="flex items-center gap-1">
-              {['DDR3', 'DDR4', 'DDR5'].map(ddr => (
+              {effectiveDdrLabels.map(ddr => (
                 <button
                   key={ddr}
                   type="button"
@@ -237,10 +256,13 @@ export function PartsReceivePage({ repository }: PartsReceivePageProps = {}) {
     )
   }
 
-  // Build visible category list (no GPU — GPU uses GpuAddModal flow on PartsPage)
-  const visibleCats = PART_CATEGORY_META
-    .filter(cat => cat.id !== 'gpu')
-    .filter(cat => (partsByCategory[cat.id] ?? []).length > 0)
+  // Build visible category list — exclude models-behavior categories (GPU / future custom models cats)
+  const visibleCats = partCatMeta
+    .filter(cat => {
+      const def = partCategories.find(d => d.id === cat.id)
+      const isMCat = def ? isModelsCategory(def) : cat.id === 'gpu'
+      return !isMCat && (partsByCategory[cat.id] ?? []).length > 0
+    })
 
   // Pair small sections (≤2 SKUs) side-by-side; large sections go full-width
   const buildSectionElements = () => {
@@ -285,6 +307,8 @@ export function PartsReceivePage({ repository }: PartsReceivePageProps = {}) {
         {...(loading ? { loading: true } : {})}
         partsByCategory={partsByCategory}
         visibleCats={visibleCats}
+        partCategories={partCategories}
+        partCatMeta={partCatMeta}
         qtys={qtys}
         bumpQty={bumpQty}
         ramDdr={ramDdr}

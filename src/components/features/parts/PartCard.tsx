@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { Icon, Chip } from '@/components/ui'
 import type { Part, PartStock } from '@/domain/part/types'
 import { categoryTint, categoryIcon, PART_CAT_BY_ID } from './partsTokens'
+import type { PartCategoryDef } from '@/domain/part/partCategory-types'
+import { isSizedCategory, isModelsCategory } from '@/domain/part/partCategory-types'
 
 /* ── Variant shapes (mirrors prototype CATEGORY_VARIANTS) ── */
 interface Variant {
@@ -42,7 +44,12 @@ export interface PartCardProps {
   selected: boolean
   onSelect: (id: string) => void
   onInstall: (sku: Part) => void
+  /** @deprecated Use onAddSku for models-category. Kept for legacy GPU call sites. */
   onAddGpu?: () => void
+  /** Generic models-sku add handler (replaces gpu-specific onAddGpu). */
+  onAddSku?: () => void
+  /** Resolved PartCategoryDef — enables behavior dispatch for custom categories. */
+  catDef?: PartCategoryDef
   /** Live stock map from WarehouseTab (keyed by skuId) */
   stockMap?: Record<string, PartStock>
 }
@@ -64,25 +71,51 @@ export const PartCard = memo(function PartCard({
   onSelect,
   onInstall,
   onAddGpu,
+  onAddSku,
+  catDef,
   stockMap = {},
 }: PartCardProps) {
   const { t } = useTranslation('parts')
-  const isRam = categoryId === 'ram'
-  const isGpu = categoryId === 'gpu'
-  const [ramDdr, setRamDdr] = useState<'DDR3' | 'DDR4' | 'DDR5'>('DDR4')
+
+  // Legacy id-based checks (used as fallback when catDef is absent)
+  const isRamLegacy = categoryId === 'ram'
+  const isGpuLegacy = categoryId === 'gpu'
+
+  // Behavior dispatch: prefer def, fall back to id-based legacy checks
+  const isModels = catDef ? isModelsCategory(catDef) : isGpuLegacy
+  const isSized = catDef ? isSizedCategory(catDef) : (CATEGORY_VARIANTS[categoryId] !== null && CATEGORY_VARIANTS[categoryId] !== undefined)
+  const isRamDef = catDef ? (catDef.generations !== null && catDef.generations !== undefined && catDef.generations.length > 0) : isRamLegacy
+
+  const [ramDdr, setRamDdr] = useState('DDR4')
 
   const catMeta = PART_CAT_BY_ID[categoryId]
   const tint = categoryTint(categoryId)
   const icon = categoryIcon(categoryId)
-  const allVariants = CATEGORY_VARIANTS[categoryId] ?? null
 
-  /* For RAM: filter by selected DDR gen */
-  const activeSkus = isRam ? skus.filter((s) => s.ddr === ramDdr) : skus
+  // Derive variants from def when available, else use legacy CATEGORY_VARIANTS
+  const allVariants: Variant[] | null = (() => {
+    if (catDef) {
+      if (!catDef.variants) return null
+      return catDef.variants.map(v => ({ id: v.id, label: v.label }))
+    }
+    return CATEGORY_VARIANTS[categoryId] ?? null
+  })()
 
-  /* For RAM: only show variant ids that have a matching SKU */
+  // DDR generation labels from def.generations when present
+  const ddrGens: string[] = (() => {
+    if (catDef?.generations && catDef.generations.length > 0) {
+      return [...catDef.generations].sort((a, b) => a.order - b.order).map(g => g.label)
+    }
+    return ['DDR3', 'DDR4', 'DDR5']
+  })()
+
+  /* For RAM-like: filter by selected DDR gen */
+  const activeSkus = isRamDef ? skus.filter((s) => s.ddr === ramDdr) : skus
+
+  /* For sized: only show variant ids that have a matching SKU */
   const variants: Variant[] | null = (() => {
     if (!allVariants) return null
-    if (isRam) {
+    if (isRamDef) {
       const activeVariantIds = new Set(
         activeSkus.filter((s) => s.variantId).map((s) => s.variantId as string),
       )
@@ -97,8 +130,8 @@ export const PartCard = memo(function PartCard({
   /* Total on-hand for header chip */
   const total = activeSkus.reduce((acc, s) => acc + stockOf(s.id).onHand, 0)
 
-  /* Single SKU (psu/cooler) */
-  const singleSku = !allVariants && !isGpu ? (activeSkus[0] ?? null) : null
+  /* Single SKU (psu/cooler) — not sized and not models */
+  const singleSku = !allVariants && !isModels ? (activeSkus[0] ?? null) : null
 
   /* Lookup SKU by variant id */
   const skuByVariant: Record<string, Part> = allVariants
@@ -119,7 +152,7 @@ export const PartCard = memo(function PartCard({
       const n = inStockVariantCount
       return n === 0 ? 'Нет размеров' : n === 1 ? '1 размер' : n <= 4 ? `${n} размера` : `${n} размеров`
     }
-    if (isGpu) {
+    if (isModels) {
       const n = skus.length
       if (n === 0) return 'Нет записей'
       return n === 1 ? '1 модель' : n <= 4 ? `${n} модели` : `${n} моделей`
@@ -154,13 +187,13 @@ export const PartCard = memo(function PartCard({
           <div className="text-[13.5px] text-text-subtle mt-0.5">{subtitle}</div>
         </div>
 
-        {/* RAM DDR pills — click doesn't propagate to card select */}
-        {isRam && (
+        {/* RAM-like DDR pills — click doesn't propagate to card select */}
+        {isRamDef && (
           <div
             className="flex items-center gap-1 flex-shrink-0"
             onClick={(e) => e.stopPropagation()}
           >
-            {(['DDR3', 'DDR4', 'DDR5'] as const).map((ddr) => (
+            {ddrGens.map((ddr) => (
               <button
                 key={ddr}
                 type="button"
@@ -182,13 +215,14 @@ export const PartCard = memo(function PartCard({
             {total} шт
           </Chip>
 
-          {/* GPU: orange Добавить */}
-          {isGpu && (
+          {/* Models (GPU): orange Добавить */}
+          {isModels && (
             <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation()
-                onAddGpu?.()
+                const handler = onAddSku ?? onAddGpu
+                handler?.()
               }}
               title={t('gpu.addBtn')}
               className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[13.5px] font-medium text-accent hover:text-accent hover:bg-[#F97316]/10 transition-colors"
@@ -199,7 +233,7 @@ export const PartCard = memo(function PartCard({
           )}
 
           {/* Single-SKU (psu/cooler): inline Install button */}
-          {!isGpu && !allVariants && singleSku && (() => {
+          {!isModels && !allVariants && singleSku && (() => {
             const singleWorking = stockOf(singleSku.id).onHand
             return (
               <button
@@ -222,7 +256,7 @@ export const PartCard = memo(function PartCard({
           })()}
 
           {/* Multi-variant: chevron */}
-          {allVariants && (
+          {isSized && allVariants && (
             <span className={`text-text-subtle transition-transform ${selected ? 'rotate-180' : ''}`}>
               <Icon name="chevron-down" size={14} />
             </span>

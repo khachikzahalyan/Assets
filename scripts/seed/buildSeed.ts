@@ -10,7 +10,7 @@
 // strings emitted here into Admin SDK Timestamps before writing).
 import {
   STATUS_SEED, BRANCH_SEED, DEPARTMENT_SEED, CATEGORY_GROUP_SEED, CORE_CATEGORY_SEED,
-  buildAllCategorySeed, PART_SEED, type CategorySeed,
+  buildAllCategorySeed, PART_CATEGORY_SEED, PART_SEED, type CategorySeed,
 } from './referenceData'
 
 export interface SeedDoc { collection: string; id: string; data: Record<string, unknown> }
@@ -57,6 +57,29 @@ export function buildSeedDocs(opts: BuildSeedOptions): SeedDoc[] {
       hasSpecs: c.hasSpecs, hasOemLicense: c.hasOemLicense,
       requiresSerial: c.requiresSerial, hasTypeField: c.hasTypeField,
       lucideIcon: c.lucideIcon, ...stamp } })
+  }
+
+  // Part categories MUST be seeded BEFORE parts (firestore.rules /parts create/update
+  // enforces exists(/part_categories/$(category)); Admin SDK bypasses rules but order
+  // documents the prerequisite for any subsequent client writes).
+  for (const c of PART_CATEGORY_SEED) {
+    // Build the Firestore payload. All nullable fields written explicitly as null
+    // so docs always carry the keys whitelist. Timestamps added as ISO strings here;
+    // the runner converts them to Firestore Timestamps before writing.
+    docs.push({ collection: 'part_categories', id: c.id, data: {
+      name: c.name,
+      icon: c.icon,
+      tintToken: c.tintToken,
+      order: c.order,
+      behavior: c.behavior,
+      slotKind: c.slotKind,
+      storageType: c.storageType,
+      familyOverrides: c.familyOverrides,
+      variants: c.variants,
+      generations: c.generations,
+      active: c.active,
+      ...stamp,
+    } })
   }
 
   // Parts catalog (replaceable-component SKUs). Doc carries ONLY the keys the

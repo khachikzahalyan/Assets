@@ -2,6 +2,8 @@
 // Pure reference data for the AMS seeder. NO Firebase imports.
 // Shapes mirror the production domain types (timestamps added by the writer).
 import { deriveCategoryFlags } from '../../src/domain/asset/categoryCapabilities'
+import type { PartCategoryDef } from '../../src/domain/part/partCategory-types'
+import { DEFAULT_PART_CATEGORY_DEFS } from '../../src/domain/part/partCategoryDefaults'
 
 export interface StatusSeed {
   id: string; name: string; color: string; isFinal: boolean; isSystem: boolean; sortOrder: number
@@ -399,3 +401,16 @@ export function buildPartSeed(): PartSeed[] {
 }
 
 export const PART_SEED: PartSeed[] = buildPartSeed()
+
+// === Parts category catalog (dynamic, Firestore-backed) ======================
+// Each PartCategorySeed row is Omit<PartCategoryDef, 'createdAt'|'updatedAt'> —
+// timestamps are added by the seed writer.
+// Precedent: DEFAULT_PART_CATEGORY_DEFS is the single source of truth for both
+// the runtime graceful fallback (if catalog not seeded) and the seeder here.
+// IMPORTANT: part_categories MUST be seeded BEFORE parts. The Firestore rules
+// enforce `exists(/part_categories/$(category))` on every parts create/update,
+// so seeding in the wrong order would cause parts writes to fail rules eval
+// (the Admin SDK bypasses rules, but order is documented intent).
+export type PartCategorySeed = Omit<PartCategoryDef, 'createdAt' | 'updatedAt'>
+
+export const PART_CATEGORY_SEED: PartCategorySeed[] = DEFAULT_PART_CATEGORY_DEFS

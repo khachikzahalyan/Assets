@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Icon } from '@/components/ui'
 import type { PartsAsset } from '@/domain/part/types'
 import { assetFamilyOf, isServiceOnly } from '@/domain/part/partStock'
-import { CATEGORY_COLOR } from '@/components/features/assets/categoryColors'
+import { CATEGORY_COLOR } from '@/components/common/categoryColors'
 
 /** Fallback lucide icon by hardware family (when the category has no lucideIcon). */
 function familyIconFallback(family: string): string {

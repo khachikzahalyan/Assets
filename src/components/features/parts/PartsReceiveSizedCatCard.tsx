@@ -1,6 +1,7 @@
 import { Icon } from '@/components/ui'
-import { categoryTint, variantRank, type PartCatMeta } from './partsTokens'
+import { categoryTint, variantRankDef, type PartCatMeta } from './partsTokens'
 import type { Part } from '@/domain/part/types'
+import type { PartCategoryVariant, PartCategoryDef } from '@/domain/part/partCategory-types'
 
 /** Sized-card (SSD / HDD / M.2 / RAM) — horizontal-scroll mini-steppers */
 export function PartsReceiveSizedCatCard({
@@ -11,6 +12,8 @@ export function PartsReceiveSizedCatCard({
   ramDdr,
   setRamDdr,
   t,
+  generations,
+  catDef,
 }: {
   cat: PartCatMeta
   catParts: Part[]
@@ -19,12 +22,20 @@ export function PartsReceiveSizedCatCard({
   ramDdr: string
   setRamDdr: (ddr: string) => void
   t: (key: string) => string
+  /** DDR-style generation list from def.generations — null/undefined = not a generations category */
+  generations?: PartCategoryVariant[] | null
+  /** Resolved def for variant ranking — when provided uses variantRankDef instead of variantRank */
+  catDef?: PartCategoryDef
 }) {
   const tint = categoryTint(cat.id)
-  const isRam = cat.id === 'ram'
+  const isRam = generations !== null && generations !== undefined && generations.length > 0
+  const ddrLabels = isRam
+    ? [...(generations ?? [])].sort((a, b) => a.order - b.order).map(g => g.label)
+    : []
+
   const visibleParts = (isRam ? catParts.filter(p => p.ddr === ramDdr) : catParts)
     .slice()
-    .sort((a, b) => variantRank(cat.id, a.variantId) - variantRank(cat.id, b.variantId))
+    .sort((a, b) => variantRankDef(catDef, a.variantId) - variantRankDef(catDef, b.variantId))
 
   return (
     <div className="bg-surface border border-border rounded-xl p-3">
@@ -38,7 +49,7 @@ export function PartsReceiveSizedCatCard({
         <span className="text-[13px] font-bold text-text-primary">{cat.label}</span>
         {isRam && (
           <div className="flex items-center gap-1">
-            {['DDR3', 'DDR4', 'DDR5'].map(ddr => (
+            {ddrLabels.map(ddr => (
               <button
                 key={ddr}
                 type="button"

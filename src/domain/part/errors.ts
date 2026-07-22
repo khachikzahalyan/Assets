@@ -25,3 +25,26 @@ export class InsufficientStockError extends Error {
 export function isInsufficientStockError(e: unknown): e is InsufficientStockError {
   return e instanceof InsufficientStockError
 }
+
+/**
+ * Thrown by createModelSku when the resolved PartCategoryDef has
+ * behavior !== 'models'. E.g. calling createModelSku with categoryId 'ram'
+ * (behavior 'sized') must fail at the domain level before any Firestore write.
+ */
+export class InvalidCategoryBehaviorError extends Error {
+  override readonly name = 'InvalidCategoryBehaviorError'
+
+  constructor(
+    readonly categoryId: string,
+    readonly expected: string,
+    readonly actual: string,
+  ) {
+    super(
+      `InvalidCategoryBehaviorError: category '${categoryId}' has behavior '${actual}', expected '${expected}'`,
+    )
+  }
+}
+
+export function isInvalidCategoryBehaviorError(e: unknown): e is InvalidCategoryBehaviorError {
+  return e instanceof InvalidCategoryBehaviorError
+}

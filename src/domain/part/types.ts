@@ -1,15 +1,37 @@
 import type { Role } from '@/config/roles'
 
-/** Replaceable-component SKU categories tracked by the parts warehouse. */
+/**
+ * Seed/fallback set of the 7 canonical part-category ids.
+ * These ids are STABLE — existing parts docs, part_movements, and UpgradeSlot.kind
+ * values need zero migration.
+ * @see src/domain/part/partCategoryDefaults.ts for the full PartCategoryDef rows.
+ */
 export const PART_CATEGORIES = ['psu', 'cooler', 'ssd', 'hdd', 'nvme', 'ram', 'gpu'] as const
-export type PartCategory = (typeof PART_CATEGORIES)[number]
 
+/**
+ * A part-category id. Relaxed to `string` to accept dynamic categories from
+ * the Firestore part_categories catalog. `PART_CATEGORIES` above is the legacy
+ * seed/fallback set; do NOT use it to reject custom category ids.
+ */
+export type PartCategory = string
+
+/**
+ * Returns true if `v` is one of the 7 legacy default category ids.
+ * Use ONLY when the legacy fallback path explicitly needs to check membership;
+ * general code must accept any `PartCategory` string (which is now just `string`).
+ * Do NOT use this guard to reject custom categories created via the catalog.
+ */
 export function isPartCategory(v: string): v is PartCategory {
   return (PART_CATEGORIES as readonly string[]).includes(v)
 }
 
-/** Categories an asset can hold at most ONE of (non-server). */
-export const SINGLE_SLOT_CATS: ReadonlySet<PartCategory> = new Set<PartCategory>(['psu', 'cooler', 'gpu'])
+/**
+ * LEGACY fallback — categories an asset holds at most ONE of: {psu, cooler, gpu}.
+ * New code MUST use `isSingleSlotCategory` from `./partCategory-types` instead
+ * (derived as `behavior !== 'sized'`; parity test enforces equivalence for all
+ * 7 seed ids). This constant is kept only until Phase-2 converts all call sites.
+ */
+export const SINGLE_SLOT_CATS: ReadonlySet<string> = new Set<string>(['psu', 'cooler', 'gpu'])
 
 /** Movement journal event types. Append-only; stock derives from these.
  *  'service' is a SKU-less, stock-neutral journal event (see deriveStock skip). */
@@ -52,6 +74,13 @@ export interface PartMovement {
   reason: string | null            // human label (matches prototype 'reason' strings)
   kindId?: string | null           // service movements only: component-kind id being serviced
   kindLabel?: string | null        // service movements only: human label for the kind
+  /** Prototype-parity display hint ('move' rows in the journal). Not written by any
+   *  current repository — toMovement() drops unknown fields, so this is always absent
+   *  at runtime. Read defensively by parts history UI for future-proofing. */
+  displayType?: 'move' | null
+  /** Prototype-parity flag: install row represents a factory (pre-installed) part.
+   *  Not written by any current repository. Read defensively by parts history UI. */
+  factory?: boolean | null
   actorUid: string
   actorRole: Role
   at: string                       // ISO timestamp
@@ -72,12 +101,20 @@ export interface UpgradeSlot {
   replaced?: boolean
 }
 
+/**
+ * Legacy display-fallback for PartsAsset.kind on server-family devices.
+ * UI prefers `categoryName` (from the categories collection); this label only
+ * shows when category metadata is missing. Kept in domain (not infra) because
+ * it is a user-visible string, not a storage concern.
+ */
+export const SERVER_FAMILY_KIND_LABEL = 'Сетевые устройства'
+
 /** Read-model projection of an upgradeable asset (UPGRADEABLE_CATEGORIES). */
 export interface PartsAsset {
   id: string            // invCode (display id, e.g. 'LAP/00035')
   assetId: string       // internal slug
   categoryId: string
-  kind: string          // server family → 'Сетевые Устройство'; else category name
+  kind: string          // server family → SERVER_FAMILY_KIND_LABEL; else category name
   name: string          // brand + model
   user: string          // assignee display
   upgradeCurrent: UpgradeSlot[]

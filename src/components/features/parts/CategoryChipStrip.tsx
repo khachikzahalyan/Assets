@@ -3,7 +3,9 @@ import { useTranslation } from 'react-i18next'
 import { Icon } from '@/components/ui'
 import type { Part } from '@/domain/part/types'
 import { workingStock } from '@/domain/part/partStock'
-import { PART_CATEGORY_META, categoryTint } from './partsTokens'
+import { PART_CATEGORY_META, categoryTint, type PartCatMeta } from './partsTokens'
+import type { PartCategoryDef } from '@/domain/part/partCategory-types'
+import { isModelsCategory } from '@/domain/part/partCategory-types'
 
 export interface CategoryChipStripProps {
   skusByCategory: Record<string, Part[]>
@@ -17,6 +19,10 @@ export interface CategoryChipStripProps {
    * Default false (unchanged rendering for all existing callers).
    */
   bare?: boolean
+  /** Live category defs — when provided, derives chip list from defs instead of PART_CATEGORY_META. */
+  partCategories?: PartCategoryDef[]
+  /** Pre-built meta — when provided, uses this for labels/icons instead of re-iterating PART_CATEGORY_META. */
+  partCatMeta?: PartCatMeta[]
 }
 
 /**
@@ -34,6 +40,8 @@ export function CategoryChipStrip({
   onSelect,
   stockMap = {},
   bare = false,
+  partCategories,
+  partCatMeta,
 }: CategoryChipStripProps) {
   const { t } = useTranslation('parts')
   const stripRef = useRef<HTMLDivElement>(null)
@@ -82,7 +90,14 @@ export function CategoryChipStrip({
       role="tablist"
       aria-label={t('tabs.warehouse')}
     >
-      {PART_CATEGORY_META.filter(cat => cat.id !== 'gpu').map((cat) => {
+      {/* If live defs provided, filter out models categories (GPU equivalent); else use legacy filter */}
+      {(partCatMeta ?? PART_CATEGORY_META).filter(cat => {
+        if (partCategories) {
+          const def = partCategories.find(d => d.id === cat.id)
+          return def ? !isModelsCategory(def) : cat.id !== 'gpu'
+        }
+        return cat.id !== 'gpu'
+      }).map((cat) => {
         const catSkus = skusByCategory[cat.id] ?? []
         /* Sum working stock (onHand − broken) from stockMap if available, else fall back to Part.onHand */
         const total = catSkus.reduce((sum, s) => {

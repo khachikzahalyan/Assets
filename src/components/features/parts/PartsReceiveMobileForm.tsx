@@ -2,6 +2,8 @@ import { useTranslation } from 'react-i18next'
 import { Icon } from '@/components/ui'
 import type { PartCatMeta } from './partsTokens'
 import type { Part } from '@/domain/part/types'
+import type { PartCategoryDef } from '@/domain/part/partCategory-types'
+import { isSingleSlotCategory } from '@/domain/part/partCategory-types'
 import { PartsReceiveSmallCatCard } from './PartsReceiveSmallCatCard'
 import { PartsReceiveSizedCatCard } from './PartsReceiveSizedCatCard'
 
@@ -21,6 +23,10 @@ export interface PartsReceiveMobileFormProps {
   onCancel: () => void
   /** When true, renders shimmer skeleton for async data; header/footer stay real (Principle 2). */
   loading?: boolean
+  /** Live catalog for behavior dispatch */
+  partCategories?: PartCategoryDef[]
+  /** Pre-built meta — ensures labels/icons match parent */
+  partCatMeta?: PartCatMeta[]
 }
 
 /**
@@ -94,13 +100,19 @@ export function PartsReceiveMobileForm({
   onSubmit,
   onCancel,
   loading,
+  partCategories,
 }: PartsReceiveMobileFormProps) {
   const { t } = useTranslation('parts')
 
-  // PSU + Cooler rendered side-by-side; all other sized cats go full-width
-  const SMALL_IDS = new Set(['psu', 'cooler'])
-  const smallCats = visibleCats.filter(c => SMALL_IDS.has(c.id))
-  const sizedCats = visibleCats.filter(c => !SMALL_IDS.has(c.id))
+  // PSU + Cooler (and any single-slot categories) rendered side-by-side
+  const smallCats = visibleCats.filter(c => {
+    if (partCategories) {
+      const def = partCategories.find(d => d.id === c.id)
+      return def ? isSingleSlotCategory(def) : (c.id === 'psu' || c.id === 'cooler')
+    }
+    return c.id === 'psu' || c.id === 'cooler'
+  })
+  const sizedCats = visibleCats.filter(c => !smallCats.includes(c))
 
   return (
     /* Viewport-locked column (topbar 52 + content pt 12 + bottom nav 64 = 128):
@@ -172,18 +184,22 @@ export function PartsReceiveMobileForm({
                 )}
 
                 {/* Sized cats (SSD / HDD / M.2 / RAM) — full-width each */}
-                {sizedCats.map(cat => (
-                  <PartsReceiveSizedCatCard
-                    key={cat.id}
-                    cat={cat}
-                    catParts={partsByCategory[cat.id] ?? []}
-                    qtys={qtys}
-                    bumpQty={bumpQty}
-                    ramDdr={ramDdr}
-                    setRamDdr={setRamDdr}
-                    t={t}
-                  />
-                ))}
+                {sizedCats.map(cat => {
+                  const def = partCategories?.find(d => d.id === cat.id)
+                  return (
+                    <PartsReceiveSizedCatCard
+                      key={cat.id}
+                      cat={cat}
+                      catParts={partsByCategory[cat.id] ?? []}
+                      qtys={qtys}
+                      bumpQty={bumpQty}
+                      ramDdr={ramDdr}
+                      setRamDdr={setRamDdr}
+                      t={t}
+                      {...(def?.generations != null ? { generations: def.generations, catDef: def } : {})}
+                    />
+                  )
+                })}
               </>
             )}
           </>

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@/components/ui'
-import { CATEGORY_COLOR } from '@/components/features/assets/categoryColors'
+import { CATEGORY_COLOR } from '@/components/common/categoryColors'
 import type { PartsAsset, UpgradeSlot, PartMovement, Part } from '@/domain/part/types'
 import {
   installedRowVisual,

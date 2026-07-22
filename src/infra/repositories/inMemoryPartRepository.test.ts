@@ -14,7 +14,9 @@ import { InMemoryPartRepository } from './inMemoryPartRepository'
 import { createInMemoryAuditStore, inMemoryAuditContext } from '@/lib/audit'
 import type { Part, PartMovement, PartsAsset, UpgradeSlot } from '@/domain/part/types'
 import type { Actor } from '@/domain/asset/AssetRepository'
-import { isInsufficientStockError } from '@/domain/part/errors'
+import { isInsufficientStockError, isInvalidCategoryBehaviorError } from '@/domain/part/errors'
+import type { PartCategoryDef } from '@/domain/part/partCategory-types'
+import { DEFAULT_PART_CATEGORY_DEFS } from '@/domain/part/partCategoryDefaults'
 
 // ---------------------------------------------------------------------------
 // Fixture factory
@@ -1206,6 +1208,308 @@ describe('InMemoryPartRepository', () => {
       expect(desktopMovements.every(m => m.assetId === ASSET_DESKTOP_ID)).toBe(true)
       expect(desktopMovements).toHaveLength(1)
       expect(desktopMovements[0]!.skuId).toBe(SKU_SSD.id)
+    })
+  })
+
+  // -------------------------------------------------------------------------
+  // loadReferenceData — partCategories
+  // -------------------------------------------------------------------------
+
+  describe('loadReferenceData partCategories', () => {
+    it('returns 7 rows sorted by order when no custom catalog is injected', async () => {
+      // Arrange — default repo (no catalog injection)
+      const { repo } = makeRepo()
+
+      // Act
+      const ref = await repo.loadReferenceData()
+
+      // Assert — 7 canonical rows (partCategories is optional in the interface but
+      // InMemoryPartRepository always returns it populated — never undefined).
+      const cats = ref.partCategories ?? []
+      expect(cats).toHaveLength(7)
+
+      // Assert — sorted by order ascending
+      const orders = cats.map(c => c.order)
+      expect(orders).toEqual([...orders].sort((a, b) => a - b))
+    })
+
+    it('ids match DEFAULT_PART_CATEGORY_DEFS exactly', async () => {
+      const { repo } = makeRepo()
+      const ref = await repo.loadReferenceData()
+      const ids = (ref.partCategories ?? []).map(c => c.id).sort()
+      const expectedIds = DEFAULT_PART_CATEGORY_DEFS.map(d => d.id).sort()
+      expect(ids).toEqual(expectedIds)
+    })
+
+    it('all entries have string timestamps (non-empty)', async () => {
+      const { repo } = makeRepo()
+      const ref = await repo.loadReferenceData()
+      for (const cat of ref.partCategories ?? []) {
+        expect(typeof cat.createdAt).toBe('string')
+        expect(cat.createdAt.length).toBeGreaterThan(0)
+        expect(typeof cat.updatedAt).toBe('string')
+      }
+    })
+
+    it('custom injected catalog is served instead of defaults', async () => {
+      // Arrange — inject a 1-entry catalog
+      const customDef: PartCategoryDef = {
+        id: 'dock', name: { ru: 'Доки', en: 'Docking stations', hy: 'Դոկ' },
+        icon: 'dock', tintToken: 'rose', order: 10, behavior: 'models', slotKind: 'gpu',
+        storageType: null, familyOverrides: null, variants: null, generations: null,
+        active: true, createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z',
+      }
+      const store = createInMemoryAuditStore()
+      const audit = inMemoryAuditContext(store)
+      const repo = new InMemoryPartRepository([], [], [], audit, [customDef])
+
+      // Act
+      const ref = await repo.loadReferenceData()
+
+      // Assert — only the injected catalog, not defaults
+      const cats = ref.partCategories ?? []
+      expect(cats).toHaveLength(1)
+      expect(cats[0]!.id).toBe('dock')
+    })
+  })
+
+  // -------------------------------------------------------------------------
+  // createModelSku — generalized GPU path
+  // -------------------------------------------------------------------------
+
+  describe('createModelSku', () => {
+    it('with categoryId gpu produces IDENTICAL id prefix / name / threshold as legacy createGpu', async () => {
+      // Arrange
+      const { repo, store } = makeRepo()
+      const logsBefore = store.logs.length
+
+      // Act — create via createModelSku with categoryId 'gpu'
+      const { value: newSku } = await repo.createModelSku(
+        { categoryId: 'gpu', name: 'NVIDIA RTX 4090', initialQty: 0 },
+        ACTOR,
+      )
+
+      // Assert — ONE audit entry with action 'gpu_created' (backward compat)
+      expect(store.logs).toHaveLength(logsBefore + 1)
+      expect(store.logs[store.logs.length - 1]!.action).toBe('gpu_created')
+
+      // Assert — id starts with 'gpu_' (same scheme as legacy createGpu)
+      expect(newSku.id).toMatch(/^gpu_/)
+
+      // Assert — category and threshold match legacy
+      const ref = await repo.loadReferenceData()
+      const sku = ref.parts.find(p => p.id === newSku.id)
+      expect(sku).toBeDefined()
+      expect(sku?.category).toBe('gpu')
+      expect(sku?.lowStockThreshold).toBe(5)
+      expect(sku?.name).toBe('NVIDIA RTX 4090')
+    })
+
+    it('with categoryId gpu and initialQty > 0 sets onHand correctly', async () => {
+      const { repo, store } = makeRepo()
+      const { value: newSku } = await repo.createModelSku(
+        { categoryId: 'gpu', name: 'RX 7900', initialQty: 3 },
+        ACTOR,
+      )
+      // ONE audit entry total (receive wrapped in the same withAudit)
+      expect(store.logs.filter(l => l.action === 'gpu_created')).toHaveLength(1)
+      const ref = await repo.loadReferenceData()
+      const sku = ref.parts.find(p => p.id === newSku.id)
+      expect(sku?.onHand).toBe(3)
+    })
+
+    it('with a custom models-category uses action model_sku_created', async () => {
+      // Arrange — inject a custom catalog with a 'dock' models-category
+      const customDef: PartCategoryDef = {
+        id: 'dock', name: { ru: 'Доки', en: 'Docking stations', hy: 'Դոկ' },
+        icon: 'dock', tintToken: 'rose', order: 10, behavior: 'models', slotKind: 'gpu',
+        storageType: null, familyOverrides: null, variants: null, generations: null,
+        active: true, createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z',
+      }
+      const store = createInMemoryAuditStore()
+      const audit = inMemoryAuditContext(store)
+      const repo = new InMemoryPartRepository([], [], [], audit, [customDef])
+      const logsBefore = store.logs.length
+
+      // Act
+      const { value: newSku } = await repo.createModelSku(
+        { categoryId: 'dock', name: 'Lenovo ThinkPad Dock', initialQty: 0 },
+        ACTOR,
+      )
+
+      // Assert — action is 'model_sku_created', NOT 'gpu_created'
+      expect(store.logs).toHaveLength(logsBefore + 1)
+      expect(store.logs[store.logs.length - 1]!.action).toBe('model_sku_created')
+
+      // Assert — id starts with 'dock_'
+      expect(newSku.id).toMatch(/^dock_/)
+      expect(newSku.category).toBe('dock')
+    })
+
+    it('rejects a sized category (e.g. ram) with InvalidCategoryBehaviorError', async () => {
+      // Arrange — default catalog (ram has behavior:'sized')
+      const { repo } = makeRepo()
+
+      // Act + Assert
+      let caught: unknown
+      try {
+        await repo.createModelSku({ categoryId: 'ram', name: 'Kingston 32GB', initialQty: 0 }, ACTOR)
+      } catch (e) {
+        caught = e
+      }
+      expect(caught).toBeDefined()
+      expect(isInvalidCategoryBehaviorError(caught)).toBe(true)
+    })
+
+    it('rejects a single category (e.g. psu) with InvalidCategoryBehaviorError', async () => {
+      const { repo } = makeRepo()
+      await expect(
+        repo.createModelSku({ categoryId: 'psu', name: 'Corsair 650W', initialQty: 0 }, ACTOR),
+      ).rejects.toSatisfy(isInvalidCategoryBehaviorError)
+    })
+
+    it('rejects an unknown category (not in catalog) unless it is gpu', async () => {
+      const { repo } = makeRepo()
+      await expect(
+        repo.createModelSku({ categoryId: 'nonexistent', name: 'Test', initialQty: 0 }, ACTOR),
+      ).rejects.toSatisfy(isInvalidCategoryBehaviorError)
+    })
+
+    it('writes exactly ONE audit entry regardless of initialQty', async () => {
+      const { repo, store } = makeRepo()
+      const before = store.logs.length
+      await repo.createModelSku({ categoryId: 'gpu', name: 'Audit GPU', initialQty: 10 }, ACTOR)
+      expect(store.logs.length - before).toBe(1)
+    })
+  })
+
+  // -------------------------------------------------------------------------
+  // createGpu alias — delegates to createModelSku
+  // -------------------------------------------------------------------------
+
+  describe('createGpu alias delegates correctly', () => {
+    it('still registers a GPU SKU and writes ONE audit entry with action gpu_created', async () => {
+      const { repo, store } = makeRepo()
+      const logsBefore = store.logs.length
+
+      const { value: newGpu } = await repo.createGpu({ name: 'NVIDIA RTX 4060', initialQty: 0 }, ACTOR)
+
+      expect(store.logs).toHaveLength(logsBefore + 1)
+      expect(store.logs[store.logs.length - 1]!.action).toBe('gpu_created')
+
+      const ref = await repo.loadReferenceData()
+      const gpu = ref.parts.find(p => p.id === newGpu.id)
+      expect(gpu).toBeDefined()
+      expect(gpu?.category).toBe('gpu')
+    })
+  })
+
+  // -------------------------------------------------------------------------
+  // deleteModelSku — generalized delete path
+  // -------------------------------------------------------------------------
+
+  describe('deleteModelSku', () => {
+    it('succeeds and removes the SKU when not currently installed on any asset', async () => {
+      // Arrange — create a gpu SKU then delete it
+      const { repo, store } = makeRepo()
+      const { value: gpu } = await repo.createModelSku({ categoryId: 'gpu', name: 'GPU To Delete', initialQty: 2 }, ACTOR)
+      const logsBefore = store.logs.length
+
+      // Act
+      await repo.deleteModelSku(gpu.id, ACTOR)
+
+      // Assert — ONE audit entry
+      expect(store.logs).toHaveLength(logsBefore + 1)
+      expect(store.logs[store.logs.length - 1]!.action).toBe('deleted')
+
+      // Assert — SKU no longer in catalog
+      const ref = await repo.loadReferenceData()
+      const gone = ref.parts.find(p => p.id === gpu.id)
+      expect(gone).toBeUndefined()
+    })
+
+    it('blocks deletion when the SKU is currently installed on an asset', async () => {
+      // Arrange — create GPU, receive 2, install 1
+      const store2 = createInMemoryAuditStore()
+      const audit2 = inMemoryAuditContext(store2)
+      const parts: Part[] = []
+      const movements: PartMovement[] = []
+      const partsAssets = [makePartsAsset(ASSET_DESKTOP_ID, CAT_DESKTOP)]
+      const repo2 = new InMemoryPartRepository(parts, movements, partsAssets, audit2)
+
+      const { value: gpu } = await repo2.createModelSku({ categoryId: 'gpu', name: 'Installed GPU', initialQty: 2 }, ACTOR)
+
+      await repo2.installPart({
+        skuId: gpu.id,
+        assetId: ASSET_DESKTOP_ID,
+        assetInvCode: 'INV/desktop',
+        assetCategoryId: CAT_DESKTOP,
+        action: 'install',
+        replaceUcIndex: null,
+        oldIsBroken: false,
+        serviceReplace: false,
+      }, ACTOR)
+
+      // Act + Assert — must throw because 1 unit is installed
+      await expect(repo2.deleteModelSku(gpu.id, ACTOR)).rejects.toThrow(/installed/i)
+    })
+
+    it('throws when SKU id does not exist', async () => {
+      const { repo } = makeRepo()
+      await expect(repo.deleteModelSku('nonexistent_sku', ACTOR)).rejects.toThrow(/not found/i)
+    })
+  })
+
+  // -------------------------------------------------------------------------
+  // deleteGpu alias — backwards-compat guards preserved
+  // -------------------------------------------------------------------------
+
+  describe('deleteGpu alias', () => {
+    it('succeeds and removes the GPU SKU when not installed (same behavior as before)', async () => {
+      const { repo, store } = makeRepo()
+      const { value: gpu } = await repo.createGpu({ name: 'GPU For Delete', initialQty: 2 }, ACTOR)
+      const logsBefore = store.logs.length
+
+      await repo.deleteGpu(gpu.id, ACTOR)
+
+      expect(store.logs).toHaveLength(logsBefore + 1)
+      expect(store.logs[store.logs.length - 1]!.action).toBe('deleted')
+
+      const ref = await repo.loadReferenceData()
+      expect(ref.parts.find(p => p.id === gpu.id)).toBeUndefined()
+    })
+
+    it('throws when GPU is currently installed (same guard as before)', async () => {
+      const store2 = createInMemoryAuditStore()
+      const audit2 = inMemoryAuditContext(store2)
+      const parts: Part[] = []
+      const movements: PartMovement[] = []
+      const partsAssets = [makePartsAsset(ASSET_DESKTOP_ID, CAT_DESKTOP)]
+      const repo2 = new InMemoryPartRepository(parts, movements, partsAssets, audit2)
+
+      const { value: gpu } = await repo2.createGpu({ name: 'Installed GPU', initialQty: 2 }, ACTOR)
+      await repo2.installPart({
+        skuId: gpu.id,
+        assetId: ASSET_DESKTOP_ID,
+        assetInvCode: 'INV/desktop',
+        assetCategoryId: CAT_DESKTOP,
+        action: 'install',
+        replaceUcIndex: null,
+        oldIsBroken: false,
+        serviceReplace: false,
+      }, ACTOR)
+
+      await expect(repo2.deleteGpu(gpu.id, ACTOR)).rejects.toThrow(/installed/i)
+    })
+
+    it('throws when SKU id does not exist (same as before)', async () => {
+      const { repo } = makeRepo()
+      await expect(repo.deleteGpu('nonexistent_gpu', ACTOR)).rejects.toThrow(/not found/i)
+    })
+
+    it('throws when SKU is not a GPU category (legacy category guard preserved)', async () => {
+      const { repo } = makeRepo()
+      await expect(repo.deleteGpu(SKU_SSD.id, ACTOR)).rejects.toThrow(/not a gpu/i)
     })
   })
 })

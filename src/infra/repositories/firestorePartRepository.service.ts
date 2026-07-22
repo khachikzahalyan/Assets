@@ -39,7 +39,7 @@ export async function fsRecordService(
       entityId: mvRef.id,
       action: 'part_serviced',
       actorUid: actor.uid,
-      actorRole: actor.role,
+      actorRole: actor.role, actorName: actor.displayName ?? null,
       before: null,
       after: {
         assetId: input.assetId,

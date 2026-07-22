@@ -2,6 +2,8 @@ import { useTranslation } from 'react-i18next'
 import { Btn, Icon, MobileAddButton, SearchInput } from '@/components/ui'
 import { CategoryChipStrip } from './CategoryChipStrip'
 import type { Part, PartStock } from '@/domain/part/types'
+import type { PartCategoryDef } from '@/domain/part/partCategory-types'
+import type { PartCatMeta, Tint } from './partsTokens'
 
 type ActiveTab = 'warehouse' | 'devices'
 
@@ -21,6 +23,12 @@ export interface PartsTabsHeaderProps {
   selectedCatId: string
   onSelectCat: (id: string) => void
   stockMap: Record<string, PartStock>
+  /** Live category defs — threads through to CategoryChipStrip for behavior dispatch */
+  partCategories?: PartCategoryDef[]
+  /** Pre-built display meta — threads through to CategoryChipStrip */
+  partCatMeta?: PartCatMeta[]
+  /** Pre-built tint map */
+  categoryTints?: Record<string, Tint>
 }
 
 /**
@@ -46,6 +54,8 @@ export function PartsTabsHeader({
   selectedCatId,
   onSelectCat,
   stockMap,
+  partCategories,
+  partCatMeta,
 }: PartsTabsHeaderProps) {
   const { t } = useTranslation('parts')
 
@@ -126,6 +136,8 @@ export function PartsTabsHeader({
             onSelect={onSelectCat}
             stockMap={stockMap}
             bare
+            {...(partCategories !== undefined ? { partCategories } : {})}
+            {...(partCatMeta !== undefined ? { partCatMeta } : {})}
           />
         ) : (
           <SearchInput
