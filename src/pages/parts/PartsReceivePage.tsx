@@ -2,11 +2,10 @@ import { useState, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { Icon, ErrorState, Chip } from '@/components/ui'
-import { StatTile, PartsReceiveMobileForm } from '@/components/features/parts'
+import { PartsReceiveMobileForm } from '@/components/features/parts'
 import { categoryTint, buildPartCatMeta, buildCategoryTint, variantRankDef } from '@/components/features/parts/partsTokens'
 import { useParts } from '@/hooks/useParts'
 import { useIsMobile } from '@/hooks/useIsMobile'
-import { workingStock, deriveStock } from '@/domain/part/partStock'
 import type { Part } from '@/domain/part/types'
 import type { PartRepository, PartWriteRepository } from '@/domain/part/PartRepository'
 import { createDefaultPartRepository } from '@/infra/repositories/factories'
@@ -59,27 +58,6 @@ export function PartsReceivePage({ repository }: PartsReceivePageProps = {}) {
   }, [])
 
   const parts = ref?.parts ?? []
-
-  // Stat strip values — mirrors PartsPage (НА СКЛАДЕ / УСТАНОВЛЕНО / НЕИСПРАВНЫХ / УСТРОЙСТВ)
-  const stats = useMemo(() => {
-    if (!ref) return { onHand: 0, installed: 0, broken: 0, devices: 0 }
-    const stockMap = deriveStock(ref.movements)
-    let totalOnHand = 0
-    let totalBroken = 0
-    for (const sku of ref.parts) {
-      const s = stockMap[sku.id] ?? { onHand: 0, broken: 0 }
-      totalOnHand += workingStock(s)
-      totalBroken += s.broken
-    }
-    const installMap: Record<string, number> = {}
-    for (const m of ref.movements) {
-      if (m.serviceReplace || !m.skuId) continue
-      if (m.type === 'install') installMap[m.skuId] = (installMap[m.skuId] ?? 0) + (m.qty ?? 1)
-      else if (m.type === 'uninstall') installMap[m.skuId] = (installMap[m.skuId] ?? 0) - (m.qty ?? 1)
-    }
-    const installed = Math.max(0, Object.values(installMap).reduce((s, v) => s + Math.max(0, v), 0))
-    return { onHand: totalOnHand, installed, broken: totalBroken, devices: ref.partsAssets.length }
-  }, [ref])
 
   // Build localized meta and tint from live catalog
   const partCatMeta = useMemo(
@@ -330,8 +308,10 @@ export function PartsReceivePage({ repository }: PartsReceivePageProps = {}) {
   // (Principle 1 & 2). Footer is always real — Confirm naturally disabled (!canSubmit).
   return (
     <div className="flex flex-col h-full gap-2.5">
-      {/* Fixed top: back button + stat strip — local chrome, renders real immediately */}
-      <div className="flex-shrink-0 space-y-2.5">
+      {/* Fixed top: back button — local chrome, renders real immediately.
+          (Stat strip removed by owner request — /parts/new is a focused form,
+          the metrics live on the main /parts page.) */}
+      <div className="flex-shrink-0">
         <button
           type="button"
           onClick={handleCancel}
@@ -340,12 +320,6 @@ export function PartsReceivePage({ repository }: PartsReceivePageProps = {}) {
           <Icon name="arrow-left" size={15} />
           {t('actions.back')}
         </button>
-        <div className="grid grid-cols-4 max-md:grid-cols-2 gap-2.5 max-md:gap-[10px]">
-          <StatTile tone="emerald" icon="inbox" label={t('stats.onHand')} value={stats.onHand} loading={loading} />
-          <StatTile tone="violet" icon="wrench" label={t('stats.installed')} value={stats.installed} loading={loading} />
-          <StatTile tone="rose" icon="x-octagon" label={t('stats.broken')} value={stats.broken} loading={loading} />
-          <StatTile tone="blue" icon="monitor-smartphone" label={t('stats.devices')} value={stats.devices} loading={loading} />
-        </div>
       </div>
 
       {/* Scrollable middle — only async Firebase data is skeletonized */}
