@@ -1,5 +1,4 @@
 {
-  "_note": "hy locale — Armenian where confident; English fallback elsewhere. Needs native Armenian review.",
   "title": "Լիցենզիաներ",
   "tabs": {
     "workstation": "Աշխատակայան",
@@ -35,6 +34,27 @@
     "decouple": "Անջատել",
     "reveal": "Ցույց տալ բանալին",
     "rotate": "Թարմացնել բանալին"
+  },
+  "activate": {
+    "assetListLabel": "Ակտիվներ առանց բանալու",
+    "cancel": "Չեղարկել",
+    "confirm": "Ակտիվացնել",
+    "keyLabel": "Բանալի",
+    "noAssets": "Բանալի չունեցող ակտիվներ չկան",
+    "searchPlaceholder": "Փնտրել անվանումով, ինվ. կոդով կամ կատեգորիայով…",
+    "title": "Ակտիվացնել բանալի"
+  },
+  "add": {
+    "assignEmployees": "Հատկացնել աշխատակիցներ",
+    "cancel": "Չեղարկել",
+    "expiryDate": "Ժամկետի ավարտ",
+    "name": "Անվանում",
+    "namePlaceholder": "օր.՝ AnyDesk",
+    "purchaseDate": "Գնման ամսաթիվ",
+    "seatsTotal": "Ընդհ. նստատեղ",
+    "submit": "Ավելացնել",
+    "title": "Նոր բաժանորդագրություն",
+    "vendorEmail": "Վենդորի հաշվի էլ. փոստ"
   },
   "type": {
     "Default": "Բազային",
@@ -75,6 +95,49 @@
     "deviceRequiresAsset": "Սարքին հանձնելու համար նշեք ակտիվը",
     "employeeRequires": "Նշեք աշխատակցին"
   },
+  "datePopover": {
+    "aria": "Ընտրեք ամսաթիվ",
+    "nextMonth": "Հաջ. ամիս",
+    "placeholder": "— ընտրեք ամսաթիվ —",
+    "plus1y": "+1 տ.",
+    "plus6m": "+6 ամ.",
+    "prevMonth": "Նախ. ամիս",
+    "today": "Այսօր"
+  },
+  "keyDetails": {
+    "action": {
+      "assigned": "Հատկացված",
+      "created": "Ստեղծված",
+      "key_revealed": "Բանալին ցուցադրված է",
+      "key_rotated": "Բանալին թարմացված է",
+      "license_decoupled": "Անջատված",
+      "license_retired_with_asset": "Ակտիվի հետ դուրս գրված"
+    },
+    "close": "Փակել",
+    "copied": "Պատճենված է",
+    "copy": "Պատճենել",
+    "copyError": "Սխալ",
+    "historyEmpty": "Օգտագործման պատմություն չկա",
+    "historyHeading": "Օգտագործման պատմություն",
+    "keyLabel": "Լիցենզիայի բանալի",
+    "now": "Հիմա",
+    "title": "Բանալու մանրամասներ"
+  },
+  "manage": {
+    "assignedSuffix": "{{phrase}} հատկացված",
+    "done": "Պատրաստ",
+    "notFound": "Ոչինչ չի գտնվել",
+    "searchPlaceholder": "Փնտրել անվանումով, պաշտոնով կամ էլ. փոստով…",
+    "subtitle": "Աշխատակիցներ · {{count}} / {{total}} նստատեղ",
+    "title": "Աշխատակիցներ"
+  },
+  "multiselect": {
+    "done": "Պատրաստ",
+    "placeholder": "Ընտրեք աշխատակիցներ",
+    "searchAria": "Աշխատակիցների որոնում",
+    "searchPlaceholder": "Փնտրել անվանումով կամ պաշտոնով…",
+    "selectedCount": "{{count}} ընտ."
+  },
   "validation": { "required": "Պարտադիր դաշտ" },
   "maskedKeyLabel": "Բանալին թաքցված է",
   "revealedKeyLabel": "Բանալի (ցուցադրվում է ժամանակավորապես)",
@@ -100,5 +163,34 @@
     "of": "–ից",
     "prev": "Հետ",
     "next": "Հաջորդ"
+  },
+  "keys": {
+    "activate": "Ակտիվացնել",
+    "activatedToast": "Բանալին ակտիվացվեց «{{name}}»-ում",
+    "colAction": "Գործողություն",
+    "colAsset": "Ակտիվ",
+    "colKey": "Ապրանքի բանալի",
+    "colStatus": "Կարգավիճակ",
+    "colVersion": "Տարբերակ",
+    "emptyDesc": "Ընտրված ֆիլտրի համար բանալիներ չեն գտնվել։",
+    "emptyTitle": "Բանալիներ չկան",
+    "freedOn": "Ազատվել է {{date}}",
+    "searchPlaceholder": "Փնտրել ակտիվով կամ ինվ. կոդով…",
+    "sectionTitle": "Windows Key",
+    "statusFree": "Ազատ",
+    "statusInUse": "Օգտ."
+  },
+  "subs": {
+    "details": "Մանրամասներ",
+    "emptyDesc": "Ավելացրեք առաջին բաժանորդագրությունը «Ավելացնել լիցենզիա» կոճակով։",
+    "emptyTitle": "Բաժանորդագրություններ չկան",
+    "employees": "Աշխատակիցներ",
+    "sectionTitle": "Բաժանորդագրություններ",
+    "expiresInDays": "Ժամկետ {{days}} օրից",
+    "expiryDate": "Ժամկետ",
+    "notAssigned": "հատկացված չէ",
+    "purchaseDate": "Գնվել է",
+    "seats": "Նստատեղ",
+    "seatsProgress": "{{used}} / {{total}}"
   }
 }

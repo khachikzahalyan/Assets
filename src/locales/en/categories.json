@@ -1,5 +1,9 @@
 {
   "title": "Categories",
+  "tabs": {
+    "assets": "Asset categories",
+    "parts": "Parts"
+  },
   "subcategories": "Subcategories",
   "create": "Add category",
   "createSubcategory": "Add subcategory",
@@ -66,5 +70,84 @@
   },
   "pagination": {
     "range": "{{from}}–{{to}} / {{total}}"
+  },
+  "parts": {
+    "createBtn": "Add part category",
+    "empty": {
+      "title": "No part categories yet",
+      "desc": "Add the first part category"
+    },
+    "col": {
+      "name": "Name",
+      "behavior": "Behavior",
+      "order": "Order",
+      "status": "Status"
+    },
+    "behavior": {
+      "single": "Single",
+      "sized": "Sized",
+      "models": "Models",
+      "singleDesc": "One slot — one part (e.g. PSU, cooler)",
+      "sizedDesc": "Category with capacity variants (e.g. SSD: 256 GB, 512 GB)",
+      "modelsDesc": "Category with named model SKUs (e.g. GPUs)"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "slotKind": {
+      "label": "Slot kind",
+      "psu": "PSU (psu)",
+      "cooler": "Cooler (cooler)",
+      "storage": "Storage (storage)",
+      "ram": "RAM (ram)",
+      "gpu": "GPU (gpu)",
+      "other": "Other"
+    },
+    "storageType": {
+      "label": "Storage type",
+      "none": "—",
+      "SSD": "SSD",
+      "HDD": "HDD",
+      "M2": "M.2"
+    },
+    "tintToken": {
+      "label": "Color",
+      "amber": "Amber",
+      "cyan": "Cyan",
+      "sky": "Sky",
+      "emerald": "Emerald",
+      "violet": "Violet",
+      "rose": "Rose",
+      "blue": "Blue",
+      "orange": "Orange",
+      "slate": "Slate"
+    },
+    "form": {
+      "createTitle": "New part category",
+      "editTitle": "Edit part category",
+      "nameRu": "Name (RU)",
+      "nameEn": "Name (EN)",
+      "nameHy": "Name (HY)",
+      "icon": "Icon (Lucide)",
+      "order": "Sort order",
+      "behavior": "Behavior (cannot be changed after creation)",
+      "save": "Save",
+      "cancel": "Cancel"
+    },
+    "deactivate": "Deactivate",
+    "activate": "Activate",
+    "deactivateConfirm": {
+      "title": "Deactivate category?",
+      "body": "The category will be hidden from the parts warehouse, but no data is deleted.",
+      "confirm": "Deactivate",
+      "cancel": "Cancel"
+    },
+    "activateConfirm": {
+      "title": "Activate category?",
+      "body": "The category will become available in the parts warehouse again.",
+      "confirm": "Activate",
+      "cancel": "Cancel"
+    }
   }
 }

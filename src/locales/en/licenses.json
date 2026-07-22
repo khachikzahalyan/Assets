@@ -35,6 +35,27 @@
     "reveal": "Reveal key",
     "rotate": "Rotate key"
   },
+  "activate": {
+    "assetListLabel": "Assets without key",
+    "cancel": "Cancel",
+    "confirm": "Activate",
+    "keyLabel": "Key",
+    "noAssets": "No assets without key",
+    "searchPlaceholder": "Search by name, inv. code or category…",
+    "title": "Activate key"
+  },
+  "add": {
+    "assignEmployees": "Assign employees",
+    "cancel": "Cancel",
+    "expiryDate": "Expiry date",
+    "name": "Name",
+    "namePlaceholder": "e.g. AnyDesk",
+    "purchaseDate": "Purchase date",
+    "seatsTotal": "Total seats",
+    "submit": "Add",
+    "title": "New subscription",
+    "vendorEmail": "Vendor account email"
+  },
   "type": {
     "Default": "Default",
     "OEM": "OEM",
@@ -73,6 +94,49 @@
     "assetId": "Asset ID",
     "deviceRequiresAsset": "Select an asset to assign to a device",
     "employeeRequires": "Select an employee"
+  },
+  "datePopover": {
+    "aria": "Select date",
+    "nextMonth": "Next month",
+    "placeholder": "— pick a date —",
+    "plus1y": "+1 year",
+    "plus6m": "+6 months",
+    "prevMonth": "Previous month",
+    "today": "Today"
+  },
+  "keyDetails": {
+    "action": {
+      "assigned": "Assigned",
+      "created": "Created",
+      "key_revealed": "Key revealed",
+      "key_rotated": "Key rotated",
+      "license_decoupled": "Decoupled",
+      "license_retired_with_asset": "Retired with asset"
+    },
+    "close": "Close",
+    "copied": "Copied",
+    "copy": "Copy",
+    "copyError": "Error",
+    "historyEmpty": "No usage history",
+    "historyHeading": "Usage history",
+    "keyLabel": "License key",
+    "now": "Now",
+    "title": "Key details"
+  },
+  "manage": {
+    "assignedSuffix": "{{phrase}} assigned",
+    "done": "Done",
+    "notFound": "Nothing found",
+    "searchPlaceholder": "Search by name, position or email…",
+    "subtitle": "Employees · {{count}} / {{total}} seats",
+    "title": "Employees"
+  },
+  "multiselect": {
+    "done": "Done",
+    "placeholder": "Select employees",
+    "searchAria": "Search employees",
+    "searchPlaceholder": "Search by name or position…",
+    "selectedCount": "{{count}} selected"
   },
   "validation": { "required": "Required field" },
   "maskedKeyLabel": "Key hidden",

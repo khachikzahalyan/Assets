@@ -1,5 +1,4 @@
 {
-  "_todo": "hy translations are English placeholders — schedule native Armenian review",
   "groups": { "main": "Main", "ops": "Assets & operations", "org": "Organization", "catalogs": "Catalogs", "system": "System" },
   "items": {
     "dashboard": "Dashboard", "assets": "Assets",

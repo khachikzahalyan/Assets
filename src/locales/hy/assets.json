@@ -1,5 +1,5 @@
-﻿{
-  "_todo": "hy translations are English placeholders — schedule native Armenian review",
+{
+  "title": "Ակտիվներ",
   "actions": {
     "edit": "Խմբագրել"
   },
@@ -31,7 +31,15 @@
   },
   "assignee": {
     "none": "—",
-    "warehouse": "Պահեստում"
+    "shelf": "Դարակ",
+    "temp": "Ժամանակավոր",
+    "waiting": "Սպասում է հանձնման",
+    "warehouse": "Պահեստում",
+    "kindAudit": "Աուդիտոր",
+    "kindIntern": "Պրակտիկանտ"
+  },
+  "badges": {
+    "remote": "Հեռավոր"
   },
   "cols": {
     "asset": "Ակտիվ",
@@ -41,10 +49,168 @@
     "status": "Կարգ.",
     "updated": "Թարմ."
   },
+  "condition": {
+    "new": "Նոր",
+    "purchaseDate": "Գնման ամսաթիվ",
+    "title": "Վիճակ և երաշխիք",
+    "used": "Օգտ.",
+    "warrantyBeforePurchase": "Երաշխիքի ամսաթիվը չի կարող նախորդել գնման ամսաթվին",
+    "warrantyEndsAt": "Երաշխիք մինչև"
+  },
   "create": "Ստեղծել ակտիվ",
+  "detail": {
+    "added": "Ավելացված",
+    "hero": {
+      "writeOff": "Դուրս գրել",
+      "showInList": "Ցույց տալ ցանկում"
+    },
+    "tabs": {
+      "specs": "Տեխ. բնութագրեր",
+      "history": "Պատմություն",
+      "docs": "Փաստաթղթեր"
+    },
+    "specs": {
+      "title": "Տեխ. բնութագրեր",
+      "copy": "Պատճենել",
+      "copied": "Պատճենված է",
+      "empty": "Բնութագրեր չկան",
+      "cooling": "Սառեցում",
+      "psu": "Սնուցման բլոկ",
+      "psuPlural": "Սնուցման բլոկներ",
+      "battery": "Մարտկոց",
+      "factoryCooling": "Գործարանային",
+      "factoryPsu": "Գործարանային",
+      "factoryBattery": "Գործարանային"
+    },
+    "parts": {
+      "note": "Բաղադրիչները կառավարվում են «Պահեստամասեր» բաժնում",
+      "openParts": "Բացել Պահեստամասեր"
+    },
+    "license": {
+      "none": "Լիցենզիա կցված չէ",
+      "builtIn": "Ներկառուցված BIOS-ում",
+      "oemKey": "OEM",
+      "oem": "OEM",
+      "retail": "Retail",
+      "title": "Լիցենզիա",
+      "add": "Ավելացնել լիցենզիա",
+      "attachTitle": "Կցել լիցենզիա",
+      "attach": "Կցել",
+      "attachFailed": "Չհաջողվեց կցել լիցենզիան։ Փորձեք կրկին։",
+      "cancel": "Չեղարկել",
+      "copy": "Պատճենել",
+      "copied": "Պատճենված է",
+      "copyFailed": "Չհաջողվեց ստանալ բանալին",
+      "keyAbsent": "Բանալին նշված չէ"
+    },
+    "location": {
+      "title": "Գտնվելու վայր",
+      "branch": "Մասնաճյուղ",
+      "dept": "Բաժին"
+    },
+    "history": {
+      "title": "Պատմություն",
+      "created": "Ստեղծված",
+      "added": "ավելացրել է",
+      "noRecords": "Գրառումներ չկան",
+      "noOther": "Այլ գրառումներ չկան"
+    },
+    "docs": {
+      "actName": "Ակտ {{n}}",
+      "empty": "Ընդունման ակտեր դեռ չկան",
+      "notice": "Վերբեռնումը կհայտնվի պահոցը կազմաձևելուց հետո",
+      "open": "Բացել",
+      "soon": "Շուտով",
+      "upload": "Բեռնել ակտ"
+    },
+    "transfer": {
+      "title": "Ում փոխանցել",
+      "modeWarehouse": "Պահեստ",
+      "modeEmployee": "Աշխատակից",
+      "modeBranch": "Մասնաճյուղ",
+      "modeDepartment": "Բաժին",
+      "modeTemporary": "Ժամանակավոր",
+      "bannerWarehouseLabel": "Վերադարձնել պահեստ",
+      "bannerWarehouseHint": "Ակտիվը կնշվի որպես պատրաստ հանձնման",
+      "bannerEmployeeLabel": "Հատկացնել աշխատակցին",
+      "bannerEmployeeHint": "Ընտրեք աշխատակից ստորև բերված ցանկից",
+      "bannerBranchLabel": "Փոխանցել մասնաճյուղ",
+      "bannerBranchHint": "Ակտիվը կամրագրվի ընտրված մասնաճյուղին",
+      "bannerDepartmentLabel": "Փոխանցել բաժին",
+      "bannerDepartmentHint": "Ակտիվը կամրագրվի ընտրված բաժնին",
+      "bannerTemporaryLabel": "Ժամանակավոր փոխանցում",
+      "bannerTemporaryHint": "Նշեք դերը և վերադարձի ամսաթիվը",
+      "warehouseHint": "Ակտիվը կնշվի «Դարակում, պատրաստ հանձնման»",
+      "employeeLabel": "Աշխատակից",
+      "employeePlaceholder": "— ընտրեք աշխատակից —",
+      "branchLabel": "Մասնաճյուղ",
+      "branchPlaceholder": "— ընտրեք մասնաճյուղ —",
+      "departmentLabel": "Բաժին",
+      "departmentPlaceholder": "— ընտրեք բաժին —",
+      "kindLabel": "Դեր",
+      "kindPlaceholder": "— ընտրեք —",
+      "kindAudit": "Աուդիտոր",
+      "kindIntern": "Պրակտիկանտ",
+      "returnDateLabel": "Վերադարձնել մինչև",
+      "returnDatePlaceholder": "— ընտրեք ամսաթիվ —",
+      "workModeLabel": "Աշխատանքի ռեժիմ",
+      "workModeOffice": "Հիմնական",
+      "workModeRemote": "Հեռավոր",
+      "commit": "Փոխանցել",
+      "cancel": "Չեղարկել"
+    },
+    "repair": {
+      "title": "Վերանորոգում",
+      "sendToRepair": "Ուղարկել վերանորոգման",
+      "returnFromRepair": "Վերադարձնել վերանորոգումից",
+      "inRepair": "Ակտիվը ներկայումս վերանորոգման մեջ է",
+      "reasonLabel": "Վերանորոգման պատճառ",
+      "reasonPlaceholder": "Օր.՝ չի միանում, ստեղնաշար պահանջում է փոխարինում…",
+      "severityLabel": "Հրատապություն",
+      "severityLow": "Ցածր",
+      "severityMedium": "Միջին",
+      "severityHigh": "Բարձր",
+      "confirm": "Հաստատել",
+      "cancel": "Չեղարկել"
+    },
+    "writeOff": {
+      "title": "Դուրս գրե՞լ ակտիվը",
+      "reasonLabel": "Դուրս գրման պատճառ",
+      "reasonPlaceholder": "Օր.՝ ընկնելուց հետո փչացել է, վերանորոգումն անտնտ. է",
+      "confirm": "Դուրս գրել",
+      "cancel": "Չեղարկել"
+    },
+    "assignment": {
+      "active": "Ակտիվ",
+      "title": "Նշանակում",
+      "transfer": "Փոխանցել",
+      "warehouse": "Պահեստ"
+    }
+  },
   "empty": {
     "desc": "Փոխեք ֆիլտրերը կամ ստեղծեք առաջին ակտիվը։",
-    "title": "Ակտիվներ չեն գտնվել"
+    "title": "Ակտիվներ չեն գտնվել",
+    "titleFiltered": "Ակտիվներ չեն գտնվել",
+    "titleEmpty": "Ակտիվներ դեռ չկան",
+    "descFiltered": "Փորձեք փոխել ֆիլտրը կամ որոնման հարցումը։",
+    "descEmpty": "Ստեղծեք առաջին ակտիվը՝ հաշվառումը սկսելու համար։",
+    "reset": "Զրոյացնել ֆիլտրերը"
+  },
+  "export": {
+    "cols": {
+      "assignee": "Հատկացված",
+      "brand": "Ապրանքանիշ",
+      "branch": "Մասնաճյուղ",
+      "category": "Կատեգորիա",
+      "invCode": "Ինվ. կոդ",
+      "model": "Մոդել",
+      "serial": "Սեր. №",
+      "status": "Կարգավիճակ",
+      "updatedAt": "Թարմ."
+    },
+    "filename": "AMS-ակտիվներ",
+    "sheetName": "Ակտիվներ",
+    "xlsx": "Արտահանել"
   },
   "filters": {
     "allBranches": "Բոլոր մասնաճյուղերը",
@@ -55,15 +221,22 @@
     "reset": "Զրոյացնել",
     "sort": "Տեսակավորում",
     "status": "Կարգավիճակ",
-    "temp": "Temporarily issued"
+    "temp": "Ժամանակավոր հանձնված"
   },
   "form": {
     "addUpgrade": "Ավելացնել արդիականացում",
+    "backToList": "Վերադառնալ ակտիվների ցանկ",
     "brand": "Ապրանքանիշ",
     "cancel": "Չեղարկել",
     "category": "Կատեգորիա",
     "change": "Փոխել",
+    "close": "Փակել",
     "createTitle": "Ակտիվի գրանցում",
+    "createTitleGroup": "Խմբի գրանցում",
+    "createAsset": "Ստեղծել ակտիվ",
+    "sectionMainInfo": "Հիմնական տեղեկություններ",
+    "subtitle": "Նոր ակտիվ · AMS",
+    "subtitleCat": "Նոր ակտիվ · {{cat}}",
     "editTitle": "Ակտիվ {{code}}",
     "history": "Պատմություն",
     "invCode": "Գույքագրման կոդ",
@@ -77,18 +250,22 @@
     "specGpu": "Տեսաքարտ",
     "specRam": "Օպերատիվ հիշողություն",
     "specSsd": "Կրիչ",
+    "specSsdPlural": "Կրիչներ",
     "specs": "Բնութագրեր",
     "type": "Տեսակ",
     "upgrades": "Արդիականացումներ",
     "writeOff": "Դուրս գրել"
   },
-  "oem": {
-    "keyLabel": "OEM License Key",
-    "keyPlaceholder": "VK7JG-NPHTM-C97JM-9MPGT-3V66T",
-    "pickLabel": "Existing free license",
-    "pickNone": "— Enter key manually —",
-    "secureHint": "The key is stored securely. Only super admins can reveal it.",
-    "sectionTitle": "OEM License"
+  "groupMode": {
+    "batchHint": "Ակտիվների խումբ — նշանակումը կատարվում է գրանցումից հետո",
+    "createN": "Ստեղծել {{count}} {{noun}}",
+    "current": "Ընթացիկ գրառում",
+    "incomplete": "Հաստատեք բոլոր {{total}} {{noun}} խմբում ({{done}}-ը {{total}}-ից)",
+    "progress": "Առաջընթաց",
+    "quantity": "Քանակ",
+    "single": "Մեկ",
+    "group": "Խումբ",
+    "title": "Ակտիվների խումբ"
   },
   "groups": {
     "all": "Բոլոր",
@@ -111,6 +288,26 @@
       "upgrade_added": "Արդիականացումն ավելացված է"
     }
   },
+  "label": {
+    "print": "Տպել պիտակը"
+  },
+  "oem": {
+    "keyLabel": "OEM լիցենզիայի բանալի",
+    "keyPlaceholder": "VK7JG-NPHTM-C97JM-9MPGT-3V66T",
+    "pickLabel": "Առկա ազատ լիցենզիա",
+    "pickNone": "— Մուտքագրել բանալին ձեռքով —",
+    "secureHint": "Բանալին պահվում է կոդավորված։ Միայն գերօգտատերը կարող է դիտել այն։",
+    "sectionTitle": "OEM-լիցենզիա"
+  },
+  "osLicense": {
+    "digital": "Թվային OEM",
+    "digitalDesc": "Կապված սարքավորմանը",
+    "manual": "Բանալի",
+    "manualDesc": "Ապրանքի բանալու մուտքագրում",
+    "productKey": "Ապրանքի բանալի",
+    "productKeyPlaceholder": "Մուտքագրեք բանալի կամ ընտրեք ազատված բանալիներից…",
+    "title": "ՕՀ Լիցենզիա"
+  },
   "pagination": {
     "next": "Հաջորդ էջ",
     "prev": "Նախորդ էջ",
@@ -121,8 +318,13 @@
   "placeholders": {
     "brand": "Օրինակ՝ Apple, Dell",
     "category": "Ընտրեք կատեգորիա",
+    "categorySearch": "Կատեգորիայի որոնում…",
+    "cpu": "Օր.՝ Intel Core i7-1265U",
     "invCode": "450/100",
+    "invCodeFurniture": "470/00012",
     "model": "Օրինակ՝ XPS 15, MacBook Pro",
+    "noResults": "Ոչինչ չի գտնվել",
+    "recipientSearch": "Որոնում…",
     "serial": "SN-XXXX",
     "spec": "Նշված չէ",
     "type": "Օրինակ՝ Սեղան, Բազկաթոռ"
@@ -131,9 +333,13 @@
     "branch": "Մասնաճյուղ",
     "department": "Բաժին",
     "employee": "Աշխատակից",
+    "office": "Հիմնական",
+    "onShelf": "Ակտիվը պահեստում է",
     "pickRecipient": "Ընտրեք ստացողին",
+    "remote": "Հեռավոր",
     "title": "Ուր նշանակել",
-    "warehouse": "Պահեստ"
+    "warehouse": "Պահեստ",
+    "workMode": "Աշխատանքի ռեժիմ"
   },
   "relTime": {
     "dayAgo": "{{n}} օր առաջ",
@@ -143,14 +349,34 @@
   },
   "search": "Փնտրել անունով, ինվ. կոդով, սերիայով…",
   "sort": {
+    "hint": {
+      "alpha": "Այբբենական",
+      "inv": "Ինվ. կոդով",
+      "updated": "Թարմացման ամսաթվով"
+    },
     "inv_asc": "Ինվ. կոդ",
     "name_asc": "Անուն Ա–Ֆ",
     "name_desc": "Անուն Ֆ–Ա",
+    "short": {
+      "inv_asc": "Ինվ. կոդ",
+      "name_asc": "Ա–Ֆ",
+      "name_desc": "Ֆ–Ա",
+      "updated_asc": "Հին",
+      "updated_desc": "Նոր"
+    },
     "updated_asc": "Նախ հին",
-    "updated_desc": "Նախ նոր"
+    "updated_desc": "Նախ նոր",
+    "view": "Տեսք",
+    "viewSubtitle": "Ակտիվների ցուցադրման կարգը",
+    "viewTitle": "Տեսակավորում"
   },
   "statusLine": {
     "derived": "Կարգավիճակ՝ {{name}}"
+  },
+  "toolbar": {
+    "import": "Ներմուծում",
+    "importSoon": "Շուտով",
+    "create": "Ստեղծել"
   },
   "upgrade": {
     "after": "Դարձավ",
@@ -158,23 +384,19 @@
     "component": "Բաղադրիչ",
     "notTracked": "չի հետևվում բնութագրերում"
   },
-  "detail": {
-    "parts": {
-      "note": "Components are managed in the Parts section",
-      "openParts": "Open Parts"
-    }
-  },
   "validation": {
     "brandModelRequired": "Լրացրեք «Ապրանքանիշ» և «Մոդել»",
+    "brandRequired": "Լրացրեք «Ապրանքանիշ»",
+    "modelRequired": "Լրացրեք «Մոդել»",
     "invRequired": "Լրացրեք «Գույքագրման կոդ»",
     "invTaken": "Գույքագրման կոդն արդեն օգտագործվում է",
+    "licenseKeyRequired": "Լրացրեք «Ապրանքի բանալի»",
     "oemKeyNotStored": "Ակտիվը ստեղծված է, սակայն բանալին չի պահպանվել — կրկին մուտքագրեք այն լիցենզիայի քարտի միջոցով։",
     "saveFailed": "Չհաջողվեց պահպանել։ Կրկին փորձեք։",
     "serialRequired": "Լրացրեք «Սերիական համար»",
     "serialTaken": "Սերիական համարն արդեն օգտագործվում է",
-    "typeRequired": "Լրացրեք «Տեսակ»"
-  },
-  "label": {
-    "print": "Տպել պիտակը"
+    "typeRequired": "Լրացրեք «Տեսակ»",
+    "warrantyBeforePurchase": "Երաշխիքը չի կարող լինել գնումից առաջ",
+    "concurrentEdit": "Գրառումը փոփոխվել է այլ օգտատիրոջ կողմից — թարմացրեք էջը"
   }
 }

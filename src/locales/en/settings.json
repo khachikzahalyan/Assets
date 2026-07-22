@@ -7,8 +7,28 @@
     "empty": "The domain list is empty.",
     "removeAria": "Remove domain {{domain}}",
     "saveBtn": "Save",
-    "subtitle": "The list of email domains allowed to sign up. This is the only list the server checks when an account is created.",
+    "subtitle": "Optional domain list for automatic sign-up bypass. The primary path is invitation-based: an admin adds the user to /users or /employees first, and the server grants access based on that record.",
     "title": "Authentication"
+  },
+  "seedAdmins": {
+    "title": "Exact-email bypass (seed admins)",
+    "subtitle": "Email addresses allowed to sign in regardless of the domain list. Used for bootstrap accounts. Comparison is case-insensitive.",
+    "addLabel": "Add email",
+    "addPlaceholder": "admin@example.com",
+    "addBtn": "Add",
+    "listLabel": "Allowed addresses",
+    "empty": "List is empty — no exact-email bypass is active.",
+    "removeAria": "Remove address {{email}}",
+    "saveBtn": "Save",
+    "validation": {
+      "empty": "Enter an email address.",
+      "invalid": "Enter a valid email address.",
+      "duplicate": "This address is already in the list."
+    },
+    "confirmTitle": "Save seed-admin list?",
+    "confirmBody": "Sign-in will be allowed for: {{list}}",
+    "saveFailed": "Failed to save. Please try again.",
+    "saved": "List saved."
   },
   "confirm": {
     "body": "Sign-ups will be allowed only from: {{list}}",

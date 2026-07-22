@@ -1,4 +1,5 @@
-﻿{
+{
+  "title": "Assets",
   "actions": {
     "edit": "Edit"
   },
@@ -159,7 +160,15 @@
   },
   "assignee": {
     "none": "—",
-    "warehouse": "In warehouse"
+    "shelf": "Shelf",
+    "temp": "Temporary",
+    "waiting": "Awaiting issue",
+    "warehouse": "In warehouse",
+    "kindAudit": "Auditor",
+    "kindIntern": "Intern"
+  },
+  "badges": {
+    "remote": "Remote"
   },
   "cols": {
     "asset": "Asset",
@@ -172,7 +181,28 @@
   "create": "Create asset",
   "empty": {
     "desc": "Change filters or create the first asset.",
-    "title": "No assets found"
+    "title": "No assets found",
+    "titleFiltered": "No assets found",
+    "titleEmpty": "No assets yet",
+    "descFiltered": "Try changing the filter or search query.",
+    "descEmpty": "Create the first asset to start tracking.",
+    "reset": "Reset filters"
+  },
+  "export": {
+    "cols": {
+      "assignee": "Assigned to",
+      "brand": "Brand",
+      "branch": "Branch",
+      "category": "Category",
+      "invCode": "Inv. code",
+      "model": "Model",
+      "serial": "Serial No.",
+      "status": "Status",
+      "updatedAt": "Updated"
+    },
+    "filename": "AMS-assets",
+    "sheetName": "Assets",
+    "xlsx": "Export"
   },
   "filters": {
     "allBranches": "All branches",
@@ -315,12 +345,32 @@
     "now": "just now"
   },
   "search": "Search by name, inv. code, serial…",
+  "toolbar": {
+    "import": "Import",
+    "importSoon": "Coming soon",
+    "create": "Create"
+  },
   "sort": {
+    "hint": {
+      "alpha": "Alphabetical",
+      "inv": "By inventory code",
+      "updated": "By update date"
+    },
     "inv_asc": "Inv. code",
     "name_asc": "Name A–Z",
     "name_desc": "Name Z–A",
+    "short": {
+      "inv_asc": "Inv. code",
+      "name_asc": "A–Z",
+      "name_desc": "Z–A",
+      "updated_asc": "Oldest",
+      "updated_desc": "Newest"
+    },
     "updated_asc": "Oldest first",
-    "updated_desc": "Newest first"
+    "updated_desc": "Newest first",
+    "view": "View",
+    "viewSubtitle": "Asset display order",
+    "viewTitle": "Sort"
   },
   "statusLine": {
     "derived": "Status: {{name}}"
@@ -343,7 +393,8 @@
     "serialRequired": "Enter the serial number",
     "serialTaken": "Serial number already in use",
     "typeRequired": "Enter the type",
-    "warrantyBeforePurchase": "Warranty cannot be earlier than purchase date"
+    "warrantyBeforePurchase": "Warranty cannot be earlier than purchase date",
+    "concurrentEdit": "This record was changed by another user — refresh the page"
   },
   "label": {
     "print": "Print label"

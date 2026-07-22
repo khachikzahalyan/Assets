@@ -41,7 +41,8 @@
   },
   "guard": {
     "last-super-admin": "You cannot archive the last super admin",
-    "self-archive": "You cannot archive your own record"
+    "self-archive": "You cannot archive your own record",
+    "active-assets": "Termination is blocked: the employee still has assets assigned. Complete the equipment handover first."
   },
   "form": {
     "branch": "Branch",
@@ -59,6 +60,7 @@
     "notFound": "Employee not found",
     "pickBranch": "Select a branch",
     "pickDepartment": "Select a department",
+    "phone": "Phone",
     "position": "Position",
     "save": "Save",
     "uid": "User ID (uid)",
@@ -169,6 +171,7 @@
   "validation": {
     "emailFormat": "Enter a valid email",
     "emailTaken": "This email is already in use",
+    "emailTerminated": "An employee with this email was terminated. Restore the record?",
     "firstNameRequired": "Enter first name",
     "lastNameRequired": "Enter last name",
     "positionRequired": "Enter position",
