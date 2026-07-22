@@ -282,11 +282,14 @@ service cloud.firestore {
         && (!('comment' in request.resource.data)
             || request.resource.data.comment == null
             || request.resource.data.comment is string)
+        && (!('actorName' in request.resource.data)
+            || request.resource.data.actorName == null
+            || request.resource.data.actorName is string)
         && request.resource.data.keys().hasAll(
              ['entityType', 'entityId', 'action', 'actorUid', 'actorRole', 'at'])
         && request.resource.data.keys().hasOnly(
              ['entityType', 'entityId', 'action', 'actorUid', 'actorRole',
-              'before', 'after', 'comment', 'at']);
+              'before', 'after', 'comment', 'actorName', 'at']);
       allow update, delete: if false;
     }
 
@@ -316,11 +319,43 @@ service cloud.firestore {
       allow write: if isSuperAdmin() && doc != 'auth';
     }
 
+    // ---- /part_categories — dynamic parts-warehouse category catalog ----
+    // Read: any signed-in admin-capable principal (same audience as /parts).
+    // Write: super_admin only. behavior is part of the doc but immutability is
+    // enforced app-side (update rule still whitelists keys + type-guards).
+    match /part_categories/{id} {
+      allow read: if isSignedIn();
+
+      allow create: if isSuperAdmin()
+        && request.resource.data.name.ru is string && request.resource.data.name.ru.size() > 0
+        && request.resource.data.name.en is string
+        && request.resource.data.name.hy is string
+        && request.resource.data.behavior in ['single', 'sized', 'models']
+        && request.resource.data.slotKind is string
+        && request.resource.data.order is number
+        && request.resource.data.active is bool
+        && request.resource.data.keys().hasOnly([
+             'name', 'icon', 'tintToken', 'order', 'behavior', 'slotKind',
+             'storageType', 'familyOverrides', 'variants', 'generations',
+             'active', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy']);
+
+      allow update: if isSuperAdmin()
+        && request.resource.data.behavior == resource.data.behavior   // immutable class
+        && request.resource.data.name.ru is string && request.resource.data.name.ru.size() > 0
+        && request.resource.data.active is bool
+        && request.resource.data.keys().hasOnly([
+             'name', 'icon', 'tintToken', 'order', 'behavior', 'slotKind',
+             'storageType', 'familyOverrides', 'variants', 'generations',
+             'active', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy']);
+
+      allow delete: if false;
+    }
+
     // ---- /parts — SKU catalog ----
     // Read + create + update: three admin roles. No client delete (MVP boundary —
     // deleteGpu is routed through a Cloud Function in a post-MVP plan).
     // Shape guards:
-    //   · category must be one of the 7 defined PartCategory values.
+    //   · category must reference an existing part_categories doc.
     //   · name must be a non-empty string.
     //   · numeric snapshot fields (onHand, broken, lowStockThreshold) must be numbers.
     //   · attribution: createdBy/updatedBy must equal the caller's uid.
@@ -332,7 +367,7 @@ service cloud.firestore {
         && role() in ['super_admin', 'asset_admin', 'tech_admin']
         && request.resource.data.name is string
         && request.resource.data.name.size() > 0
-        && request.resource.data.category in ['psu', 'cooler', 'ssd', 'hdd', 'nvme', 'ram', 'gpu']
+        && exists(/databases/$(database)/documents/part_categories/$(request.resource.data.category))
         && request.resource.data.onHand is number
         && request.resource.data.broken is number
         && request.resource.data.lowStockThreshold is number
@@ -347,7 +382,7 @@ service cloud.firestore {
         && role() in ['super_admin', 'asset_admin', 'tech_admin']
         && request.resource.data.name is string
         && request.resource.data.name.size() > 0
-        && request.resource.data.category in ['psu', 'cooler', 'ssd', 'hdd', 'nvme', 'ram', 'gpu']
+        && exists(/databases/$(database)/documents/part_categories/$(request.resource.data.category))
         && request.resource.data.onHand is number
         && request.resource.data.broken is number
         && request.resource.data.lowStockThreshold is number
@@ -390,6 +425,18 @@ service cloud.firestore {
     // ---- /barcodes/{code} — uniqueness lock for asset barcodes ----
     // Created (once) when an asset reserves its barcode. Immutable; never updated.
     match /barcodes/{code} {
+      allow read:   if isAnyAdmin();
+      allow create: if isSuperAdmin() || isAssetAdmin();
+      allow update: if false;
+      allow delete: if isSuperAdmin();
+    }
+
+    // ---- /inv_codes/{code} — uniqueness lock for asset inventory codes ----
+    // Mirrors /barcodes/{code}. lockId = encodeURIComponent(invCode.trim()) so '/'
+    // characters in inventory codes (e.g. "450/1") are safely encoded as '%2F'.
+    // Written atomically inside the same withAudit transaction as the asset doc
+    // in createAsset/createAssetsBatch — prevents TOCTOU duplicates under concurrency.
+    match /inv_codes/{code} {
       allow read:   if isAnyAdmin();
       allow create: if isSuperAdmin() || isAssetAdmin();
       allow update: if false;
