@@ -23,17 +23,20 @@ export function BarcodeSvg({ value, height = 110 }: BarcodeSvgProps) {
     const svg = ref.current
     if (!svg || !value) return
     try {
+      // margin: 0 — no quiet zone INSIDE the SVG: the bars span the full SVG
+      // width so they align edge-to-edge with the wordmark/inv-code line below.
+      // The printed quiet zone is provided by the label's own 2.5mm padding.
       if (isValidEan13(value)) {
         JsBarcode(svg, value, {
           format: 'EAN13',
           flat: true,
           displayValue: false,
           height,
-          margin: 10,
+          margin: 0,
           width: 2,
         })
       } else {
-        JsBarcode(svg, value, { format: 'CODE128', displayValue: false, height, margin: 10, width: 2 })
+        JsBarcode(svg, value, { format: 'CODE128', displayValue: false, height, margin: 0, width: 2 })
       }
       // JsBarcode sets width/height WITH a "px" suffix (e.g. "210px") AND its own valid
       // viewBox. Previously we rebuilt the viewBox from the raw attribute values, producing

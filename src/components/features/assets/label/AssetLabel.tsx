@@ -6,10 +6,9 @@ export interface AssetLabelProps {
 }
 
 /**
- * One printable asset label, matching the owner's reference sticker exactly:
- * bold black company wordmark on the left, a thin full-height divider rule,
- * then the Code 128 barcode with the inventory code as a small mono
- * human-readable line tucked right under the bars. No other text.
+ * One printable asset label — the owner's FINAL reference: Code 128 barcode
+ * across the full width on top, then a single line underneath with the company
+ * wordmark on the left and the inventory code (mono) on the right. Nothing else.
  * The label fills its container's width; physical size is driven by the print
  * `@page` (80×40mm, index.css).
  * NOTE: inline styles + literal black/white are intentional and CODE_QUALITY-justified — this
@@ -23,40 +22,44 @@ export function AssetLabel({ asset }: AssetLabelProps) {
   return (
     <div
       className="ams-label"
+      /* Dense like the reference sticker: minimal padding, bars fill most of
+         the height, the text line hugs the bars. */
       style={{
-        width: '100%', padding: '3.5mm 4mm', boxSizing: 'border-box',
-        display: 'flex', alignItems: 'center', gap: '3mm',
+        width: '100%', padding: '2mm 2.5mm', boxSizing: 'border-box',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5mm',
         breakInside: 'avoid', overflow: 'hidden', color: '#000', background: '#fff',
       }}
     >
-      {/* Left: company wordmark, vertically centered */}
-      <div style={{ width: '20mm', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      {/* Barcode — full label width, tall bars */}
+      {asset.barcode ? (
+        <div style={{ width: '100%' }}>
+          <BarcodeSvg value={asset.barcode} height={100} />
+        </div>
+      ) : null}
+
+      {/* Bottom line: wordmark left, inventory code right — large, tight under the bars */}
+      <div
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center',
+          justifyContent: 'space-between', gap: '3mm',
+        }}
+      >
         <img
           src="/telcell-logo.png"
           alt="Telcell"
-          style={{ width: '100%', filter: 'grayscale(1) brightness(0.7) contrast(9)' }}
+          /* PNG is cropped to the glyph bounds, so height maps 1:1 to the visible
+             wordmark — 6mm ≈ the inv-code cap height, like the reference. */
+          style={{ height: '6mm', flexShrink: 0, filter: 'grayscale(1) brightness(0.7) contrast(9)' }}
         />
-      </div>
-
-      {/* Thin divider rule — spans the content height like the reference */}
-      <div aria-hidden="true" style={{ width: '0.4mm', alignSelf: 'stretch', background: '#000', flexShrink: 0 }} />
-
-      {/* Right: barcode with the inventory code as its human-readable line */}
-      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        {asset.barcode ? (
-          <div style={{ width: '100%' }}>
-            <BarcodeSvg value={asset.barcode} height={80} />
-          </div>
-        ) : null}
-        <div
+        <span
           style={{
             fontFamily: "'JetBrains Mono', 'Courier New', monospace",
-            fontSize: '8.5pt', fontWeight: 600, letterSpacing: '0.18em',
-            lineHeight: 1, marginTop: '1mm', whiteSpace: 'nowrap',
+            fontSize: '16pt', fontWeight: 700, letterSpacing: '0.06em',
+            lineHeight: 1, whiteSpace: 'nowrap',
           }}
         >
           {asset.invCode}
-        </div>
+        </span>
       </div>
     </div>
   )
