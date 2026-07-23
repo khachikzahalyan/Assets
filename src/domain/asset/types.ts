@@ -86,6 +86,12 @@ export interface Asset {
   purchaseDate?: string | null
   /** ISO date (YYYY-MM-DD); set when condition === 'new'. */
   warrantyEndsAt?: string | null
+  /**
+   * Purchase price as entered (AMD implied — no currency field in Phase 1).
+   * Written by the Excel importer; Phase-2 reporting surfaces it. Absent/null for
+   * assets registered without a price.
+   */
+  priceAmount?: number | null
 }
 
 /** Reference rows resolved alongside assets so the table can render names. */

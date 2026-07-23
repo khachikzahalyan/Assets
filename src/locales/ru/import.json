@@ -1,0 +1,104 @@
+{
+  "title": "Импорт из Excel",
+  "steps": {
+    "template": "Шаблон",
+    "upload": "Файл",
+    "preview": "Превью",
+    "progress": "Импорт",
+    "report": "Итог"
+  },
+  "template": {
+    "heading": "Шаблон файла импорта",
+    "desc": "Скачайте шаблон, заполните его и загрузите обратно.",
+    "download": "Скачать шаблон",
+    "downloading": "Загрузка…"
+  },
+  "upload": {
+    "heading": "Загрузите файл",
+    "desc": "Файл .xlsx в формате шаблона АМС",
+    "choose": "Выбрать файл",
+    "parsing": "Разбираем файл…",
+    "validating": "Проверяем данные…"
+  },
+  "preview": {
+    "heading": "Превью данных",
+    "tabEmployees": "Сотрудники",
+    "tabAssets": "Активы",
+    "readyCount": "{{count}} готово",
+    "errorCount": "{{count}} с ошибками",
+    "autoChip": "авто",
+    "importN": "Импортировать {{count}} строк",
+    "noRows": "Нет строк для импорта",
+    "cols": {
+      "row": "#",
+      "nameLastName": "Имя / Фамилия",
+      "email": "Email",
+      "department": "Отдел",
+      "category": "Категория",
+      "brandModel": "Бренд / Модель",
+      "invCode": "Инв. код",
+      "branch": "Филиал",
+      "status": "Статус"
+    }
+  },
+  "progress": {
+    "heading": "Выполняется импорт…",
+    "phaseEmployees": "Создание сотрудников",
+    "phaseAssets": "Создание активов",
+    "phaseAssignments": "Создание привязок"
+  },
+  "report": {
+    "heading": "Импорт завершён",
+    "employeesCreated": "Сотрудников создано: {{count}}",
+    "assetsCreated": "Активов создано: {{count}}",
+    "assignmentsCreated": "Привязок создано: {{count}}",
+    "skippedHeading": "Пропущенные строки",
+    "skippedSheet": "Лист",
+    "skippedRow": "Строка",
+    "skippedReason": "Причина",
+    "noSkipped": "Все строки обработаны успешно",
+    "toAssets": "К активам",
+    "importMore": "Импортировать ещё"
+  },
+  "errors": {
+    "firstNameRequired": "Имя обязательно",
+    "lastNameRequired": "Фамилия обязательна",
+    "emailRequired": "Email обязателен",
+    "emailInvalid": "Некорректный email",
+    "emailTaken": "Email уже используется активным сотрудником",
+    "emailTerminated": "Email принадлежит уволенному сотруднику — восстановите вручную",
+    "emailDupInFile": "Email дублируется в строке {{row}}",
+    "departmentRequired": "Отдел обязателен",
+    "departmentUnknown": "Отдел не найден: {{value}}",
+    "branchUnknown": "Филиал не найден: {{value}}",
+    "categoryRequired": "Категория обязательна",
+    "categoryUnknown": "Категория не найдена: {{value}}",
+    "branchRequired": "Филиал обязателен",
+    "brandRequired": "Бренд обязателен",
+    "modelRequired": "Модель обязательна",
+    "serialRequired": "Серийный номер обязателен",
+    "serialTaken": "Серийный номер уже используется",
+    "serialDupInFile": "Серийный номер дублируется в строке {{row}}",
+    "invTaken": "Инв. код уже используется",
+    "invDupInFile": "Инв. код дублируется в строке {{row}}",
+    "invPrefixUndetermined": "Невозможно определить префикс — укажите инв. код вручную",
+    "assigneeEmailInvalid": "Некорректный email сотрудника",
+    "assigneeUnknown": "Сотрудник не найден: {{value}}",
+    "assigneeTerminated": "Сотрудник уволен",
+    "priceInvalid": "Некорректная цена",
+    "priceNegative": "Цена не может быть отрицательной",
+    "dateInvalid": "Некорректная дата (поле: {{field}})",
+    "datesPairRequired": "Укажите обе даты или ни одну",
+    "purchaseInFuture": "Дата покупки не может быть в будущем",
+    "warrantyBeforePurchase": "Дата гарантии не может быть раньше даты покупки"
+  },
+  "warnings": {
+    "furnitureExtrasIgnored": "Бренд и серийный номер игнорируются для мебели",
+    "commentDropped": "Комментарий сохраняется только при назначении сотруднику"
+  },
+  "back": "Назад к активам",
+  "error": {
+    "loadRefFailed": "Не удалось загрузить справочные данные. Попробуйте ещё раз.",
+    "parseFailed": "Не удалось разобрать файл. Убедитесь, что это корректный .xlsx файл."
+  }
+}

@@ -166,6 +166,7 @@ export class InMemoryAssetRepository implements AssetRepository, AssetWriteRepos
       condition: input.condition ?? null,
       purchaseDate: input.condition === 'new' ? (input.purchaseDate ?? null) : null,
       warrantyEndsAt: input.condition === 'new' ? (input.warrantyEndsAt ?? null) : null,
+      ...(input.priceAmount != null ? { priceAmount: input.priceAmount } : {}),
     }
     const r = await withAudit(
       this.audit,

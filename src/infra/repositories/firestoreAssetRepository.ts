@@ -64,6 +64,7 @@ function toAsset(id: string, d: Record<string, unknown>): Asset {
     condition: (d.condition as Asset['condition']) ?? null,
     purchaseDate: (d.purchaseDate as string | null) ?? null,
     warrantyEndsAt: (d.warrantyEndsAt as string | null) ?? null,
+    ...(typeof d.priceAmount === 'number' ? { priceAmount: d.priceAmount } : {}),
   }
 }
 
@@ -310,6 +311,7 @@ export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepo
       condition: input.condition,
       purchaseDate: input.condition === 'new' ? input.purchaseDate : null,
       warrantyEndsAt: input.condition === 'new' ? input.warrantyEndsAt : null,
+      ...(input.priceAmount != null ? { priceAmount: input.priceAmount } : {}),
       createdBy: actor.uid, updatedBy: actor.uid,
       createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
     })
@@ -454,6 +456,7 @@ export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepo
           condition: input.condition,
           purchaseDate: input.condition === 'new' ? input.purchaseDate : null,
           warrantyEndsAt: input.condition === 'new' ? input.warrantyEndsAt : null,
+          ...(input.priceAmount != null ? { priceAmount: input.priceAmount } : {}),
           createdBy: actor.uid, updatedBy: actor.uid,
           createdAt: at, updatedAt: at,
         })

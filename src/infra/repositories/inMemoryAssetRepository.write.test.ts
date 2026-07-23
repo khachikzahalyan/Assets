@@ -33,6 +33,19 @@ describe('InMemory write methods', () => {
     expect(store.logs).toHaveLength(1)
     expect(store.logs[0]!.action).toBe('created')
   })
+
+  it('priceAmount round-trip: createAsset passes priceAmount through to the returned asset', async () => {
+    const { repo } = makeRepo()
+    const { value } = await repo.createAsset({ ...baseInput, serial: 'SN-price', invCode: '450/p1', priceAmount: 75000 }, ACTOR)
+    expect(value.priceAmount).toBe(75000)
+  })
+
+  it('priceAmount absent: createAsset does not set priceAmount on the returned asset', async () => {
+    const { repo } = makeRepo()
+    const { value } = await repo.createAsset({ ...baseInput, serial: 'SN-no-price', invCode: '450/p2' }, ACTOR)
+    // priceAmount should be absent (not null, not 0 — absent entirely)
+    expect('priceAmount' in value).toBe(false)
+  })
   it('createAsset with employee assignment derives assigned status', async () => {
     const { repo } = makeRepo()
     const { value } = await repo.createAsset({ ...baseInput, invCode: '450/2', serial: 'SN2', assignment: { mode: 'employee', employeeId: 'e1' } }, ACTOR)
@@ -232,6 +245,15 @@ describe('createAssetsBatch (group registration, dual uniqueness)', () => {
     expect(created[0]!.condition).toBe('new')
     expect(created[0]!.purchaseDate).toBe('2026-06-21')
     expect(created[0]!.warrantyEndsAt).toBe('2027-06-21')
+  })
+
+  it('priceAmount round-trip: createAssetsBatch passes priceAmount through to the returned asset', async () => {
+    const { repo } = makeRepo()
+    const created = await repo.createAssetsBatch(
+      [{ ...baseInput, invCode: '450/60', serial: 'SN60', priceAmount: 125000 }],
+      ACTOR,
+    )
+    expect(created[0]!.priceAmount).toBe(125000)
   })
 })
 

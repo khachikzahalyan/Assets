@@ -1,5 +1,6 @@
 import { useRef, useEffect, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import {
@@ -41,10 +42,12 @@ export function EmployeesPage({
   initialModal,
   initialDetailId,
 }: EmployeesPageProps) {
-  const { t } = useTranslation('employees')
+  const { t } = useTranslation(['employees', 'assets'])
+  const navigate = useNavigate()
   const { user, role } = useAuth()
   const isMobile = useIsMobile()
   const canMutate = role === 'super_admin' || role === 'asset_admin'
+  const handleNavigateImport = useCallback(() => navigate('/import'), [navigate])
 
   const data = useEmployeesData({
     repository, assetRepository, assignmentRepository, loadRefData,
@@ -206,6 +209,16 @@ export function EmployeesPage({
                       aria-label={t('filter.search')}
                       containerClassName="w-[280px]"
                     />
+                    {canMutate && (
+                      <button
+                        type="button"
+                        onClick={handleNavigateImport}
+                        className="bg-surface border border-border-strong text-text-primary hover:bg-bg h-8 px-3 rounded-lg text-[13px] font-semibold inline-flex items-center gap-1.5 transition-colors duration-150 max-md:hidden"
+                      >
+                        <Icon name="file-up" size={13} className="text-sky-300" />
+                        <span>{t('toolbar.import', { ns: 'assets' })}</span>
+                      </button>
+                    )}
                     {canMutate && (
                       <Btn variant="primary" size="sm" onClick={actions.handleCreate}>
                         <Icon name="plus" size={13} />

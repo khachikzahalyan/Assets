@@ -1,0 +1,104 @@
+{
+  "title": "Import from Excel",
+  "steps": {
+    "template": "Template",
+    "upload": "File",
+    "preview": "Preview",
+    "progress": "Import",
+    "report": "Result"
+  },
+  "template": {
+    "heading": "Import Template",
+    "desc": "Download the template, fill it in, and upload it back.",
+    "download": "Download template",
+    "downloading": "Downloading…"
+  },
+  "upload": {
+    "heading": "Upload file",
+    "desc": ".xlsx file in AMS template format",
+    "choose": "Choose file",
+    "parsing": "Parsing file…",
+    "validating": "Validating data…"
+  },
+  "preview": {
+    "heading": "Data preview",
+    "tabEmployees": "Employees",
+    "tabAssets": "Assets",
+    "readyCount": "{{count}} ready",
+    "errorCount": "{{count}} with errors",
+    "autoChip": "auto",
+    "importN": "Import {{count}} rows",
+    "noRows": "No rows to import",
+    "cols": {
+      "row": "#",
+      "nameLastName": "Name / Last name",
+      "email": "Email",
+      "department": "Department",
+      "category": "Category",
+      "brandModel": "Brand / Model",
+      "invCode": "Inv. code",
+      "branch": "Branch",
+      "status": "Status"
+    }
+  },
+  "progress": {
+    "heading": "Import in progress…",
+    "phaseEmployees": "Creating employees",
+    "phaseAssets": "Creating assets",
+    "phaseAssignments": "Creating assignments"
+  },
+  "report": {
+    "heading": "Import complete",
+    "employeesCreated": "Employees created: {{count}}",
+    "assetsCreated": "Assets created: {{count}}",
+    "assignmentsCreated": "Assignments created: {{count}}",
+    "skippedHeading": "Skipped rows",
+    "skippedSheet": "Sheet",
+    "skippedRow": "Row",
+    "skippedReason": "Reason",
+    "noSkipped": "All rows processed successfully",
+    "toAssets": "Go to assets",
+    "importMore": "Import more"
+  },
+  "errors": {
+    "firstNameRequired": "First name is required",
+    "lastNameRequired": "Last name is required",
+    "emailRequired": "Email is required",
+    "emailInvalid": "Invalid email",
+    "emailTaken": "Email is already used by an active employee",
+    "emailTerminated": "Email belongs to a terminated employee — restore manually",
+    "emailDupInFile": "Email is duplicated in row {{row}}",
+    "departmentRequired": "Department is required",
+    "departmentUnknown": "Department not found: {{value}}",
+    "branchUnknown": "Branch not found: {{value}}",
+    "categoryRequired": "Category is required",
+    "categoryUnknown": "Category not found: {{value}}",
+    "branchRequired": "Branch is required",
+    "brandRequired": "Brand is required",
+    "modelRequired": "Model is required",
+    "serialRequired": "Serial number is required",
+    "serialTaken": "Serial number already in use",
+    "serialDupInFile": "Serial number duplicated in row {{row}}",
+    "invTaken": "Inventory code already in use",
+    "invDupInFile": "Inventory code duplicated in row {{row}}",
+    "invPrefixUndetermined": "Cannot determine prefix — enter inventory code manually",
+    "assigneeEmailInvalid": "Invalid assignee email",
+    "assigneeUnknown": "Employee not found: {{value}}",
+    "assigneeTerminated": "Employee is terminated",
+    "priceInvalid": "Invalid price",
+    "priceNegative": "Price cannot be negative",
+    "dateInvalid": "Invalid date (field: {{field}})",
+    "datesPairRequired": "Provide both dates or neither",
+    "purchaseInFuture": "Purchase date cannot be in the future",
+    "warrantyBeforePurchase": "Warranty date cannot be before purchase date"
+  },
+  "warnings": {
+    "furnitureExtrasIgnored": "Brand and serial number are ignored for furniture",
+    "commentDropped": "Comment is saved only when assigning to an employee"
+  },
+  "back": "Back to assets",
+  "error": {
+    "loadRefFailed": "Failed to load reference data. Please try again.",
+    "parseFailed": "Failed to parse file. Make sure it is a valid .xlsx file."
+  }
+}

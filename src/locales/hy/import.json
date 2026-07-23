@@ -1,0 +1,104 @@
+{
+  "title": "Ներմուծում Excel-ից",
+  "steps": {
+    "template": "Ձևանմուշ",
+    "upload": "Ֆայл",
+    "preview": "Նախադիտում",
+    "progress": "Ներմուծում",
+    "report": "Արդյունք"
+  },
+  "template": {
+    "heading": "Ներմուծման ձևանմուշ",
+    "desc": "Ներբեռնեք ձևանմուշը, լրացրեք և նորից բեռնեք։",
+    "download": "Ներբեռնել ձևանմուշ",
+    "downloading": "Ներբեռնում…"
+  },
+  "upload": {
+    "heading": "Բեռնեք ֆայլը",
+    "desc": ".xlsx ֆայլ AMS ձևանմուշի ձևաչափով",
+    "choose": "Ընտրել ֆայլ",
+    "parsing": "Վերլուծվում է…",
+    "validating": "Ստուգվում են տվյալները…"
+  },
+  "preview": {
+    "heading": "Տվյալների նախադիտում",
+    "tabEmployees": "Աշխատողներ",
+    "tabAssets": "Ակտիվներ",
+    "readyCount": "{{count}} պատրաստ",
+    "errorCount": "{{count}} սխալներով",
+    "autoChip": "ավտո",
+    "importN": "Ներմուծել {{count}} տող",
+    "noRows": "Ներմուծման տողեր չկան",
+    "cols": {
+      "row": "#",
+      "nameLastName": "Անուն / Ազգանուն",
+      "email": "Email",
+      "department": "Բաժին",
+      "category": "Կատեգորիա",
+      "brandModel": "Բրենդ / Մոդել",
+      "invCode": "Գույք. կոդ",
+      "branch": "Մասնաճյուղ",
+      "status": "Կարգ."
+    }
+  },
+  "progress": {
+    "heading": "Ընթացք…",
+    "phaseEmployees": "Աշխատողների ստեղծում",
+    "phaseAssets": "Ակտիվների ստեղծում",
+    "phaseAssignments": "Կապերի ստեղծում"
+  },
+  "report": {
+    "heading": "Ներմուծումն ավարտված է",
+    "employeesCreated": "Ստեղծված աշխատողներ՝ {{count}}",
+    "assetsCreated": "Ստեղծված ակտիվներ՝ {{count}}",
+    "assignmentsCreated": "Ստեղծված կապեր՝ {{count}}",
+    "skippedHeading": "Բաց թողնված տողեր",
+    "skippedSheet": "Թերթ",
+    "skippedRow": "Տող",
+    "skippedReason": "Պատճառ",
+    "noSkipped": "Բոլոր տողերը հաջողությամբ մշակված են",
+    "toAssets": "Ակտիվներ",
+    "importMore": "ԵՒս ներմուծել"
+  },
+  "errors": {
+    "firstNameRequired": "Անունը պարտադիր է",
+    "lastNameRequired": "Ազգանունը պարտադիր է",
+    "emailRequired": "Email-ը պարտադիր է",
+    "emailInvalid": "Անվավեր email",
+    "emailTaken": "Email-ն արդեն օգտագործվում է ակտիվ աշխատողի կողմից",
+    "emailTerminated": "Email-ը պատկանում է ազատված աշխատողին — վերականգնեք ձեռքով",
+    "emailDupInFile": "Email-ը կրկնվում է {{row}} տողում",
+    "departmentRequired": "Բաժինը պարտադիր է",
+    "departmentUnknown": "Բաժինը չի գտնվել՝ {{value}}",
+    "branchUnknown": "Մասնաճյուղը չի գտնվել՝ {{value}}",
+    "categoryRequired": "Կատեգորիան պարտադիր է",
+    "categoryUnknown": "Կատեգորիան չի գտնվել՝ {{value}}",
+    "branchRequired": "Մասնաճյուղը պարտադիր է",
+    "brandRequired": "Բրենդը պարտադիր է",
+    "modelRequired": "Մոդելը պարտադիր է",
+    "serialRequired": "Սերիական համարը պարտադիր է",
+    "serialTaken": "Սերիական համարն արդեն օգտագործվում է",
+    "serialDupInFile": "Սերիական համարը կրկնվում է {{row}} տողում",
+    "invTaken": "Գույքագրման կոդն արդեն օգտագործվում է",
+    "invDupInFile": "Գույքագրման կոդը կրկնվում է {{row}} տողում",
+    "invPrefixUndetermined": "Հնարավոր չէ որոշել նախածանցը — մուտքագրեք կոդը ձեռքով",
+    "assigneeEmailInvalid": "Անվավեր aշխատողի email",
+    "assigneeUnknown": "Աշխատողը չի գտնվել՝ {{value}}",
+    "assigneeTerminated": "Աշխատողն ազատված է",
+    "priceInvalid": "Անվավեր գին",
+    "priceNegative": "Գինը չի կարող բացասական լինել",
+    "dateInvalid": "Անվավեր ամսաթիվ (դաշտ՝ {{field}})",
+    "datesPairRequired": "Մուտքագրեք երկու ամսաթիվ կամ ոչ մեկը",
+    "purchaseInFuture": "Գնման ամսաթիվը չի կարող ապագայում լինել",
+    "warrantyBeforePurchase": "Երաշխիքի ամսաթիվը չի կարող գնման ամսաթվից վաղ լինել"
+  },
+  "warnings": {
+    "furnitureExtrasIgnored": "Կահույքի համար բրենդը և սերիան անտեսվում են",
+    "commentDropped": "Մեկնաբանությունը պահպանվում է միայն աշխատողին հանձնելիս"
+  },
+  "back": "Ակտիվներ",
+  "error": {
+    "loadRefFailed": "Չհաջողվեց բեռնել տեղեկատու տվյալները։ Փորձեք կրկին։",
+    "parseFailed": "Չհաջողվեց վերլուծել ֆայլը։ Համոզվեք, որ դա վավեր .xlsx ֆայլ է։"
+  }
+}

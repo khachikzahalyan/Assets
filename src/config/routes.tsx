@@ -41,6 +41,7 @@ const LicensesPage       = lazyPage(() => import('@/pages/licenses/LicensesPage'
 const PartsPage          = lazyPage(() => import('@/pages/parts/PartsPage'), 'PartsPage')
 const PartsReceivePage   = lazyPage(() => import('@/pages/parts/PartsReceivePage'), 'PartsReceivePage')
 const ScanPage           = lazyPage(() => import('@/pages/scan/ScanPage'), 'ScanPage')
+const ImportPage         = lazyPage(() => import('@/pages/import/ImportPage'), 'ImportPage')
 
 /** Shell layout wrapper — renders the persistent AppShell around routed content.
     Suspense sits INSIDE the shell so the chrome stays mounted between
@@ -184,6 +185,9 @@ export function AppRoutes() {
           } />
           <Route path="/parts/new" element={
             <RoleGate roles={routeRoles('parts')}><PartsReceivePage /></RoleGate>
+          } />
+          <Route path="/import" element={
+            <RoleGate roles={['super_admin', 'asset_admin']}><ImportPage /></RoleGate>
           } />
 
           {/* Unknown paths fall to /dashboard; RoleGate there handles role bounce */}

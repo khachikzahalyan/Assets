@@ -347,7 +347,6 @@
   "search": "Search by name, inv. code, serial…",
   "toolbar": {
     "import": "Import",
-    "importSoon": "Coming soon",
     "create": "Create"
   },
   "sort": {

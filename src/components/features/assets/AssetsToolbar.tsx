@@ -15,6 +15,7 @@ export interface AssetsToolbarProps {
   canMutate: boolean
   onExport: () => void
   onNavigateCreate: () => void
+  onNavigateImport?: () => void
 }
 
 /**
@@ -35,6 +36,7 @@ export function AssetsToolbar({
   canMutate,
   onExport,
   onNavigateCreate,
+  onNavigateImport,
 }: AssetsToolbarProps) {
   const { t } = useTranslation('assets')
 
@@ -128,17 +130,18 @@ export function AssetsToolbar({
           containerClassName="w-full max-w-[280px] max-md:max-w-none max-md:flex-1"
         />
 
-        {/* Import — Phase 2 deferred. Hidden on mobile. */}
-        <button
-          type="button"
-          disabled
-          title={t('toolbar.importSoon')}
-          aria-label={t('toolbar.import')}
-          className="bg-surface border border-border-strong text-text-primary h-8 px-3 rounded-lg text-[13px] font-semibold inline-flex items-center gap-1.5 transition-colors duration-150 opacity-40 cursor-not-allowed max-md:hidden"
-        >
-          <Icon name="file-up" size={13} className="text-sky-300" />
-          <span>{t('toolbar.import')}</span>
-        </button>
+        {/* Import — hidden on mobile; enabled when canMutate and handler provided. */}
+        {canMutate && onNavigateImport && (
+          <button
+            type="button"
+            onClick={onNavigateImport}
+            aria-label={t('toolbar.import')}
+            className="bg-surface border border-border-strong text-text-primary hover:bg-bg h-8 px-3 rounded-lg text-[13px] font-semibold inline-flex items-center gap-1.5 transition-colors duration-150 max-md:hidden"
+          >
+            <Icon name="file-up" size={13} className="text-sky-300" />
+            <span>{t('toolbar.import')}</span>
+          </button>
+        )}
 
         {/* Export — hidden on mobile */}
         <button

@@ -81,6 +81,11 @@ export interface CreateAssetInput {
   /** ISO date (YYYY-MM-DD); only when condition === 'new'. */
   warrantyEndsAt?: string | null
   /**
+   * Purchase price as entered (AMD implied; Phase-2 reporting surfaces it).
+   * Optional and additive — omitted for the regular create form; set by the Excel importer.
+   */
+  priceAmount?: number | null
+  /**
    * OEM license to create or re-bind when the asset is created.
    *
    * - `{ kind: 'manual', rawKey }`: creates a new device-bound Retail workstation

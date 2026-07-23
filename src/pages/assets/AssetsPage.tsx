@@ -166,6 +166,7 @@ export function AssetsPage({ repository }: AssetsPageProps) {
   // Row and create navigation handlers — stable references for memoized children.
   const handleRowClick = useCallback((a: Asset) => navigate(`/assets/${a.id}`), [navigate])
   const handleNavigateCreate = useCallback(() => navigate('/assets/new'), [navigate])
+  const handleNavigateImport = useCallback(() => navigate('/import'), [navigate])
 
   // Temp toggle handler
   const handleToggleTemp = useCallback(() => {
@@ -300,6 +301,7 @@ export function AssetsPage({ repository }: AssetsPageProps) {
               canMutate={canMutate}
               onExport={handleExport}
               onNavigateCreate={handleNavigateCreate}
+              onNavigateImport={handleNavigateImport}
             />
 
             {/* Divider between Row 1 and Row 2 */}
