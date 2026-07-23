@@ -10,7 +10,7 @@ function fakeRepo(overrides: Partial<DashboardRepository> = {}): DashboardReposi
     loadAssignmentActivity: vi.fn().mockResolvedValue([]),
     loadWorkstationLicenseStats: vi.fn().mockResolvedValue({ total: 0, free: 0, inUse: 0, retired: 0 }),
     loadServerLicenseCount: vi.fn().mockResolvedValue(0),
-    loadPeopleStats: vi.fn().mockResolvedValue({ employeeCount: 0, pendingUsersCount: null }),
+    loadPeopleStats: vi.fn().mockResolvedValue({ employeeCount: 0 }),
     loadRecentAuditRows: vi.fn().mockResolvedValue([]),
     ...overrides,
   }
@@ -25,19 +25,19 @@ describe('useDashboard role gating', () => {
     expect(repo.loadAssignmentActivity).toHaveBeenCalled()
     expect(repo.loadWorkstationLicenseStats).toHaveBeenCalled()
     expect(repo.loadServerLicenseCount).toHaveBeenCalled()
-    expect(repo.loadPeopleStats).toHaveBeenCalledWith(true)
+    expect(repo.loadPeopleStats).toHaveBeenCalled()
     expect(repo.loadRecentAuditRows).toHaveBeenCalled()
     expect(result.current.data.serverLicenseCount).toBe(0)
     expect(result.current.data.recentAudit).toEqual([])
   })
 
-  it('asset_admin: assets+assignments+people(no pending); NO licenses/server/audit', async () => {
+  it('asset_admin: assets+assignments+people; NO licenses/server/audit', async () => {
     const repo = fakeRepo()
     const { result } = renderHook(() => useDashboard(repo, 'asset_admin'))
     await waitFor(() => expect(result.current.loading).toBe(false))
     expect(repo.loadAssetStats).toHaveBeenCalled()
     expect(repo.loadAssignmentActivity).toHaveBeenCalled()
-    expect(repo.loadPeopleStats).toHaveBeenCalledWith(false)
+    expect(repo.loadPeopleStats).toHaveBeenCalled()
     expect(repo.loadWorkstationLicenseStats).not.toHaveBeenCalled()
     expect(repo.loadServerLicenseCount).not.toHaveBeenCalled()
     expect(repo.loadRecentAuditRows).not.toHaveBeenCalled()

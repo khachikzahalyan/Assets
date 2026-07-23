@@ -40,6 +40,7 @@ vi.mock('@/lib/firebase', () => ({
 
 vi.mock('@/lib/auth', () => ({
   fetchUserRole: vi.fn().mockResolvedValue('super_admin'),
+  fetchUserProfile: vi.fn().mockResolvedValue({ role: 'super_admin', employeeId: null }),
   signOutUser: vi.fn().mockResolvedValue(undefined),
   subscribeToAuthState: vi.fn(() => () => {}),
   claimPendingUser: vi.fn().mockResolvedValue(undefined),
@@ -54,7 +55,7 @@ vi.mock('@/infra/repositories', async (importOriginal) => {
     loadAssignmentActivity() { return Promise.resolve([]) }
     loadWorkstationLicenseStats() { return Promise.resolve({ total: 0, free: 0, inUse: 0, retired: 0 }) }
     loadServerLicenseCount() { return Promise.resolve(0) }
-    loadPeopleStats() { return Promise.resolve({ employeeCount: 0, pendingUsersCount: null }) }
+    loadPeopleStats() { return Promise.resolve({ employeeCount: 0 }) }
     loadRecentAuditRows() { return Promise.resolve([]) }
   }
   return {
@@ -136,7 +137,6 @@ function makeRepo() {
     ],
     serverLicenseCount: 7,
     employeeCount: 42,
-    pendingUsersCount: 3,
     auditLogs,
   })
 }

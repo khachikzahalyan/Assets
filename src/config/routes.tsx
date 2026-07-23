@@ -21,7 +21,6 @@ function lazyPage<K extends string>(
 
 const DashboardPage      = lazyPage(() => import('@/pages/dashboard/DashboardPage'), 'DashboardPage')
 const LoginPage          = lazyPage(() => import('@/pages/auth/LoginPage'), 'LoginPage')
-const PendingUsersPage   = lazyPage(() => import('@/pages/auth/PendingUsersPage'), 'PendingUsersPage')
 const AssetsPage         = lazyPage(() => import('@/pages/assets/AssetsPage'), 'AssetsPage')
 const AssetCreatePage    = lazyPage(() => import('@/pages/assets/AssetCreatePage'), 'AssetCreatePage')
 const AssetDetailPage    = lazyPage(() => import('@/pages/assets/AssetDetailPage'), 'AssetDetailPage')
@@ -162,9 +161,6 @@ export function AppRoutes() {
           } />
           <Route path="/profile" element={
             <RoleGate roles={routeRoles('profile')}><ProfilePage /></RoleGate>
-          } />
-          <Route path="/pending-users" element={
-            <RoleGate roles={routeRoles('pending-users')}><PendingUsersPage /></RoleGate>
           } />
           <Route path="/licenses" element={
             <RoleGate roles={routeRoles('licenses')}><LicensesPage /></RoleGate>

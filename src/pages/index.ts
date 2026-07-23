@@ -1,7 +1,6 @@
 // Barrel for all route-level pages, grouped into feature subfolders.
 export * from './dashboard/DashboardPage'
 export * from './auth/LoginPage'
-export * from './auth/PendingUsersPage'
 export * from './assets/AssetsPage'
 export * from './assets/AssetCreatePage'
 export * from './assets/AssetDetailPage'

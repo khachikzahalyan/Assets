@@ -33,7 +33,6 @@ import {
   GroupBreakdown,
   BranchBreakdown,
   LicenseStatTile,
-  PeopleTile,
   RecentActivityList,
 } from './index'
 import type { ActivityRowVM } from './index'
@@ -224,32 +223,6 @@ describe('LicenseStatTile', () => {
     wrap(<LicenseStatTile stats={stats} />)
     const { container } = wrap(<LicenseStatTile stats={stats} />)
     expect(container.textContent).not.toMatch(/[A-Z0-9]{5}-[A-Z0-9]{5}/)
-  })
-})
-
-// ── PeopleTile ────────────────────────────────────────────────────────────────
-
-describe('PeopleTile', () => {
-  it('renders employee count', () => {
-    wrap(<PeopleTile employeeCount={42} pendingUsersCount={null} />)
-    expect(screen.getByText('42')).toBeInTheDocument()
-  })
-
-  it('renders pending link when pendingUsersCount > 0', () => {
-    wrap(<PeopleTile employeeCount={10} pendingUsersCount={3} />)
-    const link = screen.getByRole('link')
-    expect(link).toHaveAttribute('href', '/pending-users')
-    expect(screen.getByText('3')).toBeInTheDocument()
-  })
-
-  it('does NOT render pending link when pendingUsersCount is null', () => {
-    wrap(<PeopleTile employeeCount={10} pendingUsersCount={null} />)
-    expect(screen.queryByRole('link')).toBeNull()
-  })
-
-  it('does NOT render pending link when pendingUsersCount is 0', () => {
-    wrap(<PeopleTile employeeCount={10} pendingUsersCount={0} />)
-    expect(screen.queryByRole('link')).toBeNull()
   })
 })
 

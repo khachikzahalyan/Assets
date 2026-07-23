@@ -81,7 +81,6 @@ function makeRepo() {
     ],
     serverLicenseCount: 7,
     employeeCount: 42,
-    pendingUsersCount: 3,
     auditLogs: auditRows,
     users: [{ id: 'u_1', firstName: 'Bob', lastName: 'Jones' }],
   })
@@ -138,9 +137,8 @@ describe('InMemoryDashboardRepository', () => {
     expect(await makeRepo().loadServerLicenseCount()).toBe(7)
   })
 
-  it('loadPeopleStats omits pending when not requested', async () => {
-    expect(await makeRepo().loadPeopleStats(false)).toEqual({ employeeCount: 42, pendingUsersCount: null })
-    expect(await makeRepo().loadPeopleStats(true)).toEqual({ employeeCount: 42, pendingUsersCount: 3 })
+  it('loadPeopleStats returns the employee count', async () => {
+    expect(await makeRepo().loadPeopleStats()).toEqual({ employeeCount: 42 })
   })
 
   it('loadRecentAuditRows returns newest-first, limited, with actorName and targetLabel', async () => {
@@ -162,7 +160,7 @@ describe('InMemoryDashboardRepository', () => {
     const repoNoUsers = new InMemoryDashboardRepository({
       assets: [], ref,
       workstationLicenses: [], serverLicenseCount: 0,
-      employeeCount: 0, pendingUsersCount: 0,
+      employeeCount: 0,
       auditLogs: [auditRows[2]!],  // au_1: entityType='asset', actorUid='u_1'
     })
     const rows = await repoNoUsers.loadRecentAuditRows(8)

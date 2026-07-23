@@ -14,9 +14,6 @@ export type { BranchBreakdownProps } from './BranchBreakdown'
 export { LicenseStatTile } from './LicenseStatTile'
 export type { LicenseStatTileProps } from './LicenseStatTile'
 
-export { PeopleTile } from './PeopleTile'
-export type { PeopleTileProps } from './PeopleTile'
-
 export { RecentActivityList } from './RecentActivityList'
 export type { RecentActivityListProps, ActivityRowVM } from './RecentActivityList'
 

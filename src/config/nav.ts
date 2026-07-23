@@ -3,7 +3,7 @@ import type { Role } from './roles'
 export type RouteId =
   | 'dashboard' | 'assets' | 'licenses' | 'parts'
   | 'employees' | 'branches' | 'departments' | 'categories' | 'roles'
-  | 'audit' | 'settings' | 'my-assets' | 'my-acts' | 'profile' | 'pending-users'
+  | 'audit' | 'settings' | 'my-assets' | 'my-acts' | 'profile'
   | 'scan'
 
 export interface NavItem {
@@ -39,7 +39,6 @@ export const ADMIN_NAV: NavGroup[] = [
   ]},
   { id: 'system', labelKey: 'groups.system', items: [
     { id: 'scan',          labelKey: 'items.scan',          icon: 'scan-line', allow: ['super_admin', 'asset_admin', 'tech_admin'] },
-    { id: 'pending-users', labelKey: 'items.pending-users', icon: 'user-plus', allow: ['super_admin'] },
     { id: 'audit',    labelKey: 'items.audit',    icon: 'history',  allow: ['super_admin'] },
     { id: 'settings', labelKey: 'items.settings', icon: 'settings', allow: ['super_admin'] },
   ]},

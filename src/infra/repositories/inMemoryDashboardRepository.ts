@@ -15,7 +15,6 @@ export interface InMemoryDashboardSeed {
   workstationLicenses: WorkstationLicense[]
   serverLicenseCount: number
   employeeCount: number
-  pendingUsersCount: number
   auditLogs: AuditLog[]
   /** Optional: uid → name map for actor name resolution in audit rows. */
   users?: Array<{ id: string; firstName: string | null; lastName: string | null }>
@@ -56,11 +55,8 @@ export class InMemoryDashboardRepository implements DashboardRepository {
     return this.seed.serverLicenseCount
   }
 
-  async loadPeopleStats(includePending: boolean): Promise<PeopleStats> {
-    return {
-      employeeCount: this.seed.employeeCount,
-      pendingUsersCount: includePending ? this.seed.pendingUsersCount : null,
-    }
+  async loadPeopleStats(): Promise<PeopleStats> {
+    return { employeeCount: this.seed.employeeCount }
   }
 
   async loadRecentAuditRows(limitN = 8): Promise<DashboardAuditRow[]> {

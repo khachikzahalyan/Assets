@@ -99,12 +99,6 @@ const employeeDocs = Array.from({ length: 42 }, (_, i) => ({
   id: `emp_${i + 1}`, data: { email: `e${i}@test.com` },
 }))
 
-const pendingUserDocs = [
-  { id: 'u_1', data: { status: 'no-role', email: 'a@test.com' } },
-  { id: 'u_2', data: { status: 'no-role', email: 'b@test.com' } },
-  { id: 'u_3', data: { status: 'no-role', email: 'c@test.com' } },
-]
-
 const auditReturned = {
   id: 'au_3', data: {
     entityType: 'assignment', entityId: 'as_3', action: 'returned',
@@ -192,31 +186,17 @@ describe('FirestoreDashboardRepository', () => {
   })
 
   describe('loadPeopleStats', () => {
-    it('includePending=false: counts employees and returns pendingUsersCount=null without querying users', async () => {
+    it('counts employees and does NOT query users (pending-users flow removed)', async () => {
       mockGetDocs.mockResolvedValueOnce(makeSnap(employeeDocs))
 
       const repo = new FirestoreDashboardRepository(fakeDb)
-      const stats = await repo.loadPeopleStats(false)
+      const stats = await repo.loadPeopleStats()
 
-      expect(stats).toEqual({ employeeCount: 42, pendingUsersCount: null })
+      expect(stats).toEqual({ employeeCount: 42 })
       expect(mockGetDocs).toHaveBeenCalledTimes(1)
       expect(mockCollection).toHaveBeenCalledWith(fakeDb, 'employees')
       const collectionNames = (mockCollection.mock.calls as unknown[][]).map(c => c[1] as string)
       expect(collectionNames).not.toContain('users')
-    })
-
-    it('includePending=true: counts employees AND pending users via where(status==no-role)', async () => {
-      mockGetDocs
-        .mockResolvedValueOnce(makeSnap(employeeDocs))    // employees
-        .mockResolvedValueOnce(makeSnap(pendingUserDocs)) // users where status==no-role
-
-      const repo = new FirestoreDashboardRepository(fakeDb)
-      const stats = await repo.loadPeopleStats(true)
-
-      expect(stats).toEqual({ employeeCount: 42, pendingUsersCount: 3 })
-      // Verify exact query: collection('users') + where('status','==','no-role')
-      expect(mockCollection).toHaveBeenCalledWith(fakeDb, 'users')
-      expect(mockWhere).toHaveBeenCalledWith('status', '==', 'no-role')
     })
   })
 

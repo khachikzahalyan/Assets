@@ -20,7 +20,7 @@ export interface AppShellProps {
  * ADD EVERY NEW ListPageShell(flushMobile) PAGE HERE — otherwise the card stops
  * at content height and leaves a dead band above the BottomNav.
  */
-const FLUSH_ROUTES = new Set(['assets', 'licenses', 'parts', 'employees', 'branches', 'categories', 'departments', 'audit', 'roles', 'pending-users'])
+const FLUSH_ROUTES = new Set(['assets', 'licenses', 'parts', 'employees', 'branches', 'categories', 'departments', 'audit', 'roles'])
 
 export function AppShell({ children }: AppShellProps) {
   const { role } = useAuth()

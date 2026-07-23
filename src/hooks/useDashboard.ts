@@ -27,7 +27,6 @@ function permissions(role: Role) {
     workstationLicenses: role === 'super_admin' || role === 'tech_admin',
     serverLicense: role === 'super_admin',
     people: role === 'super_admin' || role === 'asset_admin',
-    pending: role === 'super_admin',
     recentAudit: role === 'super_admin',
   }
 }
@@ -67,7 +66,7 @@ export function useDashboard(repo: DashboardRepository, role: Role): UseDashboar
       })
       if (p.workstationLicenses)  run(() => repo.loadWorkstationLicenseStats(), v => { next.workstationLicenses = v })
       if (p.serverLicense)        run(() => repo.loadServerLicenseCount(),       v => { next.serverLicenseCount = v })
-      if (p.people)               run(() => repo.loadPeopleStats(p.pending),     v => { next.people = v })
+      if (p.people)               run(() => repo.loadPeopleStats(),             v => { next.people = v })
       if (p.recentAudit)          run(() => repo.loadRecentAuditRows(8),         v => { next.recentAudit = v })
 
       await Promise.allSettled(tasks)

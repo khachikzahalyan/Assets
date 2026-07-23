@@ -163,17 +163,9 @@ export class FirestoreDashboardRepository implements DashboardRepository {
     return snap.size
   }
 
-  async loadPeopleStats(includePending: boolean): Promise<PeopleStats> {
+  async loadPeopleStats(): Promise<PeopleStats> {
     const employeesSnap = await getDocs(collection(this.db, 'employees'))
-    let pendingUsersCount: number | null = null
-    if (includePending) {
-      // Exact query from firestoreUserRepository.listPendingUsers():
-      const pendingSnap = await getDocs(fsQuery(
-        collection(this.db, 'users'), where('status', '==', 'no-role'),
-      ))
-      pendingUsersCount = pendingSnap.size
-    }
-    return { employeeCount: employeesSnap.size, pendingUsersCount }
+    return { employeeCount: employeesSnap.size }
   }
 
   async loadRecentAuditRows(limitN = 8): Promise<DashboardAuditRow[]> {

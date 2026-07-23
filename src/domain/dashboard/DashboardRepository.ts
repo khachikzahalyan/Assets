@@ -13,8 +13,7 @@ export interface DashboardRepository {
   loadWorkstationLicenseStats(): Promise<WorkstationLicenseStats>
   /** super_admin only (caller-gated). */
   loadServerLicenseCount(): Promise<number>
-  /** pendingUsersCount queried only when includePending (super_admin). */
-  loadPeopleStats(includePending: boolean): Promise<PeopleStats>
+  loadPeopleStats(): Promise<PeopleStats>
   /**
    * super_admin only (caller-gated). Newest first.
    * Returns enriched rows with resolved actor names and entity labels.

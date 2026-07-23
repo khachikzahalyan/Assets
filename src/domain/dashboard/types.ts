@@ -41,7 +41,6 @@ export interface WorkstationLicenseStats {
 
 export interface PeopleStats {
   employeeCount: number
-  pendingUsersCount: number | null
 }
 
 /** Enriched audit row for the dashboard audit table. Does NOT mutate the shared AuditLog type. */
