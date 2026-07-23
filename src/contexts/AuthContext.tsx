@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useMemo, useCallback, useEffect, useRef, type ReactNode } from 'react'
 import type { Role } from '@/config/roles'
-import { fetchUserRole, signOutUser, subscribeToAuthState, claimPendingUser } from '@/lib/auth'
+import { fetchUserProfile, signOutUser, subscribeToAuthState, claimPendingUser } from '@/lib/auth'
 // Import directly (not via @/hooks barrel) — useParts imports useAuth, creating a barrel cycle.
 import { clearResourceCache } from '@/hooks/useCachedResource'
 
@@ -11,6 +11,10 @@ export interface AuthUser {
   role: Role
   initials: string
   avatarColor: string
+  /** employees/{id} HR record linked to this account (server auto-provisioning).
+   *  Self-service resolves the employee as `employeeId ?? id` — legacy employee
+   *  accounts created via the pending queue have employee doc id === uid. */
+  employeeId?: string | null
 }
 
 /**
@@ -81,7 +85,7 @@ interface FirebaseUserShape {
   displayName: string | null
 }
 
-function toAuthUser(fb: FirebaseUserShape, role: Role): AuthUser {
+function toAuthUser(fb: FirebaseUserShape, role: Role, employeeId: string | null = null): AuthUser {
   const email = fb.email ?? ''
   return {
     id: fb.uid,
@@ -90,6 +94,7 @@ function toAuthUser(fb: FirebaseUserShape, role: Role): AuthUser {
     role,
     initials: initialsFrom(fb.displayName, email),
     avatarColor: avatarColorFor(fb.uid || email),
+    employeeId,
   }
 }
 
@@ -164,7 +169,7 @@ function RealAuthProvider({ children }: { children: ReactNode }) {
       }
       void (async () => {
         try {
-          const role = await fetchUserRole(shape.uid)
+          const { role, employeeId } = await fetchUserProfile(shape.uid)
           if (!active) return
           if (role === null) {
             // Signed in but no role doc — expose identity so AccessPending can
@@ -174,7 +179,7 @@ function RealAuthProvider({ children }: { children: ReactNode }) {
             void claimPendingUser({ uid: shape.uid, email: shape.email, displayName: shape.displayName })
             return
           }
-          setUser(toAuthUser(shape, role))
+          setUser(toAuthUser(shape, role, employeeId))
           setStatus('ready')
         } catch {
           // Treat a role-lookup failure as no-role (fail-closed); never crash auth.

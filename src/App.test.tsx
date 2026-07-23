@@ -36,6 +36,7 @@ vi.mock('firebase/auth', () => ({
 }))
 vi.mock('@/lib/auth', () => ({
   fetchUserRole: vi.fn(async () => 'super_admin'),
+  fetchUserProfile: vi.fn(async () => ({ role: 'super_admin', employeeId: null })),
   signOutUser: vi.fn(),
   // AuthContext now subscribes via this wrapper instead of importing
   // onAuthStateChanged from firebase/auth directly. Route it through the

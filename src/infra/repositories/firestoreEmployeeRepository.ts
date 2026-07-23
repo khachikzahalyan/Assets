@@ -42,6 +42,7 @@ function toEmployee(id: string, d: Record<string, unknown>): Employee {
     branchId: (d.branchId as string | null) ?? null,
     departmentId: (d.departmentId as string | null) ?? null,
     status: (d.status as EmployeeStatus) ?? 'active',
+    preassignedRole: (d.preassignedRole as Employee['preassignedRole']) ?? null,
     terminatedAt: d.terminatedAt == null ? null : toIso(d.terminatedAt),
     createdAt: toIso(d.createdAt),
     updatedAt: toIso(d.updatedAt),

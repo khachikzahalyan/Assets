@@ -22,6 +22,8 @@ export interface MyAssetsPageProps {
 export function MyAssetsPage({ repository }: MyAssetsPageProps) {
   const { t } = useTranslation('employees')
   const { user } = useAuth()
+  // Invited employees: HR record id differs from uid — server-provisioned link wins.
+  const employeeDocId = user.employeeId ?? user.id
 
   const repo = repository ?? getSharedAssetRepository()
 
@@ -35,7 +37,7 @@ export function MyAssetsPage({ repository }: MyAssetsPageProps) {
     setLoadError(null)
     try {
       const [mine, refData] = await Promise.all([
-        repo.listAssetsForEmployee(user.id),
+        repo.listAssetsForEmployee(employeeDocId),
         repo.loadSelfServiceRefData(),
       ])
       setAssets(mine)
@@ -45,7 +47,7 @@ export function MyAssetsPage({ repository }: MyAssetsPageProps) {
     } finally {
       setLoading(false)
     }
-  }, [repo, user.id, t])
+  }, [repo, employeeDocId, t])
 
   useEffect(() => {
     void load()

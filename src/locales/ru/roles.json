@@ -6,7 +6,7 @@
   "you": "Это вы",
   "col": { "user": "Пользователь", "email": "Эл. почта", "role": "Роль", "status": "Статус", "actions": "" },
   "role": { "none": "Без роли" },
-  "status": { "active": "Активен", "no-role": "Без роли", "terminated": "Уволен" },
+  "status": { "active": "Активен", "invited": "Приглашён", "no-role": "Без роли", "terminated": "Уволен" },
   "change": "Изменить роль",
   "empty": { "title": "Пользователи не найдены", "desc": "Измените фильтры или поиск" },
   "dialog": {

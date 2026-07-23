@@ -16,6 +16,8 @@ export interface MyActsPageProps {
 export function MyActsPage({ repository }: MyActsPageProps) {
   const { t } = useTranslation('employees')
   const { user } = useAuth()
+  // Invited employees: HR record id differs from uid — server-provisioned link wins.
+  const employeeDocId = user.employeeId ?? user.id
 
   const repo = repository ?? getSharedAssignmentRepository()
 
@@ -28,14 +30,14 @@ export function MyActsPage({ repository }: MyActsPageProps) {
     setLoading(true)
     setLoadError(null)
     try {
-      const all = await repo.listAssignmentsForEmployee(user.id)
+      const all = await repo.listAssignmentsForEmployee(employeeDocId)
       setAssignments(all)
     } catch {
       setLoadError(t('validation.saveFailed'))
     } finally {
       setLoading(false)
     }
-  }, [repo, user.id, t])
+  }, [repo, employeeDocId, t])
 
   useEffect(() => {
     void load()

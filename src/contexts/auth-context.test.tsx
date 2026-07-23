@@ -8,6 +8,9 @@ const claimSpy = vi.fn().mockResolvedValue(undefined)
 vi.mock('@/lib/firebase', () => ({ auth: () => ({}) }))
 vi.mock('@/lib/auth', () => ({
   fetchUserRole: (...a: unknown[]) => fetchUserRole(...(a as [])),
+  // AuthContext reads role + employeeId via fetchUserProfile; route it to the
+  // same fetchUserRole spy so existing role-driving tests keep working.
+  fetchUserProfile: async (...a: unknown[]) => ({ role: await fetchUserRole(...(a as [])), employeeId: null }),
   signOutUser: vi.fn(),
   // AuthContext subscribes via this wrapper; route it to the spy so tests can
   // capture and drive the auth-state callback. Returns the unsubscribe fn.

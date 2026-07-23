@@ -4,6 +4,8 @@ import {
 } from 'firebase/firestore'
 import type { Actor } from '@/domain/asset'
 import type { AuditedResult } from '@/domain/audit'
+import type { Role } from '@/config/roles'
+import { ROLE_IDS } from '@/config/roles'
 import {
   isUserStatus, type User, type PendingUser, type UserRepository, type AssignRoleInput,
   type UserListQuery,
@@ -117,5 +119,74 @@ export class FirestoreUserRepository implements UserRepository {
     const after = await getDoc(ref)
     if (!after.exists()) throw new Error('User role assign succeeded but readback failed')
     return { value: toUser(after.id, after.data() as Record<string, unknown>), auditId: r.auditId }
+  }
+
+  /** ACTIVE employees whose email has no /users account yet → virtual 'invited' rows. */
+  async listInvitedEmployees(): Promise<User[]> {
+    const [empSnap, userSnap] = await Promise.all([
+      getDocs(collection(this.db, 'employees')),
+      getDocs(collection(this.db, 'users')),
+    ])
+    const accountEmails = new Set(
+      userSnap.docs
+        .map(d => String((d.data() as { email?: string }).email ?? '').trim().toLowerCase())
+        .filter(e => e !== ''),
+    )
+    return empSnap.docs
+      .map(d => ({ id: d.id, data: d.data() as Record<string, unknown> }))
+      .filter(({ data }) => data.status !== 'terminated')
+      .filter(({ data }) => {
+        const email = String(data.email ?? '').trim().toLowerCase()
+        return email !== '' && !accountEmails.has(email)
+      })
+      .map(({ id, data }) => {
+        const pre = data.preassignedRole
+        const role: Role = typeof pre === 'string' && (ROLE_IDS as readonly string[]).includes(pre)
+          ? (pre as Role)
+          : 'employee'
+        return {
+          id,
+          email: String(data.email ?? ''),
+          displayName: `${String(data.firstName ?? '')} ${String(data.lastName ?? '')}`.trim() || String(data.email ?? ''),
+          role,
+          status: 'invited' as const,
+          createdAt: toIso(data.createdAt),
+        }
+      })
+      .sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''))
+  }
+
+  /** Pre-assign a role to an invited employee — applied at first sign-in by beforeCreate. */
+  async preassignRole(employeeId: string, role: Role, actor: Actor): Promise<AuditedResult<User>> {
+    const ref = doc(this.db, 'employees', employeeId)
+    const snap = await getDoc(ref)
+    if (!snap.exists()) throw new Error(`Employee not found: ${employeeId}`)
+    const data = snap.data() as Record<string, unknown>
+    const beforeRole = typeof data.preassignedRole === 'string' ? data.preassignedRole : null
+
+    const r = await withAudit(this.audit,
+      {
+        entityType: 'employee', entityId: employeeId, action: 'role_assigned',
+        actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
+        before: { preassignedRole: beforeRole },
+        after: { preassignedRole: role },
+      },
+      async (txn) => {
+        txn.set(ref, { preassignedRole: role, updatedAt: serverTimestamp() }, { merge: true })
+        return { value: undefined as unknown as void }
+      },
+    )
+
+    return {
+      value: {
+        id: employeeId,
+        email: String(data.email ?? ''),
+        displayName: `${String(data.firstName ?? '')} ${String(data.lastName ?? '')}`.trim() || String(data.email ?? ''),
+        role,
+        status: 'invited',
+        createdAt: toIso(data.createdAt),
+      },
+      auditId: r.auditId,
+    }
   }
 }

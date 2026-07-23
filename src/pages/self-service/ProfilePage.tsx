@@ -16,6 +16,8 @@ export interface ProfilePageProps {
 export function ProfilePage({ repository, loadRefData }: ProfilePageProps) {
   const { t } = useTranslation('employees')
   const { user } = useAuth()
+  // Invited employees: HR record id differs from uid — server-provisioned link wins.
+  const employeeDocId = user.employeeId ?? user.id
 
   const repo = repository ?? getSharedEmployeeRepository()
 
@@ -39,7 +41,7 @@ export function ProfilePage({ repository, loadRefData }: ProfilePageProps) {
     setLoadError(null)
     try {
       const [emp, ref] = await Promise.all([
-        repo.getEmployee(user.id),
+        repo.getEmployee(employeeDocId),
         refLoader()
           .catch((): { branches: RefRow[]; departments: RefRow[] } => ({ branches: [], departments: [] })),
       ])
@@ -51,7 +53,7 @@ export function ProfilePage({ repository, loadRefData }: ProfilePageProps) {
     } finally {
       setLoading(false)
     }
-  }, [repo, user.id, refLoader, t])
+  }, [repo, employeeDocId, refLoader, t])
 
   useEffect(() => {
     void load()

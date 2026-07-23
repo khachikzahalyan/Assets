@@ -24,6 +24,7 @@ vi.mock('@/lib/auth', async (importOriginal) => {
     signOutUser: vi.fn(),
     subscribeToAuthState: vi.fn(() => () => {}),
     fetchUserRole: vi.fn(async () => null),
+  fetchUserProfile: vi.fn(async () => ({ role: null, employeeId: null })),
     claimPendingUser: vi.fn(async () => undefined),
   }
 })

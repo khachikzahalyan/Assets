@@ -7,6 +7,7 @@ vi.mock('firebase-admin/app', () => ({
 }))
 vi.mock('firebase-admin/firestore', () => ({
   getFirestore: vi.fn(),
+  FieldValue: { serverTimestamp: () => '__server_ts__' },
 }))
 
 import {
@@ -14,6 +15,7 @@ import {
   isSeedAdmin,
   decideSignIn,
   assertEmailAllowed,
+  provisionEmployeeUser,
   type SystemLookup,
 } from './beforeCreate'
 
@@ -48,7 +50,7 @@ function fakeDb(
             const matched = rows.filter((r) => r.email === value)
             return {
               empty: matched.length === 0,
-              docs: matched.map(r => ({ data: () => ({ email: r.email, ...(r.status !== undefined ? { status: r.status } : {}) }) })),
+              docs: matched.map((r, i) => ({ id: `${col}_${i}`, data: () => ({ email: r.email, ...(r.status !== undefined ? { status: r.status } : {}) }) })),
             }
           },
         }),
@@ -207,7 +209,7 @@ describe('assertEmailAllowed (mocked Firestore)', () => {
       { exists: true, data: () => ({ allowedEmailDomains: ['corp.example'], seedSuperAdmins: ['seed@other.example'] }) },
       {},
     )
-    await expect(assertEmailAllowed('seed@other.example', db)).resolves.toBeUndefined()
+    await expect(assertEmailAllowed('seed@other.example', db)).resolves.toEqual({ path: 'seed', employeeId: null })
   })
 
   it('seed match is case-insensitive', async () => {
@@ -215,7 +217,7 @@ describe('assertEmailAllowed (mocked Firestore)', () => {
       { exists: true, data: () => ({ allowedEmailDomains: [], seedSuperAdmins: ['Seed@Other.Example'] }) },
       {},
     )
-    await expect(assertEmailAllowed('seed@other.example', db)).resolves.toBeUndefined()
+    await expect(assertEmailAllowed('seed@other.example', db)).resolves.toEqual({ path: 'seed', employeeId: null })
   })
 
   // ── new: system-registration lookup scenarios ──────────────────────────────
@@ -225,7 +227,7 @@ describe('assertEmailAllowed (mocked Firestore)', () => {
       { exists: true, data: () => ({ allowedEmailDomains: [], seedSuperAdmins: [] }) },
       { employees: ['worker@company.example'] },
     )
-    await expect(assertEmailAllowed('worker@company.example', db)).resolves.toBeUndefined()
+    await expect(assertEmailAllowed('worker@company.example', db)).resolves.toEqual({ path: 'employee', employeeId: 'employees_0' })
   })
 
   it('resolves when email is found in /users (previously approved admin)', async () => {
@@ -233,7 +235,7 @@ describe('assertEmailAllowed (mocked Firestore)', () => {
       { exists: true, data: () => ({ allowedEmailDomains: [], seedSuperAdmins: [] }) },
       { users: ['admin@company.example'] },
     )
-    await expect(assertEmailAllowed('admin@company.example', db)).resolves.toBeUndefined()
+    await expect(assertEmailAllowed('admin@company.example', db)).resolves.toEqual({ path: 'registered', employeeId: null })
   })
 
   it('resolves when email is found in /employees with a different casing in storage', async () => {
@@ -242,7 +244,7 @@ describe('assertEmailAllowed (mocked Firestore)', () => {
       { exists: true, data: () => ({ allowedEmailDomains: [], seedSuperAdmins: [] }) },
       { employees: ['worker@company.example'] },
     )
-    await expect(assertEmailAllowed('Worker@Company.Example', db)).resolves.toBeUndefined()
+    await expect(assertEmailAllowed('Worker@Company.Example', db)).resolves.toEqual({ path: 'employee', employeeId: 'employees_0' })
   })
 
   it('throws for a stranger with an unknown domain (no match anywhere)', async () => {
@@ -277,7 +279,7 @@ describe('assertEmailAllowed (mocked Firestore)', () => {
       { exists: true, data: () => ({ allowedEmailDomains: ['ok.example'], seedSuperAdmins: [] }) },
       {},
     )
-    await expect(assertEmailAllowed('alice@ok.example', db)).resolves.toBeUndefined()
+    await expect(assertEmailAllowed('alice@ok.example', db)).resolves.toEqual({ path: 'domain', employeeId: null })
   })
 
   it('throws for an email whose domain is not allowed and is not in the system', async () => {
@@ -294,7 +296,7 @@ describe('assertEmailAllowed (mocked Firestore)', () => {
       {},
     )
     // Domain-allowed email still passes
-    await expect(assertEmailAllowed('user@ok.example', db)).resolves.toBeUndefined()
+    await expect(assertEmailAllowed('user@ok.example', db)).resolves.toEqual({ path: 'domain', employeeId: null })
     const db2 = fakeDbStrings(
       { exists: true, data: () => ({ allowedEmailDomains: ['ok.example'] }) },
       {},
@@ -318,7 +320,7 @@ describe('assertEmailAllowed (mocked Firestore)', () => {
       { exists: true, data: () => ({ allowedEmailDomains: [], seedSuperAdmins: [] }) },
       { employees: [{ email: 'active@company.example', status: 'active' }] },
     )
-    await expect(assertEmailAllowed('active@company.example', db)).resolves.toBeUndefined()
+    await expect(assertEmailAllowed('active@company.example', db)).resolves.toEqual({ path: 'employee', employeeId: 'employees_0' })
   })
 
   it('allows sign-in for a legacy employee doc with no status field (missing = active)', async () => {
@@ -326,7 +328,7 @@ describe('assertEmailAllowed (mocked Firestore)', () => {
       { exists: true, data: () => ({ allowedEmailDomains: [], seedSuperAdmins: [] }) },
       { employees: [{ email: 'legacy@company.example' }] }, // no status field
     )
-    await expect(assertEmailAllowed('legacy@company.example', db)).resolves.toBeUndefined()
+    await expect(assertEmailAllowed('legacy@company.example', db)).resolves.toEqual({ path: 'employee', employeeId: 'employees_0' })
   })
 
   it('allows sign-in when at least one matching employee doc is active (mixed: one terminated + one active)', async () => {
@@ -339,6 +341,87 @@ describe('assertEmailAllowed (mocked Firestore)', () => {
         ],
       },
     )
-    await expect(assertEmailAllowed('mixed@company.example', db)).resolves.toBeUndefined()
+    // The ACTIVE doc (index 1) wins — its id is returned for provisioning.
+    await expect(assertEmailAllowed('mixed@company.example', db)).resolves.toEqual({ path: 'employee', employeeId: 'employees_1' })
+  })
+})
+
+// ─── provisionEmployeeUser (auto-default role for invited employees) ──────────
+
+describe('provisionEmployeeUser', () => {
+  function fakeProvisionDb() {
+    const set = vi.fn(async () => undefined)
+    const add = vi.fn(async () => ({ id: 'audit_1' }))
+    const docPaths: string[] = []
+    const db = {
+      doc: (path: string) => { docPaths.push(path); return { set } },
+      collection: (col: string) => {
+        expect(col).toBe('audit_logs')
+        return { add }
+      },
+    } as unknown as import('firebase-admin/firestore').Firestore
+    return { db, set, add, docPaths }
+  }
+
+  it('creates users/{uid} with role=employee, status=active and the employeeId link', async () => {
+    const { db, set, docPaths } = fakeProvisionDb()
+    await provisionEmployeeUser(db, {
+      uid: 'uid_42', email: 'worker@company.example', displayName: 'Worker', employeeId: 'emp_7',
+    })
+    expect(docPaths).toEqual(['users/uid_42'])
+    const [data, opts] = set.mock.calls[0] as unknown as [Record<string, unknown>, { merge: boolean }]
+    expect(data).toMatchObject({
+      email: 'worker@company.example',
+      displayName: 'Worker',
+      role: 'employee',
+      status: 'active',
+      employeeId: 'emp_7',
+    })
+    expect(opts).toEqual({ merge: true })
+  })
+
+  it('writes a role_assigned audit row with actor=system', async () => {
+    const { db, add } = fakeProvisionDb()
+    await provisionEmployeeUser(db, {
+      uid: 'uid_42', email: 'worker@company.example', displayName: null, employeeId: 'emp_7',
+    })
+    expect(add).toHaveBeenCalledTimes(1)
+    const doc = add.mock.calls[0]![0] as unknown as Record<string, unknown>
+    expect(doc).toMatchObject({
+      entityType: 'user',
+      entityId: 'uid_42',
+      action: 'role_assigned',
+      actorUid: 'system',
+      after: { role: 'employee', status: 'active', employeeId: 'emp_7' },
+    })
+  })
+
+  it('falls back to email for displayName when the auth profile has none', async () => {
+    const { db, set } = fakeProvisionDb()
+    await provisionEmployeeUser(db, {
+      uid: 'uid_42', email: 'worker@company.example', displayName: '  ', employeeId: 'emp_7',
+    })
+    const [data] = set.mock.calls[0] as unknown as [Record<string, unknown>]
+    expect(data['displayName']).toBe('worker@company.example')
+  })
+
+  it('applies a pre-assigned admin role when passed (owner flow: role granted before sign-in)', async () => {
+    const { db, set, add } = fakeProvisionDb()
+    await provisionEmployeeUser(db, {
+      uid: 'uid_42', email: 'boss@company.example', displayName: 'Boss', employeeId: 'emp_7', role: 'asset_admin',
+    })
+    const [data] = set.mock.calls[0] as unknown as [Record<string, unknown>]
+    expect(data['role']).toBe('asset_admin')
+    const auditDoc = add.mock.calls[0]![0] as unknown as Record<string, unknown>
+    expect(auditDoc['after']).toMatchObject({ role: 'asset_admin', status: 'active' })
+  })
+
+  it('falls back to employee for an invalid role string', async () => {
+    const { db, set } = fakeProvisionDb()
+    await provisionEmployeeUser(db, {
+      uid: 'uid_42', email: 'x@company.example', displayName: 'X', employeeId: 'emp_7', role: 'root',
+    })
+    const [data] = set.mock.calls[0] as unknown as [Record<string, unknown>]
+    expect(data['role']).toBe('employee')
   })
 })

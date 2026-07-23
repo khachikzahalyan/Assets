@@ -58,4 +58,17 @@ export interface UserRepository {
   assignRole(input: AssignRoleInput, actor: Actor): Promise<AuditedResult<User>>
   /** Count ACTIVE super_admins, optionally excluding one uid. Used by lockout guards. */
   countSuperAdmins(exceptUid?: string): Promise<number>
+  /**
+   * ACTIVE employees with NO user account yet (email not present in /users),
+   * mapped to virtual User rows with status 'invited' and role =
+   * preassignedRole ?? 'employee'. Lets /roles show and manage people who have
+   * never signed in. Optional: legacy adapters/mocks may omit it.
+   */
+  listInvitedEmployees?(): Promise<User[]>
+  /**
+   * Pre-assign a role to an INVITED employee (no account yet): writes
+   * employees/{id}.preassignedRole (audited). The beforeCreate trigger applies
+   * it when the person first signs in. Optional: legacy adapters may omit it.
+   */
+  preassignRole?(employeeId: string, role: Role, actor: Actor): Promise<AuditedResult<User>>
 }

@@ -1,3 +1,4 @@
+import type { Role } from '@/config/roles'
 export const EMPLOYEE_STATUSES = ['active', 'terminated'] as const
 export type EmployeeStatus = (typeof EMPLOYEE_STATUSES)[number]
 
@@ -22,6 +23,10 @@ export interface Employee {
   branchId: string | null
   departmentId: string | null
   status: EmployeeStatus
+  /** Role granted BEFORE first sign-in (owner flow: role is assigned to the
+   *  PERSON on /roles; the beforeCreate trigger applies it at account creation).
+   *  Null = default employee. */
+  preassignedRole?: Role | null
   terminatedAt: string | null
   createdAt: string
   updatedAt: string

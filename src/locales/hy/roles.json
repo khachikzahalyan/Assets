@@ -6,7 +6,7 @@
   "you": "Սա դուք եք",
   "col": { "user": "Օգտատեր", "email": "Էլ․ փոստ", "role": "Դեր", "status": "Կարգավիճակ", "actions": "" },
   "role": { "none": "Առանց դերի" },
-  "status": { "active": "Ակտիվ", "no-role": "Առանց դերի", "terminated": "Ազատված" },
+  "status": { "active": "Ակտիվ", "invited": "Հրավիրված", "no-role": "Առանց դերի", "terminated": "Ազատված" },
   "change": "Փոխել դերը",
   "empty": { "title": "Օգտատերեր չեն գտնվել", "desc": "Փոխեք զտիչները կամ որոնումը" },
   "dialog": {

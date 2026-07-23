@@ -1,5 +1,5 @@
 import { getApps, initializeApp } from 'firebase-admin/app'
-import { getFirestore, type Firestore } from 'firebase-admin/firestore'
+import { getFirestore, FieldValue, type Firestore } from 'firebase-admin/firestore'
 import { beforeUserCreated, HttpsError } from 'firebase-functions/v2/identity'
 import { logger } from 'firebase-functions/v2'
 
@@ -132,19 +132,20 @@ async function emailExistsInCollection(
 }
 
 /**
- * Returns true if `email` exists in the employees collection AND at least one
- * matching doc is ACTIVE (status field missing = legacy = treated as active;
- * status === 'terminated' = denied individually).
+ * Returns the doc id of the first ACTIVE employee matching `email`, or null.
+ * (status field missing = legacy = treated as active; status === 'terminated'
+ * = denied individually.)
  *
  * This prevents terminated employees from bypassing the beforeCreate gate via
- * the employees lookup while still allowing active employees through.
+ * the employees lookup while still allowing active employees through. The id
+ * is used to auto-provision the employee's user account (see the trigger).
  *
  * Throws on Firestore read error — callers must treat that as fail-closed.
  */
-async function activeEmployeeExistsByEmail(
+async function findActiveEmployeeIdByEmail(
   db: Firestore,
   email: string,
-): Promise<boolean> {
+): Promise<string | null> {
   const trimmed = email.trim()
   const lower = trimmed.toLowerCase()
 
@@ -162,10 +163,21 @@ async function activeEmployeeExistsByEmail(
     for (const docSnap of snap.docs) {
       const data = docSnap.data() as Record<string, unknown>
       // Missing/undefined status = legacy doc = treat as active (backward compat)
-      if (data['status'] !== 'terminated') return true
+      if (data['status'] !== 'terminated') return docSnap.id
     }
   }
-  return false
+  return null
+}
+
+/**
+ * Which gate allowed the sign-up. 'employee' additionally carries the matched
+ * employees/{id} — the trigger uses it to auto-provision the account with the
+ * default 'employee' role (owner rule: someone added on /employees signs in
+ * as a plain employee with no manual pending-queue step).
+ */
+export interface AllowResult {
+  path: 'seed' | 'registered' | 'employee' | 'domain'
+  employeeId: string | null
 }
 
 /**
@@ -176,7 +188,7 @@ async function activeEmployeeExistsByEmail(
 export async function assertEmailAllowed(
   email: string | undefined,
   db: Firestore,
-): Promise<void> {
+): Promise<AllowResult> {
   const snap = await db.doc('settings/auth').get()
 
   // Fail closed: if the doc doesn't exist we cannot know what is allowed.
@@ -201,19 +213,21 @@ export async function assertEmailAllowed(
 
   // Shortcut: seed bypass requires no collection lookup.
   if (isSeedAdmin(email, seedEmails)) {
-    return
+    return { path: 'seed', employeeId: null }
   }
 
   // Perform system-registration lookup (fail-closed on error).
   let lookup: SystemLookup = { inUsers: false, inEmployees: false }
+  let employeeId: string | null = null
   if (email) {
     try {
-      const [inUsers, inEmployees] = await Promise.all([
+      const [inUsers, foundEmployeeId] = await Promise.all([
         emailExistsInCollection(db, 'users', email),
         // employees leg: only active employees pass — terminated employees are denied
-        activeEmployeeExistsByEmail(db, email),
+        findActiveEmployeeIdByEmail(db, email),
       ])
-      lookup = { inUsers, inEmployees }
+      lookup = { inUsers, inEmployees: foundEmployeeId !== null }
+      employeeId = foundEmployeeId
     } catch (err) {
       logger.error('beforeCreate: failed to query /users or /employees — rejecting (fail closed).', err)
       throw new HttpsError('permission-denied', 'Email not registered in the system')
@@ -224,9 +238,83 @@ export async function assertEmailAllowed(
   if (!decision.allow) {
     throw new HttpsError('permission-denied', decision.reason)
   }
+
+  // Path priority mirrors decideSignIn's gate order: an email that is BOTH in
+  // /users and /employees is 'registered' (existing account — do not touch).
+  if (lookup.inUsers) return { path: 'registered', employeeId: null }
+  if (employeeId !== null) return { path: 'employee', employeeId }
+  return { path: 'domain', employeeId: null }
+}
+
+const VALID_ROLES = ['super_admin', 'asset_admin', 'tech_admin', 'employee']
+
+/** Reads employees/{id}.preassignedRole; falls back to 'employee' when absent/invalid.
+ *  This is the role a super_admin granted the PERSON on /roles before they ever
+ *  signed in — the invited-employee flow. Throws are swallowed by the caller. */
+async function readPreassignedRole(db: Firestore, employeeId: string): Promise<string> {
+  const snap = await db.doc(`employees/${employeeId}`).get()
+  const pre = snap.exists ? (snap.data()?.['preassignedRole'] as unknown) : null
+  return typeof pre === 'string' && VALID_ROLES.includes(pre) ? pre : 'employee'
+}
+
+/**
+ * Pre-provisions users/{uid} for an employee invited via /employees: the account
+ * starts ACTIVE with the role a super_admin pre-assigned on /roles (default
+ * 'employee') and a link to its HR record (employeeId) — no manual step in the
+ * pending queue. Also writes the standard 'user'/'role_assigned' audit row
+ * (actor = system) so the grant is visible in the audit journal.
+ */
+export async function provisionEmployeeUser(
+  db: Firestore,
+  input: { uid: string; email: string; displayName: string | null; employeeId: string; role?: string },
+): Promise<void> {
+  const role = input.role && VALID_ROLES.includes(input.role) ? input.role : 'employee'
+  await db.doc(`users/${input.uid}`).set(
+    {
+      email: input.email,
+      displayName: (input.displayName && input.displayName.trim()) || input.email || input.uid,
+      role,
+      status: 'active',
+      employeeId: input.employeeId,
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+    },
+    { merge: true },
+  )
+  await db.collection('audit_logs').add({
+    entityType: 'user',
+    entityId: input.uid,
+    action: 'role_assigned',
+    actorUid: 'system',
+    actorRole: 'system',
+    actorName: 'AMS',
+    before: null,
+    after: { role, status: 'active', employeeId: input.employeeId },
+    comment: 'auto-provisioned: email matched an active /employees record',
+    at: FieldValue.serverTimestamp(),
+  })
 }
 
 /** Auth blocking trigger fired before a new user account is created. */
 export const beforecreated = beforeUserCreated(async (event) => {
-  await assertEmailAllowed(event.data?.email, getFirestore())
+  const db = getFirestore()
+  const decision = await assertEmailAllowed(event.data?.email, db)
+
+  // Invited-employee auto-provisioning — applies the pre-assigned role (default
+  // 'employee'). Best-effort: if the write fails the user simply lands in the
+  // pending queue (the old flow) instead of blocking account creation.
+  if (decision.path === 'employee' && decision.employeeId && event.data) {
+    try {
+      const role = await readPreassignedRole(db, decision.employeeId)
+      await provisionEmployeeUser(db, {
+        uid: event.data.uid,
+        email: event.data.email ?? '',
+        displayName: event.data.displayName ?? null,
+        employeeId: decision.employeeId,
+        role,
+      })
+    } catch (err) {
+      logger.error('beforeCreate: employee auto-provisioning failed — user will land in the pending queue.', err)
+    }
+  }
 })

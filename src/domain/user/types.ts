@@ -1,6 +1,9 @@
 import type { Role } from '@/config/roles'
 
-export const USER_STATUSES = ['no-role', 'active', 'terminated'] as const
+/** 'invited' is a VIRTUAL status - an /employees record with no user account yet
+ *  (never signed in). Such rows never exist in /users; RolesPage synthesizes them
+ *  so roles can be granted BEFORE first sign-in (owner rule). */
+export const USER_STATUSES = ['no-role', 'active', 'terminated', 'invited'] as const
 export type UserStatus = (typeof USER_STATUSES)[number]
 
 export function isUserStatus(v: string): v is UserStatus {

@@ -6,7 +6,7 @@
   "you": "This is you",
   "col": { "user": "User", "email": "Email", "role": "Role", "status": "Status", "actions": "" },
   "role": { "none": "No role" },
-  "status": { "active": "Active", "no-role": "No role", "terminated": "Terminated" },
+  "status": { "active": "Active", "invited": "Invited", "no-role": "No role", "terminated": "Terminated" },
   "change": "Change role",
   "empty": { "title": "No users found", "desc": "Adjust filters or search" },
   "dialog": {

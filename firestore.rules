@@ -38,6 +38,20 @@ service cloud.firestore {
       return isSuperAdmin() || isAssetAdmin() || isTechAdmin();
     }
 
+    // The caller's employees/{id} doc id. Invited employees (auto-provisioned via
+    // the beforeCreate trigger) carry users/{uid}.employeeId pointing at an HR
+    // record whose id differs from the auth uid; legacy employee accounts created
+    // through the pending queue use employee doc id == uid. Same userDoc() get()
+    // as role() — rules dedupe the read within a request evaluation.
+    function myEmployeeId() {
+      return ('employeeId' in userDoc()) ? userDoc().employeeId : request.auth.uid;
+    }
+
+    // True when `id` identifies the CALLER's employee record (either linkage).
+    function isSelfEmployee(id) {
+      return isSignedIn() && (id == request.auth.uid || id == myEmployeeId());
+    }
+
     // Whenever a `role` field is present in the written data it must be one of the
     // four valid roles. Applies to ALL writers (incl. super) so a garbage/legacy
     // role string (e.g. 'admin') can never be persisted.
@@ -96,7 +110,7 @@ service cloud.firestore {
           isSignedIn()
           && resource.data.assignment != null
           && resource.data.assignment.employeeId != null
-          && resource.data.assignment.employeeId == request.auth.uid
+          && isSelfEmployee(resource.data.assignment.employeeId)
         );
       allow write: if isSuperAdmin() || isAssetAdmin();
       allow update: if isTechAdmin()
@@ -172,10 +186,27 @@ service cloud.firestore {
     // Delete: super | asset_admin — ONLY as the termination MOVE leg (employee doc is
     //   deleted while a matching former_employees/{id} doc is created in the same txn).
     match /employees/{id} {
-      allow read: if isAnyAdmin() || (isSignedIn() && request.auth.uid == id);
-      allow create, update: if (isSuperAdmin() || isAssetAdmin())
+      allow read: if isAnyAdmin() || isSelfEmployee(id);
+      // preassignedRole (the role granted to a person BEFORE first sign-in) is a
+      // privilege grant, so it must be a valid role AND may only be introduced by
+      // a super_admin. Helper reused by create + update.
+      function validPreassign() {
+        return !('preassignedRole' in request.resource.data)
+          || request.resource.data.preassignedRole == null
+          || request.resource.data.preassignedRole in ['super_admin', 'asset_admin', 'tech_admin', 'employee'];
+      }
+      allow create: if (isSuperAdmin() || isAssetAdmin())
         && request.resource.data.email is string
-        && request.resource.data.email.size() > 0;
+        && request.resource.data.email.size() > 0
+        && validPreassign()
+        && (isSuperAdmin() || !('preassignedRole' in request.resource.data));
+      // asset_admin edits to other fields must leave preassignedRole untouched.
+      allow update: if (isSuperAdmin() || isAssetAdmin())
+        && request.resource.data.email is string
+        && request.resource.data.email.size() > 0
+        && validPreassign()
+        && (isSuperAdmin()
+            || !('preassignedRole' in request.resource.data.diff(resource.data).affectedKeys()));
       allow delete: if isSuperAdmin() || isAssetAdmin();
     }
 
@@ -242,7 +273,8 @@ service cloud.firestore {
       allow read: if isAnyAdmin()
         || (
           isSignedIn()
-          && resource.data.assignedToEmployeeId == request.auth.uid
+          && resource.data.assignedToEmployeeId != null
+          && isSelfEmployee(resource.data.assignedToEmployeeId)
         );
       allow create: if isSuperAdmin() || isAssetAdmin();
       allow update: if (isSuperAdmin() || isAssetAdmin())
@@ -262,7 +294,8 @@ service cloud.firestore {
           isSignedIn()
           && resource.data.entityType == 'assignment'
           && resource.data.after != null
-          && resource.data.after.assignedToEmployeeId == request.auth.uid
+          && resource.data.after.assignedToEmployeeId != null
+          && isSelfEmployee(resource.data.after.assignedToEmployeeId)
         );
       // create: server-trusted actor + time, required/allowed key sets, and shape guards
       allow create: if isSignedIn()

@@ -12,10 +12,25 @@ const ROLE_IDS_SET = new Set<Role>(['super_admin', 'asset_admin', 'tech_admin', 
 
 /** Server-trusted role lookup: reads users/{uid}.role. Returns null if no doc or invalid role. */
 export async function fetchUserRole(uid: string): Promise<Role | null> {
+  return (await fetchUserProfile(uid)).role
+}
+
+export interface UserProfile {
+  role: Role | null
+  /** Link to the employees/{id} HR record — set by server auto-provisioning
+   *  when the account was invited via /employees. Null for admin accounts and
+   *  legacy employee accounts whose employee doc id === uid. */
+  employeeId: string | null
+}
+
+/** Server-trusted profile lookup — role + employeeId in ONE users/{uid} read. */
+export async function fetchUserProfile(uid: string): Promise<UserProfile> {
   const snap = await getDoc(doc(db(), 'users', uid))
-  if (!snap.exists()) return null
-  const role = (snap.data() as { role?: string }).role
-  return role && ROLE_IDS_SET.has(role as Role) ? (role as Role) : null
+  if (!snap.exists()) return { role: null, employeeId: null }
+  const data = snap.data() as { role?: string; employeeId?: string }
+  const role = data.role && ROLE_IDS_SET.has(data.role as Role) ? (data.role as Role) : null
+  const employeeId = typeof data.employeeId === 'string' && data.employeeId !== '' ? data.employeeId : null
+  return { role, employeeId }
 }
 
 /** Admin sign-in. Domain enforcement happens server-side in the beforeCreate function;

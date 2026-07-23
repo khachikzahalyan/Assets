@@ -25,6 +25,14 @@ import { CatalogPagination } from '@/components/features/catalogs'
 
 const PAGE_SIZE = 10
 
+/** Status → dot color, shared by the filter chips and the table status cell. */
+const STATUS_DOT: Record<string, string> = {
+  active: '#22C55E',
+  invited: '#38BDF8',
+  'no-role': '#F59E0B',
+  terminated: '#F43F5E',
+}
+
 export interface RolesPageProps { repository?: UserRepository }
 
 // ─── Change-role dialog ────────────────────────────────────────────────────────
@@ -47,8 +55,12 @@ function ChangeRoleDialog({ target, isSelf, onClose, onChanged, repo, actor }: C
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // Invited = an /employees person with no account yet. The role is pre-assigned
+  // to the employee record (applied at first sign-in) — no account to mutate, and
+  // the employee link/create sub-flow is moot (the HR record already exists).
+  const isInvited = target.status === 'invited'
   const roleOptions = ROLE_IDS.map(id => ({ value: id, label: tNav(`roles.${id}`) }))
-  const emailMissing = selectedRole === 'employee' && empMode === 'create' && !target.email?.trim()
+  const emailMissing = !isInvited && selectedRole === 'employee' && empMode === 'create' && !target.email?.trim()
   const unchanged = selectedRole === (target.role ?? '')
 
   async function handleSubmit(e: React.FormEvent) {
@@ -57,6 +69,12 @@ function ChangeRoleDialog({ target, isSelf, onClose, onChanged, repo, actor }: C
     setSubmitting(true)
     setError(null)
     try {
+      if (isInvited) {
+        if (!repo.preassignRole) throw new Error('preassignRole not supported')
+        const r = await repo.preassignRole(target.id, selectedRole, actor)
+        onChanged(r.value)
+        return
+      }
       const input: AssignRoleInput = { uid: target.id, role: selectedRole }
       if (selectedRole === 'employee') {
         input.employee = empMode === 'create'
@@ -112,7 +130,7 @@ function ChangeRoleDialog({ target, isSelf, onClose, onChanged, repo, actor }: C
               placeholder={t('dialog.role')} />
           </div>
 
-          {selectedRole === 'employee' && (
+          {!isInvited && selectedRole === 'employee' && (
             <div className="space-y-3">
               <p className="text-[11px] uppercase tracking-[0.06em] font-semibold text-text-subtle">{t('dialog.employeeMode')}</p>
               <div className="flex gap-2">
@@ -177,7 +195,7 @@ export function RolesPage({ repository }: RolesPageProps) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [roleFilter, setRoleFilter] = useState<Role | 'no-role' | 'all'>('all')
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'no-role' | 'terminated'>('all')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'no-role' | 'terminated' | 'invited'>('all')
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
   const [dialogUser, setDialogUser] = useState<User | null>(null)
@@ -186,8 +204,13 @@ export function RolesPage({ repository }: RolesPageProps) {
     setLoading(true); setError(null)
     try {
       const q: UserListQuery = {}
-      const all = await repo.listUsers(q)
-      setUsers(all)
+      // Real accounts + INVITED employees (people added on /employees who have
+      // never signed in) — so a role can be granted before first sign-in.
+      const [accounts, invited] = await Promise.all([
+        repo.listUsers(q),
+        repo.listInvitedEmployees ? repo.listInvitedEmployees() : Promise.resolve([] as User[]),
+      ])
+      setUsers([...accounts, ...invited])
     } catch { setError(t('toast.failed')) }
     finally { setLoading(false) }
   }, [repo, t])
@@ -234,6 +257,7 @@ export function RolesPage({ repository }: RolesPageProps) {
   const statusFilterOptions: SelectMiniOption[] = [
     { value: 'all', label: t('filter.all') },
     { value: 'active', label: t('status.active'), dotColor: '#22C55E' },
+    { value: 'invited', label: t('status.invited'), dotColor: '#38BDF8' },
     { value: 'no-role', label: t('status.no-role'), dotColor: '#F59E0B' },
     { value: 'terminated', label: t('status.terminated'), dotColor: '#F43F5E' },
   ]
@@ -320,7 +344,12 @@ export function RolesPage({ repository }: RolesPageProps) {
         key: 'status',
         header: t('col.status'),
         width: 'minmax(100px,1fr)',
-        cell: (u) => <span className="text-[13px] text-text-tertiary">{t(`status.${u.status}`)}</span>,
+        cell: (u) => (
+          <span className="inline-flex items-center gap-1.5 text-[13px] text-text-tertiary">
+            <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: STATUS_DOT[u.status] ?? '#64748B' }} />
+            {t(`status.${u.status}`)}
+          </span>
+        ),
       },
       {
         key: 'action',

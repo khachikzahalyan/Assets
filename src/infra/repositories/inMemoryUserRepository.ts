@@ -2,6 +2,7 @@ import type { User, PendingUser, UserRepository, AssignRoleInput, UserListQuery 
 import { RoleLockoutError } from '@/domain/user'
 import type { Employee } from '@/domain/employee'
 import type { Actor } from '@/domain/asset'
+import type { Role } from '@/config/roles'
 import type { AuditedResult } from '@/domain/audit'
 import { withAudit, type AuditContext, createInMemoryAuditStore, inMemoryAuditContext } from '@/lib/audit'
 
@@ -67,6 +68,7 @@ export class InMemoryUserRepository implements UserRepository {
           branchId: null,
           departmentId: null,
           status: 'active',
+          preassignedRole: null,
           terminatedAt: null,
           createdAt: now,
           updatedAt: now,
@@ -94,5 +96,48 @@ export class InMemoryUserRepository implements UserRepository {
     )
 
     return { value: result.value, auditId: result.auditId }
+  }
+
+  /** ACTIVE employees whose email has no user account yet → virtual 'invited' rows. */
+  async listInvitedEmployees(): Promise<User[]> {
+    const accountEmails = new Set(this.users.map(u => u.email.trim().toLowerCase()).filter(Boolean))
+    return this.employees
+      .filter(e => e.status !== 'terminated')
+      .filter(e => e.email.trim() !== '' && !accountEmails.has(e.email.trim().toLowerCase()))
+      .map(e => ({
+        id: e.id,
+        email: e.email,
+        displayName: `${e.firstName} ${e.lastName}`.trim() || e.email,
+        role: e.preassignedRole ?? 'employee',
+        status: 'invited' as const,
+        createdAt: e.createdAt,
+      }))
+  }
+
+  /** Pre-assign a role to an invited employee (applied at first sign-in). */
+  async preassignRole(employeeId: string, role: Role, actor: Actor): Promise<AuditedResult<User>> {
+    const emp = this.employees.find(e => e.id === employeeId)
+    if (!emp) throw new Error(`Employee not found: ${employeeId}`)
+    const beforeRole = emp.preassignedRole
+    const result = await withAudit(this.audit,
+      {
+        entityType: 'employee', entityId: employeeId, action: 'role_assigned',
+        actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
+        before: { preassignedRole: beforeRole },
+        after: { preassignedRole: role },
+      },
+      async () => { emp.preassignedRole = role; return { value: emp } },
+    )
+    return {
+      value: {
+        id: emp.id,
+        email: emp.email,
+        displayName: `${emp.firstName} ${emp.lastName}`.trim() || emp.email,
+        role,
+        status: 'invited',
+        createdAt: emp.createdAt,
+      },
+      auditId: result.auditId,
+    }
   }
 }

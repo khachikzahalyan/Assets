@@ -25,6 +25,7 @@ vi.mock('@/lib/auth', () => ({
   signOutUser: vi.fn(),
   subscribeToAuthState: vi.fn(() => () => {}),
   fetchUserRole: vi.fn(async () => null),
+  fetchUserProfile: vi.fn(async () => ({ role: null, employeeId: null })),
 }))
 
 // ── Minimal AuthContext value factory ─────────────────────────────

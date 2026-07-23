@@ -69,4 +69,44 @@ describe('InMemoryUserRepository', () => {
     await repo.assignRole({ uid: 'a', role: 'employee', employee: { mode: 'link' } }, actor)
     expect(employees).toHaveLength(0)
   })
+
+  // ── Invited employees (role granted BEFORE first sign-in) ──────────────────
+  function emp(id: string, email: string, extra: Partial<Employee> = {}): Employee {
+    return {
+      id, firstName: id, lastName: 'X', email, phone: null, position: null,
+      branchId: null, departmentId: null, status: 'active', terminatedAt: null,
+      createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z', ...extra,
+    }
+  }
+
+  it('listInvitedEmployees returns active employees with no matching user account', async () => {
+    const users: User[] = [{ ...pending('acc'), email: 'has@x.com', role: 'employee', status: 'active' }]
+    const employees: Employee[] = [emp('e1', 'has@x.com'), emp('e2', 'nope@x.com')]
+    const repo = new InMemoryUserRepository(users, employees)
+    const invited = await repo.listInvitedEmployees!()
+    // e1 has an account (has@x.com) → excluded; e2 is invited
+    expect(invited.map(u => u.id)).toEqual(['e2'])
+    expect(invited[0]).toMatchObject({ status: 'invited', role: 'employee', email: 'nope@x.com' })
+  })
+
+  it('listInvitedEmployees reflects a pre-assigned role and excludes terminated', async () => {
+    const employees: Employee[] = [
+      emp('e2', 'boss@x.com', { preassignedRole: 'asset_admin' }),
+      emp('e3', 'gone@x.com', { status: 'terminated' }),
+    ]
+    const repo = new InMemoryUserRepository([], employees)
+    const invited = await repo.listInvitedEmployees!()
+    expect(invited.map(u => u.id)).toEqual(['e2'])
+    expect(invited[0]!.role).toBe('asset_admin')
+  })
+
+  it('preassignRole writes preassignedRole on the employee + an audit row', async () => {
+    const store = createInMemoryAuditStore()
+    const employees: Employee[] = [emp('e2', 'boss@x.com')]
+    const repo = new InMemoryUserRepository([], employees, inMemoryAuditContext(store))
+    const r = await repo.preassignRole!('e2', 'asset_admin', actor)
+    expect(r.value).toMatchObject({ id: 'e2', role: 'asset_admin', status: 'invited' })
+    expect(employees[0]!.preassignedRole).toBe('asset_admin')
+    expect(store.logs[0]).toMatchObject({ entityType: 'employee', action: 'role_assigned' })
+  })
 })

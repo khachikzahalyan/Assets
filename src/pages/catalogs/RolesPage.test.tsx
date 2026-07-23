@@ -129,6 +129,36 @@ describe('RolesPage', () => {
     ))
   })
 
+  it('shows invited employees (no account yet) and pre-assigns a role to them', async () => {
+    // An employee added on /employees who has never signed in → invited row.
+    const employees = [{
+      id: 'emp_x', firstName: 'Poxos', lastName: 'Poxosyan', email: 'poxos@x.io',
+      phone: null, position: null, branchId: null, departmentId: null,
+      status: 'active' as const, terminatedAt: null,
+      createdAt: '2026-01-05T00:00:00.000Z', updatedAt: '2026-01-05T00:00:00.000Z',
+    }]
+    const repo = new InMemoryUserRepository([
+      { id: 'su1', email: 'su1@x.io', displayName: 'Super One', role: 'super_admin', status: 'active', createdAt: '2026-01-03T00:00:00.000Z' },
+    ], employees)
+    const spy = vi.spyOn(repo, 'preassignRole')
+    renderPage(repo)
+
+    // The invited person appears with the default employee role and 'invited' status.
+    expect(await screen.findByText('Poxos Poxosyan')).toBeInTheDocument()
+    expect(screen.getByText('Приглашён')).toBeInTheDocument()
+
+    // Grant Asset Admin BEFORE first sign-in.
+    const row = screen.getByText('Poxos Poxosyan').closest<HTMLElement>('[role="row"]')!
+    fireEvent.click(within(row).getByRole('button', { name: /Изменить роль/ }))
+    fireEvent.change(await screen.findByLabelText('Новая роль'), { target: { value: 'asset_admin' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Изменить' }))
+
+    await waitFor(() => expect(spy).toHaveBeenCalledWith(
+      'emp_x', 'asset_admin',
+      expect.objectContaining({ uid: 'su1', role: 'super_admin' }),
+    ))
+  })
+
   it('role filter asset_admin shows only asset_admin users', async () => {
     // Arrange
     renderPage()
