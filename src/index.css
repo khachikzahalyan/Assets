@@ -522,6 +522,22 @@ select:-webkit-autofill {
   .ams-label:last-child { page-break-after: auto; }
 }
 
+/* The EPSON TM-T20III receipt driver reports a LANDSCAPE page (roll length ×
+   80mm roll width), so the un-rotated label lay ALONG the tape and printed
+   small. When the print page is landscape, rotate the label 90° so its 80mm
+   axis runs across the roll width: after rotate(90deg) about the top-left
+   corner the block lands at x∈[−40mm,0]; translateX(40mm) (applied last —
+   transforms compose right-to-left) shifts it back into the page, occupying
+   40mm of feed length × the full 80mm roll width. Portrait pages (drivers
+   that honor @page 80×40mm) keep the un-rotated layout above. */
+@media print and (orientation: landscape) {
+  .ams-print-label-root {
+    margin: 0;
+    transform-origin: top left;
+    transform: translateX(40mm) rotate(90deg);
+  }
+}
+
 /* ===== Shell parts (Task 4) ===== */
 
 .sidebar-overlay {
