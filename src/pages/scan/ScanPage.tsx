@@ -42,7 +42,13 @@ export function ScanPage({ repository }: ScanPageProps) {
     busy.current = true
     setResolving(true)
     try {
-      const asset = (await repo.findByBarcode(code)) ?? (await repo.findByInvCode(code))
+      // Both lookups in parallel — one roundtrip instead of two sequential ones
+      // when the scanned value is an inventory code rather than a barcode.
+      const [byBarcode, byInvCode] = await Promise.all([
+        repo.findByBarcode(code),
+        repo.findByInvCode(code),
+      ])
+      const asset = byBarcode ?? byInvCode
       if (asset) {
         navigate(`/assets/${asset.id}`)
         return
