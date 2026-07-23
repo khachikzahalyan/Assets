@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { Asset } from '@/domain/asset'
+import { ASSET_STATUS } from '@/domain/asset'
 import type { WorkstationLicense } from '@/domain/license'
 import { Chip, Icon } from '@/components/ui'
 import { useAuth } from '@/contexts/AuthContext'
@@ -24,6 +25,16 @@ export type AttachChoice =
 interface LicenseBlockProps {
   asset: Asset
   licenses: WorkstationLicense[]
+  /**
+   * Licenses decoupled (freed) from this asset during write-off.
+   * Only populated when the asset is disposed and has no active license.
+   */
+  decoupledLicenses?: WorkstationLicense[]
+  /**
+   * Licenses that were retired together with this asset (OEM path).
+   * Only populated when the asset is disposed.
+   */
+  retiredWithAssetLicenses?: WorkstationLicense[]
   /** @deprecated No longer used — license management lives in the Licenses module */
   canManage?: boolean
   /** @deprecated No longer used */
@@ -59,13 +70,93 @@ function MsLogo() {
 }
 
 // ---------------------------------------------------------------------------
+// RetailKeyArea — key line + copy button for a Retail license, self-contained
+// probe/reveal (same rights and behaviour as the bound-license STATE 1 line).
+// Used by the disposed-asset freed-key cards so the owner sees the actual
+// Windows key regardless of the asset status.
+// ---------------------------------------------------------------------------
+
+function RetailKeyArea({ licenseId }: { licenseId: string }) {
+  const { t } = useTranslation('assets')
+  const { role } = useAuth()
+  const canCopy = role === 'super_admin' || role === 'tech_admin'
+
+  const [revealedKey, setRevealedKey] = useState<string | null>(null)
+  const [hasKey, setHasKey] = useState<boolean | null>(canCopy ? null : false)
+  const [copied, setCopied] = useState(false)
+  const copiedTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => () => {
+    if (copiedTimer.current !== null) clearTimeout(copiedTimer.current)
+  }, [])
+
+  useEffect(() => {
+    if (!canCopy) return
+    let cancelled = false
+    async function probe() {
+      try {
+        const key = await revealLicenseKey('licenses', licenseId)
+        if (!cancelled) { setRevealedKey(key); setHasKey(true) }
+      } catch {
+        if (!cancelled) setHasKey(false)
+      }
+    }
+    void probe()
+    return () => { cancelled = true }
+  }, [licenseId, canCopy])
+
+  async function handleCopy() {
+    try {
+      const key = revealedKey ?? await revealLicenseKey('licenses', licenseId)
+      if (!revealedKey) setRevealedKey(key)
+      await navigator.clipboard.writeText(key)
+      setCopied(true)
+      if (copiedTimer.current !== null) clearTimeout(copiedTimer.current)
+      copiedTimer.current = setTimeout(() => setCopied(false), 1500)
+    } catch { /* copy is best-effort here */ }
+  }
+
+  if (!canCopy) return null
+
+  return (
+    <div className="flex items-center gap-2 min-w-0">
+      {hasKey === null && (
+        <div aria-hidden="true" className="h-[16px] w-[256px] max-w-full rounded anim-skeleton" />
+      )}
+      {revealedKey !== null && (
+        <p className="text-[13.5px] font-mono text-text-secondary tracking-wider truncate select-all flex-1 min-w-0">{revealedKey}</p>
+      )}
+      {hasKey === false && revealedKey === null && (
+        <p className="text-[13px] text-text-subtle italic">{t('detail.license.keyAbsent')}</p>
+      )}
+      {hasKey === true && (
+        <button
+          type="button"
+          onClick={handleCopy}
+          aria-label={copied ? t('detail.license.copied') : t('detail.license.copy')}
+          className={`flex-shrink-0 inline-flex items-center gap-1.5 h-7 px-2.5 rounded-lg text-[12px] font-medium border transition-colors ${
+            copied
+              ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400'
+              : 'bg-surface-2 border-border text-text-tertiary hover:text-text-primary hover:border-border-strong'
+          }`}
+        >
+          <Icon name={copied ? 'check' : 'copy'} size={12} />
+          {copied ? t('detail.license.copied') : t('detail.license.copy')}
+        </button>
+      )}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
 export function LicenseBlock({
   asset,
   licenses,
-  // deprecated props accepted but unused
+  decoupledLicenses = [],
+  retiredWithAssetLicenses = [],
   canManage: _canManage,
   onAttach: _onAttach,
   pool: _pool,
@@ -88,6 +179,12 @@ export function LicenseBlock({
   }, [])
 
   const lic = licenses.filter(l => l.assignedToAssetId === asset.id)[0]
+
+  // Written-off assets have no active bound license: reusable (manual/Retail)
+  // keys are DECOUPLED back to the pool and OEM keys are RETIRED on write-off.
+  // The assumed-OEM legacy fallback must therefore never render for a disposed
+  // asset — it would falsely brand a freed manual key's device as OEM.
+  const isDisposed = asset.statusId === ASSET_STATUS.disposed
 
   // ---------------------------------------------------------------------------
   // Lazy probe: for a non-OEM bound license, attempt one reveal on mount when
@@ -142,7 +239,46 @@ export function LicenseBlock({
 
   // ---- COMPACT mode (mobile only — inside spec tile grid) -----------------
   if (compact) {
+    // Disposed asset: show the freed / retired license rows (full info
+    // regardless of asset status — owner rule); nothing only when none exist.
+    if (!lic && isDisposed) {
+      const rows = [
+        ...decoupledLicenses.map(l => ({ id: l.id, name: l.name, oem: false })),
+        ...retiredWithAssetLicenses.map(l => ({ id: l.id, name: l.name, oem: true })),
+      ]
+      if (rows.length === 0) return null
+      return (
+        <div className="flex flex-col gap-2">
+          {rows.map(r => (
+            <div key={r.id} className="flex items-center gap-2.5">
+              <div className="w-[30px] h-[30px] rounded-lg bg-white flex items-center justify-center shrink-0">
+                <svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true">
+                  <rect x="1"  y="1"  width="10" height="10" fill="#F25022"/>
+                  <rect x="13" y="1"  width="10" height="10" fill="#7FBA00"/>
+                  <rect x="1"  y="13" width="10" height="10" fill="#00A4EF"/>
+                  <rect x="13" y="13" width="10" height="10" fill="#FFB900"/>
+                </svg>
+              </div>
+              <span className="text-[13px] font-bold text-text-primary flex-1 truncate">{r.name}</span>
+              {r.oem ? (
+                <span className="shrink-0 bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[10px] font-bold rounded-md px-2 py-0.5">
+                  {t('detail.license.oem')}
+                </span>
+              ) : (
+                <span className="shrink-0 bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-[10px] font-bold rounded-md px-2 py-0.5">
+                  {t('licenses:assignment.unassigned')}
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+      )
+    }
+
     const licName = lic ? lic.name : 'Windows'
+    // Badge reflects the REAL license type from data. Only the legacy
+    // no-license-doc state (active asset, hasOemLicense category) assumes OEM.
+    const isOemCompact = lic ? lic.type === 'OEM' : true
     return (
       <div className="flex items-center gap-2.5">
         {/* White MS-logo box — 30px */}
@@ -154,10 +290,16 @@ export function LicenseBlock({
             <rect x="13" y="13" width="10" height="10" fill="#FFB900"/>
           </svg>
         </div>
-        <span className="text-[13px] font-bold text-text-primary flex-1 truncate">OEM — {licName}</span>
-        <span className="shrink-0 bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[10px] font-bold rounded-md px-2 py-0.5">
-          OEM
-        </span>
+        <span className="text-[13px] font-bold text-text-primary flex-1 truncate">{licName}</span>
+        {isOemCompact ? (
+          <span className="shrink-0 bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[10px] font-bold rounded-md px-2 py-0.5">
+            {t('detail.license.oem')}
+          </span>
+        ) : (
+          <span className="shrink-0 bg-blue-500/10 border border-blue-500/30 text-blue-300 text-[10px] font-bold rounded-md px-2 py-0.5">
+            {t('detail.license.retail')}
+          </span>
+        )}
       </div>
     )
   }
@@ -230,8 +372,58 @@ export function LicenseBlock({
     )
   }
 
+  // ---- STATE 4: Disposed asset — freed / retired license cards ---------------
+  if (isDisposed) {
+    const hasFreed = decoupledLicenses.length > 0
+    const hasRetired = retiredWithAssetLicenses.length > 0
+    if (!hasFreed && !hasRetired) return null
+
+    return (
+      <div className="flex flex-col gap-3">
+        {decoupledLicenses.map(freed => (
+          <div key={freed.id} className="flex items-center gap-3.5 p-4 rounded-xl bg-bg border border-border">
+            <MsLogo />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-0.5">
+                <span className="text-[15.5px] font-semibold text-text-primary truncate leading-tight">
+                  {freed.name}
+                </span>
+                <Chip color="blue">{t('detail.license.retail')}</Chip>
+                <Chip color="green">{t('licenses:assignment.unassigned')}</Chip>
+              </div>
+              {/* The actual Windows key — full info regardless of asset status (owner rule) */}
+              <RetailKeyArea licenseId={freed.id} />
+              <p className="text-[12px] text-text-subtle italic mt-0.5">
+                {t('detail.license.freedByWriteOff')}
+              </p>
+            </div>
+          </div>
+        ))}
+        {retiredWithAssetLicenses.map(retired => (
+          <div key={retired.id} className="flex items-center gap-3.5 p-4 rounded-xl bg-bg border border-border">
+            <MsLogo />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-0.5">
+                <span className="text-[15.5px] font-semibold text-text-primary truncate leading-tight">
+                  {retired.name}
+                </span>
+                <Chip color="indigo">{t('detail.license.oem')}</Chip>
+              </div>
+              <p className="text-[12px] text-text-subtle italic">
+                {t('detail.license.retiredWithAsset')}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
   // ---- STATE 3: No license doc (legacy asset) — default display card --------
   // Display-only; does NOT write any data. Never shows attach button.
+  // Never rendered for a disposed asset: after write-off a freed manual key
+  // must not be misrepresented as an OEM license (see isDisposed note above).
+
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-3.5 p-4 rounded-xl bg-bg border border-border">

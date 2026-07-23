@@ -48,7 +48,7 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
   const {
     loading, loadError, load,
     asset, ref, category, caps, statusRow,
-    acts, historyEvents, licenses, licensePool,
+    acts, historyEvents, licenses, decoupledLicenses, retiredWithAssetLicenses, licensePool,
     canRepair, canAssign, canWriteOff, isDisposed, canManageLicense, hasSpecsFlag,
     activeTab, setActiveTab,
     transferOpen, setTransferOpen,
@@ -110,6 +110,8 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
         acts={acts}
         historyEvents={historyEvents}
         licenses={licenses}
+        decoupledLicenses={decoupledLicenses}
+        retiredWithAssetLicenses={retiredWithAssetLicenses}
         licensePool={licensePool}
         hasSpecsFlag={hasSpecsFlag}
         canWriteOff={canWriteOff}
@@ -148,6 +150,8 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
       acts={acts}
       historyEvents={historyEvents}
       licenses={licenses}
+      decoupledLicenses={decoupledLicenses}
+      retiredWithAssetLicenses={retiredWithAssetLicenses}
       licensePool={licensePool}
       hasSpecsFlag={hasSpecsFlag}
       canRepair={canRepair}

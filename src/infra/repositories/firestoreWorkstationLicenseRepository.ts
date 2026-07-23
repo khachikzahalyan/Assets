@@ -39,6 +39,7 @@ function toWorkstationLicense(id: string, d: Record<string, unknown>): Workstati
     lifecycleStatus: (d.lifecycleStatus as WorkstationLicense['lifecycleStatus']) ?? 'active',
     retiredAt: (d.retiredAt as string | null) ?? null,
     retiredWithAssetId: (d.retiredWithAssetId as string | null) ?? null,
+    decoupledFromAssetId: (d.decoupledFromAssetId as string | null) ?? null,
     expiresAt: (d.expiresAt as string | null) ?? null,
     createdAt: toIso(d.createdAt),
     updatedAt: toIso(d.updatedAt),
@@ -135,6 +136,16 @@ export class FirestoreWorkstationLicenseRepository implements WorkstationLicense
       .sort((a, b) => a.name.localeCompare(b.name, 'ru'))
   }
 
+  async listDecoupledFromAsset(assetId: string): Promise<WorkstationLicense[]> {
+    const snap = await getDocs(fsQuery(
+      collection(this.db, COL),
+      where('decoupledFromAssetId', '==', assetId),
+    ))
+    return snap.docs
+      .map(d => toWorkstationLicense(d.id, d.data() as Record<string, unknown>))
+      .sort((a, b) => a.name.localeCompare(b.name, 'ru'))
+  }
+
   // ---- Mutations -------------------------------------------------------------
 
   async createLicense(
@@ -161,6 +172,7 @@ export class FirestoreWorkstationLicenseRepository implements WorkstationLicense
       assignedBy: null,
       retiredAt: null,
       retiredWithAssetId: null,
+      decoupledFromAssetId: null,
       createdBy: actor.uid,
       updatedBy: actor.uid,
       createdAt: serverTimestamp(),
@@ -216,6 +228,7 @@ export class FirestoreWorkstationLicenseRepository implements WorkstationLicense
       ...assignmentFields,
       assignedAt: isAssigning ? serverTimestamp() : null,
       assignedBy: isAssigning ? actor.uid : null,
+      decoupledFromAssetId: null,
       updatedAt: serverTimestamp(),
       updatedBy: actor.uid,
     })
@@ -259,6 +272,8 @@ export class FirestoreWorkstationLicenseRepository implements WorkstationLicense
       assignedToEmployeeId: existing.assignedToEmployeeId ?? null,
     }
 
+    const decoupledFromAssetId = existing.assignedToAssetId ?? null
+
     const ref = doc(this.db, COL, id)
     const patch: Record<string, unknown> = {
       assignmentType: 'unassigned',
@@ -266,6 +281,7 @@ export class FirestoreWorkstationLicenseRepository implements WorkstationLicense
       assignedToEmployeeId: null,
       assignedAt: null,
       assignedBy: null,
+      decoupledFromAssetId,
       updatedAt: serverTimestamp(),
       updatedBy: actor.uid,
     }

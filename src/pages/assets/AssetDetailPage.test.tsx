@@ -8,10 +8,12 @@ import { AssetDetailPage } from './AssetDetailPage'
 import {
   InMemoryAssetRepository,
   InMemoryWorkstationLicenseRepository,
+  InMemoryAssignmentRepository,
 } from '@/infra/repositories'
 import { createInMemoryAuditStore, inMemoryAuditContext } from '@/lib/audit'
 import type { AssetReferenceData } from '@/domain/asset'
 import type { Role } from '@/config/roles'
+import { WriteOffAssetService } from '@/domain/services/WriteOffAssetService'
 
 // ---------------------------------------------------------------------------
 // Prevent Firebase initialisation errors in the test environment.
@@ -22,6 +24,11 @@ vi.mock('@/lib/firebase', () => ({
   db: () => ({}),
   storage: () => ({}),
   functions: () => ({}),
+}))
+
+vi.mock('@/lib/licenses/revealKey', () => ({
+  revealLicenseKey: vi.fn().mockResolvedValue('XXXXX-XXXXX-XXXXX-XXXXX-XXXXX'),
+  setLicenseKey: vi.fn().mockResolvedValue(undefined),
 }))
 
 vi.mock('@/infra/storage', async (importOriginal) => {
@@ -270,6 +277,105 @@ describe('AssetDetailPage', () => {
     // Assert: listForAsset returns empty (no orphan binding)
     const boundAfter = await licenseRepo.listForAsset(asset.id)
     expect(boundAfter).toHaveLength(0)
+  }, 15000)
+
+  it('disposed asset with decoupled Retail license shows freed-key card with caption', async () => {
+    // Arrange
+    const store       = createInMemoryAuditStore()
+    const auditCtx    = inMemoryAuditContext(store)
+    const licenseRepo = new InMemoryWorkstationLicenseRepository(auditCtx)
+    const repo        = new InMemoryAssetRepository([], REF, auditCtx, licenseRepo)
+
+    const { value: asset } = await repo.createAsset(
+      {
+        categoryId: 'cat_laptop', brand: 'Dell', model: 'XPS',
+        invCode: '111/FREED', serial: 'SN_F1',
+        assignment: null, branchId: 'b_main', deptId: null, currentSpecs: null,
+      },
+      { uid: 'u1', role: 'asset_admin' },
+    )
+
+    await licenseRepo.createLicense(
+      {
+        name: 'Windows 11 Home', type: 'Retail', isReusable: true,
+        assign: { to: 'device', assetId: asset.id },
+      },
+      { uid: 'u1', role: 'asset_admin' },
+    )
+
+    // Write off the asset — this calls decoupleLicense on the Retail key
+    const svc = new WriteOffAssetService(repo as import('@/domain/asset').AssetWriteRepository, licenseRepo)
+    await svc.writeOff(asset.id, { uid: 'u1', role: 'asset_admin' }, 'broken')
+
+    const asnRepo = new InMemoryAssignmentRepository([], [], auditCtx)
+
+    render(
+      <I18nextProvider i18n={i18n}>
+        <AuthProvider initialRole="super_admin">
+          <MemoryRouter initialEntries={[`/assets/${asset.id}`]}>
+            <Routes>
+              <Route
+                path="/assets/:id"
+                element={<AssetDetailPage repository={repo} licenseRepository={licenseRepo} assignmentRepository={asnRepo} />}
+              />
+            </Routes>
+          </MemoryRouter>
+        </AuthProvider>
+      </I18nextProvider>,
+    )
+
+    // Assert: the freed-key card shows the license name and caption
+    await waitFor(() => screen.getByText('Windows 11 Home'))
+    expect(screen.getByText(/Ключ освобождён при списании/i)).toBeTruthy()
+  }, 15000)
+
+  it('disposed asset with retired OEM license shows retired-with-asset card', async () => {
+    // Arrange
+    const store       = createInMemoryAuditStore()
+    const auditCtx    = inMemoryAuditContext(store)
+    const licenseRepo = new InMemoryWorkstationLicenseRepository(auditCtx)
+    const repo        = new InMemoryAssetRepository([], REF, auditCtx, licenseRepo)
+
+    const { value: asset } = await repo.createAsset(
+      {
+        categoryId: 'cat_laptop', brand: 'HP', model: 'ProBook',
+        invCode: '222/OEM_RET', serial: 'SN_OEM_R',
+        assignment: null, branchId: 'b_main', deptId: null, currentSpecs: null,
+      },
+      { uid: 'u1', role: 'asset_admin' },
+    )
+
+    await licenseRepo.createLicense(
+      {
+        name: 'OEM Windows 10', type: 'OEM', isReusable: false,
+        assign: { to: 'device', assetId: asset.id },
+      },
+      { uid: 'u1', role: 'asset_admin' },
+    )
+
+    const svc = new WriteOffAssetService(repo as import('@/domain/asset').AssetWriteRepository, licenseRepo)
+    await svc.writeOff(asset.id, { uid: 'u1', role: 'asset_admin' }, 'end of life')
+
+    const asnRepo = new InMemoryAssignmentRepository([], [], auditCtx)
+
+    render(
+      <I18nextProvider i18n={i18n}>
+        <AuthProvider initialRole="super_admin">
+          <MemoryRouter initialEntries={[`/assets/${asset.id}`]}>
+            <Routes>
+              <Route
+                path="/assets/:id"
+                element={<AssetDetailPage repository={repo} licenseRepository={licenseRepo} assignmentRepository={asnRepo} />}
+              />
+            </Routes>
+          </MemoryRouter>
+        </AuthProvider>
+      </I18nextProvider>,
+    )
+
+    // Assert: the retired-with-asset card shows the OEM license name and caption
+    await waitFor(() => screen.getByText('OEM Windows 10'))
+    expect(screen.getByText(/Списан с устройством/i)).toBeTruthy()
   }, 15000)
 
   // ---- 4. WRITE-OFF modal requires reason before confirm is enabled --------

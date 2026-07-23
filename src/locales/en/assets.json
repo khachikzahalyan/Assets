@@ -46,7 +46,9 @@
       "copy": "Copy",
       "copied": "Copied",
       "copyFailed": "Could not retrieve key",
-      "keyAbsent": "Key not set"
+      "keyAbsent": "Key not set",
+      "freedByWriteOff": "Key released on write-off",
+      "retiredWithAsset": "Retired with device"
     },
     "location": {
       "title": "Location",

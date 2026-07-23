@@ -123,6 +123,7 @@ describe('WriteOffAssetService', () => {
       listLicenses: (q) => licenseRepo.listLicenses(q),
       listForAsset: (assetId) => licenseRepo.listForAsset(assetId),
       listAssignablePool: () => licenseRepo.listAssignablePool(),
+      listDecoupledFromAsset: (assetId) => licenseRepo.listDecoupledFromAsset(assetId),
       createLicense: (input, actor) => licenseRepo.createLicense(input, actor),
       assignLicense: (id, input, actor) => licenseRepo.assignLicense(id, input, actor),
       rotateKey: (id, rawKey, actor) => licenseRepo.rotateKey(id, rawKey, actor),
@@ -162,6 +163,38 @@ describe('WriteOffAssetService', () => {
     expect(reusableAfter?.lifecycleStatus).toBe('active')
     expect(oemAfter?.lifecycleStatus).toBe('retired')
     expect(oemAfter?.retiredWithAssetId).toBe(asset.id)
+  })
+
+  it('manual (Retail) key: write-off preserves type Retail (never mutates to OEM) and frees the key into the assignable pool', async () => {
+    const { assetRepo, licenseRepo, service } = makeHarness()
+
+    const { value: asset } = await assetRepo.createAsset(
+      { ...baseAsset, brand: 'Asus', model: 'VivoBook Pro', invCode: '450/manual', serial: 'SN_manual' },
+      ACTOR,
+    )
+    const { value: manual } = await licenseRepo.createLicense(
+      {
+        name: 'Asus VivoBook Pro — Ключ продукта',
+        type: 'Retail',
+        isReusable: true,
+        assign: { to: 'device', assetId: asset.id },
+      },
+      ACTOR,
+    )
+
+    await service.writeOff(asset.id, ACTOR, 'нерабочий')
+
+    const after = await licenseRepo.getLicense(manual.id)
+    // The REAL license type is untouched — manual key must NOT become OEM
+    expect(after?.type).toBe('Retail')
+    expect(after?.isReusable).toBe(true)
+    // Freed, not retired: stays active and unassigned
+    expect(after?.lifecycleStatus).toBe('active')
+    expect(after?.assignmentType).toBe('unassigned')
+    expect(after?.assignedToAssetId).toBeNull()
+    // The key is available for activation on another device
+    const pool = await licenseRepo.listAssignablePool()
+    expect(pool.map(l => l.id)).toContain(manual.id)
   })
 
   it('asset with zero bound licenses: just flips status to st_disposed, no license audits', async () => {

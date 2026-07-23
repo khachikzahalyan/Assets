@@ -29,6 +29,12 @@ export interface WorkstationLicense {
   lifecycleStatus: LifecycleStatus
   retiredAt?: string | null
   retiredWithAssetId?: string | null
+  /**
+   * Set when a reusable license is DECOUPLED from a device during write-off.
+   * Records which asset it was last attached to before being freed.
+   * Cleared when the license is subsequently assigned to a new device/employee.
+   */
+  decoupledFromAssetId?: string | null
   expiresAt?: string | null
   createdAt: string
   updatedAt: string

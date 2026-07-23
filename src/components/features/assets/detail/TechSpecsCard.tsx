@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { Asset } from '@/domain/asset'
+import { ASSET_STATUS } from '@/domain/asset'
 import type { WorkstationLicense } from '@/domain/license'
 import { SectionCard, Icon } from '@/components/ui'
 import { buildSpecsLines, buildSpecsCopyText } from './detailFormat'
@@ -11,6 +12,8 @@ import type { AttachChoice } from './LicenseBlock'
 interface TechSpecsCardProps {
   asset: Asset
   licenses: WorkstationLicense[]
+  decoupledLicenses?: WorkstationLicense[]
+  retiredWithAssetLicenses?: WorkstationLicense[]
   copyEnabled?: boolean
   partsNote?: boolean
   /** Pass true when the asset category has hasOemLicense capability. */
@@ -35,6 +38,8 @@ interface TechSpecsCardProps {
 export function TechSpecsCard({
   asset,
   licenses,
+  decoupledLicenses = [],
+  retiredWithAssetLicenses = [],
   copyEnabled = true,
   partsNote = true,
   hasOemLicenseCap = false,
@@ -76,11 +81,18 @@ export function TechSpecsCard({
 
   // Whether the license section should be rendered at all.
   // Show when: licenses are bound OR an attach affordance is available OR category has OEM license cap.
+  // The cap-driven assumed-OEM card is suppressed for a disposed asset: on write-off a
+  // reusable (manual/Retail) key is decoupled back to the pool, so "no bound license"
+  // must NOT fall back to the legacy OEM assumption (LicenseBlock renders null there).
   const hasAttachAffordance = Boolean(onAttachLicense && canManageLicense)
-  const showLicenseSection = licenses.length > 0 || hasAttachAffordance || Boolean(hasOemLicenseCap)
+  const oemCapAssumed = Boolean(hasOemLicenseCap) && asset.statusId !== ASSET_STATUS.disposed
+  const hasDisposedLicenses = decoupledLicenses.length > 0 || retiredWithAssetLicenses.length > 0
+  const showLicenseSection = licenses.length > 0 || hasAttachAffordance || oemCapAssumed || hasDisposedLicenses
 
   // Show the "empty specs" placeholder only when there is nothing at all to render.
-  const showEmptyPlaceholder = lines.length === 0 && licenses.length === 0 && !hasAttachAffordance && !hasOemLicenseCap
+  // hasDisposedLicenses must suppress it so a disposed asset with a freed/retired key
+  // shows the license card instead of the "empty" message.
+  const showEmptyPlaceholder = lines.length === 0 && licenses.length === 0 && !hasAttachAffordance && !oemCapAssumed && !hasDisposedLicenses
 
   // ── BARE MODE (mobile only) ─────────────────────────────────────────────
   // No SectionCard, no header, no copy button, no parts-note footer.
@@ -112,6 +124,8 @@ export function TechSpecsCard({
                 <LicenseBlock
                   asset={asset}
                   licenses={licenses}
+                  decoupledLicenses={decoupledLicenses}
+                  retiredWithAssetLicenses={retiredWithAssetLicenses}
                   canManage={canManageLicense}
                   busy={licenseBusy}
                   compact
@@ -155,6 +169,8 @@ export function TechSpecsCard({
               <LicenseBlock
                 asset={asset}
                 licenses={licenses}
+                decoupledLicenses={decoupledLicenses}
+                retiredWithAssetLicenses={retiredWithAssetLicenses}
                 canManage={canManageLicense}
                 busy={licenseBusy}
                 {...(onAttachLicense ? { onAttach: onAttachLicense } : {})}

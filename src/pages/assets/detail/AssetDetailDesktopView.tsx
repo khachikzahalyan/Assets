@@ -36,6 +36,8 @@ export interface AssetDetailDesktopViewProps {
   acts: ActRecord[]
   historyEvents: HistoryEventVM[]
   licenses: WorkstationLicense[]
+  decoupledLicenses: WorkstationLicense[]
+  retiredWithAssetLicenses: WorkstationLicense[]
   licensePool: { id: string; name: string; vendor: string | null }[]
   activeTab: TabId
   setActiveTab: (tab: TabId) => void
@@ -68,7 +70,7 @@ export interface AssetDetailDesktopViewProps {
 
 export function AssetDetailDesktopView({
   asset, category, statusRow, caps, refData,
-  acts, historyEvents, licenses, licensePool,
+  acts, historyEvents, licenses, decoupledLicenses, retiredWithAssetLicenses, licensePool,
   activeTab, setActiveTab,
   transferOpen, setTransferOpen,
   writeOffOpen, setWriteOffOpen,
@@ -168,10 +170,12 @@ export function AssetDetailDesktopView({
             >
               {activeTab === 'specs' && (
                 <div className="space-y-5">
-                  {(caps?.hasSpecs || caps?.hasOemLicense || licenses.length > 0) ? (
+                  {(caps?.hasSpecs || caps?.hasOemLicense || licenses.length > 0 || decoupledLicenses.length > 0 || retiredWithAssetLicenses.length > 0) ? (
                     <TechSpecsCard
                       asset={asset}
                       licenses={licenses}
+                      decoupledLicenses={decoupledLicenses}
+                      retiredWithAssetLicenses={retiredWithAssetLicenses}
                       hasOemLicenseCap={Boolean(caps?.hasOemLicense)}
                       canManageLicense={canManageLicense}
                       onAttachLicense={onAttachLicense}

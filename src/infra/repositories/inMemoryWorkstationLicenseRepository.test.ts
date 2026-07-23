@@ -205,6 +205,75 @@ describe('InMemoryWorkstationLicenseRepository', () => {
     })
   })
 
+  // ---- decoupleLicense — decoupledFromAssetId tracking ---------------------
+
+  describe('decoupleLicense — decoupledFromAssetId tracking', () => {
+    it('sets decoupledFromAssetId to the former assignedToAssetId after decouple', async () => {
+      const { repo } = makeRepo()
+      const { value: lic } = await repo.createLicense(
+        { name: 'Win 11', type: 'Retail', isReusable: true },
+        ACTOR,
+      )
+      await repo.assignLicense(lic.id, { to: 'device', assetId: 'asset-xyz' }, ACTOR)
+      const { value } = await repo.decoupleLicense(lic.id, ACTOR)
+      expect(value.decoupledFromAssetId).toBe('asset-xyz')
+      expect(value.assignedToAssetId).toBeNull()
+    })
+
+    it('clears decoupledFromAssetId when the license is re-assigned to a new device', async () => {
+      const { repo } = makeRepo()
+      const { value: lic } = await repo.createLicense(
+        { name: 'Win 11', type: 'Retail', isReusable: true },
+        ACTOR,
+      )
+      await repo.assignLicense(lic.id, { to: 'device', assetId: 'old-asset' }, ACTOR)
+      await repo.decoupleLicense(lic.id, ACTOR)
+      const { value } = await repo.assignLicense(lic.id, { to: 'device', assetId: 'new-asset' }, ACTOR)
+      expect(value.decoupledFromAssetId).toBeNull()
+      expect(value.assignedToAssetId).toBe('new-asset')
+    })
+
+    it('listDecoupledFromAsset returns only licenses decoupled from the given assetId', async () => {
+      const { repo } = makeRepo()
+
+      const { value: lic1 } = await repo.createLicense(
+        { name: 'L1', type: 'Retail', isReusable: true },
+        ACTOR,
+      )
+      const { value: lic2 } = await repo.createLicense(
+        { name: 'L2', type: 'Retail', isReusable: true },
+        ACTOR,
+      )
+
+      await repo.assignLicense(lic1.id, { to: 'device', assetId: 'asset-A' }, ACTOR)
+      await repo.assignLicense(lic2.id, { to: 'device', assetId: 'asset-B' }, ACTOR)
+      await repo.decoupleLicense(lic1.id, ACTOR)
+      await repo.decoupleLicense(lic2.id, ACTOR)
+
+      const forA = await repo.listDecoupledFromAsset('asset-A')
+      expect(forA).toHaveLength(1)
+      expect(forA[0]!.id).toBe(lic1.id)
+
+      const forB = await repo.listDecoupledFromAsset('asset-B')
+      expect(forB).toHaveLength(1)
+      expect(forB[0]!.id).toBe(lic2.id)
+    })
+
+    it('listDecoupledFromAsset excludes a license that was re-assigned after decouple', async () => {
+      const { repo } = makeRepo()
+      const { value: lic } = await repo.createLicense(
+        { name: 'L', type: 'Retail', isReusable: true },
+        ACTOR,
+      )
+      await repo.assignLicense(lic.id, { to: 'device', assetId: 'asset-A' }, ACTOR)
+      await repo.decoupleLicense(lic.id, ACTOR)
+      await repo.assignLicense(lic.id, { to: 'device', assetId: 'asset-B' }, ACTOR)
+
+      const forA = await repo.listDecoupledFromAsset('asset-A')
+      expect(forA).toHaveLength(0)
+    })
+  })
+
   // ---- rotateKey ------------------------------------------------------------
 
   describe('rotateKey', () => {

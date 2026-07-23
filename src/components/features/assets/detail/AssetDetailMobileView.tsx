@@ -33,6 +33,8 @@ export interface AssetDetailMobileViewProps {
   acts: ActRecord[]
   historyEvents: HistoryEventVM[]
   licenses: WorkstationLicense[]
+  decoupledLicenses?: WorkstationLicense[]
+  retiredWithAssetLicenses?: WorkstationLicense[]
   licensePool: { id: string; name: string; vendor: string | null }[]
   hasSpecsFlag: boolean
   canWriteOff: boolean
@@ -82,6 +84,8 @@ export function AssetDetailMobileView({
   acts,
   historyEvents,
   licenses,
+  decoupledLicenses = [],
+  retiredWithAssetLicenses = [],
   licensePool,
   hasSpecsFlag,
   canWriteOff,
@@ -171,6 +175,8 @@ export function AssetDetailMobileView({
             <TechSpecsCard
               asset={asset}
               licenses={licenses}
+              decoupledLicenses={decoupledLicenses}
+              retiredWithAssetLicenses={retiredWithAssetLicenses}
               hasOemLicenseCap={Boolean(caps?.hasOemLicense)}
               canManageLicense={canManageLicense}
               onAttachLicense={onAttachLicense}

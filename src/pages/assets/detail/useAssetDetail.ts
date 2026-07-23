@@ -61,6 +61,8 @@ export function useAssetDetail({ id, repo, repoAsn, licenseRepo, onPersistOemSec
   const [ref, setRef] = useState<AssetReferenceData | null>(null)
   const [assignments, setAssignments] = useState<Assignment[]>([])
   const [licenses, setLicenses] = useState<WorkstationLicense[]>([])
+  const [decoupledLicenses, setDecoupledLicenses] = useState<WorkstationLicense[]>([])
+  const [retiredWithAssetLicenses, setRetiredWithAssetLicenses] = useState<WorkstationLicense[]>([])
   const [licensePool, setLicensePool] = useState<{ id: string; name: string; vendor: string | null }[]>([])
 
   // ---- UI state ----
@@ -75,29 +77,54 @@ export function useAssetDetail({ id, repo, repoAsn, licenseRepo, onPersistOemSec
     if (!id) return
     setLoading(true)
     setLoadError(null)
+    /* Two-phase load (mobile scan flow was skeleton-bound for seconds):
+       Phase 1 — ONLY what the first paint needs (asset + ref data for the
+       hero/status; the default tab is specs, derived from those two). The
+       skeleton drops as soon as these two land.
+       Phase 2 — history/acts/licenses stream in after first paint; their
+       sections render from [] and fill when ready. Previously ALL six queries
+       gated the skeleton, so time-to-content was the SLOWEST of ~11 reads
+       (incl. the full assignable-license pool, needed only for a dialog). */
     try {
-      const [a, logs, refData, asnList, licList, poolList] = await Promise.all([
+      const [a, refData] = await Promise.all([
         repo.getAsset(id),
-        (repo as AssetWriteRepository).listAudit(id),
         repo.loadReferenceData(),
-        repoAsn.listAssignments(id).catch(() => [] as Assignment[]),
-        licenseRepo.listForAsset(id).catch(() => [] as WorkstationLicense[]),
-        licenseRepo.listAssignablePool().catch(() => [] as WorkstationLicense[]),
       ])
       setAsset(a)
-      setAuditLogs(logs)
       setRef(refData)
-      setAssignments(asnList)
-      setLicenses(licList)
-      const freeOem = poolList.filter(
-        l => l.type === 'OEM' && l.assignmentType === 'unassigned' && l.lifecycleStatus === 'active',
-      )
-      setLicensePool(freeOem.map(l => ({ id: l.id, name: l.name, vendor: l.vendor ?? null })))
     } catch {
       setLoadError(tRef.current('validation.saveFailed'))
-    } finally {
       setLoading(false)
+      return
     }
+    setLoading(false)
+
+    const [logs, asnList, licList, poolList] = await Promise.all([
+      (repo as AssetWriteRepository).listAudit(id).catch(() => [] as AuditLog[]),
+      repoAsn.listAssignments(id).catch(() => [] as Assignment[]),
+      licenseRepo.listForAsset(id).catch(() => [] as WorkstationLicense[]),
+      licenseRepo.listAssignablePool().catch(() => [] as WorkstationLicense[]),
+    ])
+    setAuditLogs(logs)
+    setAssignments(asnList)
+    setLicenses(licList)
+    const freeOem = poolList.filter(
+      l => l.type === 'OEM' && l.assignmentType === 'unassigned' && l.lifecycleStatus === 'active',
+    )
+    setLicensePool(freeOem.map(l => ({ id: l.id, name: l.name, vendor: l.vendor ?? null })))
+
+    // For disposed assets: load decoupled (Retail freed) and retired-with-asset (OEM) licenses.
+    if (licList.length === 0) {
+      const decoupled = await licenseRepo.listDecoupledFromAsset(id).catch(() => [] as WorkstationLicense[])
+      setDecoupledLicenses(decoupled)
+    } else {
+      setDecoupledLicenses([])
+    }
+
+    // Load retired-with-asset licenses (OEM path — retired non-reusable licenses).
+    const allRetired = await licenseRepo.listLicenses({ lifecycleStatus: 'retired' }).catch(() => [] as WorkstationLicense[])
+    const retiredHere = allRetired.filter(l => l.retiredWithAssetId === id)
+    setRetiredWithAssetLicenses(retiredHere)
   }, [id, repo, repoAsn, licenseRepo])
 
   useEffect(() => {
@@ -293,7 +320,7 @@ export function useAssetDetail({ id, repo, repoAsn, licenseRepo, onPersistOemSec
 
   return {
     loading, loadError, load,
-    asset, auditLogs, ref, assignments, licenses, licensePool,
+    asset, auditLogs, ref, assignments, licenses, decoupledLicenses, retiredWithAssetLicenses, licensePool,
     category, caps, statusRow, acts, historyEvents,
     canRepair, canAssign, canWriteOff, isDisposed, canManageLicense, hasSpecsFlag,
     activeTab, setActiveTab,

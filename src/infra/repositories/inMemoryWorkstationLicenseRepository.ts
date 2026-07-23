@@ -132,6 +132,13 @@ export class InMemoryWorkstationLicenseRepository implements WorkstationLicenseR
       .sort((a, b) => a.name.localeCompare(b.name, 'ru'))
   }
 
+  async listDecoupledFromAsset(assetId: string): Promise<WorkstationLicense[]> {
+    return Array.from(this.docs.values())
+      .filter(l => l.decoupledFromAssetId === assetId)
+      .map(d => this.cloneDoc(d))
+      .sort((a, b) => a.name.localeCompare(b.name, 'ru'))
+  }
+
   // ---- Mutations -------------------------------------------------------------
 
   async createLicense(
@@ -159,6 +166,7 @@ export class InMemoryWorkstationLicenseRepository implements WorkstationLicenseR
       assignedBy: null,
       retiredAt: null,
       retiredWithAssetId: null,
+      decoupledFromAssetId: null,
       createdAt: now,
       updatedAt: now,
       createdBy: actor.uid,
@@ -215,6 +223,7 @@ export class InMemoryWorkstationLicenseRepository implements WorkstationLicenseR
       ...assignmentFields,
       assignedAt: assignmentFields.assignmentType === 'unassigned' ? null : now,
       assignedBy: assignmentFields.assignmentType === 'unassigned' ? null : actor.uid,
+      decoupledFromAssetId: null,
       updatedAt: now,
       updatedBy: actor.uid,
     }
@@ -255,6 +264,8 @@ export class InMemoryWorkstationLicenseRepository implements WorkstationLicenseR
     }
     const now = new Date().toISOString()
 
+    const decoupledFromAssetId = existing.assignedToAssetId ?? null
+
     const updated: WorkstationLicense = {
       ...existing,
       assignmentType: 'unassigned',
@@ -262,6 +273,7 @@ export class InMemoryWorkstationLicenseRepository implements WorkstationLicenseR
       assignedToEmployeeId: null,
       assignedAt: null,
       assignedBy: null,
+      decoupledFromAssetId,
       updatedAt: now,
       updatedBy: actor.uid,
     }

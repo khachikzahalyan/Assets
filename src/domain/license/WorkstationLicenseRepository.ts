@@ -28,6 +28,12 @@ export interface WorkstationLicenseRepository {
   getLicense(id: string): Promise<WorkstationLicense | null>
   listForAsset(assetId: string): Promise<WorkstationLicense[]>
   listAssignablePool(): Promise<WorkstationLicense[]>
+  /**
+   * Returns all licenses that were decoupled from the given asset during write-off.
+   * These are active (reusable) licenses now free in the pool, with `decoupledFromAssetId === assetId`.
+   * Used to show the "freed key" card on a disposed asset's detail page.
+   */
+  listDecoupledFromAsset(assetId: string): Promise<WorkstationLicense[]>
   createLicense(input: CreateWorkstationLicenseInput, actor: Actor): Promise<AuditedResult<WorkstationLicense>>
   assignLicense(id: string, input: AssignWorkstationLicenseInput, actor: Actor): Promise<AuditedResult<WorkstationLicense>>
   decoupleLicense(id: string, actor: Actor): Promise<AuditedResult<WorkstationLicense>>
