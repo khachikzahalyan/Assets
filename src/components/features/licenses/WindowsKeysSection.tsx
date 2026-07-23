@@ -177,13 +177,16 @@ export function WindowsKeysSection({
       {
         key: 'asset',
         header: t('keys.colAsset'),
-        width: 'minmax(160px,1.2fr)',
+        width: 'minmax(200px,1.5fr)',
         cell: (lic) => {
           const isFree = licenseStatus(lic) === 'free'
           if (isFree) {
+            // Free key: show the ORIGIN device the key came from — lic.name is
+            // «{Brand Model} — Ключ продукта», keep only the device part.
+            const device = lic.name.includes(' — ') ? lic.name.split(' — ')[0]! : lic.name
             return (
               <div className="leading-tight">
-                <div className="text-[13.5px] text-text-primary font-medium">{'—'}</div>
+                <div className="text-[13.5px] text-text-primary font-medium">{device}</div>
                 {lic.retiredAt && (
                   <div className="text-[12px] text-text-tertiary">
                     {t('keys.freedOn', { date: fmtDate(lic.retiredAt, 'ru') })}
@@ -212,14 +215,6 @@ export function WindowsKeysSection({
         },
       },
       {
-        key: 'version',
-        header: t('keys.colVersion'),
-        width: 'minmax(160px,1.1fr)',
-        cell: (lic) => (
-          <span className="text-[13.5px] text-text-secondary">{lic.name}</span>
-        ),
-      },
-      {
         key: 'status',
         header: t('keys.colStatus'),
         width: 'minmax(120px,0.8fr)',
@@ -233,7 +228,7 @@ export function WindowsKeysSection({
       {
         key: 'key',
         header: t('keys.colKey'),
-        width: 'minmax(220px,1.3fr)',
+        width: 'minmax(220px,1.4fr)',
         cell: (lic) => (
           <span className="font-mono text-[13px] text-text-primary tracking-tight">
             {maskedKeys[lic.id] ?? '—'}
@@ -246,14 +241,15 @@ export function WindowsKeysSection({
       cols.push({
         key: 'action',
         header: t('keys.colAction'),
-        width: '96px',
+        // Wide enough for «Активировать» + icon in one line (96px clipped it)
+        width: '150px',
         align: 'right',
         cell: (lic) => (
           <button
             type="button"
             onClick={e => { e.stopPropagation(); setActivatingId(lic.id) }}
             data-testid={`activate-btn-${lic.id}`}
-            className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-md text-[12px] font-semibold text-accent-light border border-accent/30 bg-accent/10 hover:bg-accent/20 transition-colors"
+            className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-md text-[12px] font-semibold text-accent-light border border-accent/30 bg-accent/10 hover:bg-accent/20 transition-colors whitespace-nowrap"
           >
             <Icon name="zap" size={12} />
             {t('keys.activate')}

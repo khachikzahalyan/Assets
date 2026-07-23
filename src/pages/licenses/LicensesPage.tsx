@@ -444,7 +444,7 @@ export function LicensesPage({
                   /* flex-1 min-h-0 gives TableSkeleton (height:100%) the remaining
                      card height so its flex rows stretch like the real DataTable */
                   <div className="flex-1 min-h-0">
-                    <TableSkeleton rows={10} columns={4} gridTemplate="minmax(160px,1.2fr) minmax(160px,1.1fr) minmax(120px,0.8fr) minmax(220px,1.3fr)" headers={[t('keys.colAsset'), t('keys.colVersion'), t('keys.colStatus'), t('keys.colKey')]} />
+                    <TableSkeleton rows={10} columns={3} gridTemplate="minmax(200px,1.5fr) minmax(120px,0.8fr) minmax(220px,1.4fr)" headers={[t('keys.colAsset'), t('keys.colStatus'), t('keys.colKey')]} />
                   </div>
                 )}
             </div>
