@@ -186,7 +186,14 @@ service cloud.firestore {
     // Delete: super | asset_admin — ONLY as the termination MOVE leg (employee doc is
     //   deleted while a matching former_employees/{id} doc is created in the same txn).
     match /employees/{id} {
-      allow read: if isAnyAdmin() || isSelfEmployee(id);
+      // Read: any admin; the employee reading their OWN doc (by uid or linked
+      // employeeId); OR a signed-in user reading the record whose email matches
+      // their auth token — this lets a not-yet-linked employee discover their HR
+      // record by email (client self-heal of users/{uid}.employeeId). Emails are
+      // unique per employee, so this exposes only the caller's own record.
+      allow read: if isAnyAdmin()
+        || isSelfEmployee(id)
+        || (isSignedIn() && resource.data.email == request.auth.token.email);
       // preassignedRole (the role granted to a person BEFORE first sign-in) is a
       // privilege grant, so it must be a valid role AND may only be introduced by
       // a super_admin. Helper reused by create + update.

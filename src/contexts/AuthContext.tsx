@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useMemo, useCallback, useEffect, useRef, type ReactNode } from 'react'
 import type { Role } from '@/config/roles'
-import { fetchUserProfile, signOutUser, subscribeToAuthState, claimPendingUser } from '@/lib/auth'
+import { fetchUserProfile, linkEmployeeByEmail, signOutUser, subscribeToAuthState, claimPendingUser } from '@/lib/auth'
 // Import directly (not via @/hooks barrel) — useParts imports useAuth, creating a barrel cycle.
 import { clearResourceCache } from '@/hooks/useCachedResource'
 
@@ -179,7 +179,15 @@ function RealAuthProvider({ children }: { children: ReactNode }) {
             void claimPendingUser({ uid: shape.uid, email: shape.email, displayName: shape.displayName })
             return
           }
-          setUser(toAuthUser(shape, role, employeeId))
+          // Employee with no account↔HR link yet (account predates the
+          // beforeCreate provisioning / functions not deployed): self-heal by
+          // matching the employees record on email, so "My assets" resolves.
+          let resolvedEmployeeId = employeeId
+          if (role === 'employee' && !employeeId) {
+            resolvedEmployeeId = await linkEmployeeByEmail(shape.uid, shape.email)
+            if (!active) return
+          }
+          setUser(toAuthUser(shape, role, resolvedEmployeeId))
           setStatus('ready')
         } catch {
           // Treat a role-lookup failure as no-role (fail-closed); never crash auth.

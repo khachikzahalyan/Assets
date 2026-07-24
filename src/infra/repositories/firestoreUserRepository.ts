@@ -32,6 +32,7 @@ function toUser(id: string, d: Record<string, unknown>): User {
     role: (d.role as User['role']) ?? null,
     status,
     createdAt: toIso(d.createdAt),
+    ...(typeof d.employeeId === 'string' && d.employeeId !== '' ? { employeeId: d.employeeId } : {}),
   }
 }
 
@@ -86,17 +87,35 @@ export class FirestoreUserRepository implements UserRepository {
     // 'employee'/'created' row). If this fails (e.g. empty email), we bail out
     // BEFORE granting the role, so the user stays pending and retryable. The
     // harmful "promoted but no employee doc" partial state cannot occur.
+    const empRepo = new FirestoreEmployeeRepository(this.db)
     if (input.role === 'employee' && input.employee?.mode === 'create') {
       const create = input.employee.create
       if (!create) throw new Error('employee.create payload required when mode === "create"')
       const email = typeof create.email === 'string' ? create.email.trim() : ''
       if (!email) throw new Error('employee email required')
-      const empRepo = new FirestoreEmployeeRepository(this.db)
       if (!(await empRepo.getEmployee(input.uid))) {
         await empRepo.createEmployee(
           { id: input.uid, firstName: create.firstName, lastName: create.lastName, email },
           actor,
         )
+      }
+    }
+
+    // Resolve the HR link so the users doc carries employeeId IMMEDIATELY. The
+    // firestore rules gate employee self-service reads on users/{uid}.employeeId;
+    // without it the employee sees no assets until the client self-heal happens
+    // to run at a later sign-in. create-mode uses uid as the employee doc id;
+    // link-mode (or unspecified) matches the existing HR record by account email.
+    let linkedEmployeeId: string | null = null
+    if (input.role === 'employee') {
+      if (input.employee?.mode === 'create') {
+        linkedEmployeeId = input.uid
+      } else {
+        const email = (before.email ?? '').trim()
+        if (email) {
+          const emp = await empRepo.findByEmail(email)
+          if (emp && emp.status !== 'terminated') linkedEmployeeId = emp.id
+        }
       }
     }
 
@@ -110,7 +129,12 @@ export class FirestoreUserRepository implements UserRepository {
       },
       async (txn) => {
         txn.set(
-          ref, { role: input.role, status: 'active', updatedAt: serverTimestamp() }, { merge: true },
+          ref,
+          {
+            role: input.role, status: 'active', updatedAt: serverTimestamp(),
+            ...(linkedEmployeeId ? { employeeId: linkedEmployeeId } : {}),
+          },
+          { merge: true },
         )
         return { value: undefined as unknown as void }
       },

@@ -24,6 +24,10 @@ export interface User {
   status: UserStatus
   /** When the no-role record was first created (self-claim). May be absent on legacy docs. */
   createdAt: string | null
+  /** Linked employees/{id} HR record (set when an employee role is granted, or
+   *  self-healed at first sign-in). Drives self-service asset access — the
+   *  firestore rules gate employee reads on this field. Absent on admin accounts. */
+  employeeId?: string | null
 }
 
 export interface PendingUser extends User {

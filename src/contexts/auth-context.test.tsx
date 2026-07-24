@@ -5,12 +5,14 @@ import { AuthProvider, useAuth } from './AuthContext'
 const onAuthStateChanged = vi.fn()
 const fetchUserRole = vi.fn(async () => 'asset_admin' as string | null)
 const claimSpy = vi.fn().mockResolvedValue(undefined)
+const linkSpy = vi.fn(async () => null as string | null)
 vi.mock('@/lib/firebase', () => ({ auth: () => ({}) }))
 vi.mock('@/lib/auth', () => ({
   fetchUserRole: (...a: unknown[]) => fetchUserRole(...(a as [])),
   // AuthContext reads role + employeeId via fetchUserProfile; route it to the
   // same fetchUserRole spy so existing role-driving tests keep working.
   fetchUserProfile: async (...a: unknown[]) => ({ role: await fetchUserRole(...(a as [])), employeeId: null }),
+  linkEmployeeByEmail: (...a: unknown[]) => linkSpy(...(a as [])),
   signOutUser: vi.fn(),
   // AuthContext subscribes via this wrapper; route it to the spy so tests can
   // capture and drive the auth-state callback. Returns the unsubscribe fn.
@@ -31,6 +33,8 @@ function Probe() {
 describe('AuthContext', () => {
   beforeEach(() => {
     claimSpy.mockClear()
+    linkSpy.mockClear()
+    linkSpy.mockResolvedValue(null)
     fetchUserRole.mockReset()
     fetchUserRole.mockResolvedValue('asset_admin')
   })
@@ -57,6 +61,27 @@ describe('AuthContext', () => {
     expect(screen.getByTestId('s').textContent).toBe('loading:super_admin')
     await act(async () => { cb({ uid: 'u1', email: 'a@x', displayName: 'A' }) })
     expect(screen.getByTestId('s').textContent).toBe('ready:asset_admin')
+  })
+
+  it('self-heals the employee link when an employee account has no employeeId', async () => {
+    fetchUserRole.mockResolvedValue('employee')
+    linkSpy.mockResolvedValue('emp_doc_7')
+    let cb: (u: unknown) => void = () => {}
+    onAuthStateChanged.mockImplementation((_a, c) => { cb = c; return () => {} })
+    function IdProbe() { const { user, status } = useAuth(); return <span data-testid="s">{status}:{user.employeeId ?? '-'}</span> }
+    render(<AuthProvider><IdProbe /></AuthProvider>)
+    await act(async () => { cb({ uid: 'u1', email: 'poxos@x.io', displayName: 'P' }) })
+    expect(linkSpy).toHaveBeenCalledWith('u1', 'poxos@x.io')
+    expect(screen.getByTestId('s').textContent).toBe('ready:emp_doc_7')
+  })
+
+  it('does NOT attempt the employee-link heal for an admin role', async () => {
+    fetchUserRole.mockResolvedValue('asset_admin')
+    let cb: (u: unknown) => void = () => {}
+    onAuthStateChanged.mockImplementation((_a, c) => { cb = c; return () => {} })
+    render(<AuthProvider><Probe /></AuthProvider>)
+    await act(async () => { cb({ uid: 'u1', email: 'a@x', displayName: 'A' }) })
+    expect(linkSpy).not.toHaveBeenCalled()
   })
 
   it('fires claimPendingUser exactly once on the no-role branch', async () => {

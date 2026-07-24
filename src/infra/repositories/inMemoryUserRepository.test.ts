@@ -30,6 +30,39 @@ describe('InMemoryUserRepository', () => {
     expect(store.logs[0]).toMatchObject({ entityType: 'user', action: 'role_assigned' })
   })
 
+  it('assignRole employee+link persists employeeId from the matching HR record', async () => {
+    // Owner-facing bug: an employee granted the role via LINK never got
+    // users/{uid}.employeeId, so self-service (and the rules) blocked their
+    // assets. The link must be stamped at grant time by matching email.
+    const emp: Employee = {
+      id: 'pending_hr1', firstName: 'Khachik', lastName: 'Z', email: 'khachik@x.com',
+      phone: null, position: null, branchId: null, departmentId: null,
+      status: 'active', preassignedRole: null, terminatedAt: null,
+      createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z',
+    }
+    const users: User[] = [{ ...pending('acc1'), email: 'khachik@x.com' }]
+    const repo = new InMemoryUserRepository(users, [emp])
+    const r = await repo.assignRole({ uid: 'acc1', role: 'employee', employee: { mode: 'link' } }, actor)
+    expect(r.value.employeeId).toBe('pending_hr1')
+  })
+
+  it('assignRole employee+create stamps employeeId === uid (doc id convention)', async () => {
+    const users: User[] = [{ ...pending('a'), email: 'a@x.com' }]
+    const repo = new InMemoryUserRepository(users, [])
+    const r = await repo.assignRole(
+      { uid: 'a', role: 'employee', employee: { mode: 'create', create: { firstName: 'I', lastName: 'P', email: 'a@x.com' } } },
+      actor,
+    )
+    expect(r.value.employeeId).toBe('a')
+  })
+
+  it('assignRole to a non-employee role leaves employeeId unset', async () => {
+    const users: User[] = [{ ...pending('a'), email: 'a@x.com' }]
+    const repo = new InMemoryUserRepository(users, [])
+    const r = await repo.assignRole({ uid: 'a', role: 'asset_admin' }, actor)
+    expect(r.value.employeeId).toBeUndefined()
+  })
+
   it('assignRole employee+create makes an employee doc (second audit row)', async () => {
     const store = createInMemoryAuditStore()
     const users: User[] = [pending('a')]

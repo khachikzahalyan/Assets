@@ -3,7 +3,10 @@ import {
   signInWithEmailLink, isSignInWithEmailLink, signOut as fbSignOut,
   onAuthStateChanged, type User,
 } from 'firebase/auth'
-import { doc, getDoc } from 'firebase/firestore'
+import {
+  doc, getDoc, setDoc, serverTimestamp,
+  collection, query as fsQuery, where, limit, getDocs,
+} from 'firebase/firestore'
 import { auth, db } from '@/lib/firebase'
 import type { Role } from '@/config/roles'
 
@@ -31,6 +34,43 @@ export async function fetchUserProfile(uid: string): Promise<UserProfile> {
   const role = data.role && ROLE_IDS_SET.has(data.role as Role) ? (data.role as Role) : null
   const employeeId = typeof data.employeeId === 'string' && data.employeeId !== '' ? data.employeeId : null
   return { role, employeeId }
+}
+
+/**
+ * Client-side self-heal for the account↔employee link. The beforeCreate trigger
+ * sets users/{uid}.employeeId at sign-in, but until Cloud Functions are deployed
+ * an employee added on /employees BEFORE first sign-in has no link — so their
+ * HR record id differs from their uid and "My assets" (which the rules scope by
+ * users/{uid}.employeeId) comes up empty.
+ *
+ * When the account has no employeeId, this finds the employees doc whose email
+ * matches the signed-in user and writes users/{uid}.employeeId (merge, adds no
+ * role/status — allowed by the self-update rule). Returns the resolved id, or
+ * null if no matching active employee record exists.
+ *
+ * Best-effort: any failure is swallowed and returns null — self-service just
+ * degrades to the uid path.
+ */
+export async function linkEmployeeByEmail(uid: string, email: string | null): Promise<string | null> {
+  const trimmed = (email ?? '').trim()
+  if (!trimmed) return null
+  try {
+    const lower = trimmed.toLowerCase()
+    const snaps = await Promise.all([
+      getDocs(fsQuery(collection(db(), 'employees'), where('email', '==', trimmed), limit(1))),
+      ...(lower !== trimmed
+        ? [getDocs(fsQuery(collection(db(), 'employees'), where('email', '==', lower), limit(1)))]
+        : []),
+    ])
+    const match = snaps.flatMap(s => s.docs).find(d => (d.data() as { status?: string }).status !== 'terminated')
+    if (!match) return null
+    // Persist the link so the server-side rules (myEmployeeId) permit the
+    // employee to read their assigned assets/assignments/acts.
+    await setDoc(doc(db(), 'users', uid), { employeeId: match.id, updatedAt: serverTimestamp() }, { merge: true })
+    return match.id
+  } catch {
+    return null
+  }
 }
 
 /** Admin sign-in. Domain enforcement happens server-side in the beforeCreate function;

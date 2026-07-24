@@ -46,8 +46,6 @@ export class InMemoryUserRepository implements UserRepository {
       if ((await this.countSuperAdmins(input.uid)) === 0) throw new RoleLockoutError('last-super-admin')
     }
 
-    const next: User = { ...before, role: input.role, status: 'active' }
-
     // STEP 1 — create the employee doc FIRST. If this throws (e.g. empty email),
     // we bail BEFORE granting the role, so the user stays pending/retryable and no
     // partial promotion is left behind.
@@ -82,6 +80,26 @@ export class InMemoryUserRepository implements UserRepository {
           async () => { this.employees.push(employee); return { value: employee } },
         )
       }
+    }
+
+    // Resolve the HR link so the users record carries employeeId immediately
+    // (mirrors the Firestore adapter; rules gate employee reads on it).
+    let linkedEmployeeId: string | null = null
+    if (input.role === 'employee') {
+      if (input.employee?.mode === 'create') {
+        linkedEmployeeId = input.uid
+      } else {
+        const email = (before.email ?? '').trim().toLowerCase()
+        const emp = email
+          ? this.employees.find(e => e.email.trim().toLowerCase() === email && e.status !== 'terminated')
+          : undefined
+        if (emp) linkedEmployeeId = emp.id
+      }
+    }
+
+    const next: User = {
+      ...before, role: input.role, status: 'active',
+      ...(linkedEmployeeId ? { employeeId: linkedEmployeeId } : {}),
     }
 
     // STEP 2 — grant the role.
