@@ -136,7 +136,9 @@ export function CategoriesPage({ repository, categoryGroupRepository, partCatego
       width: '2fr',
       render: c => (
         <span className="flex items-center gap-2 min-w-0">
-          <Icon name={c.lucideIcon} size={15} className="text-text-tertiary flex-shrink-0" />
+          {/* Desktop-only inline icon — on mobile the category icon lives in the
+              row's icon TILE (mobileIcon), so this duplicate is hidden there. */}
+          <Icon name={c.lucideIcon} size={15} className="text-text-tertiary flex-shrink-0 max-md:hidden" />
           <span className="text-text-primary truncate">{c.name}</span>
         </span>
       ),
@@ -204,9 +206,11 @@ export function CategoriesPage({ repository, categoryGroupRepository, partCatego
       <CatalogTable
         rows={pageRows} columns={columns} canMutate={canMutate} onEdit={openEdit} onDelete={askDelete}
         minRows={PAGE_SIZE}
-        mobileIcon={() => (
-          <span className="w-[28px] h-[28px] rounded-[8px] inline-flex items-center justify-center flex-shrink-0 bg-surface-2 text-text-tertiary" aria-hidden="true">
-            <Icon name="tags" size={14} />
+        mobileIcon={(c) => (
+          /* The category's OWN icon in the tile (meaningful), replacing the
+             generic "tags" icon; the inline name-column icon is hidden on mobile. */
+          <span className="w-[28px] h-[28px] rounded-[8px] inline-flex items-center justify-center flex-shrink-0 bg-surface-2 text-text-secondary" aria-hidden="true">
+            <Icon name={c.lucideIcon} size={14} />
           </span>
         )}
         mobileMinRows={PAGE_SIZE}

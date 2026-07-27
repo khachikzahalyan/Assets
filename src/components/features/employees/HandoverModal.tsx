@@ -264,8 +264,8 @@ export function HandoverModal({
         tabIndex={-1}
         role="dialog"
         aria-modal="true"
-        className={`relative w-full max-w-3xl bg-surface rounded-2xl shadow-2xl shadow-slate-900/20 border border-border/60 anim-modal-pop flex flex-col ${MODAL_SHEET}`}
-        style={{ minHeight: 'min(680px, 92vh)', maxHeight: '92vh' }}
+        className={`relative w-full max-w-3xl bg-surface rounded-2xl shadow-2xl shadow-slate-900/20 border border-border/60 anim-modal-pop flex flex-col md:max-h-[92vh] ${MODAL_SHEET}`}
+        style={{ minHeight: 'min(680px, 88vh)' }}
       >
         {/* Pull-handle — mobile only */}
         <div className="max-md:block hidden mx-auto h-1 w-9 rounded-full bg-white/20 mb-3 mt-2" />

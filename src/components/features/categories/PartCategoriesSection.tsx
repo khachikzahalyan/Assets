@@ -150,8 +150,10 @@ export function PartCategoriesSection({
         const tint = TINT_BY_TOKEN[def.tintToken] ?? TINT_FALLBACK
         return (
           <span className={`flex items-center gap-2 min-w-0 ${!def.active ? 'opacity-40' : ''}`}>
+            {/* Desktop-only inline icon — on mobile the icon lives in the row's
+                icon tile (mobileIcon), so this duplicate is hidden there. */}
             <span
-              className={`w-[22px] h-[22px] rounded-md flex-shrink-0 inline-flex items-center justify-center ${tint.iconBg} ${tint.iconText}`}
+              className={`w-[22px] h-[22px] rounded-md flex-shrink-0 inline-flex items-center justify-center ${tint.iconBg} ${tint.iconText} max-md:hidden`}
               aria-hidden="true"
             >
               <Icon name={def.icon} size={12} />
@@ -202,7 +204,7 @@ export function PartCategoriesSection({
     )
   }, [])
 
-  // ── Mobile subline: behavior chip + sort order ────────────────────────────
+  // ── Mobile subline: behavior chip only (sort order is admin-internal clutter) ──
   const mobileSubline = useCallback((def: PartCategoryDef) => (
     <div className="flex items-center gap-1.5 text-[11px] text-text-tertiary truncate leading-snug">
       <Chip
@@ -211,8 +213,6 @@ export function PartCategoriesSection({
       >
         {t(`parts.behavior.${def.behavior}`)}
       </Chip>
-      <span aria-hidden="true">·</span>
-      <span className="tabular-nums">{def.order}</span>
     </div>
   ), [t])
 
