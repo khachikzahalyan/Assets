@@ -50,8 +50,26 @@ export function MyAssetsPage({ repository }: MyAssetsPageProps) {
   }, [repo, employeeDocId, t])
 
   useEffect(() => {
-    void load()
-  }, [load])
+    // Realtime path: subscribe so an admin's transfer appears without a reload.
+    // Ref data (statuses/categories) is static enough for a one-shot fetch.
+    // Adapters without realtime (tests) fall back to the one-shot load().
+    if (typeof repo.subscribeAssetsForEmployee !== 'function') {
+      void load()
+      return
+    }
+    let active = true
+    setLoading(true)
+    setLoadError(null)
+    repo.loadSelfServiceRefData()
+      .then(refData => { if (active) setRef(refData) })
+      .catch(() => { /* ref is best-effort; the asset list still renders */ })
+    const unsub = repo.subscribeAssetsForEmployee(
+      employeeDocId,
+      mine => { if (!active) return; setAssets(mine); setLoading(false) },
+      () => { if (!active) return; setLoadError(t('validation.saveFailed')); setLoading(false) },
+    )
+    return () => { active = false; unsub() }
+  }, [repo, employeeDocId, load, t])
 
   const statusMap = useMemo(
     () => new Map((ref?.statuses ?? []).map(s => [s.id, s])),

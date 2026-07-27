@@ -40,6 +40,18 @@ export interface AssetRepository {
   loadReferenceData(): Promise<AssetReferenceData>
   /** Assets currently assigned to a given employee (self-service). */
   listAssetsForEmployee(employeeId: string): Promise<Asset[]>
+  /**
+   * Live subscription to the assets assigned to an employee — pushes a fresh
+   * list on every server change (e.g. an admin transferring an asset) without a
+   * page reload. Returns an unsubscribe function. Optional: adapters that don't
+   * support realtime (or tests) may omit it and callers fall back to a one-shot
+   * listAssetsForEmployee + reload.
+   */
+  subscribeAssetsForEmployee?(
+    employeeId: string,
+    onData: (assets: Asset[]) => void,
+    onError?: (err: unknown) => void,
+  ): () => void
   /** Resolves the first asset whose `invCode` exactly equals the argument, or `null`.
    *  Used by the barcode scanner to navigate from a scanned code to the asset detail. */
   findByInvCode(invCode: string): Promise<Asset | null>

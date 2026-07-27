@@ -1,6 +1,6 @@
 import {
   collection, getDocs, getDoc, doc, query as fsQuery, where, orderBy, limit,
-  serverTimestamp, runTransaction,
+  serverTimestamp, runTransaction, onSnapshot,
   type Firestore, type QueryConstraint, type Transaction,
 } from 'firebase/firestore'
 import type {
@@ -190,6 +190,21 @@ export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepo
       collection(this.db, 'assets'), where('assignment.employeeId', '==', employeeId),
     ))
     return snap.docs.map(d => toAsset(d.id, d.data() as Record<string, unknown>))
+  }
+
+  subscribeAssetsForEmployee(
+    employeeId: string,
+    onData: (assets: Asset[]) => void,
+    onError?: (err: unknown) => void,
+  ): () => void {
+    const q = fsQuery(
+      collection(this.db, 'assets'), where('assignment.employeeId', '==', employeeId),
+    )
+    return onSnapshot(
+      q,
+      snap => onData(snap.docs.map(d => toAsset(d.id, d.data() as Record<string, unknown>))),
+      err => onError?.(err),
+    )
   }
 
   async loadSelfServiceRefData(): Promise<SelfServiceRefData> {
