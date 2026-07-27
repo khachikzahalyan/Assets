@@ -149,10 +149,19 @@ describe('EmployeeFormModal — edit mode', () => {
     expect(screen.queryByRole('textbox', { name: /Фамилия/i })).toBeNull()
   })
 
-  it('email is read-only in edit mode (no editable input for it)', () => {
+  it('email is editable in edit mode (owner request)', () => {
     renderEdit()
-    expect(screen.getByText('ivan@company.am')).toBeInTheDocument()
-    expect(screen.queryByRole('textbox', { name: /Gmail/i })).toBeNull()
+    const emailInput = screen.getByRole('textbox', { name: /Gmail/i })
+    expect(emailInput).toBeInTheDocument()
+    expect((emailInput as HTMLInputElement).value).toBe('ivan@company.am')
+  })
+
+  it('saving an edited email includes the new email in the payload', () => {
+    const { onSave } = renderEdit()
+    const emailInput = screen.getByRole('textbox', { name: /Gmail/i })
+    fireEvent.change(emailInput, { target: { value: 'ivan.new@company.am' } })
+    fireEvent.click(screen.getByRole('button', { name: /Сохранить/i }))
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ email: 'ivan.new@company.am' }))
   })
 
   it('position field is editable', () => {

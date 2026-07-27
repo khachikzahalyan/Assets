@@ -180,9 +180,9 @@ export function EmployeeFormModal({
       ? t('validation.emailFormat')
       : null
 
-  // Identity fields are locked in edit — only mutable fields matter for canSave
+  // Name fields stay locked in edit; email is now editable, so it must validate.
   const canSave = isEdit
-    ? !positionErr && !deptErr && !phoneErr
+    ? !positionErr && !deptErr && !phoneErr && !emailErr
     : !firstNameErr && !lastNameErr && !positionErr && !deptErr && !phoneErr && !emailErr
 
   // ── Submit ──────────────────────────────────────────────────────────────────
@@ -312,22 +312,19 @@ export function EmployeeFormModal({
           </FieldWrap>
           <FieldWrap
             label={t('form.gmail')}
-            required={!isEdit}
-            error={!isEdit && draft.email.length > 0 ? emailErr : null}
+            required
+            error={draft.email.length > 0 ? emailErr : null}
           >
-            {isEdit ? (
-              <ReadOnlyValue mono icon="mail">
-                {draft.email || '—'}
-              </ReadOnlyValue>
-            ) : (
-              <Input
-                ariaLabel={t('form.gmail')}
-                type="email"
-                value={draft.email}
-                onChange={v => set({ email: v })}
-                placeholder="ivan@gmail.com"
-              />
-            )}
+            {/* Email is editable in edit mode too (owner request): changing it
+                re-targets which Google account the person signs in with. An
+                already-linked account keeps working via users/{uid}.employeeId. */}
+            <Input
+              ariaLabel={t('form.gmail')}
+              type="email"
+              value={draft.email}
+              onChange={v => set({ email: v })}
+              placeholder="ivan@gmail.com"
+            />
           </FieldWrap>
         </div>
       </div>

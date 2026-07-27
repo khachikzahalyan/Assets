@@ -65,6 +65,7 @@ export function useEmployeesActions(d: EmployeesDataBag) {
         await repo.updateEmployee(
           submit.id,
           {
+            email: submit.email,
             position: submit.position,
             phone: submit.phone,
             departmentId: submit.departmentId,
