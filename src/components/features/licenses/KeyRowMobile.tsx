@@ -3,8 +3,11 @@
  * Wraps ui/MobileListRow with license-specific slot content.
  *
  * Layout (via MobileListRow):
- *   [28×28 icon tile] [masked-key title / subline, flex-1] [status pill / invCode, right]
- *   [Activate button footer] — only for free keys when showAction=true
+ *   FREE  (showAction=true):  [28×28 icon tile] [masked-key title / subline, flex-1] [Активировать button, right]
+ *   IN-USE (showAction=false): [28×28 icon tile] [masked-key title / subline, flex-1] [● Используется pill + invCode, right]
+ *
+ * The full-width footer button has been removed — the activate action lives
+ * in the right slot so the row stays a single compact line.
  */
 import type { CSSProperties, MouseEvent } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -86,7 +89,25 @@ export function KeyRowMobile({
     </div>
   )
 
-  const right = (
+  // For free rows: right slot shows a compact "Activate" button (no redundant pill).
+  // For in-use rows: right slot shows the "● Используется" pill + inventory code.
+  const right = showAction ? (
+    <button
+      type="button"
+      onClick={onActivate}
+      data-testid={`activate-btn-${lic.id}`}
+      className={[
+        'flex-shrink-0 inline-flex items-center gap-1',
+        'h-7 px-2.5 rounded-md',
+        'text-[12px] font-semibold whitespace-nowrap',
+        'text-accent-light border border-accent/30 bg-accent/10',
+        'hover:bg-accent/20 transition-colors',
+      ].join(' ')}
+    >
+      <Icon name="circle-check" size={12} />
+      {t('keys.activate')}
+    </button>
+  ) : (
     <div className="flex flex-col items-end gap-1 flex-shrink-0">
       <span
         className={[
@@ -97,25 +118,13 @@ export function KeyRowMobile({
       >
         {'● '}{statusLabel}
       </span>
-      {!isFree && assetInvCode && (
+      {assetInvCode && (
         <span className="font-['JetBrains_Mono',ui-monospace,monospace] text-[10px] text-text-subtle whitespace-nowrap">
           {assetInvCode}
         </span>
       )}
     </div>
   )
-
-  const footer = showAction ? (
-    <button
-      type="button"
-      onClick={onActivate}
-      data-testid={`activate-btn-${lic.id}`}
-      className="mt-1 w-full h-8 rounded-lg text-[13px] font-semibold text-accent-light border border-accent/30 bg-accent/10 hover:bg-accent/20 transition-colors inline-flex items-center justify-center gap-1.5"
-    >
-      <Icon name="zap" size={13} />
-      {t('keys.activate')}
-    </button>
-  ) : undefined
 
   return (
     <MobileListRow
@@ -127,7 +136,6 @@ export function KeyRowMobile({
       subline={sublineNode}
       right={right}
       onClick={onRowClick}
-      {...(footer !== undefined ? { footer } : {})}
     />
   )
 }

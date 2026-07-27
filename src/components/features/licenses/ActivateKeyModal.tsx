@@ -92,7 +92,7 @@ export function ActivateKeyModal({
         <header className="flex items-center justify-between px-5 py-4 border-b border-border flex-shrink-0">
           <div className="flex items-center gap-2.5">
             <span className="w-8 h-8 rounded-md bg-surface-2 text-accent inline-flex items-center justify-center">
-              <Icon name="zap" size={16} />
+              <Icon name="circle-check" size={16} />
             </span>
             <h2 id={ACTIVATE_TITLE_ID} className="text-[15px] font-bold text-text-primary tracking-tight">{t('activate.title')}</h2>
           </div>

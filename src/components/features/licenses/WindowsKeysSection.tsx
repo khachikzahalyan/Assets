@@ -251,7 +251,7 @@ export function WindowsKeysSection({
             data-testid={`activate-btn-${lic.id}`}
             className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-md text-[12px] font-semibold text-accent-light border border-accent/30 bg-accent/10 hover:bg-accent/20 transition-colors whitespace-nowrap"
           >
-            <Icon name="zap" size={12} />
+            <Icon name="circle-check" size={12} />
             {t('keys.activate')}
           </button>
         ),
