@@ -145,9 +145,10 @@ describe('decideSignIn (pure gate predicate)', () => {
     expect(r.allow).toBe(true)
   })
 
-  it('allows when email is found in /users (inUsers: true)', () => {
+  it('DENIES when an account already exists in /users (duplicate guard)', () => {
     const r = decideSignIn('registered@anywhere.example', settings, { inUsers: true, inEmployees: false })
-    expect(r.allow).toBe(true)
+    expect(r.allow).toBe(false)
+    if (!r.allow) expect(r.reason).toMatch(/already exists/i)
   })
 
   it('allows when email is found in /employees (inEmployees: true)', () => {
@@ -155,9 +156,14 @@ describe('decideSignIn (pure gate predicate)', () => {
     expect(r.allow).toBe(true)
   })
 
-  it('allows when email is found in both /users and /employees', () => {
+  it('DENIES when in both /users and /employees — the /users duplicate wins', () => {
     const r = decideSignIn('dual@company.example', settings, { inUsers: true, inEmployees: true })
-    expect(r.allow).toBe(true)
+    expect(r.allow).toBe(false)
+  })
+
+  it('DENIES a seed email that already has an account (no bypass for duplicates)', () => {
+    const r = decideSignIn('seed@other.example', settings, { inUsers: true, inEmployees: false })
+    expect(r.allow).toBe(false)
   })
 
   it('allows an email whose domain is in allowedEmailDomains (no lookup hit)', () => {
@@ -230,12 +236,20 @@ describe('assertEmailAllowed (mocked Firestore)', () => {
     await expect(assertEmailAllowed('worker@company.example', db)).resolves.toEqual({ path: 'employee', employeeId: 'employees_0' })
   })
 
-  it('resolves when email is found in /users (previously approved admin)', async () => {
+  it('REJECTS a new account when the email already has a /users account (duplicate)', async () => {
     const db = fakeDbStrings(
       { exists: true, data: () => ({ allowedEmailDomains: [], seedSuperAdmins: [] }) },
       { users: ['admin@company.example'] },
     )
-    await expect(assertEmailAllowed('admin@company.example', db)).resolves.toEqual({ path: 'registered', employeeId: null })
+    await expect(assertEmailAllowed('admin@company.example', db)).rejects.toThrow(/already exists/i)
+  })
+
+  it('REJECTS a duplicate even for a seed super_admin email (no bypass)', async () => {
+    const db = fakeDbStrings(
+      { exists: true, data: () => ({ allowedEmailDomains: [], seedSuperAdmins: ['seed@other.example'] }) },
+      { users: ['seed@other.example'] },
+    )
+    await expect(assertEmailAllowed('seed@other.example', db)).rejects.toThrow(/already exists/i)
   })
 
   it('resolves when email is found in /employees with a different casing in storage', async () => {

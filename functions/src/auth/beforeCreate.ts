@@ -77,8 +77,9 @@ export interface SystemLookup {
  * `{ allow: false; reason: string }` when all gates reject.
  *
  * Gate order:
+ *   0. Duplicate guard: an account already exists for this email → DENY.
  *   1. Seed bypass (exact, case-insensitive).
- *   2. Already registered in /users or /employees.
+ *   2. Invited employee (in /employees, no account yet).
  *   3. Domain allow-list (optional corporate path).
  *   4. Deny.
  */
@@ -87,10 +88,18 @@ export function decideSignIn(
   settings: GateSettings,
   lookup: SystemLookup = { inUsers: false, inEmployees: false },
 ): { allow: true } | { allow: false; reason: string } {
+  // Duplicate guard, FIRST (even before the seed bypass): beforeCreate fires
+  // only on NEW account creation, so an email already present in /users means a
+  // SECOND account is being created for it (e.g. Google + email-link with
+  // "multiple accounts per email" still on) — reject to keep one account/email.
+  // An existing user re-authenticating does not trigger this function.
+  if (lookup.inUsers) {
+    return { allow: false, reason: 'An account already exists for this email' }
+  }
   if (isSeedAdmin(email, settings.seedSuperAdmins)) {
     return { allow: true }
   }
-  if (lookup.inUsers || lookup.inEmployees) {
+  if (lookup.inEmployees) {
     return { allow: true }
   }
   if (isDomainAllowed(email, settings.allowedEmailDomains)) {
@@ -211,12 +220,9 @@ export async function assertEmailAllowed(
     ? rawSeed.filter((e): e is string => typeof e === 'string')
     : []
 
-  // Shortcut: seed bypass requires no collection lookup.
-  if (isSeedAdmin(email, seedEmails)) {
-    return { path: 'seed', employeeId: null }
-  }
-
-  // Perform system-registration lookup (fail-closed on error).
+  // Always run the lookup — NO seed shortcut. The duplicate guard must see
+  // inUsers even for a seed super_admin, otherwise a second account for the seed
+  // email (the exact bug we hit) would slip through the bypass.
   let lookup: SystemLookup = { inUsers: false, inEmployees: false }
   let employeeId: string | null = null
   if (email) {
@@ -239,9 +245,8 @@ export async function assertEmailAllowed(
     throw new HttpsError('permission-denied', decision.reason)
   }
 
-  // Path priority mirrors decideSignIn's gate order: an email that is BOTH in
-  // /users and /employees is 'registered' (existing account — do not touch).
-  if (lookup.inUsers) return { path: 'registered', employeeId: null }
+  // Path priority mirrors decideSignIn's gate order (inUsers already denied above).
+  if (isSeedAdmin(email, seedEmails)) return { path: 'seed', employeeId: null }
   if (employeeId !== null) return { path: 'employee', employeeId }
   return { path: 'domain', employeeId: null }
 }
