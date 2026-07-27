@@ -9,7 +9,8 @@ const AUTO_HIDE_MS = 30_000
 export interface RevealKeyButtonProps {
   collection: 'licenses' | 'server_licenses'
   licenseId: string
-  /** Injectable for tests — defaults to the imported revealLicenseKey CF wrapper. */
+  /** Injectable for tests — defaults to revealLicenseKey, which reads the secret
+   *  directly from Firestore (rules-gated to super/tech admin). No Cloud Function. */
   revealFn?: (collection: 'licenses' | 'server_licenses', licenseId: string) => Promise<string>
 }
 
