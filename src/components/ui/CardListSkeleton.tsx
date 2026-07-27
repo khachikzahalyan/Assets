@@ -195,13 +195,19 @@ export function CardListSkeleton({ rows = 10, variant = 'asset' }: CardListSkele
   //   outer:  p-[14px] rounded-xl border border-border flex items-center gap-2.5 w-full
   //   icon:   w-[34px] h-[34px] rounded-[9px]
   //   middle flex-1: title 14px bold + subline 11.5px mono mt-[2px]
-  //   right:  chip h-[18px] w-[64px] rounded-[6px]
+  //   right cluster: flex items-center gap-1.5 →
+  //     • comp-count dot-chip h-[18px] w-[64px] rounded-[6px] (always)
+  //     • service icon stub w-[20px] h-[20px] rounded-[6px] (conditional — ~1/4 of rows)
+  //
+  //   Real list wrapper: display:grid; gridTemplateColumns:'1fr'; gap:'8px' (no extra p).
+  //   Skeleton outer carries NO padding so caller's wrapper (max-md:px-[14px] max-md:pt-[10px])
+  //   aligns exactly with the real DevicesTab column wrapper.
     return (
       <div
         data-testid="card-list-skeleton"
         data-variant="part-device"
         aria-hidden="true"
-        className="flex flex-col gap-2 p-2"
+        className="flex flex-col gap-[8px]"
       >
         {Array.from({ length: rows }).map((_, i) => (
           <div
@@ -209,12 +215,22 @@ export function CardListSkeleton({ rows = 10, variant = 'asset' }: CardListSkele
             data-testid="card-list-skeleton-row"
             className="p-[14px] rounded-xl border border-border flex items-center gap-2.5"
           >
+            {/* Category icon tile — 34×34 rounded-[9px] */}
             <div className="w-[34px] h-[34px] rounded-[9px] anim-skeleton flex-shrink-0" />
+            {/* Middle: bold title + mono subline */}
             <div className="flex-1 min-w-0">
               <div className="h-[14px] w-[55%] rounded anim-skeleton" />
               <div className="h-[11px] w-[42%] rounded anim-skeleton mt-[2px]" />
             </div>
-            <div className="h-[18px] w-[64px] rounded-[6px] anim-skeleton flex-shrink-0" />
+            {/* Right cluster: comp-count chip (always) + service icon (most rows —
+                mirrors that isServiceOnly devices dominate; ~1 in 4 lacks it). */}
+            <div className="flex items-center gap-1.5 flex-shrink-0">
+              <div className="h-[18px] w-[64px] rounded-[6px] anim-skeleton" />
+              {/* Service icon stub — mirrors isService && <span w-[20px] h-[20px] rounded-[6px]> */}
+              {i % 4 !== 3 && (
+                <div className="w-[20px] h-[20px] rounded-[6px] anim-skeleton" />
+              )}
+            </div>
           </div>
         ))}
       </div>
@@ -255,7 +271,8 @@ export function CardListSkeleton({ rows = 10, variant = 'asset' }: CardListSkele
                 </div>
               ))}
             </div>
-            <div className="flex items-center justify-between">
+            {/* Employees row — mirrors SubscriptionCard: border-t border-border pt-1 */}
+            <div className="flex items-center justify-between pt-1 border-t border-border">
               <div className="h-[11px] w-[40%] rounded anim-skeleton" />
               <div className="h-[13px] w-[30%] rounded anim-skeleton" />
             </div>

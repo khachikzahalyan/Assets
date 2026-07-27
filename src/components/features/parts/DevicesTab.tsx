@@ -163,20 +163,18 @@ export function DevicesTab({
             containerClassName="flex-shrink-0 max-md:hidden"
           />
 
-          {/* Device card list: 2-col grid on desktop, full-width 1-col on mobile */}
+          {/* Device card list: 2-col grid on desktop, full-width 1-col on mobile.
+              MUST use Tailwind responsive classes — an inline style={{ display:'grid' }}
+              here would override max-md:hidden / max-md:flex on sibling elements and
+              can never be overridden by a Tailwind responsive class (inline wins).
+              grid-cols-1 collapses to 1 col on mobile; md:grid-cols-2 expands on ≥768px. */}
           {filtered.length === 0 ? (
             <div className="px-3 py-6 text-[14px] text-text-subtle text-center">
               {t('devices.emptyFiltered')}
             </div>
           ) : (
             <div
-              className="flex-1 overflow-y-auto min-h-0 devices-scroll"
-              style={{
-                display: 'grid',
-                gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
-                gap: '8px',
-                alignContent: 'start',
-              }}
+              className="flex-1 overflow-y-auto min-h-0 devices-scroll grid grid-cols-1 md:grid-cols-2 gap-2 content-start"
             >
               {filtered.map(a => (
                 <DeviceGridCard

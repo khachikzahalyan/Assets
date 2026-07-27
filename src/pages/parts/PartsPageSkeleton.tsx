@@ -85,16 +85,11 @@ export function PartsPageSkeleton() {
             />
           </div>
 
-          {/* Desktop: 2-col shimmer card grid — mirrors DeviceGridCard desktop footprint */}
-          <div
-            className="flex-1 overflow-y-auto min-h-0 devices-scroll max-md:hidden"
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(2, 1fr)',
-              gap: '8px',
-              alignContent: 'start',
-            }}
-          >
+          {/* Desktop: 2-col shimmer card grid — mirrors DeviceGridCard desktop footprint.
+              MUST be `hidden md:grid` (display via classes) — an inline `display:grid`
+              here would OVERRIDE max-md:hidden's display:none and leak the desktop
+              grid onto mobile (the exact bug). */}
+          <div className="hidden md:grid md:grid-cols-2 gap-2 content-start flex-1 overflow-y-auto min-h-0 devices-scroll">
             {Array.from({ length: 6 }).map((_, i) => (
               /* DeviceGridCard desktop: rounded-xl p-2.5 flex flex-col */
               <div key={i} className="bg-surface border border-border rounded-xl p-2.5 flex flex-col">
