@@ -5,12 +5,6 @@ import { CHIP_PALETTE } from '@/components/ui/chip'
 import { EmployeeAvatar } from './EmployeeAvatar'
 import type { Employee } from '@/domain/employee'
 
-/** Left accent bar per employee status */
-const STATUS_BORDER_L: Record<string, string> = {
-  active:     'border-l-emerald-400',
-  terminated: 'border-l-rose-400',
-}
-
 export interface EmployeeRowMobileProps {
   employee: Employee
   branchName: string
@@ -26,7 +20,6 @@ export interface EmployeeRowMobileProps {
  * Mobile employee list row on shared MobileListRow.
  * Used by EmployeesTable when isMobile (≤767px).
  *
- * Left accent bar: active=emerald, terminated=rose, else=slate.
  * Icon tile: EmployeeAvatar at size="sm" (28px RoleIcon).
  * Title: ФИО 13px/700.
  * Subline: «{должность} · {отдел}» 11px text-tertiary (omits missing parts, no dangling ·).
@@ -40,8 +33,6 @@ export const EmployeeRowMobile = memo(function EmployeeRowMobile({
   onRowClick,
 }: EmployeeRowMobileProps) {
   const { t } = useTranslation('employees')
-
-  const borderClass = STATUS_BORDER_L[employee.status] ?? 'border-l-slate-500'
 
   // Omit missing parts — no dangling separator
   const sublineParts = [employee.position, deptName].filter(Boolean)
@@ -89,7 +80,6 @@ export const EmployeeRowMobile = memo(function EmployeeRowMobile({
       title={titleNode}
       subline={sublineNode}
       right={right}
-      accentClass={borderClass}
       onClick={() => onRowClick(employee)}
       /* Fill contract (same as assets rows): rows + placeholder slots grow to
          distribute the card height so no clean band is left above pagination. */

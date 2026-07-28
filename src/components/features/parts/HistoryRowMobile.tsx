@@ -3,7 +3,6 @@
  * Wraps ui/MobileListRow with movement-specific slot content.
  *
  * Slot mapping:
- *   accentClass  → movement kind: emerald (receive/uninstall/move), amber (install), rose (broken)
  *   iconTile     → 28×28 kind-tinted tile using category icon
  *   title        → SKU label (13px bold truncate)
  *   subline      → install+assetCode: «invCode · assetName · Осталось N шт»
@@ -77,12 +76,6 @@ export const HistoryRowMobile = memo(function HistoryRowMobile({
     ? assetCategoryName
     : skuLabel
 
-  /* Left accent bar — kind-keyed */
-  const accentClass =
-    kind === 'broken'  ? 'border-l-rose-400'  :
-    kind === 'install' ? 'border-l-amber-400'  :
-    'border-l-emerald-400'
-
   /* Icon tile tint — kind-keyed (NOT category-keyed) */
   const tileCls =
     kind === 'broken'  ? 'bg-rose-500/15 text-rose-300'   :
@@ -153,7 +146,7 @@ export const HistoryRowMobile = memo(function HistoryRowMobile({
           pillCls,
         ].join(' ')}
       >
-        {'● '}{pillLabel}
+        {pillLabel}
       </span>
       <span className="font-['JetBrains_Mono',ui-monospace,monospace] text-[10px] text-text-subtle whitespace-nowrap tabular-nums">
         {fmtPartsDate(mv.at)}
@@ -164,7 +157,6 @@ export const HistoryRowMobile = memo(function HistoryRowMobile({
   /* No onClick — history rows are inert on mobile */
   return (
     <MobileListRow
-      accentClass={accentClass}
       iconTile={iconTile}
       title={titleNode}
       subline={sublineNode}

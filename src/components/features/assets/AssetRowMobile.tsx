@@ -4,24 +4,6 @@ import type { ChipColor } from '@/components/ui/chip'
 import { CHIP_PALETTE } from '@/components/ui/chip'
 import { Icon, MobileListRow } from '@/components/ui'
 
-/**
- * Maps ChipColor → Tailwind border-left class for the mobile row status accent bar.
- * Colours are the -400 lightness variants used in the prototype, matching the
- * CHIP_DOT hues closely without introducing new design tokens.
- */
-const STATUS_BORDER_L: Record<ChipColor, string> = {
-  green:  'border-l-emerald-400',
-  blue:   'border-l-sky-400',
-  amber:  'border-l-amber-400',
-  red:    'border-l-rose-400',
-  orange: 'border-l-orange-400',
-  gray:   'border-l-slate-500',
-  indigo: 'border-l-accent',
-  violet: 'border-l-violet-400',
-  teal:   'border-l-teal-400',
-  cyan:   'border-l-cyan-400',
-}
-
 export interface MobileCardProps {
   a: Asset
   title: string
@@ -76,7 +58,7 @@ export const MobileCard = memo(function MobileCard({
     return () => clearTimeout(timer)
   }, [isFocused])
 
-  const borderLClass = STATUS_BORDER_L[statusColor] ?? 'border-l-slate-500'
+  // Status is conveyed by the pill only — no colored left accent bar (owner request).
   const pillPalette  = CHIP_PALETTE[statusColor] ?? CHIP_PALETTE.gray
   // Remote work mode: mobile has no room for the «УДАЛЁННЫЙ» text badge (desktop
   // AssetRow), so we show an icon-only chip in the same cyan palette.
@@ -150,7 +132,6 @@ export const MobileCard = memo(function MobileCard({
       title={titleNode}
       subline={sublineNode}
       right={right}
-      accentClass={borderLClass}
       {...(outerStyle !== undefined ? { outerStyle } : {})}
       onClick={() => onRowClick?.(a)}
       {...(highlight ? { className: 'bg-accent/5 ring-2 ring-inset ring-accent/45' } : {})}

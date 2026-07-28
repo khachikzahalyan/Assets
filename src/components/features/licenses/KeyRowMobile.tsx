@@ -60,8 +60,6 @@ export function KeyRowMobile({
   // masked. In-use rows always stay masked (attached to a live device).
   const keyDisplay = isFree && revealedKey ? revealedKey : masked
 
-  // Left accent bar — mirrors STATUS_BORDER_L in AssetRowMobile
-  const borderL = isFree ? 'border-l-emerald-400' : 'border-l-sky-400'
   // Status pill — CHIP_PALETTE.green for free, CHIP_PALETTE.blue for in_use
   const pillPalette = isFree ? CHIP_PALETTE.green : CHIP_PALETTE.blue
   const statusLabel = isFree ? t('keys.statusFree') : t('keys.statusInUse')
@@ -150,7 +148,6 @@ export function KeyRowMobile({
     <MobileListRow
       dataTestId={`key-row-${lic.id}`}
       {...(outerStyle !== undefined ? { outerStyle } : {})}
-      accentClass={borderL}
       iconTile={iconTile}
       title={titleNode}
       subline={sublineNode}
