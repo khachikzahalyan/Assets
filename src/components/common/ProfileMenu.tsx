@@ -6,6 +6,7 @@ import { RoleIcon } from '@/components/ui/RoleIcon'
 import { Avatar } from '@/components/ui/avatar'
 import { Icon } from '@/components/ui/icon'
 import { Chip } from '@/components/ui/chip'
+import { useDismissOnOutside } from '@/hooks/useDismissOnOutside'
 
 export function ProfileMenu() {
   const [open, setOpen] = useState(false)
@@ -13,18 +14,13 @@ export function ProfileMenu() {
   const { user, role, setRole, signOut } = useAuth()
   const { t } = useTranslation(['common', 'nav'])
 
+  useDismissOnOutside([rootRef], () => setOpen(false), open)
+
   useEffect(() => {
     if (!open) return
-    const onDoc = (e: MouseEvent | TouchEvent) => {
-      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false)
-    }
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
-    document.addEventListener('mousedown', onDoc)
-    document.addEventListener('touchstart', onDoc)
     document.addEventListener('keydown', onKey)
     return () => {
-      document.removeEventListener('mousedown', onDoc)
-      document.removeEventListener('touchstart', onDoc)
       document.removeEventListener('keydown', onKey)
     }
   }, [open])
@@ -34,7 +30,7 @@ export function ProfileMenu() {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="ams-profile-trigger inline-flex items-center gap-2 h-9 pl-1 pr-2.5 rounded-lg hover:bg-surface-2 transition-colors"
+        className="ams-profile-trigger inline-flex items-center gap-2 h-9 pl-1 pr-2.5 rounded-lg hover:bg-surface-2 transition-colors max-md:w-9 max-md:gap-0 max-md:px-0 max-md:justify-center"
         title={user.name}
       >
         {/* Mobile (prototype): 28px rounded-square avatar, no chevron. Desktop unchanged. */}
@@ -52,7 +48,10 @@ export function ProfileMenu() {
 
       {open && (
         <div
-          className="ams-profile-dropdown absolute right-0 top-full mt-1.5 w-64 bg-surface-2 border border-border rounded-xl anim-dropdown-in overflow-hidden z-[200]"
+          /* Mobile (owner devtools mock): fixed to the viewport top-right just under
+             the topbar (top 49px / right 2px), 220px wide, 14px radius — instead of
+             the anchored absolute dropdown used on desktop. */
+          className="ams-profile-dropdown absolute right-0 top-full mt-1.5 w-64 max-md:fixed max-md:top-[49px] max-md:right-[2px] max-md:left-auto max-md:bottom-auto max-md:mt-0 max-md:w-[220px] max-md:rounded-[14px] bg-surface-2 border border-border rounded-xl anim-dropdown-in overflow-hidden z-[200]"
           style={{ boxShadow: '0 12px 32px rgba(0,0,0,0.55)' }}
         >
           {/* User header — compact centered profile card: everything on the
