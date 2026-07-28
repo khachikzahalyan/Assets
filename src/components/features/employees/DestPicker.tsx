@@ -3,6 +3,10 @@
  *
  * Ported from Warehouse/prototypes/employees.html lines 1599-1799.
  * All data (employees, departments, branches) is injected via props — no globals.
+ *
+ * Desktop: anchored fixed-position portal popover (z-60).
+ * Mobile (owner rule, 2026-07-28): opens its OWN MobileSheet (z-9000) above any
+ * parent modal — the cramped fixed popover was inaccessible inside HandoverModal.
  */
 import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react'
 import ReactDOM from 'react-dom'
@@ -10,6 +14,9 @@ import { useTranslation } from 'react-i18next'
 import { Icon } from '@/components/ui'
 import { DatePicker } from '@/components/ui'
 import { rafThrottle } from '@/lib/rafThrottle'
+import { useDismissOnOutside } from '@/hooks/useDismissOnOutside'
+import { useIsMobile } from '@/hooks/useIsMobile'
+import { MobileSheet } from '@/components/ui/MobileSheet'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -108,18 +115,14 @@ export function DestPicker({
   const [tempKind, setTempKind] = useState<'audit' | 'intern' | null>(null)
   const [returnDate, setReturnDate] = useState(() => plusDaysISO(7))
 
+  const isMobile = useIsMobile()
+
   const wrapRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
   const popoverRef = useRef<HTMLDivElement>(null)
 
   const updatePos = useCallback(() => {
     if (!triggerRef.current) return
-    const isMobile = window.matchMedia('(max-width: 768px)').matches
-    if (isMobile) {
-      const next: PopoverPos = { left: 8, right: 8, bottom: 8, width: 'auto' }
-      setPos((prev) => (samePopoverPos(prev, next) ? prev : next))
-      return
-    }
     const rect = triggerRef.current.getBoundingClientRect()
     const popoverHeight = 180
     const spaceBelow = window.innerHeight - rect.bottom
@@ -147,39 +150,31 @@ export function DestPicker({
       setReturnDate(plusDaysISO(7))
       return
     }
+    // Mobile uses MobileSheet — no positioning needed
+    if (isMobile) return
     updatePos()
-  }, [open, updatePos])
+  }, [open, isMobile, updatePos])
+
+  // Outside-press close — desktop only; MobileSheet handles its own backdrop
+  useDismissOnOutside([wrapRef, popoverRef], () => setOpen(false), open && !isMobile)
 
   useEffect(() => {
     if (!open) return
-    const onOutsideClick = (e: MouseEvent | TouchEvent) => {
-      if (
-        wrapRef.current &&
-        !wrapRef.current.contains(e.target as Node) &&
-        popoverRef.current &&
-        !popoverRef.current.contains(e.target as Node)
-      ) {
-        setOpen(false)
-      }
-    }
+    if (isMobile) return  // MobileSheet handles ESC and no scroll needed
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setOpen(false)
     }
     const onScrollResize = rafThrottle(updatePos)
-    document.addEventListener('mousedown', onOutsideClick)
-    document.addEventListener('touchstart', onOutsideClick)
     document.addEventListener('keydown', onKey)
     window.addEventListener('scroll', onScrollResize, true)
     window.addEventListener('resize', onScrollResize)
     return () => {
       onScrollResize.cancel()
-      document.removeEventListener('mousedown', onOutsideClick)
-      document.removeEventListener('touchstart', onOutsideClick)
       document.removeEventListener('keydown', onKey)
       window.removeEventListener('scroll', onScrollResize, true)
       window.removeEventListener('resize', onScrollResize)
     }
-  }, [open, updatePos])
+  }, [open, isMobile, updatePos])
 
   const commit = (next: Destination) => {
     onChange(next)
@@ -250,6 +245,194 @@ export function DestPicker({
     </div>
   )
 
+  // ── Shared picker content (rendered in both desktop popover and mobile sheet) ──
+
+  const filteredEmps = filteredList(activeEmps)
+  const filteredDepts = filteredList(departments)
+  const filteredBranches = filteredList(branches)
+
+  const pickerContent = (
+    <>
+      {!sub ? (
+        <div className="space-y-0.5">
+          {TOP_OPTS.map((opt) => (
+            <button
+              key={opt.kind}
+              type="button"
+              onClick={() => {
+                if (opt.sub) {
+                  setSub(opt.sub)
+                  setQuery('')
+                } else {
+                  commit({ kind: 'warehouse' })
+                }
+              }}
+              className="w-full text-left px-2.5 py-3 md:py-2 rounded-xl text-[14.5px] font-medium text-text-primary hover:bg-bg transition-colors duration-100 flex items-center gap-2.5"
+            >
+              <span
+                className={`inline-flex items-center justify-center w-[20px] h-[20px] rounded-[5px] shrink-0 ${opt.iconCls}`}
+              >
+                <Icon name={opt.icon} size={11} />
+              </span>
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div>
+          {/* Employee / department / branch search sub-panels */}
+          {sub !== 'temporary' && (
+            <>
+              {/* Sub-picker header: back + search */}
+              <div className="flex items-center gap-1 px-1 mb-1.5">
+                <button
+                  type="button"
+                  aria-label={t('dest.back')}
+                  onClick={() => {
+                    setSub(null)
+                    setQuery('')
+                  }}
+                  className="p-1 rounded-md text-text-subtle hover:text-text-secondary hover:bg-surface-2 transition-colors"
+                >
+                  <Icon name="arrow-left" size={12} />
+                </button>
+                <div className="ams-destpicker-search flex-1 flex items-center gap-1.5 bg-bg rounded-lg px-2 py-1">
+                  <Icon name="search" size={11} className="text-text-subtle shrink-0" />
+                  <input
+                    type="text"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder={t('dest.search')}
+                    aria-label={t('dest.search')}
+                    autoFocus={!isMobile}
+                    className="ams-destpicker-search-input flex-1 text-[14px] bg-transparent border-none outline-none placeholder:text-text-subtle text-text-primary min-w-0"
+                  />
+                </div>
+              </div>
+              <div className="max-h-[45vh] md:max-h-[160px] overflow-y-auto space-y-0.5">
+                {sub === 'employee' &&
+                  filteredEmps.map((e) => (
+                    <button
+                      key={e.id}
+                      type="button"
+                      onClick={() => commit({ kind: 'employee', id: e.id, label: e.name })}
+                      className="w-full text-left px-2.5 py-3 md:py-2 rounded-xl text-[14px] font-medium text-text-primary hover:bg-bg transition-colors duration-100 flex items-center gap-2 truncate"
+                    >
+                      <span
+                        className={`inline-flex items-center justify-center w-[18px] h-[18px] rounded-[4px] shrink-0 ${SUB_ICON.employee.iconCls}`}
+                      >
+                        <Icon name={SUB_ICON.employee.icon} size={11} />
+                      </span>
+                      <span className="truncate">{e.name}</span>
+                    </button>
+                  ))}
+                {sub === 'department' &&
+                  filteredDepts.map((d) => (
+                    <button
+                      key={d.id}
+                      type="button"
+                      onClick={() =>
+                        commit({ kind: 'department', id: d.id, label: d.name })
+                      }
+                      className="w-full text-left px-2.5 py-3 md:py-2 rounded-xl text-[14px] font-medium text-text-primary hover:bg-bg transition-colors duration-100 flex items-center gap-2 truncate"
+                    >
+                      <span
+                        className={`inline-flex items-center justify-center w-[18px] h-[18px] rounded-[4px] shrink-0 ${SUB_ICON.department.iconCls}`}
+                      >
+                        <Icon name={SUB_ICON.department.icon} size={11} />
+                      </span>
+                      <span className="truncate">{d.name}</span>
+                    </button>
+                  ))}
+                {sub === 'branch' &&
+                  filteredBranches.map((b) => (
+                    <button
+                      key={b.id}
+                      type="button"
+                      onClick={() => commit({ kind: 'branch', id: b.id, label: b.name })}
+                      className="w-full text-left px-2.5 py-3 md:py-2 rounded-xl text-[14px] font-medium text-text-primary hover:bg-bg transition-colors duration-100 flex items-center gap-2 truncate"
+                    >
+                      <span
+                        className={`inline-flex items-center justify-center w-[18px] h-[18px] rounded-[4px] shrink-0 ${SUB_ICON.branch.iconCls}`}
+                      >
+                        <Icon name={SUB_ICON.branch.icon} size={11} />
+                      </span>
+                      <span className="truncate">{b.name}</span>
+                    </button>
+                  ))}
+                {sub === 'employee' && filteredEmps.length === 0 && emptyState}
+                {sub === 'department' && filteredDepts.length === 0 && emptyState}
+                {sub === 'branch' && filteredBranches.length === 0 && emptyState}
+              </div>
+            </>
+          )}
+
+          {/* Temporary sub-panel */}
+          {sub === 'temporary' && (
+            <div className="px-1.5 pb-1">
+              <div className="flex items-center gap-1 px-0.5 mb-2">
+                <button
+                  type="button"
+                  aria-label={t('dest.back')}
+                  onClick={() => { setSub(null); setTempKind(null); setReturnDate(plusDaysISO(7)) }}
+                  className="p-1 rounded-md text-text-subtle hover:text-text-secondary hover:bg-surface-2 transition-colors"
+                >
+                  <Icon name="arrow-left" size={12} />
+                </button>
+                <span className="text-[12px] uppercase tracking-[0.06em] font-semibold text-text-tertiary">
+                  {t('dest.temporary')}
+                </span>
+              </div>
+              <div className="flex items-center gap-1 h-9 bg-bg border border-border rounded-lg overflow-hidden mb-2">
+                {(['audit', 'intern'] as const).map((k, i) => (
+                  <button
+                    key={k}
+                    type="button"
+                    onClick={() => setTempKind(k)}
+                    aria-pressed={tempKind === k}
+                    className={`flex-1 h-full text-[13px] font-medium transition-colors ${i > 0 ? 'border-l border-border' : ''}
+                      ${tempKind === k ? 'bg-rose-500/80 text-white' : 'text-text-tertiary hover:text-text-primary hover:bg-surface-2'}`}
+                  >
+                    {k === 'audit' ? t('dest.kindAudit') : t('dest.kindIntern')}
+                  </button>
+                ))}
+              </div>
+              <label htmlFor="dest-return-date" className="block text-[12px] uppercase tracking-[0.06em] font-semibold text-text-tertiary mb-1">
+                {t('dest.returnDate')}
+              </label>
+              <DatePicker
+                id="dest-return-date"
+                value={returnDate}
+                onChange={(v) => setReturnDate(v)}
+                placeholder={t('dest.returnDatePlaceholder')}
+              />
+              <button
+                type="button"
+                disabled={!tempKind || !returnDate}
+                onClick={() => {
+                  if (!tempKind) return
+                  const dd = returnDate.split('-')
+                  const short = `${dd[2]}.${dd[1]}`
+                  const kindLabel = tempKind === 'audit' ? t('dest.kindAudit') : t('dest.kindIntern')
+                  commit({
+                    kind: 'temporary',
+                    tempKind,
+                    expiresAt: returnDate,
+                    label: t('dest.tempLabel', { kind: kindLabel, date: short }),
+                  })
+                }}
+                className="mt-3 w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-[14px] bg-rose-500/80 text-white hover:bg-rose-500 disabled:opacity-35 disabled:cursor-not-allowed transition-colors"
+              >
+                <Icon name="check" size={13} />
+                {t('dest.tempConfirm')}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </>
+  )
+
   return (
     <div ref={wrapRef}>
       {/* Chip trigger */}
@@ -269,9 +452,8 @@ export function DestPicker({
         <Icon name="chevron-down" size={10} className="shrink-0 opacity-50" />
       </button>
 
-      {/* Popover — portaled to document.body to escape modal overflow clipping */}
-      {open &&
-        pos &&
+      {/* Desktop: portal popover — portaled to document.body to escape modal overflow clipping */}
+      {!isMobile && open && pos &&
         ReactDOM.createPortal(
           <div
             ref={popoverRef}
@@ -286,186 +468,19 @@ export function DestPicker({
             }}
             className="bg-surface shadow-2xl shadow-slate-900/15 rounded-2xl ring-1 ring-border p-1.5 anim-fade-slide-in"
           >
-            {!sub ? (
-              <div className="space-y-0.5">
-                {TOP_OPTS.map((opt) => (
-                  <button
-                    key={opt.kind}
-                    type="button"
-                    onClick={() => {
-                      if (opt.sub) {
-                        setSub(opt.sub)
-                        setQuery('')
-                      } else {
-                        commit({ kind: 'warehouse' })
-                      }
-                    }}
-                    className="w-full text-left px-2.5 py-2 rounded-xl text-[14.5px] font-medium text-text-primary hover:bg-bg transition-colors duration-100 flex items-center gap-2.5"
-                  >
-                    <span
-                      className={`inline-flex items-center justify-center w-[20px] h-[20px] rounded-[5px] shrink-0 ${opt.iconCls}`}
-                    >
-                      <Icon name={opt.icon} size={11} />
-                    </span>
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <div>
-                {/* Employee / department / branch search sub-panels */}
-                {sub !== 'temporary' && (
-                  <>
-                    {/* Sub-picker header: back + search */}
-                    <div className="flex items-center gap-1 px-1 mb-1.5">
-                      <button
-                        type="button"
-                        aria-label={t('dest.back')}
-                        onClick={() => {
-                          setSub(null)
-                          setQuery('')
-                        }}
-                        className="p-1 rounded-md text-text-subtle hover:text-text-secondary hover:bg-surface-2 transition-colors"
-                      >
-                        <Icon name="arrow-left" size={12} />
-                      </button>
-                      <div className="ams-destpicker-search flex-1 flex items-center gap-1.5 bg-bg rounded-lg px-2 py-1">
-                        <Icon name="search" size={11} className="text-text-subtle shrink-0" />
-                        <input
-                          type="text"
-                          value={query}
-                          onChange={(e) => setQuery(e.target.value)}
-                          placeholder={t('dest.search')}
-                          aria-label={t('dest.search')}
-                          autoFocus
-                          className="ams-destpicker-search-input flex-1 text-[14px] bg-transparent border-none outline-none placeholder:text-text-subtle text-text-primary min-w-0"
-                        />
-                      </div>
-                    </div>
-                    <div className="max-h-[160px] overflow-y-auto space-y-0.5">
-                      {sub === 'employee' &&
-                        filteredList(activeEmps).map((e) => (
-                          <button
-                            key={e.id}
-                            type="button"
-                            onClick={() => commit({ kind: 'employee', id: e.id, label: e.name })}
-                            className="w-full text-left px-2.5 py-2 rounded-xl text-[14px] font-medium text-text-primary hover:bg-bg transition-colors duration-100 flex items-center gap-2 truncate"
-                          >
-                            <span
-                              className={`inline-flex items-center justify-center w-[18px] h-[18px] rounded-[4px] shrink-0 ${SUB_ICON.employee.iconCls}`}
-                            >
-                              <Icon name={SUB_ICON.employee.icon} size={11} />
-                            </span>
-                            <span className="truncate">{e.name}</span>
-                          </button>
-                        ))}
-                      {sub === 'department' &&
-                        filteredList(departments).map((d) => (
-                          <button
-                            key={d.id}
-                            type="button"
-                            onClick={() =>
-                              commit({ kind: 'department', id: d.id, label: d.name })
-                            }
-                            className="w-full text-left px-2.5 py-2 rounded-xl text-[14px] font-medium text-text-primary hover:bg-bg transition-colors duration-100 flex items-center gap-2 truncate"
-                          >
-                            <span
-                              className={`inline-flex items-center justify-center w-[18px] h-[18px] rounded-[4px] shrink-0 ${SUB_ICON.department.iconCls}`}
-                            >
-                              <Icon name={SUB_ICON.department.icon} size={11} />
-                            </span>
-                            <span className="truncate">{d.name}</span>
-                          </button>
-                        ))}
-                      {sub === 'branch' &&
-                        filteredList(branches).map((b) => (
-                          <button
-                            key={b.id}
-                            type="button"
-                            onClick={() => commit({ kind: 'branch', id: b.id, label: b.name })}
-                            className="w-full text-left px-2.5 py-2 rounded-xl text-[14px] font-medium text-text-primary hover:bg-bg transition-colors duration-100 flex items-center gap-2 truncate"
-                          >
-                            <span
-                              className={`inline-flex items-center justify-center w-[18px] h-[18px] rounded-[4px] shrink-0 ${SUB_ICON.branch.iconCls}`}
-                            >
-                              <Icon name={SUB_ICON.branch.icon} size={11} />
-                            </span>
-                            <span className="truncate">{b.name}</span>
-                          </button>
-                        ))}
-                      {sub === 'employee' && filteredList(activeEmps).length === 0 && emptyState}
-                      {sub === 'department' && filteredList(departments).length === 0 && emptyState}
-                      {sub === 'branch' && filteredList(branches).length === 0 && emptyState}
-                    </div>
-                  </>
-                )}
-
-                {/* Temporary sub-panel */}
-                {sub === 'temporary' && (
-                  <div className="px-1.5 pb-1">
-                    <div className="flex items-center gap-1 px-0.5 mb-2">
-                      <button
-                        type="button"
-                        aria-label={t('dest.back')}
-                        onClick={() => { setSub(null); setTempKind(null); setReturnDate(plusDaysISO(7)) }}
-                        className="p-1 rounded-md text-text-subtle hover:text-text-secondary hover:bg-surface-2 transition-colors"
-                      >
-                        <Icon name="arrow-left" size={12} />
-                      </button>
-                      <span className="text-[12px] uppercase tracking-[0.06em] font-semibold text-text-tertiary">
-                        {t('dest.temporary')}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1 h-9 bg-bg border border-border rounded-lg overflow-hidden mb-2">
-                      {(['audit', 'intern'] as const).map((k, i) => (
-                        <button
-                          key={k}
-                          type="button"
-                          onClick={() => setTempKind(k)}
-                          aria-pressed={tempKind === k}
-                          className={`flex-1 h-full text-[13px] font-medium transition-colors ${i > 0 ? 'border-l border-border' : ''}
-                            ${tempKind === k ? 'bg-rose-500/80 text-white' : 'text-text-tertiary hover:text-text-primary hover:bg-surface-2'}`}
-                        >
-                          {k === 'audit' ? t('dest.kindAudit') : t('dest.kindIntern')}
-                        </button>
-                      ))}
-                    </div>
-                    <label htmlFor="dest-return-date" className="block text-[12px] uppercase tracking-[0.06em] font-semibold text-text-tertiary mb-1">
-                      {t('dest.returnDate')}
-                    </label>
-                    <DatePicker
-                      id="dest-return-date"
-                      value={returnDate}
-                      onChange={(v) => setReturnDate(v)}
-                      placeholder={t('dest.returnDatePlaceholder')}
-                    />
-                    <button
-                      type="button"
-                      disabled={!tempKind || !returnDate}
-                      onClick={() => {
-                        if (!tempKind) return
-                        const dd = returnDate.split('-')
-                        const short = `${dd[2]}.${dd[1]}`
-                        const kindLabel = tempKind === 'audit' ? t('dest.kindAudit') : t('dest.kindIntern')
-                        commit({
-                          kind: 'temporary',
-                          tempKind,
-                          expiresAt: returnDate,
-                          label: t('dest.tempLabel', { kind: kindLabel, date: short }),
-                        })
-                      }}
-                      className="mt-3 w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-[14px] bg-rose-500/80 text-white hover:bg-rose-500 disabled:opacity-35 disabled:cursor-not-allowed transition-colors"
-                    >
-                      <Icon name="check" size={13} />
-                      {t('dest.tempConfirm')}
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
+            {pickerContent}
           </div>,
           document.body,
         )}
+
+      {/* Mobile: own MobileSheet above parent modals */}
+      {isMobile && (
+        <MobileSheet open={open} onClose={() => setOpen(false)} title={chipLabel}>
+          <div className="px-2 pb-2">
+            {pickerContent}
+          </div>
+        </MobileSheet>
+      )}
     </div>
   )
 }

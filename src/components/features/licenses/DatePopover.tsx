@@ -1,11 +1,16 @@
 /**
- * DatePopover — portaled RU calendar with Сегодня / +6 мес / +1 год presets.
- * Sits above modals: z-[300]+.
+ * DatePopover — RU calendar with Сегодня / +6 мес / +1 год presets.
+ * Desktop: anchored portal popover above modals (z-[300]+).
+ * Mobile (owner rule, 2026-07-28): opens its OWN bottom sheet (MobileSheet,
+ * z-9000) layered above the parent form sheet — the cramped in-form popover
+ * was unusable; picking a day closes the sheet and returns to the form.
  */
 import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import ReactDOM from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@/components/ui'
+import { MobileSheet } from '@/components/ui/MobileSheet'
+import { useIsMobile } from '@/hooks/useIsMobile'
 
 const RU_MONTHS = [
   'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
@@ -52,6 +57,7 @@ export function DatePopover({
 }: DatePopoverProps) {
   const { t } = useTranslation('licenses')
   const [open, setOpen] = useState(false)
+  const isMobile = useIsMobile()
   const valueDate = parseLocalISO(value)
   const minDate = parseLocalISO(min ?? null)
   const today = new Date()
@@ -72,7 +78,7 @@ export function DatePopover({
   useEffect(() => { minDateRef.current = minDate })
 
   useLayoutEffect(() => {
-    if (!open || !triggerRef.current) return
+    if (!open || isMobile || !triggerRef.current) return
     const compute = () => {
       if (!triggerRef.current) return
       const rect = triggerRef.current.getBoundingClientRect()
@@ -93,7 +99,7 @@ export function DatePopover({
       window.removeEventListener('scroll', compute, true)
       window.removeEventListener('resize', compute)
     }
-  }, [open, direction])
+  }, [open, direction, isMobile])
 
   useEffect(() => {
     if (open) setView(valueDateRef.current ?? minDateRef.current ?? new Date())
@@ -138,7 +144,113 @@ export function DatePopover({
 
   const todayDisabled = !!minDate && today < minDate
 
-  const calendarNode = open ? (
+  // Touch targets grow inside the mobile sheet; desktop popover stays compact.
+  const navBtnSize = isMobile ? 'w-10 h-10' : 'w-7 h-7'
+  const dayCellSize = isMobile ? 'h-10 w-10 text-[14px]' : 'h-7 w-7 text-[13px]'
+  const presetBtnSize = isMobile ? 'h-10 text-[13px]' : 'h-7 text-[12px]'
+
+  const calendarInner = (
+    <>
+      {/* Month navigation */}
+      <div className="flex items-center justify-between mb-2">
+        <button
+          type="button"
+          onClick={() => { if (canGoPrev) setView(new Date(year, month - 1, 1)) }}
+          disabled={!canGoPrev}
+          aria-label={t('datePopover.prevMonth')}
+          className={`${navBtnSize} rounded-md flex items-center justify-center transition-colors ${
+            canGoPrev ? 'hover:bg-surface-2 text-text-primary' : 'text-text-subtle cursor-not-allowed'
+          }`}
+        >
+          <Icon name="chevron-left" size={14} />
+        </button>
+        <div className={`${isMobile ? 'text-[14px]' : 'text-[13px]'} font-semibold text-text-primary`}>
+          {RU_MONTHS[month]} {year}
+        </div>
+        <button
+          type="button"
+          onClick={() => setView(new Date(year, month + 1, 1))}
+          aria-label={t('datePopover.nextMonth')}
+          className={`${navBtnSize} rounded-md flex items-center justify-center hover:bg-surface-2 text-text-primary transition-colors`}
+        >
+          <Icon name="chevron-right" size={14} />
+        </button>
+      </div>
+
+      {/* Weekday headers */}
+      <div className="grid grid-cols-7 gap-0.5 mb-1">
+        {RU_WEEKDAYS.map(w => (
+          <div key={w} className="text-[11.5px] font-semibold text-text-tertiary text-center py-1">{w}</div>
+        ))}
+      </div>
+
+      {/* Day cells */}
+      <div className="grid grid-cols-7 gap-0.5">
+        {cells.map((d, i) => {
+          if (!d) return <div key={`ph-${i}`} />
+          const disabled = isDisabled(d)
+          const selected = isSelected(d)
+          const todayCell = isToday(d)
+          return (
+            <button
+              type="button"
+              key={toLocalISO(d)}
+              onClick={() => handlePick(d)}
+              disabled={disabled}
+              tabIndex={disabled ? -1 : 0}
+              className={[
+                `${dayCellSize} mx-auto rounded-md font-medium tabular-nums transition-colors flex items-center justify-center`,
+                disabled ? 'text-text-subtle opacity-50 line-through cursor-not-allowed select-none' : '',
+                !disabled && !selected ? 'text-text-primary hover:bg-accent/10 hover:text-accent-light' : '',
+                selected ? 'bg-orange-500 text-white hover:bg-orange-500' : '',
+                todayCell && !selected && !disabled ? 'ring-2 ring-accent/30' : '',
+                todayCell && selected ? 'ring-2 ring-accent/30' : '',
+              ].filter(Boolean).join(' ')}
+            >
+              {d.getDate()}
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Footer presets */}
+      <div className="mt-2 pt-2 border-t border-border flex items-center gap-1.5">
+        <button
+          type="button"
+          onClick={() => { if (!todayDisabled) handlePick(today) }}
+          disabled={todayDisabled}
+          className={`flex-1 ${presetBtnSize} rounded-md font-semibold transition-colors ${
+            todayDisabled
+              ? 'text-text-subtle opacity-50 cursor-not-allowed'
+              : 'text-accent-light hover:bg-accent/10'
+          }`}
+        >
+          {t('datePopover.today')}
+        </button>
+        {showOffsets && (
+          <>
+            <button
+              type="button"
+              onClick={() => pickOffset(6)}
+              className={`flex-1 ${presetBtnSize} rounded-md font-medium text-text-tertiary hover:text-text-primary hover:bg-surface-2 transition-colors`}
+            >
+              {t('datePopover.plus6m')}
+            </button>
+            <button
+              type="button"
+              onClick={() => pickOffset(12)}
+              className={`flex-1 ${presetBtnSize} rounded-md font-medium text-text-tertiary hover:text-text-primary hover:bg-surface-2 transition-colors`}
+            >
+              {t('datePopover.plus1y')}
+            </button>
+          </>
+        )}
+      </div>
+    </>
+  )
+
+  // Desktop: anchored popover. Mobile: own MobileSheet (rendered in the return below).
+  const calendarNode = open && !isMobile ? (
     <>
       <div
         onMouseDown={() => setOpen(false)}
@@ -161,101 +273,7 @@ export function DatePopover({
         aria-modal="true"
         aria-label={t('datePopover.aria')}
       >
-        {/* Month navigation */}
-        <div className="flex items-center justify-between mb-2">
-          <button
-            type="button"
-            onClick={() => { if (canGoPrev) setView(new Date(year, month - 1, 1)) }}
-            disabled={!canGoPrev}
-            aria-label={t('datePopover.prevMonth')}
-            className={`w-7 h-7 rounded-md flex items-center justify-center transition-colors ${
-              canGoPrev ? 'hover:bg-surface-2 text-text-primary' : 'text-text-subtle cursor-not-allowed'
-            }`}
-          >
-            <Icon name="chevron-left" size={14} />
-          </button>
-          <div className="text-[13px] font-semibold text-text-primary">
-            {RU_MONTHS[month]} {year}
-          </div>
-          <button
-            type="button"
-            onClick={() => setView(new Date(year, month + 1, 1))}
-            aria-label={t('datePopover.nextMonth')}
-            className="w-7 h-7 rounded-md flex items-center justify-center hover:bg-surface-2 text-text-primary transition-colors"
-          >
-            <Icon name="chevron-right" size={14} />
-          </button>
-        </div>
-
-        {/* Weekday headers */}
-        <div className="grid grid-cols-7 gap-0.5 mb-1">
-          {RU_WEEKDAYS.map(w => (
-            <div key={w} className="text-[11.5px] font-semibold text-text-tertiary text-center py-1">{w}</div>
-          ))}
-        </div>
-
-        {/* Day cells */}
-        <div className="grid grid-cols-7 gap-0.5">
-          {cells.map((d, i) => {
-            if (!d) return <div key={`ph-${i}`} />
-            const disabled = isDisabled(d)
-            const selected = isSelected(d)
-            const todayCell = isToday(d)
-            return (
-              <button
-                type="button"
-                key={toLocalISO(d)}
-                onClick={() => handlePick(d)}
-                disabled={disabled}
-                tabIndex={disabled ? -1 : 0}
-                className={[
-                  'h-7 w-7 mx-auto rounded-md text-[13px] font-medium tabular-nums transition-colors flex items-center justify-center',
-                  disabled ? 'text-text-subtle opacity-50 line-through cursor-not-allowed select-none' : '',
-                  !disabled && !selected ? 'text-text-primary hover:bg-accent/10 hover:text-accent-light' : '',
-                  selected ? 'bg-orange-500 text-white hover:bg-orange-500' : '',
-                  todayCell && !selected && !disabled ? 'ring-2 ring-accent/30' : '',
-                  todayCell && selected ? 'ring-2 ring-accent/30' : '',
-                ].filter(Boolean).join(' ')}
-              >
-                {d.getDate()}
-              </button>
-            )
-          })}
-        </div>
-
-        {/* Footer presets */}
-        <div className="mt-2 pt-2 border-t border-border flex items-center gap-1.5">
-          <button
-            type="button"
-            onClick={() => { if (!todayDisabled) handlePick(today) }}
-            disabled={todayDisabled}
-            className={`flex-1 h-7 rounded-md text-[12px] font-semibold transition-colors ${
-              todayDisabled
-                ? 'text-text-subtle opacity-50 cursor-not-allowed'
-                : 'text-accent-light hover:bg-accent/10'
-            }`}
-          >
-            {t('datePopover.today')}
-          </button>
-          {showOffsets && (
-            <>
-              <button
-                type="button"
-                onClick={() => pickOffset(6)}
-                className="flex-1 h-7 rounded-md text-[12px] font-medium text-text-tertiary hover:text-text-primary hover:bg-surface-2 transition-colors"
-              >
-                {t('datePopover.plus6m')}
-              </button>
-              <button
-                type="button"
-                onClick={() => pickOffset(12)}
-                className="flex-1 h-7 rounded-md text-[12px] font-medium text-text-tertiary hover:text-text-primary hover:bg-surface-2 transition-colors"
-              >
-                {t('datePopover.plus1y')}
-              </button>
-            </>
-          )}
-        </div>
+        {calendarInner}
       </div>
     </>
   ) : null
@@ -282,6 +300,13 @@ export function DatePopover({
         <Icon name="calendar" size={13} className={`shrink-0 ${displayValue ? 'text-accent-light' : 'text-text-subtle'}`} />
       </button>
       {ReactDOM.createPortal(calendarNode, document.body)}
+      {/* Mobile: the calendar opens as its own bottom sheet ABOVE the parent
+          form modal; picking a day (or backdrop/Escape) returns to the form. */}
+      {isMobile && (
+        <MobileSheet open={open} onClose={() => setOpen(false)} title={label ?? t('datePopover.aria')}>
+          <div className="px-4 pt-1">{calendarInner}</div>
+        </MobileSheet>
+      )}
     </div>
   )
 }

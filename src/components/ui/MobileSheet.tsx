@@ -6,6 +6,13 @@ export interface MobileSheetProps {
   open: boolean
   onClose: () => void
   title?: string
+  /**
+   * Fixed panel height (e.g. '78vh'). Without it the sheet sizes to content
+   * (up to 85vh). With it the panel becomes a flex column of constant height —
+   * switching inner tabs or empty states never resizes the sheet; give your
+   * scrollable region `flex-1 min-h-0 overflow-y-auto`.
+   */
+  height?: string
   children: React.ReactNode
 }
 
@@ -16,7 +23,7 @@ export interface MobileSheetProps {
  * Closes on: backdrop tap, Escape key.
  * Pull-handle rendered via ::before CSS on .ams-mobile-sheet-panel.
  */
-export function MobileSheet({ open, onClose, title, children }: MobileSheetProps) {
+export function MobileSheet({ open, onClose, title, height, children }: MobileSheetProps) {
   // Body-scroll-lock — shared ref-counted lock (composes with nested lockers).
   useBodyScrollLock(open)
 
@@ -43,9 +50,12 @@ export function MobileSheet({ open, onClose, title, children }: MobileSheetProps
     >
       {/* Panel */}
       <div
-        className="ams-mobile-sheet-panel w-full bg-surface rounded-t-[18px] overflow-y-auto anim-sheet-in"
+        className={`ams-mobile-sheet-panel w-full bg-surface rounded-t-[18px] anim-sheet-in ${
+          height ? 'flex flex-col overflow-hidden' : 'overflow-y-auto'
+        }`}
         style={{
           maxHeight: '85vh',
+          ...(height ? { height } : {}),
           paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)',
           boxSizing: 'border-box',
         }}

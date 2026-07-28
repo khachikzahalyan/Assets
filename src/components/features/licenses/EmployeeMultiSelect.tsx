@@ -1,11 +1,15 @@
 /**
- * EmployeeMultiSelect — portaled searchable multi-select trigger.
- * Panel renders above z-[200] modals (z-[300]+).
+ * EmployeeMultiSelect — searchable multi-select trigger.
+ * Desktop: anchored portal panel above z-[200] modals (z-[300]+).
+ * Mobile (owner rule, 2026-07-28): opens its OWN bottom sheet (MobileSheet,
+ * z-9000) above the parent form sheet; «Готово» / backdrop returns to the form.
  */
 import { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react'
 import ReactDOM from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@/components/ui'
+import { MobileSheet } from '@/components/ui/MobileSheet'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import { RoleIcon } from '@/components/ui/RoleIcon'
 import type { Employee } from '@/domain/employee'
 
@@ -24,6 +28,7 @@ export function EmployeeMultiSelect({
 }: EmployeeMultiSelectProps) {
   const { t } = useTranslation('licenses')
   const [open, setOpen] = useState(false)
+  const isMobile = useIsMobile()
   const [search, setSearch] = useState('')
   const triggerRef = useRef<HTMLDivElement>(null)
   const searchRef = useRef<HTMLInputElement>(null)
@@ -32,7 +37,7 @@ export function EmployeeMultiSelect({
   }>({ top: null, bottom: null, left: null, width: null })
 
   useLayoutEffect(() => {
-    if (!open || !triggerRef.current) return
+    if (!open || isMobile || !triggerRef.current) return
     const compute = () => {
       if (!triggerRef.current) return
       const rect = triggerRef.current.getBoundingClientRect()
@@ -52,16 +57,17 @@ export function EmployeeMultiSelect({
       window.removeEventListener('scroll', compute, true)
       window.removeEventListener('resize', compute)
     }
-  }, [open])
+  }, [open, isMobile])
 
   useEffect(() => {
     let id: ReturnType<typeof setTimeout> | undefined
-    if (open && searchRef.current) {
+    // No autofocus on mobile — the keyboard would jump over the fresh sheet.
+    if (open && !isMobile && searchRef.current) {
       id = setTimeout(() => searchRef.current?.focus(), 30)
     }
     if (!open) setSearch('')
     return () => { if (id !== undefined) clearTimeout(id) }
-  }, [open])
+  }, [open, isMobile])
 
   useEffect(() => {
     if (!open) return
@@ -85,7 +91,71 @@ export function EmployeeMultiSelect({
   const shown = selected.slice(0, 5)
   const overflow = selected.length - shown.length
 
-  const panelNode = open ? (
+  const panelInner = (
+    <>
+      {/* Search */}
+      <div className="px-2 pt-2 pb-1.5 border-b border-border flex-shrink-0">
+        <div className="relative">
+          <Icon name="search" size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-subtle pointer-events-none" />
+          <input
+            ref={searchRef}
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder={t('multiselect.searchPlaceholder')}
+            aria-label={t('multiselect.searchAria')}
+            className="w-full h-9 pl-7 pr-2 text-[13.5px] bg-transparent text-text-primary placeholder:text-text-subtle focus:outline-none"
+          />
+        </div>
+      </div>
+
+      {/* Employee list */}
+      <div className={isMobile ? 'overflow-y-auto max-h-[45vh] py-1' : 'overflow-y-auto flex-1 py-1'}>
+        {filtered.length === 0 ? (
+          <div className="px-3 py-6 text-center text-[13px] text-text-subtle">{t('manage.notFound')}</div>
+        ) : filtered.map(e => {
+          const isSel = selected.includes(e.id)
+          const fullName = `${e.firstName} ${e.lastName}`.trim()
+          return (
+            <button
+              key={e.id}
+              type="button"
+              role="option"
+              aria-selected={isSel}
+              onClick={() => onToggle(e.id)}
+              className={`w-full flex items-center gap-2.5 px-3 ${isMobile ? 'py-3' : 'py-2.5'} text-left transition-colors ${
+                isSel ? 'bg-accent/10 hover:bg-accent/15' : 'hover:bg-surface-2'
+              }`}
+            >
+              <span className={`text-[13.5px] flex-1 min-w-0 truncate ${isSel ? 'text-text-primary font-medium' : 'text-text-primary'}`}>
+                {fullName}
+              </span>
+              {e.position && (
+                <span className={`text-[12px] flex-shrink-0 ml-2 ${isSel ? 'text-accent-light' : 'text-text-subtle'}`}>
+                  {e.position}
+                </span>
+              )}
+              {isSel && <Icon name="check" size={14} className="ml-1 shrink-0 text-accent" />}
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Done button */}
+      <div className="px-2 py-2 border-t border-border flex-shrink-0">
+        <button
+          type="button"
+          onClick={() => setOpen(false)}
+          className={`w-full ${isMobile ? 'h-11' : 'h-8'} rounded-lg bg-accent hover:bg-accent-hover text-white text-[13px] font-semibold transition-colors`}
+        >
+          {t('multiselect.done')}{selected.length > 0 ? ` (${selected.length})` : ''}
+        </button>
+      </div>
+    </>
+  )
+
+  // Desktop: anchored panel. Mobile: own MobileSheet (rendered in the return below).
+  const panelNode = open && !isMobile ? (
     <>
       <div
         onMouseDown={() => setOpen(false)}
@@ -108,64 +178,7 @@ export function EmployeeMultiSelect({
         aria-multiselectable="true"
         aria-label={t('multiselect.placeholder')}
       >
-        {/* Search */}
-        <div className="px-2 pt-2 pb-1.5 border-b border-border flex-shrink-0">
-          <div className="relative">
-            <Icon name="search" size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-subtle pointer-events-none" />
-            <input
-              ref={searchRef}
-              type="text"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder={t('multiselect.searchPlaceholder')}
-              aria-label={t('multiselect.searchAria')}
-              className="w-full h-9 pl-7 pr-2 text-[13.5px] bg-transparent text-text-primary placeholder:text-text-subtle focus:outline-none"
-            />
-          </div>
-        </div>
-
-        {/* Employee list */}
-        <div className="overflow-y-auto flex-1 py-1">
-          {filtered.length === 0 ? (
-            <div className="px-3 py-6 text-center text-[13px] text-text-subtle">{t('manage.notFound')}</div>
-          ) : filtered.map(e => {
-            const isSel = selected.includes(e.id)
-            const fullName = `${e.firstName} ${e.lastName}`.trim()
-            return (
-              <button
-                key={e.id}
-                type="button"
-                role="option"
-                aria-selected={isSel}
-                onClick={() => onToggle(e.id)}
-                className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-left transition-colors ${
-                  isSel ? 'bg-accent/10 hover:bg-accent/15' : 'hover:bg-surface-2'
-                }`}
-              >
-                <span className={`text-[13.5px] flex-1 min-w-0 truncate ${isSel ? 'text-text-primary font-medium' : 'text-text-primary'}`}>
-                  {fullName}
-                </span>
-                {e.position && (
-                  <span className={`text-[12px] flex-shrink-0 ml-2 ${isSel ? 'text-accent-light' : 'text-text-subtle'}`}>
-                    {e.position}
-                  </span>
-                )}
-                {isSel && <Icon name="check" size={14} className="ml-1 shrink-0 text-accent" />}
-              </button>
-            )
-          })}
-        </div>
-
-        {/* Done button */}
-        <div className="px-2 py-2 border-t border-border flex-shrink-0">
-          <button
-            type="button"
-            onClick={() => setOpen(false)}
-            className="w-full h-8 rounded-lg bg-accent hover:bg-accent-hover text-white text-[13px] font-semibold transition-colors"
-          >
-            {t('multiselect.done')}{selected.length > 0 ? ` (${selected.length})` : ''}
-          </button>
-        </div>
+        {panelInner}
       </div>
     </>
   ) : null
@@ -217,6 +230,13 @@ export function EmployeeMultiSelect({
         />
       </button>
       {ReactDOM.createPortal(panelNode, document.body)}
+      {/* Mobile: the picker opens as its own bottom sheet ABOVE the parent
+          form modal; «Готово» / backdrop / Escape returns to the form. */}
+      {isMobile && (
+        <MobileSheet open={open} onClose={() => setOpen(false)} title={placeholder || t('multiselect.placeholder')}>
+          <div className="flex flex-col">{panelInner}</div>
+        </MobileSheet>
+      )}
     </div>
   )
 }
