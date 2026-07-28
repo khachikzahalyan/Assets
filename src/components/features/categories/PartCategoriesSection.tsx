@@ -245,7 +245,6 @@ export function PartCategoriesSection({
         canDeleteRow={() => true}
         minRows={PAGE_SIZE}
         mobileIcon={mobileIcon}
-        mobileMinRows={PAGE_SIZE}
         mobileSubline={mobileSubline}
       />
     )

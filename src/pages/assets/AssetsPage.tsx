@@ -12,6 +12,7 @@ import type { AssetRepository } from '@/domain/asset/AssetRepository'
 import { getSharedAssetRepository } from '@/infra/repositories'
 import type { ExportRow } from '@/lib/exportXlsx'
 import { deriveDisplayStatusId, isTemporaryAssignment } from '@/components/features/assets/assetFormat'
+import { resolveCategoryCapabilities } from '@/domain/asset'
 
 const PAGE_SIZE = 10
 
@@ -164,7 +165,16 @@ export function AssetsPage({ repository }: AssetsPageProps) {
     showTemp
 
   // Row and create navigation handlers — stable references for memoized children.
-  const handleRowClick = useCallback((a: Asset) => navigate(`/assets/${a.id}`), [navigate])
+  // Pass `hasSpecs` in router state (Finding 2) so the detail-page loading skeleton
+  // mirrors the correct 2-tab (history) vs 3-tab (specs) layout with no tab jump.
+  // Resolved synchronously here from the already-loaded category catalog — display
+  // hint only, never a data source. Undefined when the category is unknown → the
+  // skeleton falls back to the specs variant.
+  const handleRowClick = useCallback((a: Asset) => {
+    const cat = ref?.categories.find(c => c.id === a.categoryId)
+    const hasSpecs = cat ? resolveCategoryCapabilities(cat).hasSpecs : undefined
+    navigate(`/assets/${a.id}`, hasSpecs !== undefined ? { state: { hasSpecs } } : undefined)
+  }, [navigate, ref])
   const handleNavigateCreate = useCallback(() => navigate('/assets/new'), [navigate])
   const handleNavigateImport = useCallback(() => navigate('/import'), [navigate])
 

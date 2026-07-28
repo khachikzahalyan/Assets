@@ -330,6 +330,32 @@ describe('LicensesPage — new two-tab shape', () => {
     expect(screen.getByText('Jira Cloud')).toBeInTheDocument()
   })
 
+  // ── 8b. Keys-tab loading skeleton — real filter TabStrip + mounted pagination ──
+
+  describe('keys-tab loading skeleton', () => {
+    it('renders the real filter TabStrip labels AND mounts the pagination while loading', () => {
+      // Arrange — a workstation repo whose listLicenses never resolves keeps wLoading=true.
+      const pendingWRepo = {
+        listLicenses: () => new Promise<never>(() => {}),
+      } as unknown as InMemoryWorkstationLicenseRepository
+
+      // Act
+      renderPage({ wRepo: pendingWRepo })
+
+      // Assert — filter labels are LOCAL chrome, rendered real during load (P2)…
+      expect(screen.getByTestId('filter-in_use')).toBeInTheDocument()
+      expect(screen.getByTestId('filter-free')).toBeInTheDocument()
+      // …and the skeleton itself is present (the table shimmer)…
+      expect(screen.getByTestId('table-skeleton')).toBeInTheDocument()
+      // …and the pagination bar is mounted at the card bottom (no ~44px shift on load).
+      // The skeleton section is aria-hidden, so query by attribute (role queries skip
+      // the a11y tree). LicensesPagination → Pagination renders prev/next buttons with
+      // localized aria-labels — their presence proves the bar is mounted during load.
+      expect(document.querySelector(`button[aria-label="${i18n.t('licenses:pagination.prev')}"]`)).not.toBeNull()
+      expect(document.querySelector(`button[aria-label="${i18n.t('licenses:pagination.next')}"]`)).not.toBeNull()
+    })
+  })
+
   // ── 8. Assignee-save failure surfaces user-visible feedback ───────────────────
 
   it('shows an error alert when updating subscription assignees fails', async () => {

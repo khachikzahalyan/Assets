@@ -71,12 +71,19 @@ vi.mock('@/hooks/useParts', () => ({
 import { PartsPage } from './PartsPage'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-function renderPage() {
+function renderPage(initialEntries: string[] = ['/parts']) {
   return render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={initialEntries}>
       <PartsPage />
     </MemoryRouter>,
   )
+}
+
+const loadingRef = {
+  ref: null as unknown, partCategories: TEST_PART_CATEGORIES, loading: true, error: null,
+  reload: vi.fn(), receiveParts: vi.fn(),
+  installPart: vi.fn(), uninstallPart: vi.fn(), createModelSku: vi.fn(),
+  recordService: vi.fn(),
 }
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
@@ -147,6 +154,29 @@ describe('PartsPage', () => {
     expect(container.querySelector('.anim-skeleton')).toBeInTheDocument()
     expect(screen.getByText('tabs.warehouse')).toBeInTheDocument()
     expect(screen.getByText('tabs.devices')).toBeInTheDocument()
+  })
+
+  it('loading skeleton mirrors DEVICES by default (devices marker present, warehouse absent)', () => {
+    // Arrange — loading, no ?tab (devices is the default active tab)
+    mockUseParts.mockReturnValue(loadingRef)
+    // Act
+    renderPage(['/parts'])
+    // Assert — devices skeleton renders the family pills + no-selection prompt;
+    // the warehouse «ИСТОРИЯ» metrics strip is NOT present.
+    expect(screen.getByText('device.selectPrompt')).toBeInTheDocument()
+    expect(screen.queryByText('warehouse.history')).not.toBeInTheDocument()
+  })
+
+  it('loading skeleton mirrors WAREHOUSE when ?tab=warehouse is pinned on reload', () => {
+    // Arrange — loading with the URL pinning the warehouse tab
+    mockUseParts.mockReturnValue(loadingRef)
+    // Act
+    renderPage(['/parts?tab=warehouse'])
+    // Assert — warehouse skeleton renders the real «ИСТОРИЯ» metrics strip
+    // (both breakpoint branches mount it → getAllByText); the devices-only
+    // no-selection prompt is NOT present.
+    expect(screen.getAllByText('warehouse.history').length).toBeGreaterThan(0)
+    expect(screen.queryByText('device.selectPrompt')).not.toBeInTheDocument()
   })
 
   it('shows error state when useParts returns an error', () => {

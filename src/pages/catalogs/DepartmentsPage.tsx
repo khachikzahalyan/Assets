@@ -129,7 +129,12 @@ export function DepartmentsPage({ repository, employeeRepository }: DepartmentsP
   function renderTableRegion() {
     if (loading) return isMobile
       ? <CardListSkeleton rows={10} variant="catalog" />
-      : <TableSkeleton rows={PAGE_SIZE} columns={2} gridTemplate="minmax(160px,2fr) 80px" lastColAction headers={[t('col.name'), '']} />
+      : canMutate
+        // super_admin: name + employees + 80px action track (mirrors CatalogTable's
+        // appended __actions column when canMutate). Employees track is the default '1fr'.
+        ? <TableSkeleton rows={PAGE_SIZE} columns={3} gridTemplate="minmax(160px,2fr) 1fr 80px" lastColAction headers={[t('col.name'), t('col.employees'), '']} />
+        // asset_admin: view-only — CatalogTable drops the action column, so no 80px track.
+        : <TableSkeleton rows={PAGE_SIZE} columns={2} gridTemplate="minmax(160px,2fr) 1fr" headers={[t('col.name'), t('col.employees')]} />
     if (fetchError && rows.length === 0) return <ErrorState onRetry={reload} />
     if (rows.length === 0) return <EmptyState icon="network" title={t('empty.title')} description={t('empty.desc')} />
     return (
@@ -143,7 +148,6 @@ export function DepartmentsPage({ repository, employeeRepository }: DepartmentsP
             <Icon name="network" size={14} />
           </span>
         )}
-        mobileMinRows={PAGE_SIZE}
       />
     )
   }

@@ -8,6 +8,7 @@ import {
   WindowsKeysSection,
   SubscriptionsSection,
   AddSubscriptionModal,
+  LicensesPagination,
 } from '@/components/features/licenses'
 import type {
   WorkstationLicenseRepository,
@@ -416,38 +417,63 @@ export function LicensesPage({
         <>
           {wLoading && (
             /*
-             * Keys-tab skeleton — section header band + card body.
-             * Header band mirrors WindowsKeysSection header exactly:
-             *   Desktop: real icon + title (local chrome, no async data).
-             *   Mobile:  shimmer strip — filter labels are local chrome but counts
-             *            are async; rendering real labels with 0 would be misleading,
-             *            so we shimmer the full strip instead.
-             * Card body: CardListSkeleton (mobile) / TableSkeleton (desktop).
+             * Keys-tab skeleton — pixel copy of WindowsKeysSection:
+             *   section (flex flex-col flex-1 min-h-0) → header (real filter TabStrip)
+             *   → body (flex flex-col flex-1 min-h-0) → skeleton rows → REAL pagination.
+             *
+             * P2: the filter tab LABELS are local chrome (known strings) — render the
+             * REAL TabStrip (size="sm") with the same tabs, mirroring the default
+             * 'in_use' active state. Counts are async → pass 0 (badge always present,
+             * zero layout shift when the real count arrives) — the AssetsToolbar /
+             * GroupTabs precedent (always render the badge, default 0 during load).
+             *
+             * Pagination: WindowsKeysSection ALWAYS mounts LicensesPagination at the
+             * card bottom; the skeleton mounts it too (total=0 → totalPages=1, disabled
+             * prev/next, identical footprint) so there's no ~44px shift on data arrival.
+             *
+             * Default 'in_use' filter → 3-column table (no action column, which only
+             * appears on the 'free' filter), matching the loaded default view.
              */
-            <div
-              className="bg-surface border border-border rounded-xl overflow-hidden max-md:rounded-t-none max-md:border-t-0 max-md:!mt-0 max-md:flex-1 max-md:min-h-0 md:flex md:flex-col md:flex-1 md:min-h-0"
+            <section
+              className="bg-surface border border-border rounded-xl shadow-sm shadow-black/30 overflow-hidden flex flex-col flex-1 min-h-0 max-md:rounded-t-none max-md:border-t-0 max-md:!mt-0"
               aria-hidden="true"
             >
-              {/* Section header band — matches WindowsKeysSection header (chips only,
-                  no title; vertical padding on the chip stubs like the real buttons).
-                  Shimmer strip: filter labels are local chrome but counts are async —
-                  real labels with 0 would mislead. */}
+              {/* Header — identical geometry to WindowsKeysSection: real filter TabStrip */}
               <header className="flex items-center px-5 border-b border-border max-md:px-[14px]">
-                <div className="max-md:w-full flex items-center gap-0.5 py-3 max-md:py-2.5 overflow-x-auto no-scrollbar flex-nowrap">
-                  <div className="h-[21px] w-[110px] mx-3 rounded anim-skeleton flex-shrink-0" />
-                  <div className="h-[21px] w-[90px] mx-3 rounded anim-skeleton flex-shrink-0" />
+                <div className="max-md:w-full max-md:overflow-x-auto max-md:no-scrollbar">
+                  <TabStrip<'in_use' | 'free'>
+                    tabs={[
+                      { id: 'in_use', label: t('keys.statusInUse'), count: 0, testId: 'filter-in_use' },
+                      { id: 'free',   label: t('keys.statusFree'),  count: 0, testId: 'filter-free'   },
+                    ]}
+                    active="in_use"
+                    onChange={() => {}}
+                    size="sm"
+                  />
                 </div>
               </header>
-              {isMobile
-                ? <CardListSkeleton rows={10} variant="key" />
-                : (
-                  /* flex-1 min-h-0 gives TableSkeleton (height:100%) the remaining
-                     card height so its flex rows stretch like the real DataTable */
-                  <div className="flex-1 min-h-0">
-                    <TableSkeleton rows={10} columns={3} gridTemplate="minmax(200px,1.5fr) minmax(120px,0.8fr) minmax(220px,1.4fr)" headers={[t('keys.colAsset'), t('keys.colStatus'), t('keys.colKey')]} />
-                  </div>
-                )}
-            </div>
+
+              {/* Body — flex column that stretches; skeleton rows then real pagination */}
+              <div className="flex flex-col flex-1 min-h-0">
+                {isMobile
+                  ? (
+                    <div className="flex-1 min-h-0 flex flex-col">
+                      <CardListSkeleton rows={10} variant="key" />
+                    </div>
+                  )
+                  : (
+                    /* flex-1 min-h-0 gives TableSkeleton (height:100%) the remaining
+                       card height so its flex rows stretch like the real DataTable */
+                    <div className="flex-1 min-h-0">
+                      <TableSkeleton rows={10} columns={3} gridTemplate="minmax(200px,1.5fr) minmax(120px,0.8fr) minmax(220px,1.4fr)" headers={[t('keys.colAsset'), t('keys.colStatus'), t('keys.colKey')]} />
+                    </div>
+                  )}
+
+                {/* Real pagination — mirrors WindowsKeysSection's always-mounted bar;
+                    total=0 renders the same footprint (no layout shift on load). */}
+                <LicensesPagination page={1} pageSize={10} total={0} onPage={() => {}} />
+              </div>
+            </section>
           )}
           {wError && <ErrorState onRetry={loadWorkstation} />}
           {!wLoading && !wError && (
@@ -474,9 +500,9 @@ export function LicensesPage({
              * Subs-tab skeleton — real SectionCard with real header (local chrome) +
              * subscription shimmer in the body.
              * SectionCard provides shadow, rounded-xl, border, header (px-5 py-3.5 / max-md px-3.5 py-3).
-             * bodyClassName="!p-0": CardListSkeleton variant="subscription" already carries p-5 on
-             * its outer grid wrapper; zeroing SectionCard's body padding avoids double-spacing.
-             * Mobile padding is p-5 (vs real p-3.5 from SectionCard); 6px diff is acceptable for a skeleton.
+             * bodyClassName="!p-0": CardListSkeleton variant="subscription" carries the body padding on
+             * its outer grid wrapper (p-5 max-md:p-3.5 — identical to SectionCard's real body padding),
+             * so zeroing SectionCard's body padding avoids double-spacing with zero mobile drift.
              */
             <div aria-hidden="true">
               <SectionCard title={t('subs.sectionTitle')} icon="boxes" bodyClassName="!p-0">

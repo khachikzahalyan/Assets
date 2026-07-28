@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Icon, IconBtn, DataTable, MobileListRow, MobileListPlaceholders } from '@/components/ui'
+import { Icon, IconBtn, DataTable, MobileListRow } from '@/components/ui'
 import type { DataTableColumn } from '@/components/ui'
 import { useIsMobile } from '@/hooks/useIsMobile'
 
@@ -34,11 +34,6 @@ export interface CatalogTableProps<T extends { id: string }> {
    */
   mobileIcon?: (row: T) => ReactNode
   /**
-   * Mobile-only: minimum row count for placeholder padding.
-   * Keep separate from minRows (desktop-only) to avoid breaking pixel parity.
-   */
-  mobileMinRows?: number
-  /**
    * Mobile-only: custom subline renderer for a row.
    * When provided, it REPLACES the generic restCols-joined subline for that row.
    * The callback owns the entire subline ReactNode (including its wrapper styling).
@@ -59,7 +54,7 @@ const FALLBACK_TILE = (
 export function CatalogTable<T extends { id: string }>(props: CatalogTableProps<T>) {
   const {
     rows, columns, canMutate, onEdit, onDelete,
-    canDeleteRow, minRows, mobileIcon, mobileMinRows, mobileSubline,
+    canDeleteRow, minRows, mobileIcon, mobileSubline,
   } = props
   const { t } = useTranslation('common')
   const editLabel = t('actions.edit', { defaultValue: 'Edit' })
@@ -100,9 +95,12 @@ export function CatalogTable<T extends { id: string }>(props: CatalogTableProps<
     // ── Mobile card list via shared MobileListRow trio ───────────────────────
     const [primaryCol, ...restCols] = columns
     return (
-      // grow shrink-0: list block stretches inside Zone-2 flex column so rows
-      // and placeholder slots distribute the full available height (fill contract).
-      <div className="flex flex-col grow shrink-0">
+      // Mobile is a BODY-SCROLL model (see index.css @media max-767): natural row
+      // height, NO flexGrow fill and NO placeholder padding. The desktop fill
+      // contract padded the list to PAGE_SIZE with placeholder slots whose
+      // combined min-height overflowed 100dvh → the whole page scrolled. Natural
+      // compact rows fit the viewport; pagination is pinned by the page-level chain.
+      <div className="flex flex-col">
         {rows.map(row => {
           const canDel = canDeleteRow ? canDeleteRow(row) : true
           const iconTile = mobileIcon ? mobileIcon(row) : FALLBACK_TILE
@@ -154,16 +152,11 @@ export function CatalogTable<T extends { id: string }>(props: CatalogTableProps<
               title={titleNode}
               {...(sublineNode !== undefined ? { subline: sublineNode } : {})}
               {...(rightNode !== undefined ? { right: rightNode } : {})}
-              // Fill contract: each row grows to distribute available card height
-              // so no dead band appears between the last row and the pagination bar.
-              outerStyle={{ flexGrow: 1, flexShrink: 0 }}
+              // Natural height — no flexGrow (body-scroll model; growth + placeholders
+              // used to overflow the viewport and scroll the whole page).
             />
           )
         })}
-        <MobileListPlaceholders
-          count={(mobileMinRows ?? rows.length) - rows.length}
-          dataTestId="catalog-card-placeholder"
-        />
       </div>
     )
   }

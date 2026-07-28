@@ -33,7 +33,7 @@ export interface PartsPageProps {
  * Shell layout (prototype parity):
  *   - stat-strip (4-tile grid, always visible) + tab-strip + inline add-button
  *   - Tab order: «Устройства» (devices) first, «Склад» (warehouse) second.
- *   - Default active tab: warehouse.
+ *   - Default active tab: devices ('warehouse' only when ?tab=warehouse is set).
  *   - Active tab: white text + orange bottom underline (not orange text).
  *   - Mobile FAB: fixed round «+» button centred at bottom, max-md only.
  *
@@ -356,10 +356,13 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
        */}
       <div className="flex-1 min-h-0 overflow-hidden max-md:overflow-visible max-md:bg-surface max-md:border max-md:border-border max-md:border-t-0 max-md:rounded-b-xl max-md:flex max-md:flex-col max-md:flex-1 max-md:min-h-0">
         {loading ? (
-          // DevicesTab-footprint skeleton (devices is the default active tab).
-          // Desktop: 12-col grid with real family pills + real search input + shimmer card grid + no-selection panel.
-          // Mobile: real family pills + px-[14px] pt-[10px] wrapper + CardListSkeleton variant="part-device".
-          <PartsPageSkeleton />
+          // Skeleton mirrors whichever tab is active on this load — the URL can pin
+          // ?tab=warehouse on reload, so a devices-only skeleton would cause a jump.
+          //   devices  (default): 12-col grid — real family pills + real search input +
+          //                       shimmer card grid + no-selection InstalledDetailPanel.
+          //   warehouse:          master-detail — real category list rows (left) + SKU
+          //                       list + history zone (right), local chrome rendered real.
+          <PartsPageSkeleton activeTab={activeTab} />
         ) : activeTab === 'warehouse' ? (
           <WarehouseTab
             parts={parts}

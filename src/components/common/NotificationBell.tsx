@@ -37,7 +37,7 @@ export function NotificationBell({ repository, onSelect }: NotificationBellProps
   const popoverRef = useRef<HTMLDivElement>(null)
 
   const repo = repository ?? getSharedAssetRepository()
-  const { notifications, count, error, reload } = useHoldNotifications(repo)
+  const { notifications, count, loading, error, reload } = useHoldNotifications(repo)
 
   const updatePos = useCallback(() => {
     if (!triggerRef.current) return
@@ -121,6 +121,25 @@ export function NotificationBell({ repository, onSelect }: NotificationBellProps
           {error ? (
             <div className="px-3.5 py-3 text-[12.5px] text-rose-400">
               {t('loadError')}
+            </div>
+          ) : loading && notifications.length === 0 ? (
+            /* Initial fetch / reload with no cached rows — render a skeleton that is
+               a pixel copy of the real bell-item row (same wrapper px-3.5 py-2.5,
+               same two-line layout) so the «всё прочитано» empty state does NOT
+               flash before data arrives. */
+            <div data-testid="bell-loading" className="py-1" aria-hidden="true">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="px-3.5 py-2.5 flex flex-col gap-0.5">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="h-[13px] w-[45%] rounded anim-skeleton" />
+                    <div className="h-[11px] w-[56px] rounded anim-skeleton shrink-0" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="h-[11px] w-[40px] rounded anim-skeleton" />
+                    <div className="h-[12px] w-[96px] rounded anim-skeleton" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : notifications.length === 0 ? (
             <div className="flex flex-col items-center gap-1.5 px-4 py-8 text-center">

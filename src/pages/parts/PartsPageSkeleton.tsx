@@ -1,18 +1,26 @@
 /**
- * PartsPageSkeleton — mirrors the DevicesTab default-tab footprint while
- * async parts data loads from Firestore.
+ * PartsPageSkeleton — mirrors the active-tab footprint while async parts data
+ * loads from Firestore. The active tab is passed in because the URL can pin
+ * `?tab=warehouse` on reload; a devices-only skeleton would cause a tab jump.
  *
  * P1: skeleton = exact copy of the real loaded block per breakpoint.
  * P2: local/static chrome renders real immediately — only async Firebase data shimmered.
  *
- * Desktop (lg): 12-col grid matching DevicesTab:
+ * ── DEVICES branch (default) — mirrors DevicesTab ──
+ * Desktop (lg): 12-col grid:
  *   Left  (col-span-5): REAL family pills (disabled) + REAL search input (disabled)
  *                       + 2-col grid of DeviceGridCard-footprint shimmer cards.
- *   Right (col-span-7): InstalledDetailPanel no-selection footprint (local chrome — rendered real,
- *                       because the prompt is pure translated text with no async data).
+ *   Right (col-span-7): InstalledDetailPanel no-selection footprint (local chrome — real).
+ * Mobile (max-md): real family pills row + px-[14px] pt-[10px] wrapper + CardListSkeleton.
  *
- * Mobile (max-md): real family pills row (local) + max-md:px-[14px] max-md:pt-[10px]
- *                  wrapper + CardListSkeleton variant="part-device".
+ * ── WAREHOUSE branch — mirrors WarehouseTab ──
+ * Desktop (lg): grid-cols-12 master-detail:
+ *   Left  (col-span-5): vertical list of PartCard-footprint shimmer cards.
+ *   Right (col-span-7): one card (shadow-sm shadow-black/30) with a SKU list zone
+ *                       + a real «ИСТОРИЯ» metrics strip (local chrome) + placeholder
+ *                       history rows mirroring HistoryPanel's empty-state slots.
+ * Mobile (max-md): category header row + placeholder detail rows (WarehouseMobileDetail
+ *                  footprint). The CategoryChipStrip lives in PartsTabsHeader (rendered real).
  */
 import { useTranslation } from 'react-i18next'
 import { Icon, CardListSkeleton } from '@/components/ui'
@@ -25,9 +33,23 @@ const FAMILIES = [
   { id: 'server',  labelKey: 'devices.familyServer',  labelFallback: 'Серверы'   },
 ] as const
 
-export function PartsPageSkeleton() {
-  const { t } = useTranslation('parts')
+export interface PartsPageSkeletonProps {
+  /** Active tab on this load — decides which real layout the skeleton mirrors. */
+  activeTab?: 'warehouse' | 'devices'
+}
 
+export function PartsPageSkeleton({ activeTab = 'devices' }: PartsPageSkeletonProps = {}) {
+  if (activeTab === 'warehouse') {
+    return <WarehouseSkeleton />
+  }
+
+  return <DevicesSkeleton />
+}
+
+/* ══════════════════════════ DEVICES BRANCH ══════════════════════════ */
+
+function DevicesSkeleton() {
+  const { t } = useTranslation('parts')
   /** Rendered for BOTH breakpoints — disabled, first pill styled as active ('all' is default). */
   const familyPills = (
     <div
@@ -136,5 +158,135 @@ export function PartsPageSkeleton() {
         </div>
       </div>
     </div>
+  )
+}
+
+/* ══════════════════════════ WAREHOUSE BRANCH ══════════════════════════ */
+
+function WarehouseSkeleton() {
+  const { t } = useTranslation('parts')
+
+  return (
+    <>
+      {/* ──────────── DESKTOP: grid-cols-12 master-detail (mirrors WarehouseTab line ~213) ──────────── */}
+      <div className="hidden lg:grid lg:grid-cols-12 gap-4" aria-hidden="true">
+
+        {/* LEFT: category card list — col-span-5 (mirrors WarehouseTab line ~215).
+            One PartCard-footprint shimmer per category (8 default part categories). */}
+        <div className="col-span-5 flex flex-col min-h-0">
+          <div className="flex flex-col gap-2.5 overflow-y-auto pr-1">
+            {Array.from({ length: 8 }).map((_, i) => (
+              /* PartCard footprint: bg-surface border rounded-xl, header px-4 py-3.5 */
+              <div key={i} className="bg-surface border border-border rounded-xl shadow-sm shadow-black/30 overflow-hidden">
+                <div className="flex items-center gap-3 px-4 py-3.5">
+                  {/* Icon plaque — w-10 h-10 rounded-lg (PartCard line ~176) */}
+                  <div className="w-10 h-10 rounded-lg anim-skeleton flex-shrink-0" />
+                  {/* Label + subtitle */}
+                  <div className="flex-1 min-w-0 space-y-1.5">
+                    <div className="h-[15px] w-[46%] rounded anim-skeleton" />
+                    <div className="h-[12px] w-[30%] rounded anim-skeleton" />
+                  </div>
+                  {/* Right side: green count chip footprint */}
+                  <div className="h-[22px] w-[52px] rounded-full anim-skeleton flex-shrink-0" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* RIGHT: SKU list + history — col-span-7 (mirrors WarehouseTab line ~238 + renderRightPanel).
+            Single card: bg-surface border rounded-xl shadow-sm shadow-black/30. */}
+        <div className="col-span-7 flex flex-col gap-3 min-h-0">
+          <div className="bg-surface border border-border rounded-xl shadow-sm shadow-black/30 flex flex-col">
+            {/* SKU rows — mirror WarehouseSkuList <li> geometry: px-5 py-3, 8×8 icon plaque,
+                divide-y between rows. */}
+            <ul className="divide-y divide-border flex-shrink-0">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <li key={i} className="flex items-center gap-3 px-5 py-3">
+                  <div className="w-8 h-8 rounded-lg anim-skeleton flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="h-[15px] w-[42%] rounded anim-skeleton" />
+                  </div>
+                  <div className="h-[22px] w-[52px] rounded-full anim-skeleton flex-shrink-0" />
+                </li>
+              ))}
+            </ul>
+
+            {/* History block — REAL «ИСТОРИЯ» metrics strip (local chrome, P2) mirroring
+                HistoryPanel line ~203: px-5 py-2.5 border-t bg-bg + label + two chips.
+                The Добавлено/Использовано quantities are async → shimmered. */}
+            <div className="px-5 py-2.5 border-t border-border flex items-center gap-3 flex-shrink-0 bg-bg">
+              <span className="text-[13px] uppercase tracking-wider text-text-subtle font-semibold">
+                {t('warehouse.history')}
+              </span>
+              <div className="flex items-center gap-1.5 ml-auto">
+                <div className="h-[22px] w-[120px] rounded-full anim-skeleton" />
+                <div className="h-[22px] w-[120px] rounded-full anim-skeleton" />
+              </div>
+            </div>
+
+            {/* Placeholder history rows — mirror HistoryPanel empty-state slots
+                (h-[56px], px-5, border-b, dashed rule) so there is zero jump when
+                the first real row lands. minHeight matches the real min(700px,62vh). */}
+            <div
+              className="border-t border-border flex-shrink-0"
+              style={{ minHeight: 'min(700px, 62vh)' }}
+            >
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="relative flex items-center px-5 h-[56px] border-b border-border last:border-b-0"
+                >
+                  <div className="absolute left-5 right-5 top-1/2 -translate-y-1/2 border-t border-dashed border-border/40" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ──────────── MOBILE: detail panel (mirrors WarehouseMobileDetail footprint) ────────────
+          The CategoryChipStrip lives in PartsTabsHeader row 2 — rendered real, not here.
+          Body: category header row + a real «ИСТОРИЯ» metrics strip + placeholder rows. */}
+      <div className="lg:hidden flex flex-col" aria-hidden="true">
+        {/* Category header — px-3.5 pt-3.5 mb-3.5 (WarehouseMobileDetail line ~46) */}
+        <div className="px-3.5 pt-3.5 flex items-center justify-between mb-3.5">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-[10px] anim-skeleton flex-shrink-0" />
+            <div className="h-[16px] w-[110px] rounded anim-skeleton" />
+          </div>
+          <div className="h-[24px] w-[64px] rounded-full anim-skeleton flex-shrink-0" />
+        </div>
+
+        {/* REAL «ИСТОРИЯ» metrics strip — HistoryPanel mobile line ~203
+            (px-[14px] py-1.5, border-t, bg-bg). Quantities async → shimmered. */}
+        <div className="px-[14px] py-1.5 border-t border-border flex items-center gap-3 flex-shrink-0 bg-bg">
+          <span className="text-[10px] font-bold tracking-[1.4px] text-text-secondary uppercase">
+            {t('warehouse.history')}
+          </span>
+          <div className="flex items-center gap-1.5 ml-auto">
+            <div className="h-[20px] w-[96px] rounded-full anim-skeleton" />
+            <div className="h-[20px] w-[96px] rounded-full anim-skeleton" />
+          </div>
+        </div>
+
+        {/* Placeholder history rows — mirror HistoryPanel mobile empty slots (~48px, dashed) */}
+        <div className="border-t border-border">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div
+              key={i}
+              className="relative border-b border-border last:border-b-0"
+              style={{ minHeight: 48 }}
+            >
+              <div className="opacity-0 px-[14px] py-[7px]">
+                <div className="text-[13px] font-bold leading-snug mb-[2px]">&nbsp;</div>
+                <div className="text-[11px] leading-snug">&nbsp;</div>
+              </div>
+              <div className="absolute left-[14px] right-[14px] top-1/2 -translate-y-1/2 border-t border-dashed border-border/40" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
   )
 }

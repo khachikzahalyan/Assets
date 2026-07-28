@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom'
+import { useParams, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { AssetDetailMobileView } from '@/components/features/assets/detail/AssetDetailMobileView'
@@ -40,6 +40,13 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
   const { id } = useParams<{ id: string }>()
   const isMobile = useIsMobile()
 
+  // Navigation hint (Finding 2): the asset-list row click passes `hasSpecs` in
+  // router state so the loading skeleton mirrors the correct 2-tab (history) vs
+  // 3-tab (specs) layout with zero tab jump. Absent on cold reload / deep links →
+  // skeleton falls back to the specs variant. NOT a data source — display only.
+  const location = useLocation()
+  const navHasSpecs = (location.state as { hasSpecs?: boolean } | null)?.hasSpecs
+
   // Shared production singletons — test callers inject their own repos.
   const repo = repository ?? getSharedAssetRepository()
   const repoAsn = assignmentRepository ?? getSharedAssignmentRepository()
@@ -61,7 +68,7 @@ export function AssetDetailPage({ repository, assignmentRepository, licenseRepos
 
   // ---- Render states ----
   if (loading) {
-    return <AssetDetailSkeleton />
+    return <AssetDetailSkeleton {...(navHasSpecs !== undefined ? { hasSpecs: navHasSpecs } : {})} />
   }
 
   if (loadError) {

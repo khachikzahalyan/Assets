@@ -140,6 +140,14 @@ export function CategoriesPage({ repository, categoryGroupRepository, partCatego
               row's icon TILE (mobileIcon), so this duplicate is hidden there. */}
           <Icon name={c.lucideIcon} size={15} className="text-text-tertiary flex-shrink-0 max-md:hidden" />
           <span className="text-text-primary truncate">{c.name}</span>
+          {/* Mobile-only inline specs chip — keeps row to a single line so the
+              list fits without page scroll. Hidden on desktop where the specs
+              column already shows it. */}
+          <span className="flex-shrink-0 md:hidden">
+            <Chip color={c.hasSpecs ? 'green' : 'gray'} size="sm">
+              {t(c.hasSpecs ? 'specs.yes' : 'specs.no')}
+            </Chip>
+          </span>
         </span>
       ),
     },
@@ -197,7 +205,9 @@ export function CategoriesPage({ repository, categoryGroupRepository, partCatego
   function renderTableRegion() {
     if (loading) return isMobile
       ? <CardListSkeleton rows={10} variant="catalog" />
-      : <TableSkeleton rows={PAGE_SIZE} columns={3} gridTemplate="minmax(160px,2fr) 1fr 80px" lastColAction headers={[t('col.name'), t('col.specs'), '']} />
+      // Name track is '2fr' (not minmax) — the real column defines width: '2fr',
+      // which DataTable joins verbatim into gridTemplateColumns.
+      : <TableSkeleton rows={PAGE_SIZE} columns={3} gridTemplate="2fr 1fr 80px" lastColAction headers={[t('col.name'), t('col.specs'), '']} />
     if ((fetchError || pageError) && !data) return <ErrorState onRetry={reload} />
     if (!selectedGroupId || filtered.length === 0) return (
       <EmptyState icon="tags" title={t('empty.title')} description={t('empty.desc')} />
@@ -213,7 +223,7 @@ export function CategoriesPage({ repository, categoryGroupRepository, partCatego
             <Icon name={c.lucideIcon} size={14} />
           </span>
         )}
-        mobileMinRows={PAGE_SIZE}
+        mobileSubline={() => null}
       />
     )
   }
@@ -269,6 +279,10 @@ export function CategoriesPage({ repository, categoryGroupRepository, partCatego
                   {/* Left: chips — overflow-hidden so they don't push the button off-screen */}
                   <div className="flex-1 min-w-0 overflow-hidden">
                     {loading ? (
+                      // The group count is async, so 3 chips is a fixed approximation of
+                      // the loaded count. Acceptable per owner rules: the h-8 chip row
+                      // height is fixed and the real add-group chip renders below, so the
+                      // row's footprint is stable regardless of the eventual chip count.
                       <div className="flex flex-wrap gap-2 max-md:flex-nowrap max-md:overflow-x-auto no-scrollbar">
                         {[80, 100, 72].map(w => (
                           <div key={w} style={{ width: w }} className="h-8 rounded-lg bg-surface-2 animate-pulse flex-shrink-0" />
@@ -305,25 +319,47 @@ export function CategoriesPage({ repository, categoryGroupRepository, partCatego
 
             </>
           }
-          {...(activeTab === 'assets'
-            ? { pagination: <CatalogPagination page={page} pageSize={PAGE_SIZE} total={total} onPage={setPage} /> }
-            : { pagination: <CatalogPagination page={partPage} pageSize={PAGE_SIZE} total={partTotal} onPage={setPartPage} /> }
-          )}
-        >
-          {activeTab === 'assets'
-            ? renderTableRegion()
-            : (
-              <PartCategoriesSection
-                repository={partCatRepo}
-                canMutate={canMutate}
-                page={partPage}
-                onPage={setPartPage}
-                onTotalChange={setPartTotal}
-                openCreate={partAddRequested}
-                onCreateHandled={() => setPartAddRequested(false)}
-              />
-            )
+          pagination={
+            /* Desktop-only pinned pagination; mobile copy lives inside the scroller */
+            <div className="max-md:hidden">
+              {activeTab === 'assets'
+                ? <CatalogPagination page={page} pageSize={PAGE_SIZE} total={total} onPage={setPage} />
+                : <CatalogPagination page={partPage} pageSize={PAGE_SIZE} total={partTotal} onPage={setPartPage} />
+              }
+            </div>
           }
+        >
+          {/* Mobile: outer scroll container bounded to Zone-2 height so the list
+              scrolls INSIDE the card — not the whole page. Identical pattern to
+              EmployeesPage / AssetsPage. Desktop: h-full pass-through. */}
+          <div className="flex-1 min-h-0 max-md:overflow-y-auto max-md:flex max-md:flex-col">
+            {/* Mobile: inner flex-fill wrapper — grows to push pagination to the
+                bottom; shrink-0 lets content exceed the container (outer scrolls).
+                Desktop: h-full block pass-through. */}
+            <div className="h-full max-md:h-auto max-md:grow max-md:shrink-0 max-md:flex max-md:flex-col">
+              {activeTab === 'assets'
+                ? renderTableRegion()
+                : (
+                  <PartCategoriesSection
+                    repository={partCatRepo}
+                    canMutate={canMutate}
+                    page={partPage}
+                    onPage={setPartPage}
+                    onTotalChange={setPartTotal}
+                    openCreate={partAddRequested}
+                    onCreateHandled={() => setPartAddRequested(false)}
+                  />
+                )
+              }
+            </div>
+            {/* Mobile-only pagination copy inside the scroller */}
+            {isMobile && !loading && activeTab === 'assets' && filtered.length > 0 && (
+              <CatalogPagination page={page} pageSize={PAGE_SIZE} total={total} onPage={setPage} />
+            )}
+            {isMobile && !loading && activeTab === 'parts' && partTotal > 0 && (
+              <CatalogPagination page={partPage} pageSize={PAGE_SIZE} total={partTotal} onPage={setPartPage} />
+            )}
+          </div>
         </ListCard>
       </ListPageShell>
 

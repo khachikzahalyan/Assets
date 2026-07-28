@@ -125,8 +125,12 @@ export function DashboardPage({ repo }: DashboardPageProps) {
           ))}
         </div>
 
-        {/* ROW 4: Audit table shimmer — real header */}
+        {/* ROW 4: Audit table shimmer — mirrors AuditTable (dashboard/AuditTable.tsx).
+            P2: panel header (icon + title + «viewAll» link) is local chrome — renders real.
+            P1: desktop sub-header row (4-col labels) mirrors AuditTable line ~91;
+                body rows use the same grid-cols-[160px_1fr_180px_72px] as real rows. */}
         <div className="bg-surface border border-border rounded-xl overflow-hidden">
+          {/* Panel header — local chrome: icon, title, and «viewAll» link render real */}
           <div className="flex items-center justify-between px-5 py-3.5 border-b border-border">
             <div className="flex items-center gap-2.5">
               <span className="w-6 h-6 lg:w-7 lg:h-7 rounded-md inline-flex items-center justify-center flex-shrink-0 bg-surface-2 text-text-tertiary">
@@ -134,17 +138,33 @@ export function DashboardPage({ repo }: DashboardPageProps) {
               </span>
               <span className="text-[12px] lg:text-[13px] font-semibold text-text-primary">{t('recentAudit')}</span>
             </div>
-            <div className="h-3 w-[60px] rounded anim-skeleton" />
+            {/* «viewAll» link is local chrome (known translation string) — renders real, not shimmered */}
+            <span className="text-[11.5px] text-accent pointer-events-none opacity-50">
+              {t('viewAll')}
+            </span>
           </div>
+
+          {/* Desktop column sub-header — mirrors AuditTable line ~91: hidden lg:grid grid-cols-[160px_1fr_180px_72px] */}
+          <div className="hidden lg:grid grid-cols-[160px_1fr_180px_72px] gap-4 px-5 py-2 border-b border-border/50">
+            {(['audit.col.action', 'audit.col.description', 'audit.col.user', 'audit.col.time'] as const).map(key => (
+              <span key={key} className="text-[10.5px] font-semibold uppercase tracking-wider text-text-subtle">
+                {t(key)}
+              </span>
+            ))}
+          </div>
+
+          {/* Body rows — same grid as real AuditTable */}
           <div className="divide-y divide-border/50">
             {Array.from({ length: 5 }).map((_, i) => (
               <div key={i} className="px-5 py-3">
-                <div className="hidden lg:flex items-center gap-4">
+                {/* Desktop: mirror AuditTable grid-cols-[160px_1fr_180px_72px] */}
+                <div className="hidden lg:grid grid-cols-[160px_1fr_180px_72px] gap-4 items-center">
                   <div className="h-5 w-[100px] rounded-md anim-skeleton flex-shrink-0" />
                   <div className="h-3 flex-1 rounded anim-skeleton" />
-                  <div className="h-3 w-[100px] rounded anim-skeleton flex-shrink-0" />
-                  <div className="h-3 w-[50px] rounded anim-skeleton flex-shrink-0" />
+                  <div className="h-3 w-[120px] rounded anim-skeleton flex-shrink-0" />
+                  <div className="h-3 w-[40px] rounded anim-skeleton flex-shrink-0" />
                 </div>
+                {/* Mobile: flex-col gap-1.5 — action badge + date / targetLabel */}
                 <div className="lg:hidden flex flex-col gap-1.5">
                   <div className="flex items-center justify-between gap-2">
                     <div className="h-5 w-[90px] rounded-md anim-skeleton" />

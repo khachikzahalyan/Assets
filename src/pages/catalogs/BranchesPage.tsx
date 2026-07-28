@@ -120,7 +120,6 @@ export function BranchesPage({ repository }: BranchesPageProps) {
             )}
           </div>
         )}
-        mobileMinRows={PAGE_SIZE}
       />
     )
   }

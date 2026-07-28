@@ -58,6 +58,45 @@ describe('NotificationBell', () => {
     expect(await screen.findByText('Нет активов к возврату')).toBeInTheDocument()
   })
 
+  it('while loading with no items, shows skeleton rows and NOT the empty state', async () => {
+    // A repo whose listAssets never resolves keeps loading=true with zero items.
+    const repo: AssetRepository = {
+      listAssets: vi.fn().mockReturnValue(new Promise<Asset[]>(() => {})),
+      loadReferenceData: vi.fn().mockResolvedValue(EMPTY_REF),
+      listAssetsForEmployee: vi.fn().mockResolvedValue([]),
+      loadSelfServiceRefData: vi.fn().mockResolvedValue({ statuses: [], categories: [], branches: [], departments: [] }),
+      findByInvCode: vi.fn().mockResolvedValue(null),
+    }
+    renderBell(repo)
+    fireEvent.click(screen.getByRole('button', { name: 'Уведомления' }))
+
+    // Skeleton is present; the «всё прочитано» empty-state text must NOT flash.
+    expect(await screen.findByTestId('bell-loading')).toBeInTheDocument()
+    expect(screen.queryByText('Нет активов к возврату')).toBeNull()
+  })
+
+  it('after load resolves, the skeleton is replaced by real notification items', async () => {
+    // Controllable deferred so we can observe the loading→loaded transition.
+    let resolveList: (a: Asset[]) => void = () => {}
+    const pending = new Promise<Asset[]>((res) => { resolveList = res })
+    const repo: AssetRepository = {
+      listAssets: vi.fn().mockReturnValue(pending),
+      loadReferenceData: vi.fn().mockResolvedValue(EMPTY_REF),
+      listAssetsForEmployee: vi.fn().mockResolvedValue([]),
+      loadSelfServiceRefData: vi.fn().mockResolvedValue({ statuses: [], categories: [], branches: [], departments: [] }),
+      findByInvCode: vi.fn().mockResolvedValue(null),
+    }
+    renderBell(repo)
+    fireEvent.click(screen.getByRole('button', { name: 'Уведомления' }))
+    expect(await screen.findByTestId('bell-loading')).toBeInTheDocument()
+
+    // Resolve with one overdue hold → skeleton gone, real item present.
+    resolveList([temp('late1', '2000-01-01', 'audit', '450/006')])
+    const items = await screen.findAllByTestId('bell-item')
+    expect(items).toHaveLength(1)
+    expect(screen.queryByTestId('bell-loading')).toBeNull()
+  })
+
   it('lists overdue before dueSoon and calls onSelect with the assetId', async () => {
     const today = new Date()
     const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1)

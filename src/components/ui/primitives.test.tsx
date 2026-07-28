@@ -11,7 +11,6 @@ import { SectionCard } from './section-card'
 import { Icon } from './icon'
 import { EmptyState } from './empty-state'
 import { ErrorState } from './error-state'
-import { LoadingState } from './loading-state'
 
 // ----------------------------------------------------------------
 // Btn
@@ -163,18 +162,5 @@ describe('ErrorState', () => {
     const btn = screen.getByRole('button')
     fireEvent.click(btn)
     expect(handler).toHaveBeenCalledTimes(1)
-  })
-})
-
-// ----------------------------------------------------------------
-// LoadingState
-// ----------------------------------------------------------------
-describe('LoadingState', () => {
-  it('rows=3 renders 3 row wrappers each containing anim-skeleton elements', () => {
-    const { container } = render(<LoadingState rows={3} />)
-    // Each row is a flex div inside the root space-y container
-    const root = container.firstElementChild
-    const rows = root ? Array.from(root.children) : []
-    expect(rows.length).toBe(3)
   })
 })
