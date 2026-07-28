@@ -671,6 +671,18 @@ select:-webkit-autofill {
    ========================================================= */
 @media (max-width: 767px) {
 
+  /* ── No focus zoom (owner request): iOS Safari auto-zooms the page when a
+     focused text control's font-size is below 16px — jarring inside modals
+     when the keyboard opens. Forcing 16px on text-entry controls disables
+     the zoom without touching the viewport meta (pinch-zoom stays available
+     for accessibility). !important outranks the per-element Tailwind
+     text-[13.5px]-style classes. ── */
+  input:not([type='checkbox']):not([type='radio']):not([type='range']),
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+
   /* ── Body / root: allow natural scroll on mobile.
      Desktop locks overflow:hidden; restore it for mobile. ── */
   html, body {
