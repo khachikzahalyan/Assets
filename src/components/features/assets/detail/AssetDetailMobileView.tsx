@@ -57,7 +57,8 @@ export interface AssetDetailMobileViewProps {
   onReturnFromRepair: () => void
   onOpenScan: (path: string) => void
   onAttachLicense: (choice: AttachChoice) => Promise<void>
-  /** Present only when asset.barcode exists — wires «Печать наклейки» in the hero. */
+  /** Accepted for call-site symmetry with the desktop view but unused —
+   *  labels cannot be printed from a phone, so mobile has no print button. */
   onPrint?: () => void
   onClosePrint: () => void
 }
@@ -108,7 +109,6 @@ export function AssetDetailMobileView({
   onReturnFromRepair,
   onOpenScan,
   onAttachLicense,
-  onPrint,
   onClosePrint,
 }: AssetDetailMobileViewProps) {
   const [activeTab, setActiveTab] = useState<TabId>('specs')
@@ -147,7 +147,6 @@ export function AssetDetailMobileView({
           canWriteOff={canWriteOff && !isDisposed}
           isDisposed={isDisposed}
           onWriteOff={onWriteOff}
-          {...(onPrint ? { onPrint } : {})}
         />
       </div>
 

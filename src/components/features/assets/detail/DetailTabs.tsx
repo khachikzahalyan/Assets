@@ -43,7 +43,7 @@ export function DetailTabs({ active, onChange, showSpecs, showDocs, addedDate }:
 
   return (
     <div
-      className="bg-surface border-x border-t border-border rounded-t-2xl px-5 sm:px-6 flex items-center gap-1 max-md:flex-nowrap max-md:overflow-x-auto max-md:gap-0 max-md:px-3 no-scrollbar max-md:scroll-fade-x max-md:sticky max-md:top-0 max-md:z-20 max-md:bg-bg max-md:rounded-none max-md:border-x-0 max-md:border-t-0 max-md:border-b"
+      className="bg-surface border-x border-t border-border rounded-t-2xl px-5 sm:px-6 flex items-center gap-1 max-md:flex-nowrap max-md:overflow-x-auto max-md:gap-0 max-md:px-3 no-scrollbar max-md:scroll-fade-x max-md:sticky max-md:top-0 max-md:z-20 max-md:bg-bg max-md:rounded-none max-md:border-x-0 max-md:border-t-0 max-md:border-b max-md:[&_[role=tab]]:pt-0"
     >
       <TabStrip<TabId>
         tabs={tabItems}

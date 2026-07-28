@@ -1,20 +1,22 @@
 import { useTranslation } from 'react-i18next'
 import type { Asset, CategoryRow, StatusRow } from '@/domain/asset'
 import { assetTitle, STATUS_CHIP_COLOR } from '@/components/features/assets/assetFormat'
+import { resolveCategoryColor } from '@/components/common/categoryColors'
 import { Chip, Icon } from '@/components/ui'
 import { CHIP_PALETTE, CHIP_DOT } from '@/components/ui/chip'
 
 /**
  * Mobile-only hero card for the Asset Detail page (≤767px).
  *
- * Structure (matches prototype §589–618):
- *   ┌─────────────────────────────────────────────┐
- *   │  [icon]  title                  ● status    │
- *   │          # invCode  [category]  SN serial   │
- *   ├─────────────────────────────────────────────┤
- *   │  [Печать наклейки]  [Списать]               │  ← only if either button exists
- *   └─────────────────────────────────────────────┘
+ * Structure (owner mock, 2026-07-28, compact revision):
+ *   ┌───────────────────────────────────────────────┐
+ *   │  [tinted icon]  title       ● status  Списать │
+ *   │                 [category chip]               │
+ *   ├───────────────────────────────────────────────┤  ← divider
+ *   │  [459/9128389]  [SN] SN-sabdsb                │  ← one compact line, no labels
+ *   └───────────────────────────────────────────────┘
  *
+ * No print button on mobile — labels cannot be printed from a phone.
  * Desktop hero: DetailHero.tsx — left untouched.
  * This file is imported ONLY by AssetDetailMobileView.tsx.
  */
@@ -27,8 +29,6 @@ interface DetailHeroMobileProps {
   canWriteOff: boolean
   isDisposed: boolean
   onWriteOff: () => void
-  /** Present only when asset.barcode is set. */
-  onPrint?: () => void
 }
 
 export function DetailHeroMobile({
@@ -38,97 +38,73 @@ export function DetailHeroMobile({
   canWriteOff,
   isDisposed,
   onWriteOff,
-  onPrint,
 }: DetailHeroMobileProps) {
   const { t } = useTranslation('assets')
 
   // Status pill colour.
   const chipColor = STATUS_CHIP_COLOR[statusRow.id] ?? 'gray'
+  // Same per-type tint as the list rows (id first, icon fallback for dynamic categories).
+  const catColor = resolveCategoryColor(asset.categoryId, category?.lucideIcon)
 
-  const showPrint    = Boolean(onPrint && asset.barcode)
   const showWriteOff = !isDisposed && canWriteOff
-  const showActions  = showPrint || showWriteOff
 
   return (
-    <div className="bg-surface rounded-2xl border border-border p-4 anim-fade-slide-in">
+    <div className="bg-surface rounded-2xl border border-border px-3.5 py-2.5 anim-fade-slide-in">
 
-      {/* ── TOP ROW: icon box + title/meta ── */}
+      {/* ── Row 1: tinted icon box + title/category + status & write-off ── */}
       <div className="flex items-start gap-3">
-
-        {/* Category icon box — ~50px, neutral surface (prototype uses a plain box, not category-tinted) */}
-        <div className="w-[50px] h-[50px] rounded-xl bg-surface-2 border border-border text-text-secondary flex items-center justify-center shrink-0">
+        <div
+          className="w-[48px] h-[48px] rounded-xl bg-surface-2 border border-border text-text-secondary flex items-center justify-center shrink-0"
+          style={catColor ? { backgroundColor: catColor.bg, color: catColor.icon, borderColor: catColor.icon } : undefined}
+        >
           <Icon name={category?.lucideIcon ?? 'package'} size={22} aria-hidden="true" />
         </div>
 
-        {/* Title + meta block */}
         <div className="flex-1 min-w-0">
-
-          {/* First line: asset title (left) + status pill (right) */}
-          <div className="flex items-start justify-between gap-2">
-            <h1 className="text-[19px] font-bold text-text-primary leading-snug break-words min-w-0">
-              {assetTitle(asset, category?.name, category?.group)}
-            </h1>
-            <span
-              className={`inline-flex items-center gap-1.5 shrink-0 h-7 px-2.5 rounded-lg text-[12px] font-semibold border ${
-                CHIP_PALETTE[chipColor]
-              }`}
-            >
-              <span className={`w-1.5 h-1.5 rounded-full ${CHIP_DOT[chipColor]}`} />
-              {statusRow.name}
-            </span>
-          </div>
-
-          {/* Second line: inv-code chip + category chip + serial */}
-          <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
-            {/* Inventory code — accent mono chip */}
-            <span className="inline-flex items-center gap-1 font-mono text-[11px] font-semibold bg-accent/10 text-accent-light ring-1 ring-accent/25 px-2 py-0.5 rounded-md">
-              <Icon name="hash" size={10} aria-hidden="true" />
-              {asset.invCode}
-            </span>
-
-            {/* Category label */}
-            {category && (
-              <Chip color="blue" size="sm">
-                {category.name}
-              </Chip>
-            )}
-
-            {/* Serial number — muted mono */}
-            {asset.serial && (
-              <span className="inline-flex items-center gap-1 text-text-tertiary">
-                <span className="uppercase tracking-wide text-[10px] text-text-subtle">SN</span>
-                <span className="font-mono text-[11px] text-[#E2E8F0]">{asset.serial}</span>
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* ── BOTTOM ROW: action buttons (flex-1 each, side-by-side) ── */}
-      {showActions && (
-        <div className="flex gap-2 mt-3.5">
-          {showPrint && (
-            <button
-              type="button"
-              onClick={onPrint}
-              className="flex-1 inline-flex items-center justify-center gap-1.5 h-8 px-3 rounded-lg text-[13px] font-medium text-text-secondary bg-surface-2 border border-border hover:text-text-primary hover:border-border-strong transition-colors"
-            >
-              <Icon name="printer" size={14} aria-hidden="true" />
-              {t('label.print')}
-            </button>
+          <h1 className="text-[17px] font-bold text-text-primary leading-snug truncate">
+            {assetTitle(asset, category?.name, category?.group)}
+          </h1>
+          {category && (
+            <div className="mt-0.5">
+              <Chip color="blue" size="sm">{category.name}</Chip>
+            </div>
           )}
+        </div>
+
+        {/* Compact control cluster (owner: «делай компактнее») */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          <span
+            className={`inline-flex items-center gap-1.5 h-7 px-2.5 rounded-lg text-[12px] font-semibold border ${
+              CHIP_PALETTE[chipColor]
+            }`}
+          >
+            <span className={`w-1.5 h-1.5 rounded-full ${CHIP_DOT[chipColor]}`} />
+            {statusRow.name}
+          </span>
           {showWriteOff && (
             <button
               type="button"
               onClick={onWriteOff}
-              className="flex-1 inline-flex items-center justify-center gap-1.5 h-8 px-3 rounded-lg text-[13px] font-semibold text-rose-300 bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500/15 hover:border-rose-500/50 transition-colors"
+              className="inline-flex items-center gap-1 h-7 px-2.5 rounded-lg text-[12px] font-semibold text-rose-300 bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500/15 hover:border-rose-500/50 transition-colors"
             >
-              <Icon name="archive-x" size={13} aria-hidden="true" />
+              <Icon name="archive-x" size={12} aria-hidden="true" />
               {t('detail.hero.writeOff')}
             </button>
           )}
         </div>
-      )}
+      </div>
+
+      {/* ── Divider + one compact identifier line: [inv chip] [SN] serial ── */}
+      <div className="mt-2 pt-2 border-t border-border flex items-center gap-2 min-w-0">
+        <span className="inline-flex items-center font-mono text-[12px] font-bold bg-surface-2 text-text-primary ring-1 ring-border px-2 py-0.5 rounded-md shrink-0">
+          {asset.invCode}
+        </span>
+        {asset.serial && (
+          <span className="font-mono text-[12px] text-[#E2E8F0] truncate">
+            {asset.serial}
+          </span>
+        )}
+      </div>
     </div>
   )
 }

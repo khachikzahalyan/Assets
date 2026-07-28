@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import type { Asset, CategoryRow, StatusRow } from '@/domain/asset'
 import { assetTitle, STATUS_CHIP_COLOR } from '@/components/features/assets/assetFormat'
-import { CATEGORY_COLOR } from '@/components/common/categoryColors'
+import { resolveCategoryColor } from '@/components/common/categoryColors'
 import { Chip, Icon } from '@/components/ui'
 import { CHIP_PALETTE, CHIP_DOT } from '@/components/ui/chip'
 
@@ -34,8 +34,9 @@ export function DetailHero({
 }: DetailHeroProps) {
   const { t } = useTranslation('assets')
 
-  // Same per-category icon-box color as the list (CATEGORY_COLOR): pastel bg + colored icon/border.
-  const catColor = CATEGORY_COLOR[asset.categoryId] ?? null
+  // Same per-category icon-box color as the list: pastel bg + colored icon/border.
+  // Icon fallback covers dynamically created categories (id not in the seeded map).
+  const catColor = resolveCategoryColor(asset.categoryId, category?.lucideIcon)
 
   return (
     <div className={`bg-surface overflow-hidden anim-fade-slide-in ${
@@ -58,8 +59,8 @@ export function DetailHero({
               {assetTitle(asset, category?.name, category?.group)}
             </h1>
             <div className="flex flex-wrap items-center gap-2 max-md:gap-1.5">
-              <span className="inline-flex items-center gap-1 font-mono text-[13px] max-md:text-[11px] font-semibold bg-accent/10 text-accent-light ring-1 ring-accent/25 px-2 py-0.5 rounded-md">
-                <Icon name="hash" size={11} />
+              {/* Neutral mono chip, white text (priority identifier), no # — owner request */}
+              <span className="inline-flex items-center font-mono text-[13px] max-md:text-[11px] font-bold bg-surface-2 text-text-primary ring-1 ring-border px-2 py-0.5 rounded-md">
                 {asset.invCode}
               </span>
               {category && <Chip color="blue">{category.name}</Chip>}

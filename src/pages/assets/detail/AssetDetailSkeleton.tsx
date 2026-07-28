@@ -63,30 +63,24 @@ export function AssetDetailSkeleton({ hasSpecs }: AssetDetailSkeletonProps = {})
       >
         {/* ① HERO — px-3.5 pt-1 wrapper, mirrors DetailHeroMobile footprint */}
         <div className="px-3.5 pt-1 flex-shrink-0">
-          {/* card: bg-surface rounded-2xl border border-border p-4 */}
-          <div className="bg-surface rounded-2xl border border-border p-4">
-            {/* top row: 50×50 icon tile + title / meta block */}
+          {/* card: bg-surface rounded-2xl border border-border px-3.5 py-2.5 (compact) */}
+          <div className="bg-surface rounded-2xl border border-border px-3.5 py-2.5">
+            {/* Row 1: 48×48 icon tile + (title + category chip) + compact status & write-off h-7 */}
             <div className="flex items-start gap-3">
-              {/* Category icon box — 50×50 rounded-xl (DetailHeroMobile line ~59) */}
-              <div className="w-[50px] h-[50px] rounded-xl anim-skeleton flex-shrink-0" />
+              <div className="w-[48px] h-[48px] rounded-xl anim-skeleton flex-shrink-0" />
               <div className="flex-1 min-w-0">
-                {/* First line: title (left) + status chip (right) — chip h-7 */}
-                <div className="flex items-start justify-between gap-2">
-                  <div className="h-[19px] w-[55%] rounded anim-skeleton" />
-                  {/* chip h-7 matches DetailHeroMobile chip (line ~72) */}
-                  <div className="h-7 w-[80px] rounded-lg anim-skeleton flex-shrink-0" />
-                </div>
-                {/* Second line: inv-code + category chips */}
-                <div className="flex items-center gap-1.5 mt-1.5">
-                  <div className="h-[20px] w-[72px] rounded-md anim-skeleton" />
-                  <div className="h-[20px] w-[60px] rounded-md anim-skeleton" />
-                </div>
+                <div className="h-[17px] w-[70%] rounded anim-skeleton" />
+                <div className="h-[18px] w-[64px] rounded-md anim-skeleton mt-0.5" />
+              </div>
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                <div className="h-7 w-[80px] rounded-lg anim-skeleton" />
+                <div className="h-7 w-[86px] rounded-lg anim-skeleton" />
               </div>
             </div>
-            {/* Action row — mt-3.5, two flex-1 h-8 buttons (DetailHeroMobile line ~109-130) */}
-            <div className="flex gap-2 mt-3.5">
-              <div className="flex-1 h-8 rounded-lg anim-skeleton" />
-              <div className="flex-1 h-8 rounded-lg anim-skeleton" />
+            {/* Divider + one compact identifier line: inv chip + SN cluster */}
+            <div className="mt-2 pt-2 border-t border-border flex items-center gap-2">
+              <div className="h-[22px] w-[96px] rounded-md anim-skeleton flex-shrink-0" />
+              <div className="h-[16px] w-[110px] rounded anim-skeleton" />
             </div>
           </div>
         </div>
@@ -108,17 +102,25 @@ export function AssetDetailSkeleton({ hasSpecs }: AssetDetailSkeletonProps = {})
           {/* Tab body: px-3.5 pt-3 (mirrors AssetDetailMobileView scroll inner) */}
           <div className="px-3.5 pt-3">
             {showSpecs ? (
-              /* Spec tiles — 1-col on mobile (category-dependent async) */
-              <div className="grid grid-cols-1 gap-3">
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-bg border border-border">
-                    <div className="w-9 h-9 rounded-lg anim-skeleton flex-shrink-0" />
-                    <div className="flex-1 min-w-0 space-y-1.5">
-                      <div className="h-[9px] w-[42%] rounded anim-skeleton" />
-                      <div className="h-[12px] w-[68%] rounded anim-skeleton" />
+              /* Spec tiles — mirrors TechSpecsCard bare mode: grid-cols-2 gap-2 of
+                 compact SpecTiles (p-[10px], 28px icon, 8.5px label + 12px value),
+                 then the full-width license row (col-span-2, px-[13px] py-[10px]). */
+              <div className="grid grid-cols-2 gap-2">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="bg-bg border border-border rounded-lg p-[10px] flex items-center gap-[9px]">
+                    <div className="w-7 h-7 rounded-lg anim-skeleton flex-shrink-0" />
+                    <div className="flex-1 min-w-0 space-y-1">
+                      <div className="h-[9px] w-[72%] rounded anim-skeleton" />
+                      <div className="h-[12px] w-[85%] rounded anim-skeleton" />
                     </div>
                   </div>
                 ))}
+                {/* License row — [icon] name (flex-1) [type chip] */}
+                <div className="col-span-2 bg-surface border border-border rounded-[10px] px-[13px] py-[10px] flex items-center gap-2.5">
+                  <div className="w-6 h-6 rounded-md anim-skeleton flex-shrink-0" />
+                  <div className="h-[13px] w-[55%] rounded anim-skeleton" />
+                  <div className="h-[18px] w-[48px] rounded-md anim-skeleton ml-auto flex-shrink-0" />
+                </div>
               </div>
             ) : (
               /* No-specs: history-active body → real render is <HistoryCard mobileBare />

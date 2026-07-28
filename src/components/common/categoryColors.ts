@@ -96,3 +96,70 @@ export const CATEGORY_COLOR: Record<string, { bg: string; icon: string }> = {
   cat_side_table:     { bg: '#D3D1C7', icon: '#444441' },
   cat_coffee_table:   { bg: '#D3D1C7', icon: '#444441' },
 }
+
+/**
+ * Fallback palette keyed by the category's lucide icon — covers categories the
+ * owner creates dynamically in /categories (their Firestore ids are not in
+ * CATEGORY_COLOR). The icon expresses the asset TYPE, and the type→color
+ * decision is fixed (owner rule) — so any «Ноутбук»-style category with a
+ * laptop icon gets the laptop blue regardless of its id.
+ */
+const ICON_COLOR: Record<string, { bg: string; icon: string }> = {
+  // Ноутбуки
+  laptop: { bg: '#E6F1FB', icon: '#185FA5' },
+  'laptop-minimal': { bg: '#E6F1FB', icon: '#185FA5' },
+  // Компьютеры
+  computer: { bg: '#EAF3DE', icon: '#3B6D11' },
+  'pc-case': { bg: '#EAF3DE', icon: '#3B6D11' },
+  cpu: { bg: '#EAF3DE', icon: '#3B6D11' },
+  // Смартфоны / телефоны
+  smartphone: { bg: '#EEEDFE', icon: '#534AB7' },
+  phone: { bg: '#EEEDFE', icon: '#534AB7' },
+  'phone-call': { bg: '#EEEDFE', icon: '#534AB7' },
+  // Планшеты
+  tablet: { bg: '#CECBF6', icon: '#3C3489' },
+  // Мониторы / дисплеи / ТВ
+  monitor: { bg: '#E1F5EE', icon: '#0F6E56' },
+  tv: { bg: '#E1F5EE', icon: '#0F6E56' },
+  projector: { bg: '#E1F5EE', icon: '#0F6E56' },
+  // Принтеры / МФУ
+  printer: { bg: '#FAEEDA', icon: '#854F0B' },
+  'printer-check': { bg: '#FAEEDA', icon: '#854F0B' },
+  // Серверы
+  server: { bg: '#FBEAF0', icon: '#993556' },
+  'server-cog': { bg: '#FBEAF0', icon: '#993556' },
+  database: { bg: '#FBEAF0', icon: '#993556' },
+  // Сетевое оборудование
+  router: { bg: '#FAECE7', icon: '#993C1D' },
+  wifi: { bg: '#FAECE7', icon: '#993C1D' },
+  network: { bg: '#FAECE7', icon: '#993C1D' },
+  'ethernet-port': { bg: '#FAECE7', icon: '#993C1D' },
+  cable: { bg: '#FAECE7', icon: '#993C1D' },
+  // ИБП / питание
+  'battery-charging': { bg: '#FCEBEB', icon: '#A32D2D' },
+  plug: { bg: '#FCEBEB', icon: '#A32D2D' },
+  'plug-zap': { bg: '#FCEBEB', icon: '#A32D2D' },
+  zap: { bg: '#FCEBEB', icon: '#A32D2D' },
+  // Камеры
+  camera: { bg: '#F4C0D1', icon: '#72243E' },
+  webcam: { bg: '#F4C0D1', icon: '#72243E' },
+  video: { bg: '#F4C0D1', icon: '#72243E' },
+  cctv: { bg: '#F4C0D1', icon: '#72243E' },
+  // Мебель
+  armchair: { bg: '#FAC775', icon: '#633806' },
+  sofa: { bg: '#FAC775', icon: '#633806' },
+  table: { bg: '#D3D1C7', icon: '#444441' },
+  'table-2': { bg: '#D3D1C7', icon: '#444441' },
+  'lamp-desk': { bg: '#D3D1C7', icon: '#444441' },
+}
+
+/**
+ * Resolve the icon-box tint for a category: exact id first (seeded catalogs),
+ * then the category's lucide icon (dynamic catalogs). Null → neutral tile.
+ */
+export function resolveCategoryColor(
+  categoryId: string,
+  lucideIcon?: string | null,
+): { bg: string; icon: string } | null {
+  return CATEGORY_COLOR[categoryId] ?? (lucideIcon ? ICON_COLOR[lucideIcon] ?? null : null)
+}

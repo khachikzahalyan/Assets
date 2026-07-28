@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Icon } from '@/components/ui'
 import type { PartsAsset } from '@/domain/part/types'
 import { assetFamilyOf, isServiceOnly } from '@/domain/part/partStock'
-import { CATEGORY_COLOR } from '@/components/common/categoryColors'
+import { resolveCategoryColor } from '@/components/common/categoryColors'
 
 /** Fallback lucide icon by hardware family (when the category has no lucideIcon). */
 function familyIconFallback(family: string): string {
@@ -38,8 +38,8 @@ export const DeviceGridCard = memo(function DeviceGridCard({ asset, selected, ha
 
   /* Category icon + colour — SAME system as the Assets page (categoryColors.ts
      + the category's lucideIcon) so laptops/desktops/servers look identical there. */
-  const catColor = CATEGORY_COLOR[asset.categoryId] ?? null
   const iconName = asset.categoryIcon || familyIconFallback(family)
+  const catColor = resolveCategoryColor(asset.categoryId, iconName)
   const accent = catColor?.icon ?? '#F97316'
 
   /* Category human label — the category NAME (e.g. «Ноутбук»), not the raw id. */

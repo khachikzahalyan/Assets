@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Icon, Chip } from '@/components/ui'
-import { CATEGORY_COLOR } from '@/components/common/categoryColors'
+import { resolveCategoryColor } from '@/components/common/categoryColors'
 import type { PartsAsset, UpgradeSlot, PartMovement, Part } from '@/domain/part/types'
 import {
   installedRowVisual,
@@ -144,6 +144,14 @@ export function InstalledDetailPanel({ asset, onUninstall, movements = [], parts
     mv => mv.assetId === asset.assetId || mv.assetId === asset.id
   )
 
+  /* Header icon tint — same per-type palette as the assets list (icon fallback
+     covers dynamically created categories); orange fallback when unmapped. */
+  const headerIcon = asset.categoryIcon || 'monitor'
+  const headerTint = resolveCategoryColor(asset.categoryId, headerIcon)
+  const headerTintStyle = headerTint
+    ? { backgroundColor: headerTint.bg, color: headerTint.icon }
+    : { backgroundColor: 'rgba(249,115,22,0.10)', color: '#F97316' }
+
   return (
     <div className="h-full bg-surface border border-border rounded-xl shadow-sm shadow-black/30 flex flex-col overflow-hidden">
       {/* ── Device header ── */}
@@ -151,13 +159,9 @@ export function InstalledDetailPanel({ asset, onUninstall, movements = [], parts
         <div className="flex items-center gap-3 min-w-0">
           <span
             className="w-10 h-10 rounded-xl inline-flex items-center justify-center flex-shrink-0"
-            style={
-              CATEGORY_COLOR[asset.categoryId]
-                ? { backgroundColor: CATEGORY_COLOR[asset.categoryId]!.bg, color: CATEGORY_COLOR[asset.categoryId]!.icon }
-                : { backgroundColor: 'rgba(249,115,22,0.10)', color: '#F97316' }
-            }
+            style={headerTintStyle}
           >
-            <Icon name={asset.categoryIcon || 'monitor'} size={18} />
+            <Icon name={headerIcon} size={18} />
           </span>
           <div className="min-w-0">
             <div className="text-[18px] font-bold text-text-primary truncate leading-tight">{asset.name}</div>

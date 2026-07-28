@@ -11,7 +11,7 @@ import {
   isTemporaryAssignment,
   assigneeKind,
 } from './assetFormat'
-import { CATEGORY_COLOR } from '@/components/common/categoryColors'
+import { resolveCategoryColor } from '@/components/common/categoryColors'
 import { AssigneeCell } from './AssigneeCell'
 import { MobileCard } from './AssetRowMobile'
 import { Chip, DataTable, Icon, MobileListPlaceholders } from '@/components/ui'
@@ -161,7 +161,7 @@ export function AssetsTable({
           (displayStatus.color as ChipColor) ??
           'gray'
         const { subline, isAuditOrIntern } = mobileSublineData(a)
-        const catColor = CATEGORY_COLOR[a.categoryId] ?? null
+        const catColor = resolveCategoryColor(a.categoryId, cat?.lucideIcon)
 
         return (
           <MobileCard
@@ -216,7 +216,7 @@ export function AssetsTable({
           const cat          = categoryMap.get(a.categoryId)
           const categoryName = cat?.name ?? ''
           const title        = assetTitle(a, categoryName, cat?.group)
-          const catColor     = CATEGORY_COLOR[a.categoryId] ?? null
+          const catColor     = resolveCategoryColor(a.categoryId, cat?.lucideIcon)
           const isRemote     = a.assignment?.workMode === 'remote'
           const subBase      = categoryName || a.brand || '—'
           const sub          = a.serial ? `${subBase} · ${a.serial}` : subBase
