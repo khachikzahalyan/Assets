@@ -109,6 +109,8 @@ export function WindowsKeysSection({
   const [activateError, setActivateError] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const clearToast = useCallback(() => setToast(null), [])
+  // Revealed full key per FREE license id (mobile-only, reveal-capable roles).
+  const [revealedFree, setRevealedFree] = useState<Record<string, string>>({})
 
   // Filter to device-assignable keys (exclude retired + employee-assigned) AND
   // only those where a manual key was actually entered. OEM licenses created
@@ -148,6 +150,23 @@ export function WindowsKeysSection({
     () => rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
     [rows, page],
   )
+
+  // Reveal the actual key for FREE rows on mobile — a free key is meant to be
+  // re-activated on another device, so a reveal-capable admin must read it.
+  // Desktop stays masked (owner: mobile only). In-use keys are never revealed here.
+  const freeIdsKey = pageRows.filter(l => licenseStatus(l) === 'free').map(l => l.id).join(',')
+  useEffect(() => {
+    if (!isMobile || !canReveal) return
+    let cancelled = false
+    for (const id of freeIdsKey ? freeIdsKey.split(',') : []) {
+      if (revealedFree[id]) continue
+      revealLicenseKey('licenses', id)
+        .then(key => { if (!cancelled) setRevealedFree(prev => (prev[id] ? prev : { ...prev, [id]: key })) })
+        .catch(() => { /* stay masked on failure */ })
+    }
+    return () => { cancelled = true }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isMobile, canReveal, freeIdsKey])
 
   const detailsLic = detailsId ? licenses.find(l => l.id === detailsId) ?? null : null
   const activatingLic = activatingId ? licenses.find(l => l.id === activatingId) ?? null : null
@@ -324,6 +343,7 @@ export function WindowsKeysSection({
                       key={lic.id}
                       lic={lic}
                       masked={masked}
+                      revealedKey={revealedFree[lic.id] ?? null}
                       isFree={isFree}
                       assetName={entry?.name ?? null}
                       assetInvCode={entry?.invCode ?? null}

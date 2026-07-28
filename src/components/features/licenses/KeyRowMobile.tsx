@@ -19,6 +19,12 @@ import { fmtDate } from './licenseHelpers'
 export interface KeyRowMobileProps {
   lic: WorkstationLicense
   masked: string
+  /**
+   * Revealed full key for a FREE row (mobile only): a free key exists to be
+   * re-activated elsewhere, so the admin needs to read it. When present it
+   * replaces `masked` on free rows; in-use rows always stay masked.
+   */
+  revealedKey?: string | null
   isFree: boolean
   /** Display name of the assigned asset (in_use rows); null for free rows. */
   assetName: string | null
@@ -39,6 +45,7 @@ export interface KeyRowMobileProps {
 export function KeyRowMobile({
   lic,
   masked,
+  revealedKey,
   isFree,
   assetName,
   assetInvCode,
@@ -49,24 +56,27 @@ export function KeyRowMobile({
 }: KeyRowMobileProps) {
   const { t } = useTranslation('licenses')
 
+  // Free rows show the real key when revealed (see revealedKey doc); otherwise
+  // masked. In-use rows always stay masked (attached to a live device).
+  const keyDisplay = isFree && revealedKey ? revealedKey : masked
+
   // Left accent bar — mirrors STATUS_BORDER_L in AssetRowMobile
   const borderL = isFree ? 'border-l-emerald-400' : 'border-l-sky-400'
   // Status pill — CHIP_PALETTE.green for free, CHIP_PALETTE.blue for in_use
   const pillPalette = isFree ? CHIP_PALETTE.green : CHIP_PALETTE.blue
   const statusLabel = isFree ? t('keys.statusFree') : t('keys.statusInUse')
 
-  // lic.name is usually «{Brand Model} — Ключ продукта» — on mobile we keep only
-  // the kind after the dash so the subline doesn't duplicate the asset name:
-  // in_use → «Ключ продукта Asus H510», free → «Ключ продукта · Освобождён …».
-  const kind = lic.name.includes(' — ')
-    ? (lic.name.split(' — ').pop() ?? lic.name)
-    : lic.name
+  // lic.name is «{Brand Model} — Ключ продукта» — show only the DEVICE (the part
+  // before the dash), not the "Ключ продукта" prefix (owner request):
+  //   in_use → the assigned asset name (e.g. «DELL XPS»);
+  //   free   → the origin device + «Освобождён …».
+  const deviceName = lic.name.includes(' — ') ? (lic.name.split(' — ')[0] ?? lic.name) : lic.name
   const freedDate = lic.retiredAt ?? lic.assignedAt ?? null
   const subline = isFree
-    ? [kind, freedDate ? t('keys.freedOn', { date: fmtDate(freedDate, 'ru') }) : null]
+    ? [deviceName, freedDate ? t('keys.freedOn', { date: fmtDate(freedDate, 'ru') }) : null]
         .filter(Boolean)
         .join(' · ')
-    : [kind, assetName].filter(Boolean).join(' ')
+    : (assetName ?? deviceName)
 
   const iconTile = (
     <span
@@ -78,8 +88,15 @@ export function KeyRowMobile({
   )
 
   const titleNode = (
-    <div className="font-mono text-[13px] font-bold text-text-primary truncate leading-snug mb-[2px]">
-      {masked}
+    // No truncation for free keys — the whole key must be readable; the mono
+    // string wraps at char boundaries if the viewport is very narrow.
+    <div
+      className={[
+        'font-mono text-[12.5px] font-bold text-text-primary leading-snug mb-[2px]',
+        isFree ? 'break-all' : 'truncate',
+      ].join(' ')}
+    >
+      {keyDisplay}
     </div>
   )
 
@@ -92,23 +109,24 @@ export function KeyRowMobile({
   // For free rows: right slot shows a compact "Activate" button (no redundant pill).
   // For in-use rows: right slot shows the "● Используется" pill + inventory code.
   const right = showAction ? (
+    // Icon-only on mobile — text removed to give the full key room (owner request).
     <button
       type="button"
       onClick={onActivate}
       data-testid={`activate-btn-${lic.id}`}
+      aria-label={t('keys.activate')}
+      title={t('keys.activate')}
       className={[
-        'flex-shrink-0 inline-flex items-center gap-1',
-        'h-7 px-2.5 rounded-md',
-        'text-[12px] font-semibold whitespace-nowrap',
+        'flex-shrink-0 inline-flex items-center justify-center',
+        'w-8 h-8 rounded-md',
         'text-accent-light border border-accent/30 bg-accent/10',
         'hover:bg-accent/20 transition-colors',
       ].join(' ')}
     >
-      <Icon name="circle-check" size={12} />
-      {t('keys.activate')}
+      <Icon name="circle-check" size={15} />
     </button>
   ) : (
-    <div className="flex flex-col items-end gap-1 flex-shrink-0">
+    <div className="flex flex-col items-end gap-[6px] flex-shrink-0">
       <span
         className={[
           'inline-flex items-center border rounded-[5px] px-[7px] py-[2px]',
@@ -119,7 +137,9 @@ export function KeyRowMobile({
         {'● '}{statusLabel}
       </span>
       {assetInvCode && (
-        <span className="font-['JetBrains_Mono',ui-monospace,monospace] text-[10px] text-text-subtle whitespace-nowrap">
+        // Inventory code is a top-priority identifier — white, larger, bold so
+        // it reads clearly against the row (owner request).
+        <span className="font-['JetBrains_Mono',ui-monospace,monospace] text-[12.5px] font-bold text-text-primary whitespace-nowrap">
           {assetInvCode}
         </span>
       )}

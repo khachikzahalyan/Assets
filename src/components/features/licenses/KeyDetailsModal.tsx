@@ -5,7 +5,7 @@
 import { useState, useEffect, useRef } from 'react'
 import ReactDOM from 'react-dom'
 import { useTranslation } from 'react-i18next'
-import { IconBtn, Icon, DIALOG_BACKDROP_BLUR, MODAL_SHEET } from '@/components/ui'
+import { Icon, DIALOG_BACKDROP_BLUR, MODAL_SHEET } from '@/components/ui'
 import { formatLicenseDate } from './formatLicenseDate'
 import type { AuditLog } from '@/domain/audit'
 
@@ -65,24 +65,19 @@ export function KeyDetailsModal({
   const [copied, setCopied] = useState(false)
   const [copyError, setCopyError] = useState(false)
 
+  // Title = device only. `version` is «{Brand Model} — Ключ продукта»; drop the
+  // redundant key-suffix so the header reads just "Asus VivoBook Pro".
+  const deviceName = version.includes(' — ') ? version.split(' — ')[0]! : version
+
   // Refs to track pending setTimeout ids for cleanup
   const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const copyErrorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  // Ref for focus management — focus the footer close button on open
-  const closeBtnRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     const fn = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
     document.addEventListener('keydown', fn)
     return () => document.removeEventListener('keydown', fn)
   }, [onClose])
-
-  // Focus the close button when modal opens
-  useEffect(() => {
-    const id = setTimeout(() => { closeBtnRef.current?.focus() }, 30)
-    return () => clearTimeout(id)
-  }, [])
 
   // Cleanup timers on unmount
   useEffect(() => {
@@ -91,6 +86,18 @@ export function KeyDetailsModal({
       if (copyErrorTimerRef.current !== null) clearTimeout(copyErrorTimerRef.current)
     }
   }, [])
+
+  // Show the real key on open for reveal-capable roles (they can copy=reveal it
+  // anyway) — owner wants it visible, not masked. Non-reveal roles keep the mask.
+  useEffect(() => {
+    if (!canReveal || !revealFn) return
+    let cancelled = false
+    // Promise.resolve wraps the result so a non-thenable stub (in tests) can't throw.
+    Promise.resolve(revealFn('licenses', licenseId))
+      .then(k => { if (!cancelled && typeof k === 'string' && k) setDisplayKey(k) })
+      .catch(() => { /* stay masked on failure */ })
+    return () => { cancelled = true }
+  }, [canReveal, revealFn, licenseId])
 
   const handleCopy = async () => {
     setCopyError(false)
@@ -134,15 +141,12 @@ export function KeyDetailsModal({
       >
         {/* Pull-handle — mobile only */}
         <div className="max-md:block hidden mx-auto h-1 w-9 rounded-full bg-white/20 mb-3 mt-2" />
-        {/* Header */}
-        <header className="flex items-center justify-between px-5 py-4 border-b border-border flex-shrink-0">
-          <div className="flex items-center gap-2.5">
-            <span className="w-8 h-8 rounded-md bg-surface-2 inline-flex items-center justify-center flex-shrink-0">
-              <MsLogo size={18} />
-            </span>
-            <h2 id={TITLE_ID} className="text-[15px] font-bold text-text-primary tracking-tight">{t('keyDetails.title')}</h2>
-          </div>
-          <IconBtn icon="x" onClick={onClose} size="sm" title={t('keyDetails.close')} />
+        {/* Header — no close button (dismiss via backdrop tap / Escape / swipe handle) */}
+        <header className="flex items-center gap-2.5 px-5 py-4 border-b border-border flex-shrink-0">
+          <span className="w-8 h-8 rounded-md bg-surface-2 inline-flex items-center justify-center flex-shrink-0">
+            <MsLogo size={18} />
+          </span>
+          <h2 id={TITLE_ID} className="text-[15px] font-bold text-text-primary tracking-tight">{t('keyDetails.title')}</h2>
         </header>
 
         <div className="p-5 space-y-5 overflow-y-auto flex-1 min-h-0">
@@ -154,7 +158,7 @@ export function KeyDetailsModal({
                   <MsLogo size={18} />
                 </span>
                 <div className="min-w-0">
-                  <div className="text-[13.5px] font-semibold text-text-primary leading-tight truncate">{version}</div>
+                  <div className="text-[13.5px] font-semibold text-text-primary leading-tight truncate">{deviceName}</div>
                   <div className="text-[11.5px] text-text-subtle">{t('keyDetails.keyLabel')}</div>
                 </div>
               </div>
@@ -172,7 +176,10 @@ export function KeyDetailsModal({
                   ].join(' ')}
                 >
                   <Icon name={copied ? 'check' : 'copy'} size={13} />
-                  {copyError ? t('keyDetails.copyError') : copied ? t('keyDetails.copied') : t('keyDetails.copy')}
+                  {/* Label hidden on mobile — icon-only to save room (owner request) */}
+                  <span className="max-md:hidden">
+                    {copyError ? t('keyDetails.copyError') : copied ? t('keyDetails.copied') : t('keyDetails.copy')}
+                  </span>
                 </button>
               )}
             </div>
@@ -254,16 +261,6 @@ export function KeyDetailsModal({
           </div>
         </div>
 
-        <footer className="flex items-center justify-end gap-2 px-5 py-3 border-t border-border flex-shrink-0">
-          <button
-            ref={closeBtnRef}
-            type="button"
-            onClick={onClose}
-            className="text-text-secondary hover:bg-surface-2 hover:text-text-primary h-9 px-3.5 text-sm gap-1.5 inline-flex items-center justify-center rounded-lg font-medium tracking-tight transition-all duration-150"
-          >
-            {t('keyDetails.close')}
-          </button>
-        </footer>
       </div>
     </div>,
     document.body,
