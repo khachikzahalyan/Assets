@@ -20,9 +20,8 @@ describe('SettingsPage', () => {
       </MemoryRouter>,
     )
 
-    // The page header renders — PageHeader renders an <h1> with the translated title.
-    // We assert by element role rather than translated string to stay locale-agnostic.
-    expect(document.querySelector('h1')).toBeInTheDocument()
+    // No PageHeader on this page (owner request) — the top-bar breadcrumb names it.
+    expect(document.querySelector('h1')).toBeNull()
 
     // The auth panel section card renders — SectionCard renders a <section>.
     expect(document.querySelector('section')).toBeInTheDocument()
