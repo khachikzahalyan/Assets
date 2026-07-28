@@ -2,16 +2,34 @@
 
 Date: 2026-07-07. Branch: refactor/pages-structure (uncommitted perf /assets + /licenses skeleton work present — DO NOT revert).
 
-## Two hard principles (owner-mandated)
+## Three hard principles (owner-mandated)
 
 1. **Skeleton = exact copy of the real loaded block.** Same dimensions, paddings,
    positions, row structure, row counts, card chrome. A 30×30 div gets a 30×30 shimmer
-   in the same place.
+   in the same place. If the real UI is TWO big blocks, the skeleton is TWO big blocks
+   in the same places — never one small bar standing in for a large region.
 2. **Only unknown (async Firebase data) is skeletonized.** Everything local/static —
    tab labels, search inputs, "+" buttons, filter chips from constants, headers —
    renders immediately as real components. Skeleton only covers the data region.
    Counts inside otherwise-local chrome may render blank/0 until loaded — but with
    ZERO layout shift.
+3. **Parent-level granularity — «не мелочиться» (owner, 2026-07-27).** Mirror the
+   geometry of PARENT blocks, not every inner leaf. A row that is really
+   [icon tile + title + subline + right pill] gets ONE shimmer block occupying that
+   row's box (or at most avatar-circle + one bar, where the composition needs it) —
+   NOT a nested icon-shimmer + title-shimmer + subline-shimmer + pill-shimmer.
+   Principle 1 governs the OUTER footprint (position/size of blocks and their count);
+   principle 3 governs the INNER fill (keep it simple, correct, beautiful).
+   When in doubt: fewer, larger shimmer blocks that match the parent boxes.
+
+   **Fill-contract corollary (owner, 2026-07-28):** list skeletons inside a
+   ListCard Zone-2 fill region must occupy EXACTLY that region — never shorter
+   (dead band above pagination) and never taller (rows spilling past the card).
+   CardListSkeleton list variants therefore carry the contract by default:
+   root `flex-1 min-h-0`, each row `flex:1 1 0; min-height:0; overflow:hidden`
+   → N rows always split the region into N equal slots, content centered.
+   Grid variants (part-device, subscription) stay natural-height. Pinned by
+   CardListSkeleton.test.tsx.
 
 ## Known violations (verified by orchestrator recon)
 

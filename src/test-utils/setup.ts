@@ -20,3 +20,10 @@ Object.defineProperty(window, 'matchMedia', {
     dispatchEvent: () => false,
   }),
 })
+
+// jsdom does not implement Element.prototype.scrollTo — provide a no-op stub
+// so components that call it inside requestAnimationFrame (e.g. CategoryChipStrip)
+// don't throw an unhandled TypeError that causes the process to exit 1.
+if (typeof Element.prototype.scrollTo === 'undefined') {
+  Element.prototype.scrollTo = () => {}
+}

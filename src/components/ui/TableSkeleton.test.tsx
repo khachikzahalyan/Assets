@@ -42,6 +42,40 @@ describe('TableSkeleton', () => {
     expect(shimmerEls.length).toBeGreaterThanOrEqual(3)
   })
 
+  it('firstColIcon=true renders a small ~13×13 icon stub in the first cell (not the wide text bar)', () => {
+    const { container } = render(<TableSkeleton rows={3} columns={4} firstColIcon />)
+    const rows = container.querySelectorAll('[data-testid="table-skeleton-row"]')
+    rows.forEach(row => {
+      const firstCell = row.children[0] as HTMLElement | undefined
+      expect(firstCell).toBeDefined()
+      // Exactly one shimmer block, sized 13×13 (the icon stub) — no 70% text bar.
+      const shimmers = firstCell?.querySelectorAll('.anim-skeleton') ?? []
+      expect(shimmers.length).toBe(1)
+      const stub = shimmers[0] as HTMLElement
+      expect(stub.style.width).toBe('13px')
+      expect(stub.style.height).toBe('13px')
+    })
+  })
+
+  it('firstColIcon still renders the correct number of rows and preserves other cells', () => {
+    render(<TableSkeleton rows={5} columns={4} firstColIcon />)
+    const rows = screen.getAllByTestId('table-skeleton-row')
+    expect(rows.length).toBe(5)
+    rows.forEach(row => {
+      // 4 cells total; non-first cells keep their generic text bars.
+      expect(row.children.length).toBe(4)
+    })
+  })
+
+  it('firstColWide takes precedence over firstColIcon (icon+text-bars, not the 13px stub)', () => {
+    const { container } = render(<TableSkeleton rows={2} columns={3} firstColWide firstColIcon />)
+    const rows = container.querySelectorAll('[data-testid="table-skeleton-row"]')
+    const firstCell = rows[0]?.children[0] as HTMLElement | undefined
+    const shimmers = firstCell?.querySelectorAll('.anim-skeleton') ?? []
+    // firstColWide renders 3 shimmer blocks (icon tile + 2 text bars).
+    expect(shimmers.length).toBe(3)
+  })
+
   it('root has aria-hidden="true"', () => {
     render(<TableSkeleton />)
     const root = screen.getByTestId('table-skeleton')
@@ -102,5 +136,24 @@ describe('TableSkeleton', () => {
     const headerBand = root?.children[0] as HTMLElement | undefined
     expect(headerBand).toBeDefined()
     expect(headerBand?.style.gridTemplateColumns).toBe(ASSETS_GRID)
+  })
+
+  it('gridTemplate prop is applied to EVERY body row inline style (matches the header)', () => {
+    // Guards against header/body track drift — the body grid MUST equal the
+    // passed gridTemplate so cells align under their headers with zero shift.
+    const ASSETS_GRID = 'minmax(240px,2.4fr) minmax(130px,1fr) minmax(100px,0.85fr) minmax(150px,1.2fr) minmax(110px,1fr) minmax(100px,0.9fr) 56px'
+    render(
+      <TableSkeleton
+        rows={4}
+        columns={7}
+        lastColAction
+        gridTemplate={ASSETS_GRID}
+      />,
+    )
+    const bodyRows = screen.getAllByTestId('table-skeleton-row')
+    expect(bodyRows.length).toBe(4)
+    bodyRows.forEach(row => {
+      expect((row as HTMLElement).style.gridTemplateColumns).toBe(ASSETS_GRID)
+    })
   })
 })

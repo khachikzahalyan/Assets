@@ -21,6 +21,17 @@ export interface CardListSkeletonProps {
  *   px-[14px] py-[9px] border-b border-border border-l-[3px] border-l-transparent bg-surface
  *   inner flex: items-center gap-[9px]
  *
+ * FILL CONTRACT (MobileListRow-based variants only): real mobile lists stretch
+ * their rows to distribute the whole Zone-2 height between toolbar and the
+ * pinned pagination (flexGrow on rows + placeholder slots). The skeleton must
+ * occupy EXACTLY that region — never shorter (dead band below) and never
+ * taller (rows spilling past the card). Root takes `flex:1 1 0; min-height:0`
+ * so it resolves to the region height regardless of content, and every row is
+ * `flex:1 1 0; min-height:0; overflow:hidden` so N rows split the region into
+ * N equal slots with the shimmer content vertically centered.
+ * Grid variants ("part-device", "subscription") are natural-height cards in
+ * scrollable areas — they intentionally do NOT fill.
+ *
  * - "asset"        — mirrors AssetRowMobile → MobileListRow: 28×28 rounded-[8px] tile,
  *                    13px title mb-[2px] + 11px subline; right flex-col items-end gap-1:
  *                    status pill h-[18px] w-[54px] rounded-[5px] + invcode h-[10px] w-[64px]
@@ -38,6 +49,13 @@ export interface CardListSkeletonProps {
  * - "subscription" — mirrors SubscriptionCard card grid: bg-surface card with header+seatbar+dates+employees
  * - "role"         — mirrors RoleRowMobile → MobileListRow: 28×28 icon, title+email+chip, right Btn stub
  */
+/** Root of fill-contract list variants — resolves to the Zone-2 region height. */
+const FILL_ROOT_CLASS = 'flex flex-col flex-1 min-h-0'
+/** Fill-contract row shell — equal slot of the region, content vertically centered. */
+const FILL_ROW_CLASS =
+  'flex items-center gap-[9px] px-[14px] py-[9px] overflow-hidden border-b border-border border-l-[3px] border-l-transparent bg-surface last:border-b-0'
+const FILL_ROW_STYLE = { flex: '1 1 0', minHeight: 0 } as const
+
 export function CardListSkeleton({ rows = 10, variant = 'asset' }: CardListSkeletonProps) {
   if (variant === 'employee') {
   // Mirrors EmployeeRowMobile → MobileListRow (EmployeeRowMobile.tsx):
@@ -51,13 +69,14 @@ export function CardListSkeleton({ rows = 10, variant = 'asset' }: CardListSkele
         data-testid="card-list-skeleton"
         data-variant="employee"
         aria-hidden="true"
-        className="flex flex-col"
+        className={FILL_ROOT_CLASS}
       >
         {Array.from({ length: rows }).map((_, i) => (
           <div
             key={i}
             data-testid="card-list-skeleton-row"
-            className="flex items-center gap-[9px] px-[14px] py-[9px] border-b border-border border-l-[3px] border-l-transparent bg-surface last:border-b-0"
+            className={FILL_ROW_CLASS}
+            style={FILL_ROW_STYLE}
           >
             {/* Avatar tile — RoleIcon renders as a circular SVG; rounded-full matches the visual shape */}
             <div className="w-[28px] h-[28px] rounded-full anim-skeleton flex-shrink-0" />
@@ -90,13 +109,14 @@ export function CardListSkeleton({ rows = 10, variant = 'asset' }: CardListSkele
         data-testid="card-list-skeleton"
         data-variant="audit"
         aria-hidden="true"
-        className="flex flex-col"
+        className={FILL_ROOT_CLASS}
       >
         {Array.from({ length: rows }).map((_, i) => (
           <div
             key={i}
             data-testid="card-list-skeleton-row"
-            className="flex items-center gap-[9px] px-[14px] py-[9px] border-b border-border border-l-[3px] border-l-transparent bg-surface last:border-b-0"
+            className={FILL_ROW_CLASS}
+            style={FILL_ROW_STYLE}
           >
             {/* Icon tile */}
             <div className="w-[28px] h-[28px] rounded-[8px] anim-skeleton flex-shrink-0" />
@@ -129,13 +149,14 @@ export function CardListSkeleton({ rows = 10, variant = 'asset' }: CardListSkele
         data-testid="card-list-skeleton"
         data-variant="catalog"
         aria-hidden="true"
-        className="flex flex-col"
+        className={FILL_ROOT_CLASS}
       >
         {Array.from({ length: rows }).map((_, i) => (
           <div
             key={i}
             data-testid="card-list-skeleton-row"
-            className="flex items-center gap-[9px] px-[14px] py-[9px] border-b border-border border-l-[3px] border-l-transparent bg-surface last:border-b-0"
+            className={FILL_ROW_CLASS}
+            style={FILL_ROW_STYLE}
           >
             {/* Icon tile */}
             <div className="w-[28px] h-[28px] rounded-[8px] anim-skeleton flex-shrink-0" />
@@ -167,13 +188,14 @@ export function CardListSkeleton({ rows = 10, variant = 'asset' }: CardListSkele
         data-testid="card-list-skeleton"
         data-variant="key"
         aria-hidden="true"
-        className="flex flex-col"
+        className={FILL_ROOT_CLASS}
       >
         {Array.from({ length: rows }).map((_, i) => (
           <div
             key={i}
             data-testid="card-list-skeleton-row"
-            className="flex items-center gap-[9px] px-[14px] py-[9px] border-b border-border border-l-[3px] border-l-transparent bg-surface last:border-b-0"
+            className={FILL_ROW_CLASS}
+            style={FILL_ROW_STYLE}
           >
             <div className="w-[28px] h-[28px] rounded-[8px] anim-skeleton flex-shrink-0" />
             <div className="flex-1 min-w-0">
@@ -250,13 +272,13 @@ export function CardListSkeleton({ rows = 10, variant = 'asset' }: CardListSkele
         data-testid="card-list-skeleton"
         data-variant="subscription"
         aria-hidden="true"
-        className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 p-5"
+        className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 p-5 max-md:p-3.5"
       >
         {Array.from({ length: rows }).map((_, i) => (
           <div
             key={i}
             data-testid="card-list-skeleton-row"
-            className="bg-surface border border-border rounded-xl p-5 flex flex-col gap-4"
+            className="bg-surface border border-border rounded-xl shadow-sm shadow-black/30 p-5 flex flex-col gap-4"
           >
             <div className="flex items-center justify-between">
               <div className="h-[15px] w-[55%] rounded anim-skeleton" />
@@ -295,13 +317,14 @@ export function CardListSkeleton({ rows = 10, variant = 'asset' }: CardListSkele
         data-testid="card-list-skeleton"
         data-variant="role"
         aria-hidden="true"
-        className="flex flex-col"
+        className={FILL_ROOT_CLASS}
       >
         {Array.from({ length: rows }).map((_, i) => (
           <div
             key={i}
             data-testid="card-list-skeleton-row"
-            className="flex items-center gap-[9px] px-[14px] py-[9px] border-b border-border border-l-[3px] border-l-transparent bg-surface last:border-b-0"
+            className={FILL_ROW_CLASS}
+            style={FILL_ROW_STYLE}
           >
             <div className="w-[28px] h-[28px] rounded-[8px] anim-skeleton flex-shrink-0" />
             <div className="flex-1 min-w-0">
@@ -328,13 +351,14 @@ export function CardListSkeleton({ rows = 10, variant = 'asset' }: CardListSkele
       data-testid="card-list-skeleton"
       data-variant="asset"
       aria-hidden="true"
-      className="flex flex-col"
+      className={FILL_ROOT_CLASS}
     >
       {Array.from({ length: rows }).map((_, i) => (
         <div
           key={i}
           data-testid="card-list-skeleton-row"
-          className="flex items-center gap-[9px] px-[14px] py-[9px] border-b border-border border-l-[3px] border-l-transparent bg-surface last:border-b-0"
+          className={FILL_ROW_CLASS}
+          style={FILL_ROW_STYLE}
         >
           {/* Icon tile shimmer: w-[28px] h-[28px] rounded-[8px] */}
           <div className="w-[28px] h-[28px] rounded-[8px] anim-skeleton flex-shrink-0" />

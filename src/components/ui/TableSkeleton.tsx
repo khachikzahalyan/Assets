@@ -13,6 +13,14 @@ export interface TableSkeletonProps {
    */
   firstColWide?: boolean
   /**
+   * When true the first cell shows a small ~13×13 icon-sized shimmer stub
+   * instead of the default 70%-width text bar. Mirrors a narrow icon-only first
+   * column (e.g. AuditTable's 36px chevron cell), whose real content is a 13px
+   * chevron — the default text bar would be clipped by the 20px left padding.
+   * Ignored when `firstColWide` is set. Default false.
+   */
+  firstColIcon?: boolean
+  /**
    * Explicit CSS `gridTemplateColumns` value. When provided, the header and
    * body rows use this string verbatim instead of the default
    * `repeat(N, minmax(0, 1fr))`. Lets the skeleton match the real table's
@@ -53,6 +61,7 @@ export function TableSkeleton({
   rows = 10,
   columns = 6,
   firstColWide = false,
+  firstColIcon = false,
   gridTemplate,
   lastColAction = false,
   headers,
@@ -162,6 +171,19 @@ export function TableSkeleton({
                         style={{ height: 9, width: '75%' }}
                       />
                     </div>
+                  </div>
+                )
+              }
+
+              if (isFirst && firstColIcon) {
+                /* Narrow icon-only first column (e.g. AuditTable 36px chevron):
+                   a small ~13×13 icon-sized stub instead of the clipped text bar. */
+                return (
+                  <div key={colIdx} style={{ paddingLeft: pl, paddingRight: pr }}>
+                    <div
+                      className="anim-skeleton rounded"
+                      style={{ width: 13, height: 13 }}
+                    />
                   </div>
                 )
               }
