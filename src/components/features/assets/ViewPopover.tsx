@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { Icon } from '@/components/ui/icon'
 import { MobileSheet } from '@/components/ui/MobileSheet'
 import { rafThrottle } from '@/lib/rafThrottle'
+import { useDismissOnOutside } from '@/hooks/useDismissOnOutside'
 
 export interface ViewSortOption {
   value: string
@@ -53,6 +54,9 @@ export function ViewPopover({
   const [pos, setPos] = useState<PortalPos>({ top: 0, left: 0 })
   const [isMobile, setIsMobile] = useState(getIsMobile)
   const triggerRef = useRef<HTMLButtonElement>(null)
+  const portalRef = useRef<HTMLDivElement>(null)
+
+  useDismissOnOutside([triggerRef, portalRef], () => setOpen(false), open && !isMobile)
 
   // Track mobile/desktop switches (e.g. browser resize)
   useEffect(() => {
@@ -89,25 +93,17 @@ export function ViewPopover({
     if (!open || isMobile) return
 
     const onScrollResize = rafThrottle(updatePos)
-    function onMouseDown(e: MouseEvent) {
-      const t = e.target as Node | null
-      const inTrigger = triggerRef.current?.contains(t) ?? false
-      const inPortal = t instanceof Element && t.closest('[data-vp-portal="true"]') !== null
-      if (!inTrigger && !inPortal) setOpen(false)
-    }
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') setOpen(false)
     }
 
     window.addEventListener('scroll', onScrollResize, true)
     window.addEventListener('resize', onScrollResize)
-    document.addEventListener('mousedown', onMouseDown)
     document.addEventListener('keydown', onKey)
     return () => {
       onScrollResize.cancel()
       window.removeEventListener('scroll', onScrollResize, true)
       window.removeEventListener('resize', onScrollResize)
-      document.removeEventListener('mousedown', onMouseDown)
       document.removeEventListener('keydown', onKey)
     }
   }, [open, isMobile])
@@ -236,6 +232,7 @@ export function ViewPopover({
       {!isMobile && open &&
         createPortal(
           <div
+            ref={portalRef}
             data-vp-portal="true"
             style={{
               position: 'fixed',

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ReactDOM from 'react-dom'
 import { Icon } from '@/components/ui/icon'
 import { useExclusiveDropdown } from '@/components/ui/dropdownBus'
+import { useDismissOnOutside } from '@/hooks/useDismissOnOutside'
 
 export interface SpecComboboxProps {
   value: string
@@ -18,6 +19,9 @@ export function SpecCombobox({ value, onChange, suggestions, placeholder, id }: 
   const [activeIdx, setActiveIdx] = useState(-1)
   const [pos, setPos] = useState<{ top: number; left: number; width: number } | null>(null)
   const triggerRef = useRef<HTMLDivElement>(null)
+  const portalRef = useRef<HTMLDivElement>(null)
+
+  useDismissOnOutside([triggerRef, portalRef], () => { setOpen(false); setActiveIdx(-1) }, open)
 
   const filtered = useMemo(() => {
     if (!value) return suggestions
@@ -47,18 +51,6 @@ export function SpecCombobox({ value, onChange, suggestions, placeholder, id }: 
     window.addEventListener('scroll', on, true)
     return () => { window.removeEventListener('resize', on); window.removeEventListener('scroll', on, true) }
   }, [open, updatePos])
-
-  useEffect(() => {
-    if (!open) return
-    const onDown = (e: MouseEvent) => {
-      const t = e.target as HTMLElement
-      if (triggerRef.current?.contains(t)) return
-      if (t.closest?.('[data-spec-portal="true"]')) return
-      setOpen(false); setActiveIdx(-1)
-    }
-    document.addEventListener('mousedown', onDown)
-    return () => document.removeEventListener('mousedown', onDown)
-  }, [open])
 
   const pick = (s: string) => { onChange(s); setOpen(false); setActiveIdx(-1) }
 
@@ -106,6 +98,7 @@ export function SpecCombobox({ value, onChange, suggestions, placeholder, id }: 
       </div>
       {open && pos && filtered.length > 0 && ReactDOM.createPortal(
         <div
+          ref={portalRef}
           data-spec-portal="true"
           data-ams-dropdown="true"
           style={{ position: 'fixed', top: pos.top, left: pos.left, width: pos.width, zIndex: 1000 }}

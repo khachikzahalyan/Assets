@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Icon } from '@/components/ui/icon'
 import { getSharedAssetRepository } from '@/infra/repositories'
 import type { AssetRepository } from '@/domain/asset/AssetRepository'
-import { useHoldNotifications } from '@/hooks'
+import { useHoldNotifications, useDismissOnOutside } from '@/hooks'
 import type { HoldNotification } from '@/domain/asset'
 
 export interface NotificationBellProps {
@@ -39,6 +39,8 @@ export function NotificationBell({ repository, onSelect }: NotificationBellProps
   const repo = repository ?? getSharedAssetRepository()
   const { notifications, count, loading, error, reload } = useHoldNotifications(repo)
 
+  useDismissOnOutside([wrapRef, popoverRef], () => setOpen(false), open)
+
   const updatePos = useCallback(() => {
     if (!triggerRef.current) return
     const isMobile = window.matchMedia('(max-width: 768px)').matches
@@ -54,21 +56,11 @@ export function NotificationBell({ repository, onSelect }: NotificationBellProps
 
   useEffect(() => {
     if (!open) return
-    const onOutside = (e: MouseEvent | TouchEvent) => {
-      if (
-        wrapRef.current && !wrapRef.current.contains(e.target as Node) &&
-        popoverRef.current && !popoverRef.current.contains(e.target as Node)
-      ) setOpen(false)
-    }
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
-    document.addEventListener('mousedown', onOutside)
-    document.addEventListener('touchstart', onOutside)
     document.addEventListener('keydown', onKey)
     window.addEventListener('scroll', updatePos, true)
     window.addEventListener('resize', updatePos)
     return () => {
-      document.removeEventListener('mousedown', onOutside)
-      document.removeEventListener('touchstart', onOutside)
       document.removeEventListener('keydown', onKey)
       window.removeEventListener('scroll', updatePos, true)
       window.removeEventListener('resize', updatePos)

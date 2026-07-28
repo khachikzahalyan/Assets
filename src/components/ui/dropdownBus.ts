@@ -30,11 +30,27 @@ export function useExclusiveDropdown(open: boolean, setOpen: (v: boolean) => voi
 
   useEffect(() => {
     if (!open) return
-    const handler = (e: MouseEvent) => {
+    const dismiss = () => setOpen(false)
+    const onPointerDown = (e: PointerEvent) => {
       const target = e.target as HTMLElement | null
-      if (!target?.closest('[data-ams-dropdown]')) setOpen(false)
+      if (target?.closest('[data-ams-dropdown]')) return
+      if (e.pointerType === 'touch') {
+        const swallow = (ev: MouseEvent) => { ev.preventDefault(); ev.stopPropagation() }
+        document.addEventListener('click', swallow, { capture: true, once: true })
+        window.setTimeout(() => document.removeEventListener('click', swallow, { capture: true }), 500)
+      }
+      dismiss()
     }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
+    // mousedown fallback keeps jsdom tests (fireEvent.mouseDown) and legacy browsers working
+    const onMouseDown = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null
+      if (!target?.closest('[data-ams-dropdown]')) dismiss()
+    }
+    document.addEventListener('pointerdown', onPointerDown)
+    document.addEventListener('mousedown', onMouseDown)
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown)
+      document.removeEventListener('mousedown', onMouseDown)
+    }
   }, [open, setOpen])
 }

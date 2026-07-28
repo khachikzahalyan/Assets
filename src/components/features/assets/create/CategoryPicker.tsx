@@ -5,6 +5,7 @@ import { Icon } from '@/components/ui'
 import { MobileSheet } from '@/components/ui/MobileSheet'
 import { rafThrottle } from '@/lib/rafThrottle'
 import type { CategoryRow } from '@/domain/asset'
+import { useDismissOnOutside } from '@/hooks/useDismissOnOutside'
 
 // The capability taxonomy + derivation now live in the pure domain layer
 // (src/domain/asset/categoryCapabilities.ts). Re-exported here under the historic
@@ -46,6 +47,9 @@ export function CategoryPicker({ categories, value, onChange, categoryGroupId, d
   const triggerRef = useRef<HTMLButtonElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
+  const portalRef = useRef<HTMLDivElement>(null)
+
+  useDismissOnOutside([triggerRef, portalRef], () => { setOpen(false); setQuery('') }, open && !isMobile)
 
   // Track mobile breakpoint changes
   useEffect(() => {
@@ -96,15 +100,9 @@ export function CategoryPicker({ categories, value, onChange, categoryGroupId, d
     if (!open) return
 
     const onScrollResize = rafThrottle(updatePos)
-    function onMouseDown(e: MouseEvent) {
-      const t = e.target as Node | null
-      const inTrigger = triggerRef.current?.contains(t) ?? false
-      const inPortal = t instanceof Element && t.closest('[data-cb-portal="true"]') !== null
-      if (!inTrigger && !inPortal) {
-        setOpen(false)
-        setQuery('')
-      }
-    }
+    // Outside-press close lives in useDismissOnOutside (desktop popover only);
+    // a raw mousedown listener here would prematurely close the mobile
+    // MobileSheet (its panel stops pointerdown, not mousedown).
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') {
         setOpen(false)
@@ -114,13 +112,11 @@ export function CategoryPicker({ categories, value, onChange, categoryGroupId, d
 
     window.addEventListener('scroll', onScrollResize, true)
     window.addEventListener('resize', onScrollResize)
-    document.addEventListener('mousedown', onMouseDown)
     document.addEventListener('keydown', onKey)
     return () => {
       onScrollResize.cancel()
       window.removeEventListener('scroll', onScrollResize, true)
       window.removeEventListener('resize', onScrollResize)
-      document.removeEventListener('mousedown', onMouseDown)
       document.removeEventListener('keydown', onKey)
     }
   }, [open])

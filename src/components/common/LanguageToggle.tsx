@@ -2,11 +2,14 @@ import { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import i18n from '@/lib/i18n'
 import { Icon } from '@/components/ui/icon'
+import { useDismissOnOutside } from '@/hooks/useDismissOnOutside'
 
 export function LanguageToggle() {
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
   const { t } = useTranslation('common')
+
+  useDismissOnOutside([rootRef], () => setOpen(false), open)
 
   const langs = [
     { id: 'ru', label: t('lang.ru'), short: 'RU' },
@@ -18,16 +21,9 @@ export function LanguageToggle() {
 
   useEffect(() => {
     if (!open) return
-    const onDoc = (e: MouseEvent | TouchEvent) => {
-      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false)
-    }
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
-    document.addEventListener('mousedown', onDoc)
-    document.addEventListener('touchstart', onDoc)
     document.addEventListener('keydown', onKey)
     return () => {
-      document.removeEventListener('mousedown', onDoc)
-      document.removeEventListener('touchstart', onDoc)
       document.removeEventListener('keydown', onKey)
     }
   }, [open])

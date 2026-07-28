@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@/components/ui'
 import { MobileSheet } from '@/components/ui/MobileSheet'
+import { swallowNextClick } from '@/hooks/useDismissOnOutside'
 
 export interface SearchSelectOption {
   value: string
@@ -106,6 +107,8 @@ export function SearchSelect({
       const inTrigger = triggerRef.current?.contains(target) ?? false
       const inPortal = target instanceof Element && target.closest('[data-ss-portal="true"]') !== null
       if (!inTrigger && !inPortal) {
+        // Owner rule: a dismissing touch must not click through to what's underneath.
+        if (e.pointerType === 'touch') swallowNextClick()
         setOpen(false)
         setQuery('')
       }
