@@ -33,18 +33,33 @@ export function LocationCard({ asset, refData }: LocationCardProps) {
             <Icon name="building-2" size={13} className="text-emerald-300" />
           </div>
           {branch
-            ? <span className="text-[14px] font-semibold text-text-primary">{branch.name}</span>
-            : <span className="text-[14px] text-text-subtle">—</span>
+            ? <span className="text-[13.5px] font-semibold leading-none text-text-primary truncate">{branch.name}</span>
+            : <span className="text-[13.5px] leading-none text-text-subtle">—</span>
           }
         </div>
         {dept && (
-          <div className="flex items-center gap-2">
-            <Icon name="users" size={14} className="text-blue-400" />
-            <span className="text-[14px] text-text-tertiary">
-              {t('detail.location.dept')}:{' '}
-              <span className="text-[#E2E8F0]">{dept.name}</span>
-            </span>
-          </div>
+          <>
+            {/* Desktop: inline icon — same style as the branch row above */}
+            <div className="max-md:hidden flex items-center gap-2">
+              <Icon name="users" size={14} className="text-blue-400" />
+              <span className="text-[14px] text-text-tertiary">
+                {t('detail.location.dept')}:{' '}
+                <span className="text-[#E2E8F0]">{dept.name}</span>
+              </span>
+            </div>
+            {/* Mobile: same 26px icon-box row as the branch — one aligned column,
+                same emerald tone so the location card reads as one cohesive block
+                (the lone blue dept icon looked out of place). */}
+            <div className="md:hidden flex items-center gap-2.5">
+              <div className="w-[26px] h-[26px] rounded-md bg-emerald-500/10 flex items-center justify-center shrink-0">
+                <Icon name="users" size={13} className="text-emerald-300" />
+              </div>
+              <span className="text-[13.5px] leading-none text-text-tertiary truncate">
+                {t('detail.location.dept')}:{' '}
+                <span className="font-semibold text-text-primary">{dept.name}</span>
+              </span>
+            </div>
+          </>
         )}
       </div>
     </SectionCard>

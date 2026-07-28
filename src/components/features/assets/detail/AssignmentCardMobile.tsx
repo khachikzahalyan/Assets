@@ -167,7 +167,8 @@ export function AssignmentCardMobile({
         <div className="w-[26px] h-[26px] rounded-lg bg-sky-500/12 flex items-center justify-center shrink-0">
           <Icon name="user-check" size={13} className="text-sky-300" />
         </div>
-        <span className="text-[10px] font-bold uppercase tracking-[1.4px] text-text-secondary">
+        {/* leading-none — centers the caps-only label against the icon box (same fix as SectionCard) */}
+        <span className="text-[10px] font-bold uppercase tracking-[1.4px] leading-none text-text-secondary">
           {t('detail.assignment.title')}
         </span>
       </div>

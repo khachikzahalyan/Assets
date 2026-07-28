@@ -55,7 +55,10 @@ export function SectionCard({
                 <Icon name={icon} size={12} className="md:hidden" />
               </span>
             )}
-            <h2 className="text-[13px] max-md:text-[10px] font-bold uppercase tracking-[0.04em] max-md:tracking-[1.4px] text-text-primary max-md:text-text-secondary">{title}</h2>
+            {/* leading-none: uppercase labels have no descenders, so the default
+                line-height makes them sit optically HIGH next to the icon box —
+                a tight line box centers the caps dead-on (owner request). */}
+            <h2 className="text-[13px] max-md:text-[10px] font-bold uppercase tracking-[0.04em] max-md:tracking-[1.4px] leading-none text-text-primary max-md:text-text-secondary">{title}</h2>
           </div>
           {action && <div className="flex items-center gap-2">{action}</div>}
         </header>
