@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@/components/ui'
-import { CATEGORY_COLOR } from '@/components/common/categoryColors'
+import { MobileSheet } from '@/components/ui/MobileSheet'
+import { resolveCategoryColor } from '@/components/common/categoryColors'
 import type { PartsAsset, UpgradeSlot, PartMovement, Part } from '@/domain/part/types'
 import {
   installedRowVisual,
@@ -68,8 +69,9 @@ export interface DeviceDetailMobileViewProps {
 type InnerTab = 'installed' | 'history'
 
 /**
- * Full-screen slide-in device detail for mobile (≤767px).
- * Replaces the former MobileSheet bottom-sheet in DevicesTab.
+ * Bottom-sheet device detail for mobile (≤767px) — MobileSheet over the devices
+ * list (owner request, 2026-07-28: «показывать как модалку»). Hero + inner tabs
+ * (Установлено / История) + row lists; closes via backdrop / Escape.
  * Desktop is NOT rendered (component is only mounted when isMobile=true in DevicesTab).
  */
 export function DeviceDetailMobileView({
@@ -84,29 +86,17 @@ export function DeviceDetailMobileView({
   const assetHistory = movements.filter(mv => mv.assetId === asset.assetId)
   const sortedHistory = [...assetHistory].sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0))
 
-  const catColor = CATEGORY_COLOR[asset.categoryId] ?? null
   const iconName = asset.categoryIcon || 'monitor'
+  const catColor = resolveCategoryColor(asset.categoryId, iconName)
   const skuById = Object.fromEntries(parts.map(p => [p.id, p]))
 
   return (
-    <div
-      className="fixed inset-0 z-[60] flex flex-col bg-bg"
-      style={{ animation: 'slideIn .22s ease' }}
-    >
-      {/* Back button header */}
-      <div className="flex items-center h-11 px-3.5 border-b border-border flex-shrink-0 bg-surface-2">
-        <button
-          type="button"
-          onClick={onBack}
-          className="flex items-center gap-1.5 text-accent text-[13px] font-semibold"
-        >
-          <Icon name="chevron-left" size={16} />
-          {t('tabs.devices', 'Устройства')}
-        </button>
-      </div>
-
+    /* Bottom sheet over the devices list (owner request, 2026-07-28) — the
+       full-screen slide-in replaced the list entirely; a sheet keeps context
+       and closes via backdrop / Escape / pull-down affordance. */
+    <MobileSheet open onClose={onBack} height="78vh">
       {/* Device hero + inner tabs */}
-      <div className="flex-shrink-0 bg-surface-2 border-b border-border px-4 pt-3.5 pb-0">
+      <div className="border-b border-border px-4 pb-0 flex-shrink-0">
         <div className="flex items-center gap-3 mb-3.5">
           <span
             className="w-11 h-11 rounded-xl inline-flex items-center justify-center flex-shrink-0"
@@ -153,11 +143,11 @@ export function DeviceDetailMobileView({
         </div>
       </div>
 
-      {/* Scrollable content */}
-      <div className="flex-1 min-h-0 overflow-y-auto pb-[68px]">
+      {/* Content — fixed-height sheet: this region scrolls, empty states center */}
+      <div className="flex-1 min-h-0 overflow-y-auto">
         {innerTab === 'installed' ? (
           rows.length === 0 ? (
-            <div className="flex items-center justify-center p-8 text-[14px] text-text-tertiary text-center">
+            <div className="h-full flex items-center justify-center p-8 text-[14px] text-text-tertiary text-center">
               {t('device.noPartsTitle')}
             </div>
           ) : (
@@ -191,7 +181,7 @@ export function DeviceDetailMobileView({
           )
         ) : (
           sortedHistory.length === 0 ? (
-            <div className="flex items-center justify-center p-8 text-[14px] text-text-tertiary text-center">
+            <div className="h-full flex items-center justify-center p-8 text-[14px] text-text-tertiary text-center">
               {t('device.historyEmpty')}
             </div>
           ) : (
@@ -201,7 +191,15 @@ export function DeviceDetailMobileView({
                 const skuLabel = rowSku
                   ? rowSku.name + (rowSku.variantLabel ? ' ' + rowSku.variantLabel : '')
                   : mv.skuId || '—'
-                const catLabel = rowSku ? (PART_CAT_BY_ID[rowSku.category]?.label ?? '') : ''
+                // Subline shows the ACTION («Заменено»/«Снято»/«Списано»), not the
+                // part category — the category is obvious from the icon (owner request).
+                const actionLabel = mv.broken
+                  ? t('journal.scrapped')
+                  : mv.type === 'install'
+                    ? t('journal.replaced')
+                    : mv.type === 'uninstall'
+                      ? t('journal.uninstalled')
+                      : t('journal.installed')
                 const rowVisual = rowSku ? installedRowVisual(rowSku.category) : null
                 const dotColor =
                   mv.type === 'receive' ? 'bg-emerald-500'
@@ -217,7 +215,7 @@ export function DeviceDetailMobileView({
                     </span>
                     <div className="flex-1 min-w-0">
                       <div className="text-[13.5px] font-semibold text-text-primary truncate">{skuLabel}</div>
-                      {catLabel && <div className="text-[11.5px] text-text-secondary mt-0.5">{catLabel}</div>}
+                      <div className="text-[11.5px] text-text-secondary mt-0.5">{actionLabel}</div>
                     </div>
                     <span className="text-[10.5px] font-mono text-text-subtle flex-shrink-0">{fmtPartsDate(mv.at)}</span>
                   </li>
@@ -227,6 +225,6 @@ export function DeviceDetailMobileView({
           )
         )}
       </div>
-    </div>
+    </MobileSheet>
   )
 }

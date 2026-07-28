@@ -67,8 +67,8 @@ describe('WarehouseSizedDetail', () => {
     const noStockEls = screen.getAllByText('warehouse.noStock')
     expect(noStockEls.length).toBeGreaterThanOrEqual(1)
 
-    // EmptyState description is unique
-    expect(screen.getByText('warehouse.noneAvailableHint')).toBeInTheDocument()
+    // Empty state is a quiet placeholder card — no instructional hint text
+    expect(screen.queryByText('warehouse.noneAvailableHint')).not.toBeInTheDocument()
 
     // Size row labels must NOT be visible
     expect(screen.queryByText('512 ГБ')).not.toBeInTheDocument()

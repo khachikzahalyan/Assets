@@ -36,7 +36,7 @@ export interface PartsReceiveMobileFormProps {
 function MobileLoadingBody() {
   return (
     <>
-      {/* 2 small-cat shimmer cards (PSU / Cooler) side-by-side */}
+      {/* 2 small-cat shimmer cards (PSU / Cooler) side-by-side — single-slot: 1 SKU row each */}
       <div className="grid grid-cols-2 gap-2">
         {[0, 1].map(i => (
           <div key={i} className="bg-surface border border-border rounded-xl p-3">
@@ -45,20 +45,18 @@ function MobileLoadingBody() {
               <div className="h-[12px] w-[45%] rounded anim-skeleton" />
               <div className="ml-auto h-[10px] w-[38px] rounded anim-skeleton" />
             </div>
-            {[0, 1].map(j => (
-              <div key={j} className="mb-2 last:mb-0">
-                <div className="flex items-center justify-between mb-1">
-                  <div className="h-[11px] w-[55%] anim-skeleton rounded" />
-                  <div className="h-[10px] w-[24px] anim-skeleton rounded" />
-                </div>
-                <div className="h-8 rounded-lg anim-skeleton" />
+            <div className="mb-2 last:mb-0">
+              <div className="flex items-center justify-between mb-1">
+                <div className="h-[11px] w-[55%] anim-skeleton rounded" />
+                <div className="h-[10px] w-[24px] anim-skeleton rounded" />
               </div>
-            ))}
+              <div className="h-8 rounded-lg anim-skeleton" />
+            </div>
           </div>
         ))}
       </div>
-      {/* 3 sized-cat shimmer cards (SSD / HDD / M.2 / RAM) full-width */}
-      {[0, 1, 2].map(i => (
+      {/* 4 sized-cat shimmer cards (SSD / HDD / M.2 / RAM) full-width */}
+      {[0, 1, 2, 3].map(i => (
         <div key={i} className="bg-surface border border-border rounded-xl p-3">
           <div className="flex items-center gap-2 mb-2.5">
             <div className="w-5 h-5 rounded-md anim-skeleton" />
@@ -66,7 +64,7 @@ function MobileLoadingBody() {
             <div className="ml-auto h-[10px] w-[48px] rounded anim-skeleton" />
           </div>
           <div className="flex gap-[7px] overflow-x-hidden pb-1">
-            {[0, 1, 2, 3].map(j => (
+            {[0, 1, 2, 3, 4].map(j => (
               <div key={j} className="flex-shrink-0 w-[72px]">
                 <div className="h-[10px] w-[70%] mb-1 rounded anim-skeleton" />
                 <div className="h-7 rounded-md anim-skeleton" />
@@ -115,10 +113,13 @@ export function PartsReceiveMobileForm({
   const sizedCats = visibleCats.filter(c => !smallCats.includes(c))
 
   return (
-    /* Viewport-locked column (topbar 52 + content pt 12 + bottom nav 64 = 128):
-       header + footer stay pinned, ONLY the category-card body scrolls, and the
-       footer lands flush on the global bottom nav — no dead band below. */
-    <div className="flex flex-col h-[calc(100dvh-128px)] overflow-hidden bg-bg">
+    /* Viewport-locked column. The form is the direct flex child of the flush
+       content box (.app-shell-content-flush: topbar 52 + content pt 10 + pb 74 =
+       136), so its height must subtract exactly 136 — 128 overshot by 8px and
+       leaked an 8px page scroll on top of the intended inner scroll. Now header +
+       footer stay pinned, ONLY the category-card body scrolls, footer lands 10px
+       above the global bottom nav, and the page itself never moves. */
+    <div className="flex flex-col h-[calc(100dvh-136px)] overflow-hidden bg-bg">
       {/* ── Fixed header ───────────────────────────────────────────────── */}
       <div className="flex-shrink-0 flex items-center justify-between px-4 py-3.5 bg-surface-2 border-b border-border">
         <span className="text-[15px] font-bold text-text-primary">{t('addModal.title')}</span>

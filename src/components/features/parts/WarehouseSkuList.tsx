@@ -12,9 +12,9 @@ const SKU_PLACEHOLDER_COUNT = 3
 
 /**
  * Desktop empty-stock placeholder: dashed slots matching real SKU row height.
- * One compact hint line sits below with no icon/heading to avoid layout jumps.
+ * Empty card only — no hint text (empty state stays quiet).
  */
-function SkuPlaceholderDesktop({ hint }: { hint: string }) {
+function SkuPlaceholderDesktop() {
   return (
     <div className="flex flex-col flex-shrink-0">
       {Array.from({ length: SKU_PLACEHOLDER_COUNT }).map((_, i) => (
@@ -26,7 +26,6 @@ function SkuPlaceholderDesktop({ hint }: { hint: string }) {
           <div className="absolute left-5 right-5 top-1/2 -translate-y-1/2 border-t border-dashed border-border/40" />
         </div>
       ))}
-      <div className="px-5 py-2 text-[12.5px] text-text-tertiary">{hint}</div>
     </div>
   )
 }
@@ -34,8 +33,9 @@ function SkuPlaceholderDesktop({ hint }: { hint: string }) {
 /**
  * Mobile empty-stock placeholder: dashed slots matching WarehouseSkuRowMobile height.
  * Mobile rows rendered by MobileListRow have ~py-[7px] + two text lines ≈ 48px.
+ * Empty card only — no hint text (empty state stays quiet).
  */
-function SkuPlaceholderMobile({ hint }: { hint: string }) {
+function SkuPlaceholderMobile() {
   return (
     <div className="flex flex-col">
       {Array.from({ length: SKU_PLACEHOLDER_COUNT }).map((_, i) => (
@@ -53,7 +53,6 @@ function SkuPlaceholderMobile({ hint }: { hint: string }) {
           <div className="absolute left-[14px] right-[14px] top-1/2 -translate-y-1/2 border-t border-dashed border-border/40" />
         </div>
       ))}
-      <div className="px-[14px] py-2 text-[11.5px] text-text-tertiary">{hint}</div>
     </div>
   )
 }
@@ -108,8 +107,8 @@ export function WarehouseSkuList({
       return (
         <div className="flex flex-col flex-shrink-0">
           {isMobile
-            ? <SkuPlaceholderMobile hint={t('warehouse.emptyGpuHint')} />
-            : <SkuPlaceholderDesktop hint={t('warehouse.emptyGpuHint')} />}
+            ? <SkuPlaceholderMobile />
+            : <SkuPlaceholderDesktop />}
           <div className="px-5 pb-3 max-md:px-[14px]">
             <button
               type="button"
@@ -124,9 +123,9 @@ export function WarehouseSkuList({
       )
     }
     if (isMobile) {
-      return <SkuPlaceholderMobile hint={t('warehouse.noneAvailableHint')} />
+      return <SkuPlaceholderMobile />
     }
-    return <SkuPlaceholderDesktop hint={t('warehouse.noneAvailableHint')} />
+    return <SkuPlaceholderDesktop />
   }
 
   /* Aggregated categories: one summary row with dual chips */
@@ -141,8 +140,8 @@ export function WarehouseSkuList({
       totalBroken += s.broken
     }
     if (totalWorking === 0 && totalBroken === 0) {
-      if (isMobile) return <SkuPlaceholderMobile hint={t('warehouse.noneAvailableHint')} />
-      return <SkuPlaceholderDesktop hint={t('warehouse.noneAvailableHint')} />
+      if (isMobile) return <SkuPlaceholderMobile />
+      return <SkuPlaceholderDesktop />
     }
     if (isMobile) {
       return (

@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Icon } from '@/components/ui'
 import type { Part } from '@/domain/part/types'
 import { workingStock } from '@/domain/part/partStock'
-import { PART_CATEGORY_META, categoryTint, type PartCatMeta } from './partsTokens'
+import { PART_CATEGORY_META, type PartCatMeta } from './partsTokens'
 import type { PartCategoryDef } from '@/domain/part/partCategory-types'
 import { isModelsCategory } from '@/domain/part/partCategory-types'
 
@@ -31,8 +31,8 @@ export interface CategoryChipStripProps {
  * Auto-scrolls selected chip to center using getBoundingClientRect
  * (NOT scrollIntoView — that bubbles to ancestors).
  *
- * Active style: bg-[#F97316]/15 border-[#F97316]/40.
- * Rounded-full chips per prototype.
+ * Chip style mirrors the assets GroupTabs desktop filled chips exactly:
+ * active = solid bg-accent text-white, idle = bg-surface border border-border.
  */
 export function CategoryChipStrip({
   skusByCategory,
@@ -105,7 +105,6 @@ export function CategoryChipStrip({
           return sum + (entry ? workingStock(entry) : s.onHand)
         }, 0)
         const isSelected = selectedId === cat.id
-        const tint = categoryTint(cat.id)
 
         return (
           <button
@@ -116,18 +115,21 @@ export function CategoryChipStrip({
             aria-selected={isSelected}
             onClick={() => handleClick(cat.id)}
             className={`
-              inline-flex items-center gap-[5px] px-3 py-1.5 rounded-full whitespace-nowrap
-              flex-shrink-0 text-[12px] font-bold transition-all duration-150 border-[1.5px]
+              inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg whitespace-nowrap
+              flex-shrink-0 text-[13px] font-semibold tracking-tight transition-colors duration-100
+              focus:outline-none focus-visible:ring-2 focus-visible:ring-border-strong
               ${isSelected
-                ? 'bg-accent/15 border-accent/40 text-text-primary'
-                : 'bg-transparent border-border text-text-subtle hover:border-border-strong'}
+                ? 'bg-accent text-white'
+                : 'bg-surface text-text-primary border border-border hover:border-border-strong'}
             `}
           >
-            <span className={isSelected ? 'text-text-primary' : tint.iconText}>
-              <Icon name={cat.icon} size={10} />
-            </span>
+            <Icon
+              name={cat.icon}
+              size={13}
+              className={isSelected ? 'text-white' : 'text-text-primary'}
+            />
             <span>{cat.label}</span>
-            <span className={`text-[11px] font-bold tabular-nums ${isSelected ? 'text-text-secondary' : 'text-text-subtle'}`}>
+            <span className={`tabular-nums text-[12px] ${isSelected ? 'text-white/70' : 'text-text-subtle'}`}>
               {total}
             </span>
           </button>

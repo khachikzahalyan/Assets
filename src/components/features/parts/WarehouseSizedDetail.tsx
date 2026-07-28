@@ -8,8 +8,8 @@ import { categoryTint, categoryIcon, PART_CAT_BY_ID, variantRank } from './parts
 
 /** Placeholder slots for sized-category empty state (mobile-only component).
  *  Slots match the per-size row height (py-3.5 ≈ 56px).
- *  A compact hint line appears below — no icon, no big heading. */
-function SizedPlaceholder({ hint }: { hint: string }) {
+ *  Empty card only — no hint text (empty state stays quiet). */
+function SizedPlaceholder() {
   return (
     <div className="flex flex-col">
       {Array.from({ length: 3 }).map((_, i) => (
@@ -25,7 +25,6 @@ function SizedPlaceholder({ hint }: { hint: string }) {
           <div className="absolute left-3.5 right-3.5 top-1/2 -translate-y-1/2 border-t border-dashed border-border/40" />
         </div>
       ))}
-      <div className="px-3.5 py-2 text-[11.5px] text-text-tertiary">{hint}</div>
     </div>
   )
 }
@@ -98,7 +97,7 @@ export function WarehouseSizedDetail({ categoryId, skus, stockMap, onInstall }: 
 
       {/* Whole category empty → geometry-preserving placeholder, no icon/heading */}
       {totalOnHand === 0 ? (
-        <SizedPlaceholder hint={t('warehouse.noneAvailableHint')} />
+        <SizedPlaceholder />
       ) : (
         <>
           {/* DDR toggle for ОЗУ */}
