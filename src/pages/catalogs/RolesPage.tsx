@@ -59,7 +59,7 @@ function ChangeRoleDialog({ target, isSelf, onClose, onChanged, repo, actor }: C
   // to the employee record (applied at first sign-in) — no account to mutate, and
   // the employee link/create sub-flow is moot (the HR record already exists).
   const isInvited = target.status === 'invited'
-  const roleOptions = ROLE_IDS.map(id => ({ value: id, label: tNav(`roles.${id}`) }))
+  const roleOptions = ROLE_IDS.map(id => ({ value: id, label: tNav(`roles.${id}`), icon: <RoleIcon role={id} size={20} /> }))
   const emailMissing = !isInvited && selectedRole === 'employee' && empMode === 'create' && !target.email?.trim()
   const unchanged = selectedRole === (target.role ?? '')
 
@@ -99,7 +99,7 @@ function ChangeRoleDialog({ target, isSelf, onClose, onChanged, repo, actor }: C
     >
       <div
         role="dialog" aria-modal="true" aria-labelledby="change-role-title"
-        className={`w-full max-w-md bg-surface border border-border rounded-xl max-md:rounded-b-none max-md:rounded-t-[18px] max-md:max-h-[85vh] max-md:overflow-y-auto shadow-2xl p-6 space-y-5 mx-4 max-md:mx-0 ${MODAL_SHEET}`}
+        className={`w-full max-w-md bg-surface border border-border rounded-xl max-md:rounded-b-none max-md:rounded-t-[18px] max-md:max-h-[92vh] max-md:overflow-y-auto shadow-2xl p-6 space-y-5 mx-4 max-md:mx-0 ${MODAL_SHEET}`}
       >
         <div className="max-md:block hidden mx-auto h-1 w-9 rounded-full bg-white/20 mb-3 -mt-3" />
         <header className="flex items-center justify-between gap-3">
@@ -111,7 +111,16 @@ function ChangeRoleDialog({ target, isSelf, onClose, onChanged, repo, actor }: C
         </header>
 
         <div className="flex items-center gap-3 px-3 py-2.5 bg-bg rounded-lg border border-border">
-          <Icon name="user" size={16} className="text-text-subtle flex-shrink-0" />
+          {/* Avatar = the target's current role badge (owner request — same
+              per-role icon used in the list + filter); generic tile only when
+              the user has no role yet. */}
+          {target.role ? (
+            <RoleIcon role={target.role} size={30} className="shrink-0" />
+          ) : (
+            <span className="w-[30px] h-[30px] rounded-full inline-flex items-center justify-center flex-shrink-0 bg-surface-2 border border-border text-text-subtle">
+              <Icon name="user" size={14} />
+            </span>
+          )}
           <div className="min-w-0">
             <p className="text-[13px] font-medium text-text-primary truncate">{target.displayName || target.email}</p>
             <p className="text-[11.5px] text-text-subtle truncate">{target.email}</p>
@@ -241,16 +250,12 @@ export function RolesPage({ repository }: RolesPageProps) {
     setDialogUser(null)
   }
 
-  // Per-role option icons (owner request: each role gets its own icon in the dropdown)
-  const ROLE_OPTION_ICONS: Record<string, string> = {
-    super_admin: 'crown',
-    asset_admin: 'shield-check',
-    tech_admin: 'wrench',
-    employee: 'user',
-  }
+  // Per-role option icons: each real role gets its own unique RoleIcon badge
+  // (owner request — the same badge used in the list rows and the dialog), while
+  // the synthetic 'all'/'no-role' entries keep a plain lucide glyph.
   const roleFilterOptions: SelectMiniOption[] = [
     { value: 'all', label: t('filter.all'), icon: 'users' },
-    ...ROLE_IDS.map(id => ({ value: id, label: tNav(`roles.${id}`), icon: ROLE_OPTION_ICONS[id] ?? 'user' })),
+    ...ROLE_IDS.map(id => ({ value: id, label: tNav(`roles.${id}`), iconNode: <RoleIcon role={id} size={18} /> })),
     { value: 'no-role', label: t('role.none'), icon: 'user-circle' },
   ]
   // Status dots (owner request): active = green, no-role = amber, terminated = red
@@ -289,8 +294,6 @@ export function RolesPage({ repository }: RolesPageProps) {
               key={u.id}
               u={u}
               isSelf={u.id === user.id}
-              roleLabel={roleLabel(u.role)}
-              statusLabel={t(`status.${u.status}`)}
               youLabel={t('you')}
               changeLabel={t('change')}
               onChangeRole={() => setDialogUser(u)}
@@ -392,8 +395,10 @@ export function RolesPage({ repository }: RolesPageProps) {
             /* Zone 1: search + filters — static content rendered immediately,
                no shimmer (owner rule: only async data shimmers). */
             <>
-              {/* Single row: search (flex-1) + both SelectMini chips (owner request).
-                  Mobile: wraps — search takes the full first line, chips drop below. */}
+              {/* Desktop: search (flex-1) + both chips on one line. Mobile: search
+                  takes the full first line (min-w-full forces the wrap), and the two
+                  chips share the second line 50/50 — a balanced, aligned pair instead
+                  of the lopsided search+role / status-alone wrap. */}
               <div className="flex items-center gap-2 flex-wrap px-5 py-3 max-md:px-3 max-md:py-2.5 max-md:gap-[6px]">
                 <SearchInput
                   id="roles-search"
@@ -401,24 +406,28 @@ export function RolesPage({ repository }: RolesPageProps) {
                   onChange={setSearch}
                   placeholder={t('search')}
                   aria-label={t('search')}
-                  containerClassName="flex-1 min-w-[180px]"
+                  containerClassName="flex-1 min-w-[180px] max-md:min-w-full"
                 />
-                <SelectMini
-                  id="roles-role-filter"
-                  label={t('filter.role')}
-                  leadingIcon="shield-check"
-                  value={roleFilter}
-                  onChange={v => setRoleFilter(v as Role | 'no-role' | 'all')}
-                  options={roleFilterOptions}
-                />
-                <SelectMini
-                  id="roles-status-filter"
-                  label={t('filter.status')}
-                  leadingIcon="circle-dot"
-                  value={statusFilter}
-                  onChange={v => setStatusFilter(v as 'all' | 'active' | 'no-role' | 'terminated')}
-                  options={statusFilterOptions}
-                />
+                <div className="flex items-center gap-2 max-md:w-full max-md:gap-[6px]">
+                  <SelectMini
+                    id="roles-role-filter"
+                    label={t('filter.role')}
+                    leadingIcon="shield-check"
+                    value={roleFilter}
+                    onChange={v => setRoleFilter(v as Role | 'no-role' | 'all')}
+                    options={roleFilterOptions}
+                    className="max-md:flex-1 max-md:justify-between"
+                  />
+                  <SelectMini
+                    id="roles-status-filter"
+                    label={t('filter.status')}
+                    leadingIcon="circle-dot"
+                    value={statusFilter}
+                    onChange={v => setStatusFilter(v as 'all' | 'active' | 'no-role' | 'terminated')}
+                    options={statusFilterOptions}
+                    className="max-md:flex-1 max-md:justify-between"
+                  />
+                </div>
               </div>
               <div className="border-t border-border" />
             </>

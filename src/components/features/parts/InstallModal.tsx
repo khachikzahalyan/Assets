@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo } from 'react'
 import ReactDOM from 'react-dom'
 import { useTranslation } from 'react-i18next'
-import { Btn, Icon, MobileSheet } from '@/components/ui'
+import { Btn, Icon, MobileSheet, Select } from '@/components/ui'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import type { Part, PartsAsset } from '@/domain/part/types'
 import type { InstallInput } from '@/domain/part/PartRepository'
@@ -43,7 +43,9 @@ type ActionMode = 'install' | 'replace' | 'add'
  * NO slot/stock math is implemented here — all calls go to domain helpers.
  *
  * Note field is intentionally removed (prototype does not have it).
- * Asset selector remains a <select> element for test compatibility.
+ * Asset selector uses the shared <Select> (themed MiniDropdown + sr-only native
+ * <select>), so mobile and desktop share one styled control while tests keep
+ * driving the hidden combobox via getAllByRole('combobox')[0].
  */
 export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: InstallModalProps) {
   const { t } = useTranslation('parts')
@@ -183,24 +185,19 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
           </div>
         )}
 
-        {/* Asset selector — must remain a <select> for test getAllByRole('combobox')[0] */}
+        {/* Asset selector — shared <Select> (themed dropdown, one control for mobile + desktop).
+            The sr-only native <select> inside it stays first in the DOM for getAllByRole('combobox')[0]. */}
         <div className="flex flex-col gap-1.5">
           <label htmlFor="install-asset" className="text-[12.5px] font-medium text-text-tertiary">
             {t('installModal.labelAsset')} <span className="text-rose-400">*</span>
           </label>
-          <select
+          <Select
             id="install-asset"
             value={selectedAssetId ?? ''}
-            onChange={e => handleAssetSelect(e.target.value)}
-            className="h-9 px-3 text-[13.5px] rounded-lg bg-bg border border-border text-text-primary focus:outline-none focus:border-[#F97316]/50 focus:ring-1 focus:ring-[#F97316]/20 transition-all"
-          >
-            <option value="">{t('installModal.assetPlaceholder')}</option>
-            {partsAssets.map(a => (
-              <option key={a.id} value={a.id}>
-                {a.id} — {a.name} ({a.kind})
-              </option>
-            ))}
-          </select>
+            onChange={handleAssetSelect}
+            placeholder={t('installModal.assetPlaceholder')}
+            options={partsAssets.map(a => ({ value: a.id, label: `${a.id} — ${a.name} (${a.kind})` }))}
+          />
         </div>
 
         {/* Service notice */}

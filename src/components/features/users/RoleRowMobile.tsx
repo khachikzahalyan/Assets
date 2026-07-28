@@ -1,13 +1,11 @@
 import type { CSSProperties } from 'react'
-import { Btn, Chip, Icon, MobileListRow } from '@/components/ui'
+import { Btn, Icon, MobileListRow } from '@/components/ui'
 import { RoleIcon } from '@/components/ui/RoleIcon'
 import type { User } from '@/domain/user'
 
 export interface RoleRowMobileProps {
   u: User
   isSelf: boolean
-  roleLabel: string
-  statusLabel: string
   youLabel: string
   changeLabel: string
   onChangeRole: () => void
@@ -17,25 +15,29 @@ export interface RoleRowMobileProps {
 
 /**
  * Mobile row for a user in the Roles page — wraps ui/MobileListRow.
- * Row itself is inert; only the right Change Btn is interactive.
+ * Compact 2-line layout (owner request): the role badge IS the avatar, so the
+ * role text is dropped; only name + email remain, keeping the row short enough
+ * that a full PAGE_SIZE list fits the card without a page scroll. No status
+ * indicator in the list (owner request) — status lives in the filter + dialog.
+ * Row is inert; only the right Btn acts.
  */
 export function RoleRowMobile({
-  u, isSelf, roleLabel, statusLabel, youLabel, changeLabel, onChangeRole, outerStyle,
+  u, isSelf, youLabel, changeLabel, onChangeRole, outerStyle,
 }: RoleRowMobileProps) {
   // Avatar = the role badge itself (owner request); generic tile only when no role
   const iconTile = u.role ? (
-    <RoleIcon role={u.role} size={28} className="shrink-0" />
+    <RoleIcon role={u.role} size={30} className="shrink-0" />
   ) : (
     <span
-      className="w-[28px] h-[28px] rounded-[8px] inline-flex items-center justify-center flex-shrink-0 bg-surface-2 text-text-subtle"
+      className="w-[30px] h-[30px] rounded-full inline-flex items-center justify-center flex-shrink-0 bg-surface-2 border border-border text-text-subtle"
       aria-hidden="true"
     >
-      <Icon name="user" size={13} />
+      <Icon name="user" size={14} />
     </span>
   )
 
   const titleNode = (
-    <div className="flex items-center gap-1.5 leading-snug mb-[2px] min-w-0">
+    <div className="flex items-center gap-1.5 leading-snug min-w-0">
       <span className="text-[13px] font-bold text-text-primary truncate">
         {u.displayName || u.email}
       </span>
@@ -48,13 +50,7 @@ export function RoleRowMobile({
   )
 
   const sublineNode = (
-    <div className="text-[11px] leading-snug">
-      <div className="text-text-tertiary truncate">{u.email}</div>
-      <div className="flex items-center gap-2 pt-0.5 flex-wrap">
-        <Chip color="gray">{roleLabel}</Chip>
-        <span className="text-text-tertiary">{statusLabel}</span>
-      </div>
-    </div>
+    <div className="text-[11.5px] text-text-tertiary truncate leading-snug">{u.email}</div>
   )
 
   const right = (

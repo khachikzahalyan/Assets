@@ -1,8 +1,11 @@
+import type { ReactNode } from 'react'
 import { MiniDropdown } from './MiniDropdown'
 
 export interface SelectOption {
   value: string
   label: string
+  /** Optional leading node (e.g. a RoleIcon badge) shown in the trigger + option row. */
+  icon?: ReactNode
 }
 
 export interface SelectProps {

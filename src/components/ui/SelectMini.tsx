@@ -1,8 +1,10 @@
 import { useState, useRef, useLayoutEffect, useEffect } from 'react'
+import type { ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { Icon } from './icon'
 import { MobileSheet } from './MobileSheet'
 import { rafThrottle } from '@/lib/rafThrottle'
+import { useDismissOnOutside } from '@/hooks/useDismissOnOutside'
 
 export interface SelectMiniOption {
   value: string
@@ -10,6 +12,8 @@ export interface SelectMiniOption {
   dotColor?: string
   icon?: string
   iconColor?: string
+  /** Custom leading node (e.g. a RoleIcon badge) — takes precedence over `icon`/`dotColor`. */
+  iconNode?: ReactNode
 }
 
 export interface SelectMiniProps {
@@ -28,6 +32,8 @@ export interface SelectMiniProps {
    * renders in the neutral (non-active) style. Defaults to 'all'.
    */
   defaultValue?: string
+  /** Extra classes merged onto the trigger button (e.g. width control in a filter bar). */
+  className?: string
 }
 
 interface PortalPos {
@@ -49,11 +55,14 @@ function getIsMobile(): boolean {
  * Desktop: portal-to-body dropdown with outside-click + Escape close.
  * Mobile (≤767px): MobileSheet bottom-sheet with option rows.
  */
-export function SelectMini({ id, label, leadingIcon, leadingIconMobile, value, onChange, options, sheetTitle, defaultValue = 'all' }: SelectMiniProps) {
+export function SelectMini({ id, label, leadingIcon, leadingIconMobile, value, onChange, options, sheetTitle, defaultValue = 'all', className }: SelectMiniProps) {
   const [open, setOpen] = useState(false)
   const [pos, setPos] = useState<PortalPos | null>(null)
   const [isMobile, setIsMobile] = useState(getIsMobile)
   const triggerRef = useRef<HTMLButtonElement>(null)
+  const portalRef = useRef<HTMLDivElement>(null)
+
+  useDismissOnOutside([triggerRef, portalRef], () => setOpen(false), open && !isMobile)
 
   const current = options.find(o => o.value === value)
   const isNonDefault = value !== defaultValue
@@ -94,25 +103,17 @@ export function SelectMini({ id, label, leadingIcon, leadingIconMobile, value, o
     if (!open || isMobile) return
 
     const onScrollResize = rafThrottle(updatePos)
-    function onMouseDown(e: MouseEvent) {
-      const t = e.target as Node | null
-      const inTrigger = triggerRef.current?.contains(t) ?? false
-      const inPortal = t instanceof Element && t.closest('[data-sm-portal="true"]') !== null
-      if (!inTrigger && !inPortal) setOpen(false)
-    }
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') setOpen(false)
     }
 
     window.addEventListener('scroll', onScrollResize, true)
     window.addEventListener('resize', onScrollResize)
-    document.addEventListener('mousedown', onMouseDown)
     document.addEventListener('keydown', onKey)
     return () => {
       onScrollResize.cancel()
       window.removeEventListener('scroll', onScrollResize, true)
       window.removeEventListener('resize', onScrollResize)
-      document.removeEventListener('mousedown', onMouseDown)
       document.removeEventListener('keydown', onKey)
     }
   }, [open, isMobile])
@@ -125,7 +126,8 @@ export function SelectMini({ id, label, leadingIcon, leadingIconMobile, value, o
       : open
         ? 'bg-surface border-border-strong ring-2 ring-border-strong/70'
         : 'bg-surface border-border hover:border-border-strong',
-  ].join(' ')
+    className,
+  ].filter(Boolean).join(' ')
 
   /** Shared option rows used in both sheet and dropdown */
   const optionRows = (
@@ -148,7 +150,9 @@ export function SelectMini({ id, label, leadingIcon, leadingIconMobile, value, o
             ].join(' ')}
           >
             {leadingIcon && (
-              opt.dotColor ? (
+              opt.iconNode ? (
+                <span className="flex-shrink-0 inline-flex w-[18px] h-[18px] items-center justify-center">{opt.iconNode}</span>
+              ) : opt.dotColor ? (
                 <span
                   style={{ backgroundColor: opt.dotColor }}
                   className="w-2.5 h-2.5 rounded-full flex-shrink-0"
@@ -246,6 +250,7 @@ export function SelectMini({ id, label, leadingIcon, leadingIconMobile, value, o
       {!isMobile && open && pos &&
         createPortal(
           <div
+            ref={portalRef}
             data-sm-portal="true"
             style={{
               position: 'fixed',
@@ -275,7 +280,9 @@ export function SelectMini({ id, label, leadingIcon, leadingIconMobile, value, o
                     ].join(' ')}
                   >
                     {leadingIcon && (
-                      opt.dotColor ? (
+                      opt.iconNode ? (
+                        <span className="flex-shrink-0 inline-flex w-4 h-4 items-center justify-center">{opt.iconNode}</span>
+                      ) : opt.dotColor ? (
                         <span
                           style={{ backgroundColor: opt.dotColor }}
                           className="w-2 h-2 rounded-full flex-shrink-0"

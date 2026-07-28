@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import type { ReactNode } from 'react'
 import ReactDOM from 'react-dom'
 import { Icon } from './icon'
 import { useExclusiveDropdown } from './dropdownBus'
+import { useDismissOnOutside } from '@/hooks/useDismissOnOutside'
 
-export interface MiniOption { value: string; label: string }
+export interface MiniOption { value: string; label: string; icon?: ReactNode }
 
 export interface MiniDropdownProps {
   value: string
@@ -24,10 +26,18 @@ export function MiniDropdown({ value, onChange, options, placeholder = 'Выбе
   const [open, setOpen] = useState(false)
   useExclusiveDropdown(open, setOpen)
   const [activeIndex, setActiveIndex] = useState(-1)
-  const [pos, setPos] = useState<{ top: number; left: number; width: number } | null>(null)
+  const [pos, setPos] = useState<
+    { placement: 'below'; top: number; left: number; width: number; maxHeight: number }
+    | { placement: 'above'; bottom: number; left: number; width: number; maxHeight: number }
+    | null
+  >(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
+  const portalRef = useRef<HTMLDivElement>(null)
 
-  const selectedLabel = useMemo(() => options.find(o => o.value === value)?.label ?? null, [value, options])
+  useDismissOnOutside([triggerRef, portalRef], () => closePanel(false), open)
+
+  const selectedOption = useMemo(() => options.find(o => o.value === value) ?? null, [value, options])
+  const selectedLabel = selectedOption?.label ?? null
 
   const updatePos = useCallback(() => {
     const btn = triggerRef.current
@@ -39,8 +49,38 @@ export function MiniDropdown({ value, onChange, options, placeholder = 'Выбе
     let left = r.left
     if (left + minWidth > window.innerWidth - 8) left = window.innerWidth - minWidth - 8
     if (left < 8) left = 8
-    setPos({ top: r.bottom + 8, left, width: r.width })
-  }, [])
+
+    // Flip-up + height clamp: inside a bottom-sheet the trigger often sits near
+    // the viewport bottom, so opening straight down clips the last options (the
+    // «Изменить роль» dialog symptom). Measure the room on each side; open in the
+    // roomier direction and cap maxHeight to it so the list never leaves the
+    // screen. Above placement anchors by BOTTOM edge (window.innerHeight - r.top)
+    // so a short list hugs the trigger with no gap regardless of its height.
+    const GAP = 8
+    const MARGIN = 8
+    const MAX = 260
+    const estimated = Math.min(MAX, options.length * 36 + 12)
+    const spaceBelow = window.innerHeight - r.bottom - GAP - MARGIN
+    const spaceAbove = r.top - GAP - MARGIN
+
+    if (spaceBelow < estimated && spaceAbove > spaceBelow) {
+      setPos({
+        placement: 'above',
+        bottom: Math.max(MARGIN, window.innerHeight - r.top + GAP),
+        left,
+        width: r.width,
+        maxHeight: Math.min(MAX, Math.max(0, spaceAbove)),
+      })
+    } else {
+      setPos({
+        placement: 'below',
+        top: r.bottom + GAP,
+        left,
+        width: r.width,
+        maxHeight: Math.min(MAX, Math.max(0, spaceBelow)),
+      })
+    }
+  }, [options.length])
 
   const openPanel = useCallback(() => {
     if (disabled) return
@@ -62,18 +102,6 @@ export function MiniDropdown({ value, onChange, options, placeholder = 'Выбе
     window.addEventListener('scroll', on, true)
     return () => { window.removeEventListener('resize', on); window.removeEventListener('scroll', on, true) }
   }, [open, updatePos])
-
-  useEffect(() => {
-    if (!open) return
-    const handler = (e: MouseEvent) => {
-      const t = e.target as HTMLElement
-      if (triggerRef.current?.contains(t)) return
-      if (t.closest?.('[data-mini-portal="true"]')) return
-      closePanel(false)
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [open, closePanel])
 
   const onTriggerKey = (e: React.KeyboardEvent) => {
     if (disabled) return
@@ -112,19 +140,31 @@ export function MiniDropdown({ value, onChange, options, placeholder = 'Выбе
         aria-expanded={open}
         className={`w-full px-3 py-2 text-[15px] border rounded-lg text-left outline-none transition-[background-color,border-color,box-shadow] duration-150 flex items-center justify-between gap-2 ${triggerCls} ${triggerClassName}`}
       >
-        <span className={selectedLabel ? 'text-text-primary font-medium truncate' : 'text-text-subtle truncate'}>{selectedLabel || placeholder}</span>
+        <span className="flex items-center gap-2 min-w-0">
+          {selectedOption?.icon && <span className="inline-flex items-center justify-center w-[20px] h-[20px] shrink-0">{selectedOption.icon}</span>}
+          <span className={selectedLabel ? 'text-text-primary font-medium truncate' : 'text-text-subtle truncate'}>{selectedLabel || placeholder}</span>
+        </span>
         <span className={`inline-flex items-center transition-[transform,color] duration-150 ${open ? 'rotate-180 text-accent' : 'rotate-0 text-text-subtle'}`}><Icon name="chevron-down" size={14} /></span>
       </button>
 
       {open && !disabled && pos && ReactDOM.createPortal(
         <div
+          ref={portalRef}
           data-mini-portal="true"
           data-ams-dropdown="true"
           role="listbox"
           tabIndex={-1}
           onKeyDown={onPanelKey}
-          style={{ position: 'fixed', top: pos.top, left: pos.left, minWidth: pos.width, maxWidth: `calc(100vw - 16px)`, zIndex: 1000 }}
-          className="bg-surface rounded-xl ring-1 ring-border shadow-xl shadow-slate-900/30 py-1.5 max-h-[260px] overflow-y-auto w-max anim-fade-slide-in"
+          style={{
+            position: 'fixed',
+            ...(pos.placement === 'below' ? { top: pos.top } : { bottom: pos.bottom }),
+            left: pos.left,
+            minWidth: pos.width,
+            maxWidth: `calc(100vw - 16px)`,
+            maxHeight: pos.maxHeight,
+            zIndex: 1000,
+          }}
+          className="bg-surface rounded-xl ring-1 ring-border shadow-xl shadow-slate-900/30 py-1.5 overflow-y-auto w-max anim-fade-slide-in"
         >
           {options.map((opt, idx) => {
             const isSelected = opt.value === value
@@ -141,7 +181,10 @@ export function MiniDropdown({ value, onChange, options, placeholder = 'Выбе
                 onMouseEnter={() => setActiveIndex(idx)}
                 className={`mx-1 px-2.5 py-1.5 rounded-md text-[15px] cursor-pointer flex items-center justify-between gap-3 transition-colors ${stateCls}`}
               >
-                <span className="truncate">{opt.label}</span>
+                <span className="flex items-center gap-2 min-w-0">
+                  {opt.icon && <span className="inline-flex items-center justify-center w-[20px] h-[20px] shrink-0">{opt.icon}</span>}
+                  <span className="truncate">{opt.label}</span>
+                </span>
                 {isSelected && <span className={`inline-flex items-center shrink-0 ${isActive ? 'text-white' : 'text-accent'}`}><Icon name="check" size={14} /></span>}
               </div>
             )
