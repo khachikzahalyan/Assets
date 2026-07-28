@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Icon, IconBtn, DataTable, MobileListRow } from '@/components/ui'
+import { Icon, IconBtn, DataTable, MobileListRow, MobileListPlaceholders } from '@/components/ui'
 import type { DataTableColumn } from '@/components/ui'
 import { useIsMobile } from '@/hooks/useIsMobile'
 
@@ -23,9 +23,11 @@ export interface CatalogTableProps<T extends { id: string }> {
   /** Optional: hide delete for a given row (e.g. system statuses). */
   canDeleteRow?: (row: T) => boolean
   /**
-   * Desktop-only fill contract: minimum row count passed to DataTable so
-   * placeholder rows fill the remaining height inside ListCard. Mobile cards
-   * are unaffected. Defaults to rows.length (no placeholders).
+   * Fill contract on BOTH breakpoints: minimum row count. Desktop passes it to
+   * DataTable; mobile pads the card list with dashed placeholder slots and
+   * stretches rows so the list occupies exactly the ListCard Zone-2 region —
+   * same 10-cell look as the assets/employees/licenses etalon lists.
+   * Defaults to rows.length (no placeholders).
    */
   minRows?: number
   /**
@@ -95,12 +97,11 @@ export function CatalogTable<T extends { id: string }>(props: CatalogTableProps<
     // ── Mobile card list via shared MobileListRow trio ───────────────────────
     const [primaryCol, ...restCols] = columns
     return (
-      // Mobile is a BODY-SCROLL model (see index.css @media max-767): natural row
-      // height, NO flexGrow fill and NO placeholder padding. The desktop fill
-      // contract padded the list to PAGE_SIZE with placeholder slots whose
-      // combined min-height overflowed 100dvh → the whole page scrolled. Natural
-      // compact rows fit the viewport; pagination is pinned by the page-level chain.
-      <div className="flex flex-col">
+      // Fill contract (same as AssetsTable/EmployeesTable mobile): every consumer
+      // renders inside a bounded ListCard Zone-2 flex column (catalog routes are
+      // in AppShell FLUSH_ROUTES), so rows stretch and placeholder slots pad the
+      // list to minRows — 10 identical cells with the pagination pinned below.
+      <div className="flex flex-col grow shrink-0">
         {rows.map(row => {
           const canDel = canDeleteRow ? canDeleteRow(row) : true
           const iconTile = mobileIcon ? mobileIcon(row) : FALLBACK_TILE
@@ -152,11 +153,14 @@ export function CatalogTable<T extends { id: string }>(props: CatalogTableProps<
               title={titleNode}
               {...(sublineNode !== undefined ? { subline: sublineNode } : {})}
               {...(rightNode !== undefined ? { right: rightNode } : {})}
-              // Natural height — no flexGrow (body-scroll model; growth + placeholders
-              // used to overflow the viewport and scroll the whole page).
+              outerStyle={{ flexGrow: 1, flexShrink: 0 }}
             />
           )
         })}
+        <MobileListPlaceholders
+          count={(minRows ?? rows.length) - rows.length}
+          dataTestId="catalog-card-placeholder"
+        />
       </div>
     )
   }
