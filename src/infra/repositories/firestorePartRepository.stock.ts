@@ -214,6 +214,10 @@ export async function fsCreateModelSku(
 
       if (input.initialQty > 0) {
         const mvRef = doc(collection(fsDb, COL_MOVEMENTS))
+        // NOTE: no `actorName` — it is NOT in the /part_movements rules whitelist,
+        // so including it makes hasOnly() reject the write and rolls back the whole
+        // create-SKU transaction (GPU/model add WITH stock failed in production).
+        // Matches the receive/install/uninstall movement writes, which omit it.
         t.set(mvRef, {
           type: 'receive',
           skuId: id,
@@ -225,7 +229,7 @@ export async function fsCreateModelSku(
           note: null,
           reason: 'Поставка',
           actorUid: actor.uid,
-          actorRole: actor.role, actorName: actor.displayName ?? null,
+          actorRole: actor.role,
           at: serverTimestamp(),
         })
         t.set(skuDocRef, {
