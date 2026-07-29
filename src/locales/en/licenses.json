@@ -41,6 +41,8 @@
     "confirm": "Activate",
     "keyLabel": "Key",
     "noAssets": "No assets without key",
+    "oldKeyLabel": "Asset's current key",
+    "oldKeyNote": "After activation the old key becomes «Free» and returns to the pool — it will not be lost.",
     "searchPlaceholder": "Search by name, inv. code or category…",
     "title": "Activate key"
   },

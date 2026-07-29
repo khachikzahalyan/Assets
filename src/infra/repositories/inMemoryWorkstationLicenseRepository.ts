@@ -250,6 +250,37 @@ export class InMemoryWorkstationLicenseRepository implements WorkstationLicenseR
     })
   }
 
+  async swapDeviceKey(
+    newLicenseId: string,
+    oldLicenseId: string,
+    assetId: string,
+    actor: Actor,
+  ): Promise<AuditedResult<WorkstationLicense>> {
+    if (newLicenseId === oldLicenseId) throw new Error('swap/same-license')
+    const oldLic = this.docs.get(oldLicenseId)
+    if (!oldLic) throw new Error(`WorkstationLicense not found: ${oldLicenseId}`)
+    if (!this.docs.get(newLicenseId)) throw new Error(`WorkstationLicense not found: ${newLicenseId}`)
+    // An embedded OEM key cannot be swapped off its device (owner rule).
+    if (oldLic.type === 'OEM') throw new Error('swap/old-license-is-oem')
+    if (oldLic.assignmentType !== 'device' || oldLic.assignedToAssetId !== assetId) {
+      throw new Error('swap/old-license-not-bound-to-asset')
+    }
+
+    // Compose the two existing audited mutations so the audit trail is
+    // byte-identical to the standalone decouple + assign paths. All invariants
+    // are validated up-front, so a mid-way failure is unreachable in practice;
+    // the docs snapshot still guards doc-state atomicity (the in-memory audit
+    // ctx rolls back only its own entry per run).
+    const snapshot = new Map(this.docs)
+    try {
+      await this.decoupleLicense(oldLicenseId, actor)
+      return await this.assignLicense(newLicenseId, { to: 'device', assetId }, actor)
+    } catch (err) {
+      this.docs = snapshot
+      throw err
+    }
+  }
+
   async decoupleLicense(
     id: string,
     actor: Actor,

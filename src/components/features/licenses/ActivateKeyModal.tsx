@@ -1,6 +1,7 @@
 /**
- * ActivateKeyModal — assigns a free Windows key onto a keyless OEM-capable asset.
- * Calls wRepo.assignLicense(id, { to: 'device', assetId }, actor).
+ * ActivateKeyModal — activates a free Windows key onto a target asset.
+ * Targets are keyless device-class assets AND manual-keyed assets (key swap —
+ * the old key is shown and freed on commit). The parent decides assign vs swap.
  */
 import { useState, useEffect, useMemo, useRef } from 'react'
 import ReactDOM from 'react-dom'
@@ -25,6 +26,13 @@ export interface KeylessAsset {
   assetName: string
   invCode: string
   catName: string
+  /**
+   * Present when the asset currently carries a MANUALLY-entered key (a bound
+   * non-OEM in_use license). Activation onto such an asset is a KEY SWAP: the
+   * old license is freed (становится «Свободен»), never silently lost — the
+   * modal must show it before commit. OEM-keyed assets never reach the pool.
+   */
+  currentKey?: { licenseId: string; maskedKey: string }
 }
 
 export interface ActivateKeyModalProps {
@@ -57,8 +65,10 @@ export function ActivateKeyModal({
     return () => document.removeEventListener('keydown', fn)
   }, [onClose])
 
-  // Focus management on open — focus the search input
+  // Focus the search on open — DESKTOP ONLY (owner rule): on mobile autofocus
+  // pops the on-screen keyboard over the freshly opened dialog.
   useEffect(() => {
+    if (window.matchMedia('(max-width: 767px)').matches) return
     const id = setTimeout(() => { searchInputRef.current?.focus() }, 30)
     return () => clearTimeout(id)
   }, [])
@@ -72,6 +82,11 @@ export function ActivateKeyModal({
       a.catName.toLowerCase().includes(q),
     )
   }, [keylessAssets, search])
+
+  const selected = useMemo(
+    () => (targetId ? keylessAssets.find(a => a.id === targetId) ?? null : null),
+    [keylessAssets, targetId],
+  )
 
   return ReactDOM.createPortal(
     <div
@@ -170,6 +185,26 @@ export function ActivateKeyModal({
               )}
             </div>
           </div>
+
+          {/* KEY SWAP notice — the selected target already carries a manually-
+              entered key; show it so the admin SEES what will be freed. */}
+          {selected?.currentKey && (
+            <div
+              className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3.5 py-3 flex-shrink-0"
+              data-testid="activate-old-key-note"
+            >
+              <div className="text-[10.5px] uppercase tracking-[0.08em] font-semibold text-amber-300/90 mb-1">
+                {t('activate.oldKeyLabel')}
+              </div>
+              <div className="flex items-baseline gap-2 min-w-0">
+                <span className="font-mono text-[13px] text-text-primary tracking-tight flex-shrink-0">
+                  {selected.currentKey.maskedKey}
+                </span>
+                <span className="text-[12px] text-text-tertiary truncate">{selected.assetName}</span>
+              </div>
+              <p className="text-[12px] text-text-tertiary mt-1">{t('activate.oldKeyNote')}</p>
+            </div>
+          )}
 
           {submitError && (
             <p role="alert" className="text-[12px] text-[#FDA4AF]">{submitError}</p>

@@ -126,6 +126,7 @@ describe('WriteOffAssetService', () => {
       listDecoupledFromAsset: (assetId) => licenseRepo.listDecoupledFromAsset(assetId),
       createLicense: (input, actor) => licenseRepo.createLicense(input, actor),
       assignLicense: (id, input, actor) => licenseRepo.assignLicense(id, input, actor),
+      swapDeviceKey: (newId, oldId, assetId, actor) => licenseRepo.swapDeviceKey(newId, oldId, assetId, actor),
       rotateKey: (id, rawKey, actor) => licenseRepo.rotateKey(id, rawKey, actor),
       decoupleLicense: async (id, actor) => {
         reconcileCalls++

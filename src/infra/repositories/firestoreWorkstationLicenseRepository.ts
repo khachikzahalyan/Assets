@@ -1,5 +1,6 @@
 import {
   collection, doc, getDoc, getDocs, query as fsQuery, where, serverTimestamp,
+  runTransaction,
   type Firestore, type Transaction,
 } from 'firebase/firestore'
 import type { Actor } from '@/domain/asset'
@@ -11,7 +12,7 @@ import type {
   AssignmentType,
 } from '@/domain/license'
 import type { WorkstationLicenseRepository, WorkstationLicenseListQuery } from '@/domain/license'
-import { firestoreAuditContext, withAudit } from '@/lib/audit'
+import { firestoreAuditContext, withAudit, buildAuditDocData } from '@/lib/audit'
 import { sanitizeLicenseAuditPayload } from '@/lib/audit'
 
 const COL = 'licenses'
@@ -257,6 +258,101 @@ export class FirestoreWorkstationLicenseRepository implements WorkstationLicense
     const next = await this.getLicense(id)
     if (!next) throw new Error('License assign succeeded but readback failed')
     return { value: next, auditId: r.auditId }
+  }
+
+  async swapDeviceKey(
+    newLicenseId: string,
+    oldLicenseId: string,
+    assetId: string,
+    actor: Actor,
+  ): Promise<AuditedResult<WorkstationLicense>> {
+    if (newLicenseId === oldLicenseId) throw new Error('swap/same-license')
+    const oldLic = await this.getLicense(oldLicenseId)
+    if (!oldLic) throw new Error(`WorkstationLicense not found: ${oldLicenseId}`)
+    const newLic = await this.getLicense(newLicenseId)
+    if (!newLic) throw new Error(`WorkstationLicense not found: ${newLicenseId}`)
+    // An embedded OEM key cannot be swapped off its device (owner rule).
+    if (oldLic.type === 'OEM') throw new Error('swap/old-license-is-oem')
+    if (oldLic.assignmentType !== 'device' || oldLic.assignedToAssetId !== assetId) {
+      throw new Error('swap/old-license-not-bound-to-asset')
+    }
+
+    // The two audit specs mirror the standalone decoupleLicense / assignLicense
+    // payloads exactly — the swap must be indistinguishable in the audit trail
+    // apart from being atomic. Keys never appear here (assignment fields only),
+    // but both specs still pass through the sanitizer (belt-and-braces).
+    const decoupleSpec = sanitizeLicenseAuditPayload({
+      entityType: 'license' as const,
+      entityId: oldLicenseId,
+      action: 'license_decoupled' as const,
+      actorUid: actor.uid,
+      actorRole: actor.role, actorName: actor.displayName ?? null,
+      before: {
+        assignmentType: oldLic.assignmentType,
+        assignedToAssetId: oldLic.assignedToAssetId ?? null,
+        assignedToEmployeeId: oldLic.assignedToEmployeeId ?? null,
+      } as Record<string, unknown>,
+      after: { assignmentType: 'unassigned' },
+    })
+    const assignSpec = sanitizeLicenseAuditPayload({
+      entityType: 'license' as const,
+      entityId: newLicenseId,
+      action: 'assigned' as const,
+      actorUid: actor.uid,
+      actorRole: actor.role, actorName: actor.displayName ?? null,
+      before: {
+        assignmentType: newLic.assignmentType,
+        assignedToAssetId: newLic.assignedToAssetId ?? null,
+        assignedToEmployeeId: newLic.assignedToEmployeeId ?? null,
+      } as Record<string, unknown>,
+      after: {
+        assignmentType: 'device',
+        assignedToAssetId: assetId,
+        assignedToEmployeeId: null,
+      } as Record<string, unknown>,
+    })
+
+    const oldRef = doc(this.db, COL, oldLicenseId)
+    const newRef = doc(this.db, COL, newLicenseId)
+    let assignAuditId = ''
+    // One transaction: both license patches + both audit entries commit or none
+    // do (the atomic-batch pattern from firestoreAssetRepository.createAssetsBatch).
+    await runTransaction(this.db, async (txn) => {
+      const at = serverTimestamp()
+      txn.set(oldRef, {
+        assignmentType: 'unassigned',
+        assignedToAssetId: null,
+        assignedToEmployeeId: null,
+        assignedAt: null,
+        assignedBy: null,
+        decoupledFromAssetId: assetId,
+        updatedAt: at,
+        updatedBy: actor.uid,
+      }, { merge: true })
+      txn.set(newRef, {
+        assignmentType: 'device',
+        assignedToAssetId: assetId,
+        assignedToEmployeeId: null,
+        assignedAt: at,
+        assignedBy: actor.uid,
+        decoupledFromAssetId: null,
+        updatedAt: at,
+        updatedBy: actor.uid,
+      }, { merge: true })
+      const decoupleAuditRef = doc(collection(this.db, 'audit_logs'))
+      txn.set(decoupleAuditRef, buildAuditDocData(
+        decoupleSpec, decoupleSpec.before ?? null, decoupleSpec.after ?? null, at,
+      ))
+      const assignAuditRef = doc(collection(this.db, 'audit_logs'))
+      assignAuditId = assignAuditRef.id
+      txn.set(assignAuditRef, buildAuditDocData(
+        assignSpec, assignSpec.before ?? null, assignSpec.after ?? null, at,
+      ))
+    })
+
+    const next = await this.getLicense(newLicenseId)
+    if (!next) throw new Error('License swap succeeded but readback failed')
+    return { value: next, auditId: assignAuditId }
   }
 
   async decoupleLicense(

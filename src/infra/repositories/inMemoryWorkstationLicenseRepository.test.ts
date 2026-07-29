@@ -274,6 +274,103 @@ describe('InMemoryWorkstationLicenseRepository', () => {
     })
   })
 
+  // ---- swapDeviceKey — atomic manual-key swap -------------------------------
+
+  describe('swapDeviceKey', () => {
+    /** Seed: a manual Retail key bound to asset-1 + a free key; returns both ids. */
+    async function seedSwap(repo: InMemoryWorkstationLicenseRepository) {
+      const { value: oldLic } = await repo.createLicense(
+        { name: 'HP 250 — Ключ продукта', type: 'Retail', rawKey: TEST_KEY, assign: { to: 'device', assetId: 'asset-1' } },
+        ACTOR,
+      )
+      const { value: newLic } = await repo.createLicense(
+        { name: 'Dell XPS — Ключ продукта', type: 'Retail', rawKey: 'ABCD-EFGH-IJKL-9999' },
+        ACTOR,
+      )
+      return { oldLic, newLic }
+    }
+
+    it('frees the OLD license: unassigned + decoupledFromAssetId set to the asset (write-off mechanism)', async () => {
+      const { repo } = makeRepo()
+      const { oldLic, newLic } = await seedSwap(repo)
+
+      await repo.swapDeviceKey(newLic.id, oldLic.id, 'asset-1', ACTOR)
+
+      const freed = await repo.getLicense(oldLic.id)
+      expect(freed!.assignmentType).toBe('unassigned')
+      expect(freed!.assignedToAssetId).toBeNull()
+      expect(freed!.assignedAt).toBeNull()
+      expect(freed!.assignedBy).toBeNull()
+      expect(freed!.decoupledFromAssetId).toBe('asset-1')
+      expect(freed!.lifecycleStatus).toBe('active')
+    })
+
+    it('binds the NEW license to the asset and clears its decoupledFromAssetId', async () => {
+      const { repo } = makeRepo()
+      const { oldLic, newLic } = await seedSwap(repo)
+
+      const { value } = await repo.swapDeviceKey(newLic.id, oldLic.id, 'asset-1', ACTOR)
+
+      expect(value.assignmentType).toBe('device')
+      expect(value.assignedToAssetId).toBe('asset-1')
+      expect(value.decoupledFromAssetId).toBeNull()
+    })
+
+    it('writes exactly TWO audit entries — license_decoupled (old) then assigned (new)', async () => {
+      const { repo, store } = makeRepo()
+      const { oldLic, newLic } = await seedSwap(repo)
+      const before = store.logs.length
+
+      await repo.swapDeviceKey(newLic.id, oldLic.id, 'asset-1', ACTOR)
+
+      expect(store.logs.length - before).toBe(2)
+      const [decoupleLog, assignLog] = store.logs.slice(-2)
+      expect(decoupleLog!.action).toBe('license_decoupled')
+      expect(decoupleLog!.entityId).toBe(oldLic.id)
+      expect(assignLog!.action).toBe('assigned')
+      expect(assignLog!.entityId).toBe(newLic.id)
+      // Keys must NEVER appear in audit logs
+      expect(JSON.stringify(store.logs.slice(-2))).not.toContain(RAW_FRAGMENT)
+    })
+
+    it('the freed old key appears in listDecoupledFromAsset for the swapped asset', async () => {
+      const { repo } = makeRepo()
+      const { oldLic, newLic } = await seedSwap(repo)
+
+      await repo.swapDeviceKey(newLic.id, oldLic.id, 'asset-1', ACTOR)
+
+      const freed = await repo.listDecoupledFromAsset('asset-1')
+      expect(freed).toHaveLength(1)
+      expect(freed[0]!.id).toBe(oldLic.id)
+    })
+
+    it('rejects an OEM old license — embedded keys cannot be swapped', async () => {
+      const { repo } = makeRepo()
+      const { value: oem } = await repo.createLicense(
+        { name: 'OEM', type: 'OEM', assign: { to: 'device', assetId: 'asset-1' } },
+        ACTOR,
+      )
+      const { value: free } = await repo.createLicense({ name: 'Free', type: 'Retail' }, ACTOR)
+
+      await expect(
+        repo.swapDeviceKey(free.id, oem.id, 'asset-1', ACTOR),
+      ).rejects.toThrow('swap/old-license-is-oem')
+    })
+
+    it('rejects when the old license is not bound to the given asset', async () => {
+      const { repo } = makeRepo()
+      const { value: other } = await repo.createLicense(
+        { name: 'Other', type: 'Retail', assign: { to: 'device', assetId: 'asset-OTHER' } },
+        ACTOR,
+      )
+      const { value: free } = await repo.createLicense({ name: 'Free', type: 'Retail' }, ACTOR)
+
+      await expect(
+        repo.swapDeviceKey(free.id, other.id, 'asset-1', ACTOR),
+      ).rejects.toThrow('swap/old-license-not-bound-to-asset')
+    })
+  })
+
   // ---- rotateKey ------------------------------------------------------------
 
   describe('rotateKey', () => {

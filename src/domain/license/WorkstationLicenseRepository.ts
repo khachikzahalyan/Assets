@@ -36,6 +36,20 @@ export interface WorkstationLicenseRepository {
   listDecoupledFromAsset(assetId: string): Promise<WorkstationLicense[]>
   createLicense(input: CreateWorkstationLicenseInput, actor: Actor): Promise<AuditedResult<WorkstationLicense>>
   assignLicense(id: string, input: AssignWorkstationLicenseInput, actor: Actor): Promise<AuditedResult<WorkstationLicense>>
+  /**
+   * KEY SWAP: atomically (a) detach the OLD manually-entered license from the
+   * asset — it becomes free with `decoupledFromAssetId = assetId` (the SAME
+   * mechanism the write-off decouple uses, so the freed key shows its origin
+   * device in the free pool), and (b) assign the NEW license to that asset.
+   *
+   * Writes the SAME two audit entries the standalone paths write
+   * (`'license_decoupled'` for the old + `'assigned'` for the new) in one
+   * atomic unit. Rejects an OEM old license (embedded keys cannot be swapped)
+   * and an old license not currently bound to the given asset.
+   *
+   * Returns the NEW license state; `auditId` is the `'assigned'` entry.
+   */
+  swapDeviceKey(newLicenseId: string, oldLicenseId: string, assetId: string, actor: Actor): Promise<AuditedResult<WorkstationLicense>>
   decoupleLicense(id: string, actor: Actor): Promise<AuditedResult<WorkstationLicense>>
   /**
    * RETIRE a non-reusable license because the asset it was bound to is being

@@ -6,10 +6,11 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, within } from '@testing-library/react'
+import { render, screen, fireEvent, within, waitFor } from '@testing-library/react'
 import { I18nextProvider } from 'react-i18next'
 import i18n from '@/lib/i18n'
 import { WindowsKeysSection } from './WindowsKeysSection'
+import type { KeylessAsset } from './ActivateKeyModal'
 import type { WorkstationLicense } from '@/domain/license'
 import type { AuditLog } from '@/domain/audit'
 import type { Actor } from '@/domain/asset'
@@ -80,6 +81,7 @@ function makeWRepoStub(): WorkstationLicenseRepository {
     getLicense: vi.fn(),
     createLicense: vi.fn(),
     assignLicense: vi.fn().mockResolvedValue({ value: {}, auditLog: {} }),
+    swapDeviceKey: vi.fn().mockResolvedValue({ value: {}, auditId: 'al_swap' }),
     decoupleLicense: vi.fn(),
     retireLicense: vi.fn(),
   } as unknown as WorkstationLicenseRepository
@@ -87,6 +89,7 @@ function makeWRepoStub(): WorkstationLicenseRepository {
 
 interface RenderOpts {
   licenses?: WorkstationLicense[]
+  keylessAssets?: KeylessAsset[]
   maskedKeys?: Record<string, string>
   auditMap?: Record<string, AuditLog[]>
   assetNameMap?: Record<string, { name: string; invCode: string }>
@@ -98,6 +101,7 @@ interface RenderOpts {
 
 function renderSection({
   licenses = [],
+  keylessAssets = [],
   maskedKeys,
   auditMap = {},
   assetNameMap = {},
@@ -118,7 +122,7 @@ function renderSection({
     <I18nextProvider i18n={i18n}>
       <WindowsKeysSection
         licenses={licenses}
-        keylessAssets={[]}
+        keylessAssets={keylessAssets}
         auditMap={auditMap}
         assetNameMap={assetNameMap}
         canReveal={canReveal}
@@ -374,6 +378,81 @@ describe('WindowsKeysSection', () => {
 
     // Assert — ActivateKeyModal renders (it renders in a portal but aria-modal should be present)
     expect(screen.getByRole('dialog')).toBeInTheDocument()
+  })
+
+  // ── 4b. Activate commit — swap vs plain assign ──────────────────────────────
+
+  it('confirming a MANUAL-keyed target shows the old-key note and calls swapDeviceKey (not assignLicense)', async () => {
+    // Arrange — a free key + a manual-keyed target asset in the pool
+    const freeLic = makeLicense({
+      id: 'lic_free_swap',
+      assignmentType: 'unassigned',
+      lifecycleStatus: 'active',
+    })
+    const wRepo = makeWRepoStub()
+    renderSection({
+      licenses: [freeLic],
+      wRepo,
+      keylessAssets: [{
+        id: 'ast_manual',
+        assetName: 'HP 250 G8',
+        invCode: '450/000010',
+        catName: 'Ноутбук',
+        currentKey: { licenseId: 'lic_old_manual', maskedKey: '****-****-****-1111' },
+      }],
+    })
+    fireEvent.click(screen.getByTestId('filter-free'))
+    fireEvent.click(screen.getByTestId('activate-btn-lic_free_swap'))
+
+    // Act — select the manual-keyed asset
+    fireEvent.click(screen.getByTestId('activate-asset-ast_manual'))
+
+    // Assert — the old key is SHOWN so the admin sees what will be freed
+    const note = screen.getByTestId('activate-old-key-note')
+    expect(note.textContent).toContain('****-****-****-1111')
+    expect(note.textContent).toContain('HP 250 G8')
+    expect(note.textContent).toContain(i18n.t('licenses:activate.oldKeyNote'))
+
+    // Act — confirm
+    const dialog = screen.getByRole('dialog')
+    fireEvent.click(within(dialog).getByRole('button', { name: i18n.t('licenses:activate.confirm') }))
+
+    // Assert — atomic swap path used, NOT the plain assign
+    await waitFor(() => {
+      expect(wRepo.swapDeviceKey).toHaveBeenCalledWith('lic_free_swap', 'lic_old_manual', 'ast_manual', ACTOR)
+    })
+    expect(wRepo.assignLicense).not.toHaveBeenCalled()
+  })
+
+  it('confirming a KEYLESS target still calls assignLicense (no swap, no old-key note)', async () => {
+    // Arrange
+    const freeLic = makeLicense({
+      id: 'lic_free_plain',
+      assignmentType: 'unassigned',
+      lifecycleStatus: 'active',
+    })
+    const wRepo = makeWRepoStub()
+    renderSection({
+      licenses: [freeLic],
+      wRepo,
+      keylessAssets: [{ id: 'ast_keyless', assetName: 'MacBook Air', invCode: '450/000011', catName: 'MacBook Air' }],
+    })
+    fireEvent.click(screen.getByTestId('filter-free'))
+    fireEvent.click(screen.getByTestId('activate-btn-lic_free_plain'))
+
+    // Act — select the keyless asset
+    fireEvent.click(screen.getByTestId('activate-asset-ast_keyless'))
+
+    // Assert — no old-key note for a keyless target
+    expect(screen.queryByTestId('activate-old-key-note')).toBeNull()
+
+    const dialog = screen.getByRole('dialog')
+    fireEvent.click(within(dialog).getByRole('button', { name: i18n.t('licenses:activate.confirm') }))
+
+    await waitFor(() => {
+      expect(wRepo.assignLicense).toHaveBeenCalledWith('lic_free_plain', { to: 'device', assetId: 'ast_keyless' }, ACTOR)
+    })
+    expect(wRepo.swapDeviceKey).not.toHaveBeenCalled()
   })
 
   // ── 5. Row click opens KeyDetailsModal ──────────────────────────────────────

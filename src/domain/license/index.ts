@@ -1,4 +1,5 @@
 export * from './WorkstationLicense'
+export * from './assetProductKey'
 export * from './ServerLicense'
 export * from './LicenseKey'
 export * from './LicenseAudit'

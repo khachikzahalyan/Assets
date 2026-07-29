@@ -67,7 +67,7 @@ export interface AssetNameEntry {
 export interface WindowsKeysSectionProps {
   /** All workstation licenses — component filters to OEM/device-bound only */
   licenses: WorkstationLicense[]
-  /** Assets with no active device-bound license in OEM categories */
+  /** Activation-target assets: keyless devices + manual-keyed devices (swap) */
   keylessAssets: KeylessAsset[]
   /** Masked keys map: licenseId → masked string */
   maskedKeys: Record<string, string>
@@ -114,8 +114,9 @@ export function WindowsKeysSection({
 
   // Filter to device-assignable keys (exclude retired + employee-assigned) AND
   // only those where a manual key was actually entered. OEM licenses created
-  // keyless (key «вшит»/absent → masked '—') belong to the activation pool, NOT
-  // this table. An OEM license whose key was activated later DOES qualify here.
+  // keyless (key «вшит»/absent → masked '—') are hidden from this table — the
+  // embedded key is already active on its device, so that device is NOT an
+  // activation target either (see assetHasProductKey in @/domain/license).
   const keyRows = useMemo(() => {
     return licenses.filter(lic => {
       if (licenseStatus(lic) === null) return false
@@ -176,7 +177,15 @@ export function WindowsKeysSection({
     setActivating(true)
     setActivateError(null)
     try {
-      await wRepo.assignLicense(activatingId, { to: 'device', assetId }, actor)
+      // A manual-keyed target → KEY SWAP: the repository atomically frees the
+      // old license (decoupledFromAssetId = assetId, same as write-off) and
+      // binds the new one, writing both audit entries in one atomic unit.
+      const target = keylessAssets.find(a => a.id === assetId)
+      if (target?.currentKey) {
+        await wRepo.swapDeviceKey(activatingId, target.currentKey.licenseId, assetId, actor)
+      } else {
+        await wRepo.assignLicense(activatingId, { to: 'device', assetId }, actor)
+      }
       setActivatingId(null)
       const lic = licenses.find(l => l.id === activatingId)
       setToast(t('keys.activatedToast', { name: lic?.name ?? '' }))
