@@ -14,6 +14,7 @@ import type {
   WorkstationLicenseRepository,
   WorkstationLicense,
 } from '@/domain/license'
+import { resolveAssetKeyState, isKeyActivationTarget } from '@/domain/license'
 import type { AuditLogRepository, AuditLog } from '@/domain/audit'
 import type { SubscriptionRepository, Subscription } from '@/domain/subscription'
 import type { EmployeeRepository, Employee } from '@/domain/employee'
@@ -239,36 +240,35 @@ export function LicensesPage({
     return map
   }, [assets])
 
-  // ── Derive keyless OEM assets ────────────────────────────────────────────────
+  // ── Derive activation-target assets ──────────────────────────────────────────
   const keylessAssets = useMemo<KeylessAsset[]>(() => {
-    // IDs of assets already assigned a device-bound active license
-    const inUseAssetIds = new Set(
-      wRows
-        .filter(l => l.assignmentType === 'device' && l.lifecycleStatus === 'active' && l.assignedToAssetId)
-        .map(l => l.assignedToAssetId!),
-    )
-
+    // Shared domain predicate (resolveAssetKeyState + isKeyActivationTarget):
+    // an asset with an embedded OEM key — a bound in_use OEM doc OR a category
+    // that assumes one (hasOemLicense cap, non-disposed — the detail page's
+    // oemCapAssumed rule) — is never a target. A MANUAL-keyed asset (bound
+    // non-OEM doc) IS a target: activation becomes a key swap, and the pool
+    // entry carries the old license so the modal can show what will be freed.
     const catMap: Record<string, CategoryRow> = {}
     for (const c of categories) catMap[c.id] = c
 
-    return assets
-      .filter(a => {
-        const cat = catMap[a.categoryId]
-        if (!cat) return false
-        const caps = resolveCategoryCapabilities(cat)
-        return caps.hasOemLicense && !inUseAssetIds.has(a.id)
-      })
-      .map(a => {
-        const cat = catMap[a.categoryId]
-        const assetName = [a.brand, a.model].filter(Boolean).join(' ') || a.type || cat?.name || a.id
-        return {
-          id: a.id,
-          assetName,
-          invCode: a.invCode,
-          catName: cat?.name ?? '',
-        }
-      })
-  }, [assets, categories, wRows])
+    return assets.flatMap<KeylessAsset>(a => {
+      const cat = catMap[a.categoryId]
+      if (!cat) return []
+      const caps = resolveCategoryCapabilities(cat)
+      const keyState = resolveAssetKeyState(a, wRows, caps)
+      if (!isKeyActivationTarget(a, keyState, caps)) return []
+      const assetName = [a.brand, a.model].filter(Boolean).join(' ') || a.type || cat.name || a.id
+      return [{
+        id: a.id,
+        assetName,
+        invCode: a.invCode,
+        catName: cat.name ?? '',
+        ...(keyState.source === 'manual' && keyState.licenseId
+          ? { currentKey: { licenseId: keyState.licenseId, maskedKey: maskedKeys[keyState.licenseId] ?? '—' } }
+          : {}),
+      }]
+    })
+  }, [assets, categories, wRows, maskedKeys])
 
   // ── Tab counts ───────────────────────────────────────────────────────────────
   const keyCount = useMemo(
@@ -326,13 +326,17 @@ export function LicensesPage({
        content-area bottom and DataTable rows distribute the height (flex:1 1 0),
        exactly like AssetsTable. space-y (margins) kept over gap — the mobile
        keys card cancels its top margin via !mt-0 to fuse with the tab chrome. */
-    <div className="flex flex-col h-full min-h-0 space-y-5 max-md:space-y-3 max-md:mx-[10px] max-md:flex-1">
+    /* Mobile: viewport-locked column (topbar 52 + content pt 10 + pb 74 = 136,
+       the PartsReceiveMobileForm constant) — the tab chrome stays pinned and
+       ONLY the tab body scrolls. Deterministic, unlike body-relative sticky. */
+    <div className="flex flex-col h-full min-h-0 space-y-5 max-md:space-y-3 max-md:mx-[10px] max-md:flex-none max-md:h-[calc(100dvh-136px)] max-md:overflow-hidden">
       {/* Tab strip + search + add button — one line, no page title.
           Mobile: assets-etalon header — card chrome, surface-2 tab strip, then a
           search+«+» row; on the keys tab the chrome fuses with the card below. */}
-      <div className={`border-b border-border max-md:bg-surface max-md:border max-md:border-border max-md:rounded-t-xl max-md:overflow-hidden ${
-        activeTab === 'keys' ? 'max-md:border-b-0' : 'max-md:rounded-b-xl'
-      }`}>
+      <div className="border-b border-border max-md:border-0 max-md:flex-shrink-0">
+        <div className={`max-md:bg-surface max-md:border max-md:border-border max-md:rounded-t-xl max-md:overflow-hidden ${
+          activeTab === 'keys' ? 'max-md:border-b-0' : 'max-md:rounded-b-xl'
+        }`}>
         <div className="flex items-center justify-between gap-3 max-md:bg-surface-2 max-md:border-b max-md:border-border max-md:px-[6px]">
           {/* Tab buttons — scrollable on mobile */}
           <TabStrip<ActiveTab>
@@ -384,20 +388,17 @@ export function LicensesPage({
           </div>
         </div>
 
-        {/* Keys-tab search + «+» — mobile only, assets-etalon row:
-            bg-bg px-[14px] py-[7px], input flex-1 (rounded-[9px], 11.5px), 36px square button */}
+        {/* Keys-tab search + «+» — mobile only, assets-etalon row: shared SearchInput
+            (36px height, matches the square «+» button) + 36px square button */}
         {activeTab === 'keys' && (
           <div className="md:hidden flex items-center gap-[8px] bg-bg px-[14px] py-[7px]">
-            <div className="relative flex-1">
-              <Icon name="search" size={14} className="absolute left-[10px] top-1/2 -translate-y-1/2 text-text-subtle pointer-events-none" />
-              <input
-                value={keySearch}
-                onChange={e => setKeySearch(e.target.value)}
-                placeholder={t('keys.searchPlaceholder')}
-                aria-label={t('keys.searchPlaceholder')}
-                className="w-full rounded-[9px] py-[9px] pl-[30px] pr-[12px] text-[11.5px] caret-accent bg-bg border border-border text-text-primary placeholder:text-text-subtle focus:outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/15 transition-all"
-              />
-            </div>
+            <SearchInput
+              value={keySearch}
+              onChange={setKeySearch}
+              placeholder={t('keys.searchPlaceholder')}
+              aria-label={t('keys.searchPlaceholder')}
+              containerClassName="flex-1"
+            />
             {/* 36×36 square accent «+» — mirrors AssetsToolbar mobile create button */}
             <button
               type="button"
@@ -410,6 +411,7 @@ export function LicensesPage({
             </button>
           </div>
         )}
+        </div>
       </div>
 
       {/* Tab body */}
@@ -494,7 +496,9 @@ export function LicensesPage({
       )}
 
       {activeTab === 'subs' && (
-        <>
+        /* Mobile: the ONLY scrolling region of the locked column — the tab
+           chrome above never leaves the screen. Desktop scrolls as before. */
+        <div className="max-md:flex-1 max-md:min-h-0 max-md:overflow-y-auto">
           {subsLoading && (
             /*
              * Subs-tab skeleton — real SectionCard with real header (local chrome) +
@@ -505,7 +509,8 @@ export function LicensesPage({
              * so zeroing SectionCard's body padding avoids double-spacing with zero mobile drift.
              */
             <div aria-hidden="true">
-              <SectionCard title={t('subs.sectionTitle')} icon="boxes" bodyClassName="!p-0">
+              {/* Header hidden on mobile — mirrors SubscriptionsSection (owner request) */}
+              <SectionCard title={t('subs.sectionTitle')} icon="boxes" bodyClassName="!p-0" className="max-md:[&>header]:hidden">
                 <CardListSkeleton rows={6} variant="subscription" />
               </SectionCard>
             </div>
@@ -518,7 +523,7 @@ export function LicensesPage({
               onUpdateAssignees={handleUpdateAssignees}
             />
           )}
-        </>
+        </div>
       )}
 
       {/* Add subscription modal */}

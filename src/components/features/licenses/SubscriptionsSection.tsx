@@ -14,12 +14,16 @@ export interface SubscriptionsSectionProps {
   onUpdateAssignees: (subId: string, ids: string[]) => Promise<void>
 }
 
+/** Mobile hides the «Подписки» section header — the active tab above already
+ *  names the content (owner request); desktop keeps it. */
+const HIDE_HEADER_MOBILE = 'max-md:[&>header]:hidden'
+
 export function SubscriptionsSection({ subs, employees, onUpdateAssignees }: SubscriptionsSectionProps) {
   const { t } = useTranslation('licenses')
 
   if (subs.length === 0) {
     return (
-      <SectionCard title={t('subs.sectionTitle')} icon="boxes">
+      <SectionCard title={t('subs.sectionTitle')} icon="boxes" className={HIDE_HEADER_MOBILE}>
         <EmptyState
           icon="boxes"
           title={t('subs.emptyTitle')}
@@ -30,7 +34,7 @@ export function SubscriptionsSection({ subs, employees, onUpdateAssignees }: Sub
   }
 
   return (
-    <SectionCard title={t('subs.sectionTitle')} icon="boxes">
+    <SectionCard title={t('subs.sectionTitle')} icon="boxes" className={HIDE_HEADER_MOBILE}>
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {subs.map(s => (
           <SubscriptionCard
