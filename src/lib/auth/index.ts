@@ -114,4 +114,5 @@ export function subscribeToAuthState(callback: (user: User | null) => void): () 
 }
 
 export { claimPendingUser, type ClaimInput } from './claimPendingUser'
+export { claimPreassignedRole, type PreassignedClaim } from './claimPreassignedRole'
 export { mapGoogleSignInError, type GoogleSignInErrorKind } from './mapGoogleSignInError'

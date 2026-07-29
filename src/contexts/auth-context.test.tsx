@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from './AuthContext'
 const onAuthStateChanged = vi.fn()
 const fetchUserRole = vi.fn(async () => 'asset_admin' as string | null)
 const claimSpy = vi.fn().mockResolvedValue(undefined)
+const preassignSpy = vi.fn(async () => null as { role: string; employeeId: string } | null)
 const linkSpy = vi.fn(async () => null as string | null)
 vi.mock('@/lib/firebase', () => ({ auth: () => ({}) }))
 vi.mock('@/lib/auth', () => ({
@@ -18,6 +19,10 @@ vi.mock('@/lib/auth', () => ({
   // capture and drive the auth-state callback. Returns the unsubscribe fn.
   subscribeToAuthState: (cb: (u: unknown) => void) => onAuthStateChanged({}, cb),
   claimPendingUser: (...a: unknown[]) => claimSpy(...a),
+  // $0 invited-role fallback: default returns null (no preassignment) so the
+  // no-role tests still reach claimPendingUser; a test can override to assert the
+  // preassigned-claim → ready path.
+  claimPreassignedRole: (...a: unknown[]) => preassignSpy(...(a as [])),
 }))
 
 function Probe() {
@@ -35,6 +40,8 @@ describe('AuthContext', () => {
     claimSpy.mockClear()
     linkSpy.mockClear()
     linkSpy.mockResolvedValue(null)
+    preassignSpy.mockClear()
+    preassignSpy.mockResolvedValue(null)
     fetchUserRole.mockReset()
     fetchUserRole.mockResolvedValue('asset_admin')
   })
@@ -94,5 +101,18 @@ describe('AuthContext', () => {
     expect(screen.getByTestId('s').textContent).toBe('no-role')
     expect(claimSpy).toHaveBeenCalledTimes(1)
     expect(claimSpy.mock.calls[0]![0]).toMatchObject({ uid: 'u9' })
+  })
+
+  it('applies a preassigned role (invited fallback) → ready, WITHOUT the no-role claim', async () => {
+    fetchUserRole.mockResolvedValue(null)
+    preassignSpy.mockResolvedValue({ role: 'tech_admin', employeeId: 'emp_inv_3' })
+    let cb: (u: unknown) => void = () => {}
+    onAuthStateChanged.mockImplementation((_a, c) => { cb = c; return () => {} })
+    function ClaimProbe() { const { status, role, user } = useAuth(); return <span data-testid="s">{status}:{role ?? '-'}:{user.employeeId ?? '-'}</span> }
+    render(<AuthProvider><ClaimProbe /></AuthProvider>)
+    await act(async () => { cb({ uid: 'u9', email: 'inv@x', displayName: 'Inv' }) })
+    expect(preassignSpy).toHaveBeenCalledWith('u9', 'inv@x', 'Inv')
+    expect(screen.getByTestId('s').textContent).toBe('ready:tech_admin:emp_inv_3')
+    expect(claimSpy).not.toHaveBeenCalled()
   })
 })

@@ -67,8 +67,45 @@ service cloud.firestore {
     match /users/{uid} {
       allow read: if isSignedIn() && (request.auth.uid == uid || isSuperAdmin());
 
+      // $0 (no Cloud Functions) invited-employee → role fallback. A user may write
+      // their OWN users doc with a role ONLY IF that role EQUALS the preassignedRole
+      // of the ACTIVE employees record whose email matches their auth token. Since
+      // preassignedRole can only be set by a super_admin (see /employees rules) and
+      // emails are unique per employee, this lets an invitee claim exactly the role
+      // an admin already intended — never an arbitrary role. Normally the
+      // beforeCreate blocking function does this; on Spark the client does it.
+      // The get()s are short-circuit-guarded by the preceding exists().
+      function claimsPreassignedRole() {
+        let empId = request.resource.data.employeeId;
+        let empPath = /databases/$(database)/documents/employees/$(empId);
+        return isSignedIn()
+          && request.auth.uid == uid
+          // Anchor the identity on a VERIFIED email — never trust an unverified
+          // token.email for a privilege grant (defense vs. a future password provider).
+          && request.auth.token.email_verified == true
+          // The stored email must BE the caller's token email — a self-claimed
+          // doc may never carry a foreign address (the sign-up duplicate guard
+          // reads /users.email, so a planted value could deny that person entry).
+          && request.resource.data.email == request.auth.token.email
+          && request.resource.data.status == 'active'
+          && empId is string
+          && request.resource.data.role in ['super_admin', 'asset_admin', 'tech_admin', 'employee']
+          // Fill a FIRST role only — never override an existing users.role, so a
+          // super_admin demotion can't be reverted via a stale preassignedRole.
+          && (resource == null || !('role' in resource.data) || resource.data.status == 'no-role')
+          // No stray fields on the self-written doc.
+          && request.resource.data.keys().hasOnly(
+               ['email', 'displayName', 'role', 'employeeId', 'status', 'createdAt', 'updatedAt'])
+          && exists(empPath)
+          && get(empPath).data.email == request.auth.token.email
+          // Allowlist (not a 'terminated' denylist): only a genuinely ACTIVE
+          // employee record can back a claim.
+          && get(empPath).data.status == 'active'
+          && get(empPath).data.preassignedRole == request.resource.data.role;
+      }
+
       // Create: super_admin (any shape) OR a self-claim of a no-role record that
-      // introduces NO role field. Self-escalation is impossible.
+      // introduces NO role field OR a preassigned-role self-claim (see above).
       allow create: if validRoleIfPresent() && (
           isSuperAdmin()
           || (
@@ -77,10 +114,12 @@ service cloud.firestore {
             && !('role' in request.resource.data)
             && request.resource.data.status == 'no-role'
           )
+          || claimsPreassignedRole()
         );
 
       // Update: super_admin (any shape) OR a self-update that changes NO role
-      // field and keeps status unchanged (self can never grant/raise a role).
+      // field and keeps status unchanged (self can never grant/raise a role) OR a
+      // preassigned-role self-claim (upgrades a prior no-role record).
       allow update: if validRoleIfPresent() && (
           isSuperAdmin()
           || (
@@ -89,6 +128,7 @@ service cloud.firestore {
             && !('role' in request.resource.data.diff(resource.data).affectedKeys())
             && request.resource.data.status == resource.data.status
           )
+          || claimsPreassignedRole()
         );
 
       allow delete: if isSuperAdmin();
@@ -208,10 +248,16 @@ service cloud.firestore {
         && validPreassign()
         && (isSuperAdmin() || !('preassignedRole' in request.resource.data));
       // asset_admin edits to other fields must leave preassignedRole untouched.
+      // Identity is immutable: firstName/lastName can never change after creation
+      // (only email/position/phone/department are editable) — enforced server-side,
+      // not just in the edit form. A same-value write is fine (unchanged key isn't
+      // in affectedKeys); only an actual rename is rejected.
       allow update: if (isSuperAdmin() || isAssetAdmin())
         && request.resource.data.email is string
         && request.resource.data.email.size() > 0
         && validPreassign()
+        && !('firstName' in request.resource.data.diff(resource.data).affectedKeys())
+        && !('lastName' in request.resource.data.diff(resource.data).affectedKeys())
         && (isSuperAdmin()
             || !('preassignedRole' in request.resource.data.diff(resource.data).affectedKeys()));
       allow delete: if isSuperAdmin() || isAssetAdmin();
@@ -409,7 +455,9 @@ service cloud.firestore {
         && request.resource.data.name.size() > 0
         && exists(/databases/$(database)/documents/part_categories/$(request.resource.data.category))
         && request.resource.data.onHand is number
+        && request.resource.data.onHand >= 0
         && request.resource.data.broken is number
+        && request.resource.data.broken >= 0
         && request.resource.data.lowStockThreshold is number
         && request.resource.data.createdBy == request.auth.uid
         && request.resource.data.updatedBy == request.auth.uid
@@ -424,7 +472,9 @@ service cloud.firestore {
         && request.resource.data.name.size() > 0
         && exists(/databases/$(database)/documents/part_categories/$(request.resource.data.category))
         && request.resource.data.onHand is number
+        && request.resource.data.onHand >= 0
         && request.resource.data.broken is number
+        && request.resource.data.broken >= 0
         && request.resource.data.lowStockThreshold is number
         && request.resource.data.updatedBy == request.auth.uid
         && request.resource.data.keys().hasOnly([

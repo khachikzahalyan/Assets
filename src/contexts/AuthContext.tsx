@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useMemo, useCallback, useEffect, useRef, type ReactNode } from 'react'
 import type { Role } from '@/config/roles'
-import { fetchUserProfile, linkEmployeeByEmail, signOutUser, subscribeToAuthState, claimPendingUser } from '@/lib/auth'
+import { fetchUserProfile, linkEmployeeByEmail, signOutUser, subscribeToAuthState, claimPendingUser, claimPreassignedRole } from '@/lib/auth'
 // Import directly (not via @/hooks barrel) — useParts imports useAuth, creating a barrel cycle.
 import { clearResourceCache } from '@/hooks/useCachedResource'
 
@@ -172,6 +172,18 @@ function RealAuthProvider({ children }: { children: ReactNode }) {
           const { role, employeeId } = await fetchUserProfile(shape.uid)
           if (!active) return
           if (role === null) {
+            // $0 fallback for the invited-employee → role flow: if a super_admin
+            // preassigned a role to this person's employee record (normally applied
+            // by the undeployed beforeCreate function), apply it now so the flow
+            // completes without Cloud Functions. Rules pin the claim to the exact
+            // preassignedRole of the employee whose email matches the caller.
+            const claim = await claimPreassignedRole(shape.uid, shape.email, shape.displayName)
+            if (!active) return
+            if (claim) {
+              setUser(toAuthUser(shape, claim.role, claim.employeeId))
+              setStatus('ready')
+              return
+            }
             // Signed in but no role doc — expose identity so AccessPending can
             // show who is signed in, but role stays a placeholder (never shown).
             setUser({ ...toAuthUser(shape, 'employee'), role: 'employee' })
