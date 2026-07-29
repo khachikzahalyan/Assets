@@ -118,6 +118,18 @@ export function TechSpecsCard({
                 {...(line.slots          !== undefined ? { slots:          line.slots }          : {})}
               />
             ))}
+            {onOpenParts && lines.length > 0 && (
+              /* «Открыть Запчасти» — mobile counterpart of the desktop parts-note
+                 footer button; full-width card row matching the license row below. */
+              <button
+                type="button"
+                onClick={onOpenParts}
+                className="col-span-2 bg-surface border border-border rounded-[10px] px-[13px] py-[10px] inline-flex items-center justify-center gap-1.5 text-[13.5px] font-semibold text-accent-light hover:border-accent/40 hover:bg-accent/5 transition-colors"
+              >
+                {t('detail.parts.openParts')}
+                <Icon name="arrow-right" size={13} />
+              </button>
+            )}
             {showLicenseSection && (
               /* Full-width OEM compact row — matches prototype §682–688 (grid-column:1/-1). */
               <div className="col-span-2 bg-surface border border-border rounded-[10px] px-[13px] py-[10px]">

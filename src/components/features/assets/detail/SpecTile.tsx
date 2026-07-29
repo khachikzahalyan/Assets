@@ -28,8 +28,11 @@ export function SpecTile({ icon, label, value, accent, badge, badgeAccent, value
   const tone      = TILE_ACCENT[accent]      ?? TILE_ACCENT['slate']!
   const badgeTone = TILE_ACCENT[badgeAccent ?? accent] ?? TILE_ACCENT['slate']!
 
+  // Mobile page background is bg-bg, so tiles lift to bg-surface (same card tone
+  // as the license row); desktop tiles sit inside a bg-surface SectionCard and
+  // keep bg-bg for contrast.
   return (
-    <div className="bg-bg border border-border rounded-lg p-3 flex items-center gap-3 max-md:p-[10px] max-md:gap-[9px]">
+    <div className="bg-bg max-md:bg-surface border border-border rounded-lg p-3 flex items-center gap-3 max-md:p-[10px] max-md:gap-[9px]">
       <div className={`w-9 h-9 max-md:w-7 max-md:h-7 rounded-lg inline-flex items-center justify-center shrink-0 ${tone.bg} ${tone.text}`}>
         <Icon name={icon} size={18} className="max-md:hidden" />
         <Icon name={icon} size={13} className="md:hidden" />

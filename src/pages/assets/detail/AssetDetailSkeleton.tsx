@@ -115,6 +115,8 @@ export function AssetDetailSkeleton({ hasSpecs }: AssetDetailSkeletonProps = {})
                     </div>
                   </div>
                 ))}
+                {/* «Открыть Запчасти» — full-width card row (same footprint as the license row) */}
+                <div className="col-span-2 h-[41px] rounded-[10px] anim-skeleton" />
                 {/* License row — [icon] name (flex-1) [type chip] */}
                 <div className="col-span-2 bg-surface border border-border rounded-[10px] px-[13px] py-[10px] flex items-center gap-2.5">
                   <div className="w-6 h-6 rounded-md anim-skeleton flex-shrink-0" />
@@ -166,22 +168,38 @@ export function AssetDetailSkeleton({ hasSpecs }: AssetDetailSkeletonProps = {})
           {showSpecs && (
             <div className="px-3.5 pb-6 space-y-2.5 mt-3" data-testid="skeleton-mobile-bottom-sections">
               {Array.from({ length: 3 }).map((_, cardIdx) => (
-                <div key={cardIdx} className="bg-surface border border-border rounded-xl overflow-hidden">
-                  {/* SectionCard-like header: max-md:px-3.5 max-md:py-3 */}
-                  <div className="flex items-center gap-2.5 px-3.5 py-3 border-b border-border">
-                    <div className="w-[15px] h-[15px] rounded anim-skeleton flex-shrink-0" />
-                    <div className="h-[10px] w-[40%] rounded anim-skeleton" />
-                  </div>
-                  <div className="p-3.5 space-y-3">
+                cardIdx === 1 ? (
+                  /* Местонахождение — headerless label–value card (owner request):
+                     two rows of [26px icon + label] | [value], soft divider. */
+                  <div key={cardIdx} className="bg-surface border border-border rounded-xl divide-y divide-border/50">
                     {Array.from({ length: 2 }).map((__, r) => (
-                      <div
-                        key={r}
-                        className="h-[13px] rounded anim-skeleton"
-                        style={{ width: `${65 - r * 10}%` }}
-                      />
+                      <div key={r} className="flex items-center justify-between gap-3 px-3 py-2.5">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-[26px] h-[26px] rounded-md anim-skeleton flex-shrink-0" />
+                          <div className="h-[10px] w-[52px] rounded anim-skeleton" />
+                        </div>
+                        <div className="h-[13px] w-[35%] rounded anim-skeleton" />
+                      </div>
                     ))}
                   </div>
-                </div>
+                ) : (
+                  <div key={cardIdx} className="bg-surface border border-border rounded-xl overflow-hidden">
+                    {/* SectionCard-like header: max-md:px-3.5 max-md:py-3 */}
+                    <div className="flex items-center gap-2.5 px-3.5 py-3 border-b border-border">
+                      <div className="w-[15px] h-[15px] rounded anim-skeleton flex-shrink-0" />
+                      <div className="h-[10px] w-[40%] rounded anim-skeleton" />
+                    </div>
+                    <div className="p-3.5 space-y-3">
+                      {Array.from({ length: 2 }).map((__, r) => (
+                        <div
+                          key={r}
+                          className="h-[13px] rounded anim-skeleton"
+                          style={{ width: `${65 - r * 10}%` }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )
               ))}
             </div>
           )}

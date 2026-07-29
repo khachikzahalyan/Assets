@@ -72,29 +72,39 @@ function TransferModeForm({
               searchPlaceholder={t('placeholders.recipientSearch')}
               ariaLabel={t('detail.transfer.employeeLabel')}
               title={t('detail.transfer.employeeLabel')}
-              options={refData.employees.map(e => ({
-                value: e.id,
-                label: [e.firstName, e.lastName].filter(Boolean).join(' '),
-              }))}
+              options={refData.employees
+                .filter(e => !e.former)
+                .map(e => ({
+                  value: e.id,
+                  label: [e.firstName, e.lastName].filter(Boolean).join(' '),
+                }))}
             />
           </div>
           {caps?.isLaptop && (
             <div>
-              <label className="block text-[12px] uppercase tracking-[0.06em] font-semibold text-text-tertiary mb-1">
+              <label className="block text-[12px] uppercase tracking-[0.06em] font-semibold text-text-tertiary mb-1.5">
                 {t('detail.transfer.workModeLabel')}
               </label>
-              <div className="flex items-center gap-1 h-8 max-md:h-9 bg-bg border border-border rounded-lg overflow-hidden">
-                {(['office', 'remote'] as const).map((wm, i) => (
+              {/* Segmented control: inset p-1 pocket so the active pill floats with
+                  its own radius. Mode colors follow the app palette: office =
+                  emerald (location/branch tone), remote = cyan (the same tone as
+                  the «УДАЛЁННЫЙ» badge on asset rows). */}
+              <div className="flex gap-1 p-1 bg-bg border border-border rounded-[10px]">
+                {(['office', 'remote'] as const).map(wm => (
                   <button
                     key={wm}
                     type="button"
                     onClick={() => setWorkMode(wm)}
-                    className={`flex-1 h-full text-[13px] font-medium transition-colors ${i > 0 ? 'border-l border-border' : ''}
+                    aria-pressed={workMode === wm}
+                    className={`flex-1 h-8 max-md:h-9 rounded-[7px] inline-flex items-center justify-center gap-1.5 text-[13px] font-semibold transition-colors
                       ${workMode === wm
-                        ? 'bg-accent text-white'
+                        ? wm === 'office'
+                          ? 'bg-emerald-500/15 text-emerald-300 ring-1 ring-inset ring-emerald-500/30'
+                          : 'bg-cyan-500/15 text-cyan-300 ring-1 ring-inset ring-cyan-500/30'
                         : 'text-text-tertiary hover:text-text-primary hover:bg-surface-2'
                       }`}
                   >
+                    <Icon name={wm === 'office' ? 'building-2' : 'house'} size={13} aria-hidden="true" />
                     {wm === 'office' ? t('detail.transfer.workModeOffice') : t('detail.transfer.workModeRemote')}
                   </button>
                 ))}
@@ -238,11 +248,13 @@ export function TransferPanel({ asset: _asset, refData, caps, busy, onCommit, on
       return
     }
 
-    // Resolve employee's dept if available
+    // Resolve employee's dept if available. EmployeeRow's field is `departmentId`
+    // (NOT `deptId`) — the old cast read a non-existent field and always yielded
+    // null, so every employee transfer silently wrote deptId: null onto the asset.
     const empRow = mode === 'employee'
       ? refData.employees.find(e => e.id === employeeId)
       : undefined
-    const employeeDeptId = (empRow as { deptId?: string | null } | undefined)?.deptId ?? null
+    const employeeDeptId = empRow?.departmentId ?? null
 
     const patch = buildTransferPatch(target, employeeDeptId)
     onCommit(patch)

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import type { Asset, AssetReferenceData, CategoryRow, StatusRow } from '@/domain/asset'
 import type { CategoryCapabilities } from '@/components/features/assets/create/CategoryPicker'
 import type { HistoryEventVM } from '@/components/features/assets/detail/detailFormat'
@@ -111,6 +112,7 @@ export function AssetDetailMobileView({
   onAttachLicense,
   onClosePrint,
 }: AssetDetailMobileViewProps) {
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState<TabId>('specs')
 
   // Normalize: if the category has no spec tiles, fall back to история tab.
@@ -182,6 +184,7 @@ export function AssetDetailMobileView({
               licensePool={licensePool}
               licenseBusy={busy}
               bare
+              onOpenParts={() => navigate(`/parts?tab=devices&assetId=${asset.id}`)}
             />
           )}
           {activeTab === 'history' && <HistoryCard events={historyEvents} mobileBare />}
