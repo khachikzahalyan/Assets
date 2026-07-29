@@ -501,41 +501,30 @@ select:-webkit-autofill {
   animation: contentEnter 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-/* ── Asset label printing (barcode labels) ── */
+/* ── Asset label printing — TSC TDP-225 (2" direct thermal, 203 dpi) ──
+   LABEL SIZE lives here. Must EXACTLY match the TSC driver Stock size AND the
+   driver Orientation must be Portrait — then the print reproduces this upright
+   layout 1:1 (no CSS rotation needed; the driver does no extra turn).
+   Current = TSC "USER" stock 2.00in × 1.50in (≈50.8 × 38mm).
+   TO CHANGE THE LABEL STOCK: edit --label-w / --label-h below AND the two
+   numbers in `@page size` together, and set the same size in the driver Stock. */
+:root { --label-w: 2in; --label-h: 1.5in; }
 .ams-print-label-root { display: none; }
 @media print {
-  /* Compact page sized to the asset label. WIDTH matches the owner's 80mm thermal roll
-     (EPSON TM-T20III) so the printer can honor it; HEIGHT 40mm keeps the receipt feed short
-     instead of advancing the whole 297mm roll. Change `size` to match your label stock. */
-  @page { size: 80mm 40mm; margin: 0; }
+  /* One label = 2.00in wide × 1.50in tall — matches the TSC driver Stock exactly. */
+  @page { size: 2in 1.5in; margin: 0; }
   html, body { margin: 0; padding: 0; background: #fff; }
   /* Hide EVERYTHING except the label print root — the app (#root) AND any open dialog.
      The preview dialog ALSO portals to <body>, so hiding only #root let the open dialog
      overlay the print and the label came out blank. */
   body > *:not(.ams-print-label-root) { display: none !important; }
-  /* Pin the label to a fixed 80mm width (the thermal roll width). Some printer drivers
-     (EPSON TM-T20III) ignore `@page size` and feed a full-sheet page, which left the label
-     small and shoved into the top-left corner. Forcing 80mm makes the printed label fill the
-     roll edge-to-edge no matter what page size the driver reports. */
-  .ams-print-label-root { display: block !important; width: 80mm; margin: 0 auto; }
-  .ams-label { width: 80mm; page-break-after: always; }
+  /* Pin the label to the fixed stock width so it fills the label edge-to-edge. No CSS
+     rotation: the driver is set to Portrait, so the natural upright layout prints as-is.
+     (The old EPSON receipt driver needed a 90° rotation hack; the TSC does not.) */
+  .ams-print-label-root { display: block !important; width: var(--label-w); margin: 0 auto; }
+  /* Full label height so the barcode + text block centres vertically on the stock. */
+  .ams-label { width: var(--label-w); height: var(--label-h); page-break-after: always; }
   .ams-label:last-child { page-break-after: auto; }
-}
-
-/* The EPSON TM-T20III receipt driver reports a LANDSCAPE page (roll length ×
-   80mm roll width), so the un-rotated label lay ALONG the tape and printed
-   small. When the print page is landscape, rotate the label 90° so its 80mm
-   axis runs across the roll width: after rotate(90deg) about the top-left
-   corner the block lands at x∈[−40mm,0]; translateX(40mm) (applied last —
-   transforms compose right-to-left) shifts it back into the page, occupying
-   40mm of feed length × the full 80mm roll width. Portrait pages (drivers
-   that honor @page 80×40mm) keep the un-rotated layout above. */
-@media print and (orientation: landscape) {
-  .ams-print-label-root {
-    margin: 0;
-    transform-origin: top left;
-    transform: translateX(40mm) rotate(90deg);
-  }
 }
 
 /* ===== Shell parts (Task 4) ===== */
@@ -684,9 +673,14 @@ select:-webkit-autofill {
   }
 
   /* ── Body / root: allow natural scroll on mobile.
-     Desktop locks overflow:hidden; restore it for mobile. ── */
+     Desktop locks overflow:hidden; restore it for mobile.
+     overflow-x is CLIP, not hidden: `hidden` on one axis computes the other
+     axis to `auto`, silently turning #root into a scroll container — every
+     position:sticky descendant (topbar, licenses tab strip) then sticks to
+     #root, which never scrolls, so nothing ever sticks. `clip` trims the
+     x-axis without creating a scroll container. ── */
   html, body {
-    overflow-x: hidden !important;
+    overflow-x: clip !important;
     overflow-y: auto !important;
     height: auto !important;
   }
@@ -694,7 +688,7 @@ select:-webkit-autofill {
   #root {
     height: auto !important;
     min-height: 100dvh;           /* dvh = dynamic viewport height (collapses with address bar) */
-    overflow-x: hidden !important;
+    overflow-x: clip !important;
     overflow-y: visible !important;
   }
 
@@ -760,6 +754,11 @@ select:-webkit-autofill {
     min-height: 0;
     box-sizing: border-box !important;
     width: 100% !important;
+    /* contentEnter retains a transform (fill-mode: both) — a transformed
+       ancestor breaks position:sticky for every descendant (licenses tab
+       strip). No enter animation on mobile; desktop keeps it (no body-
+       relative sticky exists there). */
+    animation: none !important;
   }
 
   /* ── Floating-card override for pages (e.g. assets card list): zero side
