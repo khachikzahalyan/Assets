@@ -251,7 +251,11 @@ export function DataTable<T>({
 
         {/* Placeholder rows — maintain fixed footprint when rows.length < minRows.
             MUST NOT have role="row" so getAllByRole('row') counts stay correct.
-            aria-hidden, pointer-events:none. */}
+            aria-hidden, pointer-events:none.
+            Owner request: NO dashed guide lines (they read as unfinished «- - -»
+            that don't reach the edges). Only the FIRST filler carries a full-width
+            border to cleanly close the table body under the last real row; the
+            rest are blank space down to the pagination — a clean empty fill. */}
         {Array.from({ length: placeholderCount }).map((_, i) => (
           <div
             key={`__ph_${i}`}
@@ -259,24 +263,11 @@ export function DataTable<T>({
             data-testid={placeholderTestId}
             style={{
               minHeight: 58,
-              borderTop: '1px solid rgba(42,47,54,0.35)',
+              ...(i === 0 ? { borderTop: '1px solid rgba(42,47,54,0.35)' } : {}),
               pointerEvents: 'none',
-              position: 'relative',
               ...(fillHeight ? { flex: '1 1 0' } : {}),
             }}
-          >
-            <div
-              style={{
-                position: 'absolute',
-                left: 20,
-                right: 20,
-                top: '50%',
-                height: 1,
-                borderTop: '1px dashed rgba(42,47,54,0.5)',
-                transform: 'translateY(-50%)',
-              }}
-            />
-          </div>
+          />
         ))}
       </div>
     </div>

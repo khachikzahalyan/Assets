@@ -80,7 +80,7 @@ export function EmployeesFilterBar({
     <div className={[
       'flex items-center gap-2 px-4 py-2 flex-wrap',
       'max-md:flex-nowrap max-md:overflow-x-auto max-md:gap-[6px]',
-      'max-md:px-[14px] max-md:pt-0 max-md:pb-[6px]',
+      'max-md:px-[14px] max-md:py-[8px]',
       'no-scrollbar max-md:scroll-fade-x',
     ].join(' ')}>
       <SelectMini

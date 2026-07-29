@@ -43,8 +43,8 @@ export function SearchInput({
           'text-text-primary placeholder:text-text-subtle',
           'focus:outline-none focus:border-accent-light focus:ring-2 focus:ring-accent-light/15',
           'transition-all duration-150',
-          // Mobile overrides (assets etalon)
-          'max-md:h-auto max-md:rounded-[9px] max-md:py-[9px] max-md:pl-[30px] max-md:pr-[12px]',
+          // Mobile overrides (assets etalon) — height matches the 36px MobileAddButton it pairs with
+          'max-md:h-[36px] max-md:rounded-[9px] max-md:py-0 max-md:pl-[30px] max-md:pr-[12px]',
           'max-md:text-[11.5px] max-md:caret-accent',
           className,
         ].join(' ')}

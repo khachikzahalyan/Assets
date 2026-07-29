@@ -134,9 +134,9 @@ export function AssetsFilterBar({
       className={[
         // Desktop: wrapping flex row with padding
         'flex flex-wrap items-center gap-2 px-5 py-2',
-        // Mobile: horizontal scroll strip, prototype padding (pt-0 since search row above provides rhythm)
+        // Mobile: horizontal scroll strip, even top/bottom padding
         'max-md:flex-nowrap max-md:overflow-x-auto max-md:gap-[6px]',
-        'max-md:px-[14px] max-md:pt-0 max-md:pb-[6px]',
+        'max-md:px-[14px] max-md:py-[8px]',
         'no-scrollbar max-md:scroll-fade-x',
       ].join(' ')}
     >
