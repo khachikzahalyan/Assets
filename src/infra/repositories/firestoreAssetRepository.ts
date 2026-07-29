@@ -170,6 +170,17 @@ export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepo
     return rows
   }
 
+  /**
+   * Drop the reference-data cache so the next loadReferenceData() re-fetches.
+   * Call after a reference-data mutation (branch/department/category/employee
+   * rename or delete) so an already-open Assets view stops showing stale labels
+   * within the 60s TTL window.
+   */
+  invalidateRefCache(): void {
+    this.refCache = null
+    this.refCacheAt = 0
+  }
+
   async loadReferenceData(): Promise<AssetReferenceData> {
     const expired = Date.now() - this.refCacheAt > FirestoreAssetRepository.REF_TTL_MS
     if (!this.refCache || expired) {
@@ -242,7 +253,12 @@ export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepo
       this.readCol<CategoryGroupRow>('categoryGroups', mapCategoryGroup).catch(() => [] as CategoryGroupRow[]),
     ])
     const seen = new Set(activeEmps.map(e => e.id))
-    const employees = [...activeEmps, ...formerEmps.filter(e => !seen.has(e.id))]
+    // Tag archived rows with `former: true` so assignment-target pickers can drop
+    // them (a fired employee is a valid past-holder name, not a valid recipient).
+    const employees = [
+      ...activeEmps,
+      ...formerEmps.filter(e => !seen.has(e.id)).map(e => ({ ...e, former: true })),
+    ]
     const categoryGroups = [...rawGroups].sort((a, b) => a.order - b.order || a.name.localeCompare(b.name))
     return { statuses, branches, departments, categories, employees, categoryGroups }
   }

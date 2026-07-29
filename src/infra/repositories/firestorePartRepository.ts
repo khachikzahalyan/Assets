@@ -64,6 +64,12 @@ export class FirestorePartRepository implements PartRepository, PartWriteReposit
 
   // ---- PartRepository (reads) -----------------------------------------------
 
+  /** Drop the reference-data cache so the next loadReferenceData() re-fetches. */
+  invalidateRefCache(): void {
+    this.refCache = null
+    this.refCacheAt = 0
+  }
+
   async loadReferenceData(): Promise<PartReferenceData> {
     const expired = Date.now() - this.refCacheAt > FirestorePartRepository.REF_TTL_MS
     if (!this.refCache || expired) {

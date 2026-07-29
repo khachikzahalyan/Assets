@@ -131,6 +131,13 @@ export interface EmployeeRow {
   email: string | null
   departmentId?: string | null
   position?: string | null
+  /**
+   * True when the row comes from the `former_employees` archive (a fired
+   * employee). Merged into refData so asset detail can still render a past
+   * holder's name, but such rows must be EXCLUDED from assignment-target
+   * pickers — you cannot transfer an asset to a fired employee.
+   */
+  former?: boolean
 }
 
 export type AssetGroupFilter = 'all' | 'devices' | 'network' | 'furniture'

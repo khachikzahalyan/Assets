@@ -11,7 +11,7 @@ import { useIsMobile } from '@/hooks/useIsMobile'
 import { CatalogTable, CatalogPagination, ConfirmDeleteDialog, CatalogToolbarHeader, type CatalogColumn } from '@/components/features/catalogs'
 import { BranchFormDialog, type BranchFormValues } from '@/components/features/branches'
 import type { Branch, BranchListQuery, BranchRepository } from '@/domain/branch'
-import { getSharedBranchRepository } from '@/infra/repositories'
+import { getSharedBranchRepository, invalidateReferenceCaches } from '@/infra/repositories'
 import { EntityInUseError } from '@/domain/shared'
 import { useCachedResource, cacheIdentity } from '@/hooks/useCachedResource'
 
@@ -56,6 +56,7 @@ export function BranchesPage({ repository }: BranchesPageProps) {
     try {
       if (editing && editing !== 'new') await repo.updateBranch(editing.id, v, { uid: user.id, role, displayName: user.name })
       else await repo.createBranch(v, { uid: user.id, role, displayName: user.name })
+      invalidateReferenceCaches()  // asset views resolve branch names by id — drop stale labels
       setEditing(null); reload()
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e)
@@ -77,6 +78,7 @@ export function BranchesPage({ repository }: BranchesPageProps) {
     setDelBusy(true)
     try {
       await repo.deleteBranch(deleting.id, { uid: user.id, role, displayName: user.name })
+      invalidateReferenceCaches()
       setDeleting(null); setBlockedMsg(null); reload()
     } catch (e) {
       if (e instanceof EntityInUseError) setBlockedMsg(t('delete.inUse', { count: e.count }))

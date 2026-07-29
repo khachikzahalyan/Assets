@@ -14,7 +14,7 @@ import { CatalogTable, CatalogPagination, ConfirmDeleteDialog, CatalogToolbarHea
 import { DepartmentFormDialog, type DepartmentFormValues } from '@/components/features/departments'
 import type { Department, DepartmentRepository } from '@/domain/department'
 import type { Employee, EmployeeRepository } from '@/domain/employee'
-import { getSharedDepartmentRepository, getSharedEmployeeRepository } from '@/infra/repositories'
+import { getSharedDepartmentRepository, getSharedEmployeeRepository, invalidateReferenceCaches } from '@/infra/repositories'
 import { EntityInUseError } from '@/domain/shared'
 import { useCachedResource, cacheIdentity } from '@/hooks/useCachedResource'
 import { useMemo } from 'react'
@@ -98,6 +98,7 @@ export function DepartmentsPage({ repository, employeeRepository }: DepartmentsP
     try {
       if (editing && editing !== 'new') await repo.updateDepartment(editing.id, v, { uid: user.id, role, displayName: user.name })
       else await repo.createDepartment(v, { uid: user.id, role, displayName: user.name })
+      invalidateReferenceCaches()  // asset/location views resolve dept names by id
       setEditing(null); reload()
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e)
@@ -119,6 +120,7 @@ export function DepartmentsPage({ repository, employeeRepository }: DepartmentsP
     setDelBusy(true)
     try {
       await repo.deleteDepartment(deleting.id, { uid: user.id, role, displayName: user.name })
+      invalidateReferenceCaches()
       setDeleting(null); setBlockedMsg(null); reload()
     } catch (e) {
       if (e instanceof EntityInUseError) setBlockedMsg(t('delete.inUse', { count: e.count }))

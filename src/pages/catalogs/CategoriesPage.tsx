@@ -18,7 +18,7 @@ import {
   PartCategoriesSection,
 } from '@/components/features/categories'
 import type { Category, CategoryGroup, CategoryRepository, CategoryGroupRepository } from '@/domain/category'
-import { getSharedCategoryRepository, getSharedCategoryGroupRepository, getSharedPartCategoryRepository } from '@/infra/repositories'
+import { getSharedCategoryRepository, getSharedCategoryGroupRepository, getSharedPartCategoryRepository, invalidateReferenceCaches } from '@/infra/repositories'
 import { EntityInUseError } from '@/domain/shared'
 import { useCachedResource, cacheIdentity } from '@/hooks/useCachedResource'
 import { useCategoryGroupCrud } from './useCategoryGroupCrud'
@@ -175,6 +175,7 @@ export function CategoriesPage({ repository, categoryGroupRepository, partCatego
       } else {
         await repo.createCategory({ ...v, group: selectedGroup.behavior, categoryGroupId: selectedGroupId }, actor)
       }
+      invalidateReferenceCaches()  // asset rows resolve category names/icons by id
       setEditing(null); setPage(1); reload()
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e)
@@ -194,6 +195,7 @@ export function CategoriesPage({ repository, categoryGroupRepository, partCatego
     setDelBusy(true)
     try {
       await repo.deleteCategory(deleting.id, { uid: user.id, role, displayName: user.name })
+      invalidateReferenceCaches()
       setDeleting(null); setBlockedMsg(null); setPage(1); reload()
     } catch (e) {
       if (e instanceof EntityInUseError) setBlockedMsg(t('delete.inUse', { count: e.count }))

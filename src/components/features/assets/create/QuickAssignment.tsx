@@ -92,7 +92,9 @@ export function QuickAssignment({
   const headBranch = branches.find(b => b.id === mainBranchId) ?? null
   const showWorkMode = isLaptop && (picked === 'employee' || picked === 'department')
 
-  const employeeOptions = employees.map(e => ({ value: e.id, label: [e.firstName, e.lastName].filter(Boolean).join(' ') || e.email || e.id }))
+  // Exclude former (fired) employees — they're merged into refData only for
+  // past-holder name display, never as a valid assignment target.
+  const employeeOptions = employees.filter(e => !e.former).map(e => ({ value: e.id, label: [e.firstName, e.lastName].filter(Boolean).join(' ') || e.email || e.id }))
   const departmentOptions = departments.map(d => ({ value: d.id, label: d.name }))
   const branchOptions = branches.map(b => ({ value: b.id, label: b.name }))
 

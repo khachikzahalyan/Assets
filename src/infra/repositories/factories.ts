@@ -63,6 +63,22 @@ function shared<T>(key: string, create: () => T): T {
   return _cache.get(key) as T
 }
 
+/**
+ * Drop the reference-data caches on the already-constructed shared asset/part
+ * repositories. Call after a reference-data mutation (branch / department /
+ * category / employee rename or delete) so an already-open Assets/Parts view
+ * re-fetches labels instead of showing the stale name for up to the 60s TTL.
+ * Only touches instances that were actually built (no side effects otherwise).
+ */
+export function invalidateReferenceCaches(): void {
+  const asset = _cache.get('asset') as FirestoreAssetRepository | undefined
+  asset?.invalidateRefCache()
+  const assetWL = _cache.get('asset:with-licenses') as FirestoreAssetRepository | undefined
+  assetWL?.invalidateRefCache()
+  const part = _cache.get('part') as FirestorePartRepository | undefined
+  part?.invalidateRefCache()
+}
+
 /** Shared AssetRepository singleton (plain — no license side-writes). */
 export function getSharedAssetRepository(): FirestoreAssetRepository {
   return shared('asset', () => new FirestoreAssetRepository(db()))
