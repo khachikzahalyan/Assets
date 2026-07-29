@@ -97,16 +97,19 @@ export function SearchSelect({
 
     function onScroll() { updatePos() }
     function onResize() { updatePos() }
-    // NOTE: We listen for `pointerdown` (not `mousedown`) so that taps inside
-    // a MobileSheet are excluded. MobileSheet's panel calls
-    // `e.stopPropagation()` on `pointerdown`, preventing the event from ever
-    // reaching `document`. A `mousedown` listener would NOT be stopped by that
-    // and would prematurely close the sheet before the `click` fires.
+    // Dismiss on a pointerdown that lands outside the trigger AND outside the
+    // open surface. The open surface differs by breakpoint: desktop renders the
+    // list in the `[data-ss-portal]` dropdown, mobile in a MobileSheet panel
+    // (`.ams-mobile-sheet-panel`, portaled to body). MobileSheet only stops
+    // `click` — NOT `pointerdown` — so without the `inSheet` check a tap on an
+    // option would be treated as "outside", closing the sheet and swallowing the
+    // click before it selects (the "can't pick an employee on mobile" bug).
     function onOutsidePointerDown(e: PointerEvent) {
       const target = e.target as Node | null
       const inTrigger = triggerRef.current?.contains(target) ?? false
       const inPortal = target instanceof Element && target.closest('[data-ss-portal="true"]') !== null
-      if (!inTrigger && !inPortal) {
+      const inSheet = target instanceof Element && target.closest('.ams-mobile-sheet-panel') !== null
+      if (!inTrigger && !inPortal && !inSheet) {
         // Owner rule: a dismissing touch must not click through to what's underneath.
         if (e.pointerType === 'touch') swallowNextClick()
         setOpen(false)
@@ -198,9 +201,12 @@ export function SearchSelect({
             size={13}
             className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-subtle pointer-events-none"
           />
+          {/* Desktop: focus the search on open for instant type-to-filter.
+              Mobile: DON'T — autofocus pops the on-screen keyboard the moment the
+              sheet opens, covering the options (owner request). */}
           <input
             ref={inputRef}
-            autoFocus
+            autoFocus={!isMobile}
             value={query}
             onChange={e => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}

@@ -184,9 +184,12 @@ export function CategoryPicker({ categories, value, onChange, categoryGroupId, d
             size={13}
             className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-subtle pointer-events-none"
           />
+          {/* Desktop: focus the search on open for instant type-to-filter.
+              Mobile: DON'T — autofocus pops the on-screen keyboard the moment the
+              sheet opens, covering the options (owner request). */}
           <input
             ref={inputRef}
-            autoFocus
+            autoFocus={!isMobile}
             value={query}
             onChange={e => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
