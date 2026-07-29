@@ -3,6 +3,12 @@
     "assigned": "Актив выдан",
     "returned": "Актив возвращён"
   },
+  "relTime": {
+    "justNow": "только что",
+    "minAgo": "{{n}}м назад",
+    "hourAgo": "{{n}}ч назад",
+    "dayAgo": "{{n}}д назад"
+  },
   "audit": {
     "col": {
       "action": "Действие",

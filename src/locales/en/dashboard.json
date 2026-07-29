@@ -3,6 +3,12 @@
     "assigned": "Asset assigned",
     "returned": "Asset returned"
   },
+  "relTime": {
+    "justNow": "just now",
+    "minAgo": "{{n}}m ago",
+    "hourAgo": "{{n}}h ago",
+    "dayAgo": "{{n}}d ago"
+  },
   "audit": {
     "col": {
       "action": "Action",

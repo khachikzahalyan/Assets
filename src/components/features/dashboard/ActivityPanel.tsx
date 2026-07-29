@@ -1,22 +1,24 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import type { TFunction } from 'i18next'
 import type { AssignmentActivityRow } from '@/domain/dashboard'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Icon } from '@/components/ui/icon'
 import { RoleIcon } from '@/components/ui/RoleIcon'
 import { cn } from '@/lib/utils'
 
-function relativeTime(iso: string, now = new Date()): string {
+/** Localized relative time. `t` is the 'dashboard' namespace translator. */
+function relativeTime(iso: string, t: TFunction, now = new Date()): string {
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return iso
   const diffMs = now.getTime() - d.getTime()
   const mins = Math.floor(diffMs / 60_000)
-  if (mins < 1) return 'только что'
-  if (mins < 60) return `${mins}м назад`
+  if (mins < 1) return t('relTime.justNow')
+  if (mins < 60) return t('relTime.minAgo', { n: mins })
   const hrs = Math.floor(mins / 60)
-  if (hrs < 24) return `${hrs}ч назад`
+  if (hrs < 24) return t('relTime.hourAgo', { n: hrs })
   const days = Math.floor(hrs / 24)
-  return `${days}д назад`
+  return t('relTime.dayAgo', { n: days })
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -71,7 +73,7 @@ export function ActivityPanel({ rows }: ActivityPanelProps) {
                       )}
                     </div>
                     <span className="text-[10.5px] text-text-subtle tabular-nums flex-shrink-0 ml-1">
-                      {relativeTime(row.at)}
+                      {relativeTime(row.at, t)}
                     </span>
                   </div>
                 )
