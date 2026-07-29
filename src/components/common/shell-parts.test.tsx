@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { I18nextProvider } from 'react-i18next'
 import i18n from '@/lib/i18n'
 import { AuthProvider } from '@/contexts/AuthContext'
@@ -24,11 +25,13 @@ function Wrapper({
   initialRole?: 'super_admin' | 'asset_admin' | 'tech_admin' | 'employee'
 }) {
   return (
-    <I18nextProvider i18n={i18n}>
-      <AuthProvider initialRole={initialRole}>
-        {children}
-      </AuthProvider>
-    </I18nextProvider>
+    <MemoryRouter>
+      <I18nextProvider i18n={i18n}>
+        <AuthProvider initialRole={initialRole}>
+          {children}
+        </AuthProvider>
+      </I18nextProvider>
+    </MemoryRouter>
   )
 }
 
@@ -181,41 +184,31 @@ describe('ProfileMenu', () => {
 describe('SearchPalette', () => {
   it('open=true renders the search input with placeholder', () => {
     render(
-      <I18nextProvider i18n={i18n}>
+      <Wrapper>
         <SearchPalette open onClose={() => undefined} onPick={() => undefined} />
-      </I18nextProvider>
+      </Wrapper>
     )
     expect(screen.getByPlaceholderText('Поиск активов, сотрудников, филиалов…')).toBeInTheDocument()
   })
 
-  it('renders at least one mock result when open with empty query', () => {
+  it('shows a loading state while data is being fetched (no mock results)', () => {
     render(
-      <I18nextProvider i18n={i18n}>
+      <Wrapper>
         <SearchPalette open onClose={() => undefined} onPick={() => undefined} />
-      </I18nextProvider>
+      </Wrapper>
     )
-    expect(screen.getByText('MacBook Pro 16" 2024')).toBeInTheDocument()
-  })
-
-  it('typing "Mac" filters results to fewer items', async () => {
-    render(
-      <I18nextProvider i18n={i18n}>
-        <SearchPalette open onClose={() => undefined} onPick={() => undefined} />
-      </I18nextProvider>
-    )
-    const input = screen.getByPlaceholderText('Поиск активов, сотрудников, филиалов…')
-    fireEvent.change(input, { target: { value: 'Mac' } })
-    // MacBook matches; Dell does not
-    expect(screen.getByText('MacBook Pro 16" 2024')).toBeInTheDocument()
-    expect(screen.queryByText('Dell UltraSharp U2723QE')).toBeNull()
+    // Palette shows "Загрузка…" immediately because the async repo call is pending
+    expect(screen.getByText('Загрузка…')).toBeInTheDocument()
+    // No fabricated mock rows should appear
+    expect(screen.queryByText('MacBook Pro 16" 2024')).toBeNull()
   })
 
   it('Escape key calls onClose', () => {
     const onClose = vi.fn()
     render(
-      <I18nextProvider i18n={i18n}>
+      <Wrapper>
         <SearchPalette open onClose={onClose} onPick={() => undefined} />
-      </I18nextProvider>
+      </Wrapper>
     )
     fireEvent.keyDown(document, { key: 'Escape' })
     expect(onClose).toHaveBeenCalledTimes(1)
@@ -223,9 +216,9 @@ describe('SearchPalette', () => {
 
   it('open=false renders nothing', () => {
     const { container } = render(
-      <I18nextProvider i18n={i18n}>
+      <Wrapper>
         <SearchPalette open={false} onClose={() => undefined} onPick={() => undefined} />
-      </I18nextProvider>
+      </Wrapper>
     )
     // createPortal returns null when open=false
     expect(container.firstChild).toBeNull()

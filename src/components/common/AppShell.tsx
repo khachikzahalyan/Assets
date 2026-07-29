@@ -87,7 +87,7 @@ export function AppShell({ children }: AppShellProps) {
       <SearchPalette
         open={searchOpen}
         onClose={() => setSearchOpen(false)}
-        onPick={(r) => { if (r.route) navigate('/' + r.route) }}
+        onPick={(r) => { navigate(r.to) }}
       />
     </TopbarSlotContext.Provider>
   )

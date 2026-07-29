@@ -1,24 +1,25 @@
 import { useState, useEffect, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
+import { useAuth } from '@/contexts/AuthContext'
+import { canAccess } from '@/config/access'
 import { Icon } from '@/components/ui/icon'
 import { Chip } from '@/components/ui/chip'
+import { useSearchPaletteData } from '@/hooks/useSearchPaletteData'
+import { assetTitle, deriveDisplayStatusId } from '@/components/features/assets/assetFormat'
+
+/** Maximum results shown per entity type. */
+const MAX_PER_TYPE = 6
 
 export interface SearchResult {
-  type: 'asset' | 'employee' | 'branch'
+  id: string
+  type: 'asset' | 'employee' | 'branch' | 'department'
   label: string
   hint: string
   icon: string
-  route?: string
+  /** Full navigation path including the entity id where applicable. */
+  to: string
 }
-
-const SEARCH_MOCK: SearchResult[] = [
-  { type: 'asset',    label: 'MacBook Pro 16" 2024',    hint: 'LAP/00042 · Выдано · Иван Петров',  icon: 'laptop',   route: 'assets' },
-  { type: 'asset',    label: 'Dell UltraSharp U2723QE', hint: 'MON/00018 · На складе',              icon: 'monitor',  route: 'assets' },
-  { type: 'employee', label: 'Анна Сидорова',           hint: 'Админ активов · ИТ',                 icon: 'user',     route: 'employees' },
-  { type: 'employee', label: 'Дмитрий Козлов',          hint: 'Тех. Админ · ИТ',                    icon: 'user',     route: 'employees' },
-  { type: 'branch',   label: 'Головной офис',           hint: 'Филиал · Ереван',                    icon: 'building', route: 'branches' },
-]
 
 export interface SearchPaletteProps {
   open: boolean
@@ -27,17 +28,12 @@ export interface SearchPaletteProps {
 }
 
 export function SearchPalette({ open, onClose, onPick }: SearchPaletteProps) {
-  const [query, setQuery] = useState('')
-  const { t } = useTranslation('common')
+  const [query, setQuery]   = useState('')
+  const { t }               = useTranslation('common')
+  const { role }            = useAuth()
+  const dataState           = useSearchPaletteData(open)
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    if (!q) return SEARCH_MOCK
-    return SEARCH_MOCK.filter(
-      (r) => r.label.toLowerCase().includes(q) || r.hint.toLowerCase().includes(q)
-    )
-  }, [query])
-
+  // ESC to close
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
@@ -45,15 +41,139 @@ export function SearchPalette({ open, onClose, onPick }: SearchPaletteProps) {
     return () => document.removeEventListener('keydown', onKey)
   }, [open, onClose])
 
+  // Reset query on close
   useEffect(() => { if (!open) setQuery('') }, [open])
+
+  // Build results from real data (memoised — runs on every keystroke over in-memory data)
+  const filtered = useMemo<SearchResult[]>(() => {
+    if (dataState.status !== 'ready') return []
+
+    const { data } = dataState
+    const q = query.trim().toLowerCase()
+    const results: SearchResult[] = []
+
+    // --- Assets ---
+    if (canAccess(role, 'assets')) {
+      const { assets, ref } = data
+      let matched = 0
+      for (const a of assets) {
+        if (matched >= MAX_PER_TYPE) break
+        const label = assetTitle(
+          a,
+          ref.categories.find(c => c.id === a.categoryId)?.name,
+          ref.categories.find(c => c.id === a.categoryId)?.group,
+        )
+        const searchable = [label, a.invCode, a.serial, a.barcode]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase()
+        if (q && !searchable.includes(q)) continue
+
+        const statusId   = deriveDisplayStatusId(a)
+        const statusName = ref.statuses.find(s => s.id === statusId)?.name ?? statusId
+        const holder     = a.assignment?.employeeId
+          ? (() => {
+              const emp = ref.employees.find(e => e.id === a.assignment!.employeeId)
+              return emp
+                ? `${emp.firstName ?? ''} ${emp.lastName ?? ''}`.trim()
+                : null
+            })()
+          : null
+        const hintParts = [a.invCode, statusName, ...(holder ? [holder] : [])]
+
+        results.push({
+          id:    a.id,
+          type:  'asset',
+          label,
+          hint:  hintParts.join(' · '),
+          icon:  'package',
+          to:    `/assets/${a.id}`,
+        })
+        matched++
+      }
+    }
+
+    // --- Employees ---
+    if (canAccess(role, 'employees')) {
+      const { employees, ref } = data
+      let matched = 0
+      for (const e of employees) {
+        if (matched >= MAX_PER_TYPE) break
+        const fullName    = `${e.firstName} ${e.lastName}`.trim()
+        const searchable  = [fullName, e.email, e.position].filter(Boolean).join(' ').toLowerCase()
+        if (q && !searchable.includes(q)) continue
+
+        const deptName  = e.departmentId
+          ? ref.departments.find(d => d.id === e.departmentId)?.name ?? null
+          : null
+        const hintParts = [e.position, deptName ?? e.email].filter(Boolean)
+
+        results.push({
+          id:    e.id,
+          type:  'employee',
+          label: fullName,
+          hint:  hintParts.join(' · '),
+          icon:  'user',
+          to:    `/employees/${e.id}`,
+        })
+        matched++
+      }
+    }
+
+    // --- Branches ---
+    if (canAccess(role, 'branches')) {
+      const { branches } = data
+      let matched = 0
+      for (const b of branches) {
+        if (matched >= MAX_PER_TYPE) break
+        const searchable = [b.name, b.city, b.address].filter(Boolean).join(' ').toLowerCase()
+        if (q && !searchable.includes(q)) continue
+
+        results.push({
+          id:    b.id,
+          type:  'branch',
+          label: b.name,
+          hint:  b.city ?? '',
+          icon:  'building',
+          to:    '/branches',
+        })
+        matched++
+      }
+    }
+
+    // --- Departments (from ref, no per-id route — navigate to list) ---
+    if (canAccess(role, 'departments') && dataState.status === 'ready') {
+      const { ref } = data
+      let matched = 0
+      for (const d of ref.departments) {
+        if (matched >= MAX_PER_TYPE) break
+        if (q && !d.name.toLowerCase().includes(q)) continue
+
+        results.push({
+          id:    d.id,
+          type:  'department',
+          label: d.name,
+          hint:  '',
+          icon:  'layers',
+          to:    '/departments',
+        })
+        matched++
+      }
+    }
+
+    return results
+  }, [query, dataState, role])
 
   if (!open) return null
 
   const kindLabel = (type: SearchResult['type']) => {
-    if (type === 'asset') return t('search.kindAsset')
-    if (type === 'employee') return t('search.kindEmployee')
-    return t('search.kindBranch')
+    if (type === 'asset')      return t('search.kindAsset')
+    if (type === 'employee')   return t('search.kindEmployee')
+    if (type === 'branch')     return t('search.kindBranch')
+    return t('search.kindDepartment')
   }
+
+  const isLoading = dataState.status === 'idle' || dataState.status === 'loading'
 
   return createPortal(
     <div className="fixed inset-0 z-[60] flex items-start justify-center pt-[12vh] px-4 max-md:items-end max-md:pt-0 max-md:px-0">
@@ -80,14 +200,19 @@ export function SearchPalette({ open, onClose, onPick }: SearchPaletteProps) {
 
         {/* Results — max-height uses dvh-aware value; on mobile flex-1 so sheet controls height */}
         <div className="max-h-[360px] overflow-y-auto py-1.5 max-md:max-h-none max-md:flex-1 max-md:min-h-0">
-          {filtered.length === 0 && (
+          {isLoading && (
+            <div className="px-4 py-6 text-center text-[12.5px] text-text-subtle">
+              {t('search.loading')}
+            </div>
+          )}
+          {!isLoading && filtered.length === 0 && (
             <div className="px-4 py-6 text-center text-[12.5px] text-text-subtle">
               {t('search.empty')}
             </div>
           )}
-          {filtered.map((r, i) => (
+          {!isLoading && filtered.map((r) => (
             <button
-              key={i}
+              key={r.id + ':' + r.type}
               type="button"
               onClick={() => { onPick(r); onClose() }}
               className="w-full flex items-center gap-2.5 px-4 py-2.5 text-left hover:bg-surface-2 transition-colors"
@@ -97,7 +222,9 @@ export function SearchPalette({ open, onClose, onPick }: SearchPaletteProps) {
               </span>
               <div className="flex-1 min-w-0">
                 <div className="text-[12.5px] font-semibold text-text-primary truncate">{r.label}</div>
-                <div className="text-[10.5px] text-text-subtle truncate">{r.hint}</div>
+                {r.hint && (
+                  <div className="text-[10.5px] text-text-subtle truncate">{r.hint}</div>
+                )}
               </div>
               <Chip color="gray" size="sm">{kindLabel(r.type)}</Chip>
             </button>
