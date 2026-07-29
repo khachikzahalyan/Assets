@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
 import { ROLES } from '@/config'
+import { canAccess } from '@/config/access'
 import { RoleIcon } from '@/components/ui/RoleIcon'
 import { Avatar } from '@/components/ui/avatar'
 import { Icon } from '@/components/ui/icon'
@@ -13,6 +15,7 @@ export function ProfileMenu() {
   const rootRef = useRef<HTMLDivElement>(null)
   const { user, role, setRole, signOut } = useAuth()
   const { t } = useTranslation(['common', 'nav'])
+  const navigate = useNavigate()
 
   useDismissOnOutside([rootRef], () => setOpen(false), open)
 
@@ -69,24 +72,28 @@ export function ProfileMenu() {
             </div>
           </div>
 
-          {/* Menu items */}
+          {/* Menu items — rendered only when the current role can reach the route */}
           <div className="py-1">
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              className="w-full flex items-center gap-2.5 px-3.5 py-2 text-left text-[12.5px] text-text-secondary hover:bg-surface transition-colors"
-            >
-              <Icon name="user-circle" size={14} className="text-text-subtle" />
-              {t('actions.profile')}
-            </button>
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              className="w-full flex items-center gap-2.5 px-3.5 py-2 text-left text-[12.5px] text-text-secondary hover:bg-surface transition-colors"
-            >
-              <Icon name="settings" size={14} className="text-text-subtle" />
-              {t('actions.settings')}
-            </button>
+            {canAccess(role, 'profile') && (
+              <button
+                type="button"
+                onClick={() => { setOpen(false); navigate('/profile') }}
+                className="w-full flex items-center gap-2.5 px-3.5 py-2 text-left text-[12.5px] text-text-secondary hover:bg-surface transition-colors"
+              >
+                <Icon name="user-circle" size={14} className="text-text-subtle" />
+                {t('actions.profile')}
+              </button>
+            )}
+            {canAccess(role, 'settings') && (
+              <button
+                type="button"
+                onClick={() => { setOpen(false); navigate('/settings') }}
+                className="w-full flex items-center gap-2.5 px-3.5 py-2 text-left text-[12.5px] text-text-secondary hover:bg-surface transition-colors"
+              >
+                <Icon name="settings" size={14} className="text-text-subtle" />
+                {t('actions.settings')}
+              </button>
+            )}
           </div>
 
           {/* Sign-out */}

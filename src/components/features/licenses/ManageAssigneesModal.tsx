@@ -36,7 +36,10 @@ export function ManageAssigneesModal({
   const [assigned, setAssigned] = useState<string[]>(() => initialAssignedIds)
   const searchRef = useRef<HTMLInputElement>(null)
 
+  // Focus the search on open — DESKTOP ONLY (owner rule): on mobile autofocus
+  // pops the on-screen keyboard over the freshly opened dialog.
   useEffect(() => {
+    if (window.matchMedia('(max-width: 767px)').matches) return
     const id = setTimeout(() => searchRef.current?.focus(), 30)
     return () => clearTimeout(id)
   }, [])
