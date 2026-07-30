@@ -28,7 +28,7 @@ describe('renderAccessEmail', () => {
 
   it('always embeds the dark header art from the app domain', () => {
     const { html } = renderAccessEmail({ ...BASE, kind: 'employee' })
-    expect(html).toContain('https://telcell-ams.vercel.app/email/header.png')
+    expect(html).toContain('https://telcell-ams.vercel.app/email/header-2.png')
   })
 
   it('employee variant: softer subject, NO role card, "Открыть AMS" CTA', () => {

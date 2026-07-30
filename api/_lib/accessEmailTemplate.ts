@@ -43,7 +43,8 @@ export interface RenderedEmail {
 }
 
 const ACCENT = '#F97316'
-const SERIF = "Georgia,'Times New Roman',serif"
+// Headings use an even sans (owner request «ровные буквы») — was serif Georgia.
+const SERIF = "Arial,'Helvetica Neue',Helvetica,sans-serif"
 const SANS = 'Arial,sans-serif'
 const KNOWN_ROLES = new Set(['super_admin', 'asset_admin', 'tech_admin', 'employee'])
 
@@ -117,7 +118,7 @@ export function renderAccessEmail(input: AccessEmailInput): RenderedEmail {
 
         <!-- Dark decorative header: art strip (image) + logo row (HTML fallback-safe) -->
         <tr><td style="background:#12141C;" bgcolor="#12141C">
-          <img src="${base}/email/header.png" width="514" alt="" style="display:block;width:100%;height:auto;border:0;">
+          <img src="${base}/email/header-2.png" width="514" alt="" style="display:block;width:100%;height:auto;border:0;">
           <table role="presentation" cellpadding="0" cellspacing="0" style="padding:2px 26px 18px;"><tr>
             <td style="padding-right:11px;" valign="middle">
               <table role="presentation" cellpadding="0" cellspacing="0"><tr>

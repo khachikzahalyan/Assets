@@ -54,7 +54,9 @@ const browser = await chromium.launch()
 const page = await browser.newPage({ deviceScaleFactor: 2 })
 
 await page.setContent(headerHtml)
-await page.locator('#art').screenshot({ path: 'public/email/header.png' })
+// Versioned filename: Gmail's image proxy caches by URL, so reusing header.png
+// kept showing the OLD (with-icon) art in inbox. Bump the name to force a refetch.
+await page.locator('#art').screenshot({ path: 'public/email/header-2.png' })
 
 const ROLE_GLYPH = { super_admin: 'crown', asset_admin: 'shield', tech_admin: 'circuit-board', employee: 'user-check' }
 for (const [role, key] of Object.entries(ROLE_GLYPH)) {
