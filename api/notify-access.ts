@@ -5,11 +5,15 @@
  * come from Vercel env vars (BREVO_API_KEY, BREVO_SENDER_EMAIL, BREVO_SENDER_NAME,
  * APP_URL, FIREBASE_PROJECT_ID).
  *
- * Wrapped in a top-level try/catch with DYNAMIC imports so that ANY load/runtime
- * failure surfaces as readable JSON instead of an opaque FUNCTION_INVOCATION_FAILED.
+ * IMPORTANT: imports of ./_lib/* are STATIC (top-level) on purpose — Vercel's
+ * file tracer (@vercel/nft) only bundles statically-imported files into the
+ * function. A dynamic import() left _lib out of the bundle → "Cannot find module"
+ * at runtime. The try/catch stays to surface any remaining runtime error as JSON.
  */
 
 import type { VercelRequest, VercelResponse } from '@vercel/node'
+import { verifyAdmin } from './_lib/verifyAdmin'
+import { renderAccessEmail, type AccessEmailKind } from './_lib/accessEmailTemplate'
 
 interface NotifyBody {
   email?: unknown
@@ -40,7 +44,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     const senderName = process.env['BREVO_SENDER_NAME'] || 'AMS'
     const appUrl = process.env['APP_URL']
     if (!projectId || !apiKey || !senderEmail || !appUrl) {
-      // `have` tells us exactly which vars are missing (no secret values leaked).
       res.status(500).json({
         error: 'server_misconfigured',
         have: {
@@ -52,10 +55,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       })
       return
     }
-
-    const { verifyAdmin } = await import('./_lib/verifyAdmin')
-    const { renderAccessEmail } = await import('./_lib/accessEmailTemplate')
-    type AccessEmailKind = 'role' | 'employee'
 
     // ── Auth: valid admin Firebase ID token required ──
     const header = req.headers.authorization ?? ''
