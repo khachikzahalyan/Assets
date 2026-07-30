@@ -32,12 +32,13 @@ async function main() {
   const kindEnv = process.env['TEST_KIND']
   const kind: AccessEmailKind = kindEnv === 'employee' ? 'employee' : kindEnv === 'asset' ? 'asset' : 'role'
   const roleLabel = process.env['TEST_ROLE_LABEL'] || 'Админ активов'
+  const roleId = process.env['TEST_ROLE'] || 'super_admin'
   const assetLabel = process.env['TEST_ASSET_LABEL'] || 'Dell XPS 15'
   const assetCode = process.env['TEST_ASSET_CODE'] || '450/293919'
 
   const { subject, html, text } = renderAccessEmail({
     kind, name, appUrl, brand: senderName,
-    ...(kind === 'role' ? { roleLabel } : {}),
+    ...(kind === 'role' ? { roleLabel, role: roleId } : {}),
     ...(kind === 'asset' ? { assetLabel, assetCode } : {}),
   })
 

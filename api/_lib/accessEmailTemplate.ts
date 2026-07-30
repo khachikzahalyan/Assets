@@ -68,7 +68,7 @@ export function renderAccessEmail(input: AccessEmailInput): RenderedEmail {
   const isAsset = kind === 'asset'
 
   const subject = isRole ? `Вам открыт доступ в ${brand}`
-    : isAsset ? `Вам передан актив в ${brand}`
+    : isAsset ? `Вам передан актив: ${(input.assetLabel ?? '').trim() || brand}`
     : `Вас добавили в ${brand}`
 
   const lead = isRole

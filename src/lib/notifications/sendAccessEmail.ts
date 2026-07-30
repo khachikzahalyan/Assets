@@ -41,6 +41,9 @@ export async function sendAccessEmail(input: SendAccessEmailInput): Promise<{ ok
 
     const res = await fetch('/api/notify-access', {
       method: 'POST',
+      // keepalive → the request completes even if the page navigates/re-renders
+      // right after firing (transfer closes the panel + reloads data).
+      keepalive: true,
       headers: { 'content-type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({
         email,
