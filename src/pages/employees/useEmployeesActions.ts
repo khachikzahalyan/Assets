@@ -7,6 +7,7 @@ import type { DrawerLinkedAsset, HandoverAsset, PickerStockRow } from '@/compone
 import type { EmployeeFormSubmit } from '@/components/features/employees/EmployeeFormModal'
 import type { Destination } from '@/components/features/employees/DestPicker'
 import { destToPatch } from './employeesHelpers'
+import { sendAccessEmail } from '@/lib/notifications/sendAccessEmail'
 import { ASSET_STATUS } from '@/domain/asset'
 import type { EmployeesDataBag } from './useEmployeesData'
 
@@ -61,6 +62,14 @@ export function useEmployeesActions(d: EmployeesDataBag) {
           actor,
         )
         showToast(t('toast.created'))
+        // Best-effort Gmail notification for the newly-added employee (never blocks).
+        if (submit.email?.trim()) {
+          void sendAccessEmail({
+            email: submit.email.trim(),
+            name: `${submit.firstName} ${submit.lastName}`.trim(),
+            kind: 'employee',
+          })
+        }
       } else {
         await repo.updateEmployee(
           submit.id,

@@ -22,6 +22,7 @@ import { RoleIcon } from '@/components/ui/RoleIcon'
 import { createDefaultUserRepository } from '@/infra/repositories'
 import { RoleRowMobile } from '@/components/features/users'
 import { CatalogPagination } from '@/components/features/catalogs'
+import { sendAccessEmail } from '@/lib/notifications/sendAccessEmail'
 
 const PAGE_SIZE = 10
 
@@ -68,10 +69,22 @@ function ChangeRoleDialog({ target, isSelf, onClose, onChanged, repo, actor }: C
     if (!selectedRole || unchanged) return
     setSubmitting(true)
     setError(null)
+    // Best-effort Gmail notification once the grant persists (never blocks/reverts).
+    const fireAccessEmail = () => {
+      const to = target.email?.trim()
+      if (!to) return
+      void sendAccessEmail({
+        email: to,
+        name: target.displayName?.trim() || to,
+        kind: 'role',
+        roleLabel: tNav(`roles.${selectedRole}`),
+      })
+    }
     try {
       if (isInvited) {
         if (!repo.preassignRole) throw new Error('preassignRole not supported')
         const r = await repo.preassignRole(target.id, selectedRole, actor)
+        fireAccessEmail()
         onChanged(r.value)
         return
       }
@@ -82,6 +95,7 @@ function ChangeRoleDialog({ target, isSelf, onClose, onChanged, repo, actor }: C
           : { mode: 'link' }
       }
       const r = await repo.assignRole(input, actor)
+      fireAccessEmail()
       onChanged(r.value)
     } catch (err) {
       if (err instanceof RoleLockoutError) setError(t(`guard.${err.reason}`))
