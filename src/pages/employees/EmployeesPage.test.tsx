@@ -292,9 +292,9 @@ describe('EmployeesPage', () => {
       expect(screen.getByText(/Передано/i)).toBeInTheDocument()
     })
 
-    // Assert asset state
+    // Assert asset state — handing to a PERSON now starts in «Ожидание» (pending)
     const assets = await assetRepo.listAssets({ statusId: 'all' })
-    expect(assets[0]!.statusId).toBe('st_assigned')
+    expect(assets[0]!.statusId).toBe('st_pending')
     expect(assets[0]!.assignment?.mode).toBe('employee')
     expect(assets[0]!.assignment?.employeeId).toBe('uid_2')
   })
@@ -679,9 +679,9 @@ describe('EmployeesPage', () => {
       expect(screen.getByText(/Техника принята/i)).toBeInTheDocument()
     })
 
-    // Assert: asset is now assigned to uid_2, NOT left with uid_1
+    // Assert: asset is now handed to uid_2 (pending receipt), NOT left with uid_1
     const assets = await assetRepo.listAssets({ statusId: 'all' })
-    expect(assets[0]!.statusId).toBe('st_assigned')
+    expect(assets[0]!.statusId).toBe('st_pending')
     expect(assets[0]!.assignment?.mode).toBe('employee')
     expect(assets[0]!.assignment?.employeeId).toBe('uid_2')
   })

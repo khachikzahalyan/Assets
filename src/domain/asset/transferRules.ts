@@ -71,7 +71,12 @@ export function buildTransferPatch(
       }
     case 'employee':
       return {
-        toStatusId: ASSET_STATUS.assigned,
+        // Handing an asset to a PERSON starts in «Ожидание» (pending): the physical
+        // handover is not yet confirmed. The recipient flips it to «Выдано» by clicking
+        // the magic-link button in the notification email (api/confirm-receipt), or an
+        // admin can confirm in-app. Every other target (branch/department/temporary)
+        // needs no human acknowledgement, so it lands in «Выдано» immediately.
+        toStatusId: ASSET_STATUS.pending,
         assignment: {
           mode: 'employee',
           employeeId: target.employeeId,

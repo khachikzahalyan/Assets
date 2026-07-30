@@ -12,10 +12,10 @@ describe('buildTransferPatch', () => {
     })
   })
 
-  it('employee with employeeDeptId → dept carried, branch HQ', () => {
+  it('employee with employeeDeptId → pending (awaiting receipt), dept carried, branch HQ', () => {
     const target: TransferTarget = { mode: 'employee', employeeId: 'e_1' }
     const patch = buildTransferPatch(target, 'd_it')
-    expect(patch.toStatusId).toBe('st_assigned')
+    expect(patch.toStatusId).toBe('st_pending')
     expect(patch.branchId).toBe(HEAD_OFFICE_BRANCH_ID)
     expect(patch.deptId).toBe('d_it')
     expect(patch.assignment).toEqual({ mode: 'employee', employeeId: 'e_1' })

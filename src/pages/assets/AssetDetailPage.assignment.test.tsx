@@ -175,7 +175,7 @@ describe('AssetDetailPage — TransferPanel flow', () => {
   }, 15000)
 
   // ---- 2. ASSIGN TO EMPLOYEE ----------------------------------------------
-  it('assign to employee: Сотрудник mode → select → commit → st_assigned + employee assignment + status_changed audit', async () => {
+  it('assign to employee: Сотрудник mode → select → commit → st_pending (awaiting receipt) + employee assignment + status_changed audit', async () => {
     // Arrange
     const assets = [mkAsset()]; const mail: MailEntry[] = []
     const { store, assetRepo } = renderPage(assets, mail)
@@ -197,10 +197,10 @@ describe('AssetDetailPage — TransferPanel flow', () => {
     const allTransferBtns = screen.getAllByRole('button', { name: /Передать/i })
     fireEvent.click(allTransferBtns[allTransferBtns.length - 1]!)
 
-    // Assert (a): asset assigned to employee
+    // Assert (a): asset handed to employee — starts «Ожидание» (pending) until receipt confirmed
     await waitFor(async () => {
       const updated = await assetRepo.getAsset('a_1')
-      expect(updated?.statusId).toBe('st_assigned')
+      expect(updated?.statusId).toBe('st_pending')
       expect(updated?.assignment).toMatchObject({ mode: 'employee', employeeId: 'e_1' })
     })
 
