@@ -4,32 +4,49 @@ import { renderAccessEmail, escapeHtml } from './accessEmailTemplate'
 const BASE = { name: 'Погос', appUrl: 'https://telcell-ams.vercel.app/', brand: 'AMS' } as const
 
 describe('renderAccessEmail', () => {
-  it('role variant: subject + role chip + login CTA + app url', () => {
+  it('role variant: subject + role card + login CTA + app url', () => {
     const { subject, html, text } = renderAccessEmail({ ...BASE, kind: 'role', roleLabel: 'Админ активов' })
     expect(subject).toBe('Вам открыт доступ в AMS')
-    expect(html).toContain('Ваша роль: Админ активов')
+    expect(html).toContain('НАЗНАЧЕННАЯ РОЛЬ')
+    expect(html).toContain('Админ активов')
     expect(html).toContain('Войти в систему')
     expect(html).toContain('https://telcell-ams.vercel.app/')
-    expect(html).toContain('Здравствуйте, Погос!')
-    expect(text).toContain('Ваша роль: Админ активов')
+    expect(html).toContain('Здравствуйте, <b>Погос</b>.')
+    expect(text).toContain('Назначенная роль: Админ активов')
   })
 
-  it('employee variant: softer subject, NO role chip, "Открыть AMS" CTA', () => {
+  it('role variant with a known role id embeds the badge icon from the app domain', () => {
+    const { html } = renderAccessEmail({ ...BASE, kind: 'role', roleLabel: 'Супер Админ', role: 'super_admin' })
+    expect(html).toContain('https://telcell-ams.vercel.app/email/role-super_admin.png')
+  })
+
+  it('role variant with an unknown role id renders the card without an icon', () => {
+    const { html } = renderAccessEmail({ ...BASE, kind: 'role', roleLabel: 'X', role: 'hacker' })
+    expect(html).toContain('НАЗНАЧЕННАЯ РОЛЬ')
+    expect(html).not.toContain('/email/role-')
+  })
+
+  it('always embeds the dark header art from the app domain', () => {
+    const { html } = renderAccessEmail({ ...BASE, kind: 'employee' })
+    expect(html).toContain('https://telcell-ams.vercel.app/email/header.png')
+  })
+
+  it('employee variant: softer subject, NO role card, "Открыть AMS" CTA', () => {
     const { subject, html } = renderAccessEmail({ ...BASE, kind: 'employee' })
     expect(subject).toBe('Вас добавили в AMS')
-    expect(html).not.toContain('Ваша роль:')
+    expect(html).not.toContain('НАЗНАЧЕННАЯ РОЛЬ')
     expect(html).toContain('Открыть AMS')
     expect(html).toContain('как сотрудника')
   })
 
-  it('role variant without a roleLabel omits the chip', () => {
+  it('role variant without a roleLabel omits the card', () => {
     const { html } = renderAccessEmail({ ...BASE, kind: 'role' })
-    expect(html).not.toContain('Ваша роль:')
+    expect(html).not.toContain('НАЗНАЧЕННАЯ РОЛЬ')
   })
 
   it('falls back to brand when name is blank', () => {
     const { html } = renderAccessEmail({ ...BASE, name: '   ', kind: 'employee' })
-    expect(html).toContain('Здравствуйте, AMS!')
+    expect(html).toContain('Здравствуйте, <b>AMS</b>.')
   })
 
   it('escapes HTML in name and roleLabel (no injection)', () => {

@@ -1,112 +1,117 @@
-<!doctype html>
-<html lang="ru">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AMS — макет письма (превью)</title>
-  <style>
-    body { margin:0; background:#e9edf2; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif; }
-    .wrap { max-width:640px; margin:0 auto; padding:24px 12px 48px; }
-    .variant-label { font:600 12px/1.4 -apple-system,'Segoe UI',Arial,sans-serif; letter-spacing:.08em; text-transform:uppercase; color:#64748b; margin:28px 6px 10px; }
-  </style>
-</head>
-<body>
-  <div class="wrap">
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>AMS — макет письма (превью)</title></head>
+<body style="margin:0;background:#e9edf2;font-family:Arial"><div style="max-width:640px;margin:0 auto;padding:24px 12px 48px">
+<p style="font:600 12px/1.4 Arial;letter-spacing:.08em;text-transform:uppercase;color:#64748b;margin:28px 6px 10px">Вариант A · выдана роль (доступ открыт) — тёмная шапка, генерится renderAccessEmail</p>
 
-    <p class="variant-label">Вариант A · выдана роль (доступ открыт)</p>
-    <!-- ===== EMAIL START (inline styles only — this is how email clients render) ===== -->
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#e9edf2;padding:0;">
-      <tr><td align="center" style="padding:0;">
-        <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="width:480px;max-width:100%;background:#ffffff;border:1px solid #e2e8f0;border-radius:16px;overflow:hidden;">
-          <!-- Header -->
-          <tr><td style="padding:22px 28px;border-bottom:1px solid #eef2f6;">
-            <table role="presentation" cellpadding="0" cellspacing="0"><tr>
-              <td style="padding-right:10px;">
-                <span style="display:inline-block;background:#F97316;color:#ffffff;font:800 15px/1 Arial,sans-serif;letter-spacing:.02em;padding:8px 10px;border-radius:9px;">AMS</span>
-              </td>
-              <td style="font:600 13px/1.3 Arial,sans-serif;color:#64748b;">Asset Management System</td>
-            </tr></table>
-          </td></tr>
-          <!-- Body -->
-          <tr><td style="padding:30px 28px 8px;">
-            <div style="font:700 20px/1.35 Arial,sans-serif;color:#0f172a;">Здравствуйте, Погос!</div>
-            <div style="font:400 15px/1.6 Arial,sans-serif;color:#475569;margin-top:12px;">
-              Вам открыт доступ в систему учёта активов <b style="color:#0f172a;">AMS</b>.
-            </div>
-            <!-- role chip -->
-            <div style="margin:18px 0 6px;">
-              <span style="display:inline-block;background:#fff7ed;border:1px solid #fed7aa;color:#c2410c;font:700 13px/1 Arial,sans-serif;padding:9px 12px;border-radius:8px;">
-                Ваша роль: Администратор активов
-              </span>
-            </div>
-            <div style="font:400 15px/1.6 Arial,sans-serif;color:#475569;margin-top:16px;">
-              Войдите в систему с помощью вашего Google-аккаунта <b style="color:#0f172a;">zahalyanxcho@gmail.com</b>.
-            </div>
-          </td></tr>
-          <!-- CTA button (bulletproof) -->
-          <tr><td style="padding:22px 28px 6px;">
-            <table role="presentation" cellpadding="0" cellspacing="0"><tr>
-              <td style="background:#F97316;border-radius:10px;">
-                <a href="https://telcell-ams.vercel.app/" style="display:inline-block;padding:13px 26px;font:700 15px/1 Arial,sans-serif;color:#ffffff;text-decoration:none;border-radius:10px;">Войти в систему →</a>
-              </td>
-            </tr></table>
-          </td></tr>
-          <!-- fallback link -->
-          <tr><td style="padding:12px 28px 26px;">
-            <div style="font:400 12px/1.6 Arial,sans-serif;color:#94a3b8;">
-              Если кнопка не работает, откройте ссылку:<br>
-              <a href="https://telcell-ams.vercel.app/" style="color:#F97316;text-decoration:none;">https://telcell-ams.vercel.app/</a>
-            </div>
-          </td></tr>
-          <!-- Footer -->
-          <tr><td style="padding:16px 28px;background:#f8fafc;border-top:1px solid #eef2f6;">
-            <div style="font:400 11.5px/1.6 Arial,sans-serif;color:#94a3b8;">
-              Это автоматическое письмо от системы AMS. Отвечать на него не нужно.
-            </div>
-          </td></tr>
-        </table>
-      </td></tr>
-    </table>
-    <!-- ===== EMAIL END ===== -->
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#e9edf2;padding:24px 12px;">
+    <tr><td align="center">
+      <table role="presentation" width="514" cellpadding="0" cellspacing="0" style="width:514px;max-width:100%;background:#ffffff;border:1px solid #e2e8f0;border-radius:14px;overflow:hidden;">
 
-    <p class="variant-label">Вариант B · сотрудник добавлен (роль ещё не выдана)</p>
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#e9edf2;">
-      <tr><td align="center">
-        <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="width:480px;max-width:100%;background:#ffffff;border:1px solid #e2e8f0;border-radius:16px;overflow:hidden;">
-          <tr><td style="padding:22px 28px;border-bottom:1px solid #eef2f6;">
-            <table role="presentation" cellpadding="0" cellspacing="0"><tr>
-              <td style="padding-right:10px;"><span style="display:inline-block;background:#F97316;color:#ffffff;font:800 15px/1 Arial,sans-serif;padding:8px 10px;border-radius:9px;">AMS</span></td>
-              <td style="font:600 13px/1.3 Arial,sans-serif;color:#64748b;">Asset Management System</td>
-            </tr></table>
-          </td></tr>
-          <tr><td style="padding:30px 28px 8px;">
-            <div style="font:700 20px/1.35 Arial,sans-serif;color:#0f172a;">Здравствуйте, Погос!</div>
-            <div style="font:400 15px/1.6 Arial,sans-serif;color:#475569;margin-top:12px;">
-              Вас добавили в систему учёта активов <b style="color:#0f172a;">AMS</b> как сотрудника.
-            </div>
-            <div style="font:400 15px/1.6 Arial,sans-serif;color:#475569;margin-top:14px;">
-              Как только администратор назначит вам доступ, вы сможете войти по кнопке ниже с помощью Google-аккаунта <b style="color:#0f172a;">zahalyanxcho@gmail.com</b>.
-            </div>
-          </td></tr>
-          <tr><td style="padding:22px 28px 6px;">
-            <table role="presentation" cellpadding="0" cellspacing="0"><tr>
-              <td style="background:#F97316;border-radius:10px;">
-                <a href="https://telcell-ams.vercel.app/" style="display:inline-block;padding:13px 26px;font:700 15px/1 Arial,sans-serif;color:#ffffff;text-decoration:none;border-radius:10px;">Открыть AMS →</a>
-              </td>
-            </tr></table>
-          </td></tr>
-          <tr><td style="padding:12px 28px 26px;">
-            <div style="font:400 12px/1.6 Arial,sans-serif;color:#94a3b8;">
-              Ссылка: <a href="https://telcell-ams.vercel.app/" style="color:#F97316;text-decoration:none;">https://telcell-ams.vercel.app/</a>
-            </div>
-          </td></tr>
-          <tr><td style="padding:16px 28px;background:#f8fafc;border-top:1px solid #eef2f6;">
-            <div style="font:400 11.5px/1.6 Arial,sans-serif;color:#94a3b8;">Это автоматическое письмо от системы AMS. Отвечать на него не нужно.</div>
-          </td></tr>
-        </table>
-      </td></tr>
-    </table>
+        <!-- Dark decorative header: art strip (image) + logo row (HTML fallback-safe) -->
+        <tr><td style="background:#12141C;" bgcolor="#12141C">
+          <img src="https://telcell-ams.vercel.app/email/header.png" width="514" alt="" style="display:block;width:100%;height:auto;border:0;">
+          <table role="presentation" cellpadding="0" cellspacing="0" style="padding:2px 26px 18px;"><tr>
+            <td style="padding-right:11px;" valign="middle">
+              <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+                <td width="40" height="40" align="center" valign="middle" style="background:#F97316;border-radius:20px;font:800 13px/1 Arial,sans-serif;color:#ffffff;letter-spacing:.02em;">AMS</td>
+              </tr></table>
+            </td>
+            <td valign="middle">
+              <div style="font:700 17px/1.2 Arial,sans-serif;color:#ffffff;">AMS</div>
+              <div style="font:600 9.5px/1 Arial,sans-serif;letter-spacing:.24em;color:#8B93A3;margin-top:5px;">ASSET&nbsp;MANAGEMENT&nbsp;SYSTEM</div>
+            </td>
+          </tr></table>
+        </td></tr>
 
-  </div>
-</body>
-</html>
+        <!-- Body -->
+        <tr><td style="padding:34px 34px 6px;">
+          <div style="font:400 25px/1.3 Georgia,'Times New Roman',serif;color:#1A202C;">Здравствуйте, <b>Погос</b>.</div>
+          <div style="font:400 15.5px/1.65 Arial,sans-serif;color:#475569;margin-top:14px;">Для вас открыт доступ в систему учёта активов <b style="color:#1A202C;">AMS</b>.<br>Ниже — назначенная роль и способ входа.</div>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:22px 0 2px;">
+         <tr><td style="background:#FBF4EA;border:1px solid #F0DFC8;border-radius:10px;padding:16px 20px 17px;">
+           <div style="font:700 11px/1 Arial,sans-serif;letter-spacing:.14em;color:#B45309;">НАЗНАЧЕННАЯ РОЛЬ</div>
+           <table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:11px;"><tr>
+             <td style="padding-right:12px;" valign="middle"><img src="https://telcell-ams.vercel.app/email/role-asset_admin.png" width="34" height="34" alt="" style="display:block;border-radius:9px;"></td>
+             <td valign="middle" style="font:700 21px/1.2 Georgia,'Times New Roman',serif;color:#1A202C;">Администратор активов</td>
+           </tr></table>
+         </td></tr>
+       </table>
+          <div style="font:400 15.5px/1.65 Arial,sans-serif;color:#475569;margin-top:20px;">Войдите в систему с помощью вашего Google-аккаунта — отдельный пароль не требуется.</div>
+        </td></tr>
+
+        <!-- CTA button (bulletproof) -->
+        <tr><td style="padding:24px 34px 8px;">
+          <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+            <td style="background:#F97316;border-radius:9px;">
+              <a href="https://telcell-ams.vercel.app/" style="display:inline-block;padding:14px 28px;font:700 15px/1 Arial,sans-serif;color:#ffffff;text-decoration:none;border-radius:9px;">Войти в систему →</a>
+            </td>
+          </tr></table>
+        </td></tr>
+
+        <!-- fallback link -->
+        <tr><td style="padding:12px 34px 30px;">
+          <div style="font:400 12px/1.6 Arial,sans-serif;color:#94a3b8;">Если кнопка не работает, откройте ссылку напрямую:<br>
+            <a href="https://telcell-ams.vercel.app/" style="color:#F97316;text-decoration:none;">https://telcell-ams.vercel.app/</a></div>
+        </td></tr>
+
+        <!-- Footer -->
+        <tr><td style="padding:16px 34px;background:#F4F5F7;border-top:1px solid #eef2f6;">
+          <div style="font:400 11.5px/1.6 Arial,sans-serif;color:#94a3b8;">Это автоматическое письмо от системы AMS. Отвечать на него не нужно.</div>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+
+<p style="font:600 12px/1.4 Arial;letter-spacing:.08em;text-transform:uppercase;color:#64748b;margin:28px 6px 10px">Вариант B · сотрудник добавлен (роль ещё не выдана)</p>
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#e9edf2;padding:24px 12px;">
+    <tr><td align="center">
+      <table role="presentation" width="514" cellpadding="0" cellspacing="0" style="width:514px;max-width:100%;background:#ffffff;border:1px solid #e2e8f0;border-radius:14px;overflow:hidden;">
+
+        <!-- Dark decorative header: art strip (image) + logo row (HTML fallback-safe) -->
+        <tr><td style="background:#12141C;" bgcolor="#12141C">
+          <img src="https://telcell-ams.vercel.app/email/header.png" width="514" alt="" style="display:block;width:100%;height:auto;border:0;">
+          <table role="presentation" cellpadding="0" cellspacing="0" style="padding:2px 26px 18px;"><tr>
+            <td style="padding-right:11px;" valign="middle">
+              <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+                <td width="40" height="40" align="center" valign="middle" style="background:#F97316;border-radius:20px;font:800 13px/1 Arial,sans-serif;color:#ffffff;letter-spacing:.02em;">AMS</td>
+              </tr></table>
+            </td>
+            <td valign="middle">
+              <div style="font:700 17px/1.2 Arial,sans-serif;color:#ffffff;">AMS</div>
+              <div style="font:600 9.5px/1 Arial,sans-serif;letter-spacing:.24em;color:#8B93A3;margin-top:5px;">ASSET&nbsp;MANAGEMENT&nbsp;SYSTEM</div>
+            </td>
+          </tr></table>
+        </td></tr>
+
+        <!-- Body -->
+        <tr><td style="padding:34px 34px 6px;">
+          <div style="font:400 25px/1.3 Georgia,'Times New Roman',serif;color:#1A202C;">Здравствуйте, <b>Погос</b>.</div>
+          <div style="font:400 15.5px/1.65 Arial,sans-serif;color:#475569;margin-top:14px;">Вас добавили в систему учёта активов <b style="color:#1A202C;">AMS</b> как сотрудника.</div>
+          
+          <div style="font:400 15.5px/1.65 Arial,sans-serif;color:#475569;margin-top:20px;">Как только администратор назначит вам доступ, вы сможете войти по кнопке ниже с помощью вашего Google-аккаунта.</div>
+        </td></tr>
+
+        <!-- CTA button (bulletproof) -->
+        <tr><td style="padding:24px 34px 8px;">
+          <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+            <td style="background:#F97316;border-radius:9px;">
+              <a href="https://telcell-ams.vercel.app/" style="display:inline-block;padding:14px 28px;font:700 15px/1 Arial,sans-serif;color:#ffffff;text-decoration:none;border-radius:9px;">Открыть AMS →</a>
+            </td>
+          </tr></table>
+        </td></tr>
+
+        <!-- fallback link -->
+        <tr><td style="padding:12px 34px 30px;">
+          <div style="font:400 12px/1.6 Arial,sans-serif;color:#94a3b8;">Если кнопка не работает, откройте ссылку напрямую:<br>
+            <a href="https://telcell-ams.vercel.app/" style="color:#F97316;text-decoration:none;">https://telcell-ams.vercel.app/</a></div>
+        </td></tr>
+
+        <!-- Footer -->
+        <tr><td style="padding:16px 34px;background:#F4F5F7;border-top:1px solid #eef2f6;">
+          <div style="font:400 11.5px/1.6 Arial,sans-serif;color:#94a3b8;">Это автоматическое письмо от системы AMS. Отвечать на него не нужно.</div>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+
+</div></body></html>

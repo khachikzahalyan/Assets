@@ -22,6 +22,8 @@ export interface SendAccessEmailInput {
   kind: 'role' | 'employee'
   /** Human-readable RU role label, for kind='role'. */
   roleLabel?: string
+  /** Role id (super_admin | asset_admin | tech_admin | employee) — selects the badge icon in the email. */
+  role?: string
 }
 
 export async function sendAccessEmail(input: SendAccessEmailInput): Promise<{ ok: boolean }> {
@@ -41,6 +43,7 @@ export async function sendAccessEmail(input: SendAccessEmailInput): Promise<{ ok
         name: input.name ?? '',
         kind: input.kind,
         ...(input.roleLabel ? { roleLabel: input.roleLabel } : {}),
+        ...(input.role ? { role: input.role } : {}),
       }),
     })
     return { ok: res.ok }

@@ -78,6 +78,7 @@ function ChangeRoleDialog({ target, isSelf, onClose, onChanged, repo, actor }: C
         name: target.displayName?.trim() || to,
         kind: 'role',
         roleLabel: tNav(`roles.${selectedRole}`),
+        role: selectedRole,
       })
     }
     try {
@@ -115,7 +116,7 @@ function ChangeRoleDialog({ target, isSelf, onClose, onChanged, repo, actor }: C
         role="dialog" aria-modal="true" aria-labelledby="change-role-title"
         className={`w-full max-w-md bg-surface border border-border rounded-xl max-md:rounded-b-none max-md:rounded-t-[18px] max-md:max-h-[92vh] max-md:overflow-y-auto shadow-2xl p-6 space-y-5 mx-4 max-md:mx-0 ${MODAL_SHEET}`}
       >
-        <div className="max-md:block hidden mx-auto h-1 w-9 rounded-full bg-white/20 mb-3 -mt-3" />
+        <div className="max-md:block hidden mx-auto h-1 w-9 rounded-full bg-white/20 light:bg-black/10 mb-3 -mt-3" />
         <header className="flex items-center justify-between gap-3">
           <h2 id="change-role-title" className="text-[15px] font-bold text-text-primary">{t('dialog.title')}</h2>
           <button type="button" aria-label={t('actions.close', { ns: 'common' })} onClick={onClose}
@@ -178,14 +179,14 @@ function ChangeRoleDialog({ target, isSelf, onClose, onChanged, repo, actor }: C
                   <Field label={t('dialog.lastName')} required>
                     <Input id="change-last-name" value={lastName} onChange={setLastName} placeholder={t('dialog.lastName')} />
                   </Field>
-                  {emailMissing && <p role="alert" className="text-[12px] text-amber-400">{t('dialog.emailRequired')}</p>}
+                  {emailMissing && <p role="alert" className="text-[12px] text-amber-400 light:text-amber-700">{t('dialog.emailRequired')}</p>}
                 </div>
               )}
             </div>
           )}
 
           <p className="text-[12px] text-text-tertiary">{t('dialog.confirm')}</p>
-          {error && <p role="alert" className="text-[12.5px] text-rose-400">{error}</p>}
+          {error && <p role="alert" className="text-[12.5px] text-rose-400 light:text-rose-700">{error}</p>}
 
           <div className="flex items-center justify-end gap-2 pt-1">
             <Btn type="button" variant="secondary" onClick={onClose} disabled={submitting}>{t('dialog.cancel')}</Btn>

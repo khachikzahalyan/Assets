@@ -23,6 +23,7 @@ interface NotifyBody {
   name?: unknown
   kind?: unknown
   roleLabel?: unknown
+  role?: unknown
 }
 
 function parseBody(raw: unknown): NotifyBody {
@@ -64,6 +65,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
   const name = typeof body.name === 'string' ? body.name : ''
   const kind: AccessEmailKind = body.kind === 'employee' ? 'employee' : 'role'
   const roleLabel = typeof body.roleLabel === 'string' ? body.roleLabel : undefined
+  const role = typeof body.role === 'string' ? body.role : undefined
   if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
     res.status(400).json({ error: 'invalid_email' })
     return
@@ -72,6 +74,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
   const { subject, html, text } = renderAccessEmail({
     kind, name, appUrl, brand: senderName,
     ...(roleLabel ? { roleLabel } : {}),
+    ...(role ? { role } : {}),
   })
 
   // ── Send via Brevo ──
