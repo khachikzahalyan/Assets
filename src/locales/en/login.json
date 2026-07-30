@@ -24,7 +24,7 @@
     "infoDesc": "Laptops, servers, network equipment, licenses and employees — in one system.",
     "rolesValue": "4 roles",
     "rolesDesc": "Super Admin · Asset Admin · Tech · Employee",
-    "qrValue": "QR codes",
+    "qrValue": "Barcodes",
     "qrDesc": "Assets & employees · Static labels"
   },
   "confirmEmailPrompt": "Enter the email address the sign-in link was sent to",

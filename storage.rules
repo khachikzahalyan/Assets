@@ -28,6 +28,20 @@ service firebase.storage {
         && (fsRole() == 'super_admin' || fsRole() == 'asset_admin');
     }
 
+    // The caller's employees/{id} doc id — mirrors firestore.rules myEmployeeId().
+    // Invited/linked employees carry users/{uid}.employeeId (HR doc id != uid);
+    // legacy accounts have doc id == uid. Comparing the asset's assignment against
+    // request.auth.uid ALONE broke act-scan reads for the linked case.
+    function callerEmployeeId() {
+      return ('employeeId' in firestore.get(
+               /databases/(default)/documents/users/$(request.auth.uid)
+             ).data)
+        ? firestore.get(
+            /databases/(default)/documents/users/$(request.auth.uid)
+          ).data.employeeId
+        : request.auth.uid;
+    }
+
     function assignedToCaller(assetId) {
       // Null-guard mirrors the firestore.rules /assets read pattern:
       // if assignment is absent/null (warehouse, branch, repair) or employeeId is
@@ -39,9 +53,14 @@ service firebase.storage {
         && firestore.get(
              /databases/(default)/documents/assets/$(assetId)
            ).data.assignment.employeeId != null
-        && firestore.get(
-             /databases/(default)/documents/assets/$(assetId)
-           ).data.assignment.employeeId == request.auth.uid;
+        && (
+          firestore.get(
+            /databases/(default)/documents/assets/$(assetId)
+          ).data.assignment.employeeId == request.auth.uid
+          || firestore.get(
+               /databases/(default)/documents/assets/$(assetId)
+             ).data.assignment.employeeId == callerEmployeeId()
+        );
     }
 
     match /acts/{assetId}/{fileName} {
