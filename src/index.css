@@ -167,6 +167,112 @@
 }
 
 /* =========================================================
+   LIGHT THEME — additive override scope.
+   Dark stays the :root default (values above are untouched);
+   html.light redefines every color/shadow token. Warm gray-white
+   palette, orange accent unchanged. See
+   docs/superpowers/specs/2026-07-30-light-mode-design.md
+   ========================================================= */
+html.light {
+
+  /* ── NATIVE CONTROLS ── */
+  color-scheme: light;
+
+  /* ── SURFACES ── */
+  --color-bg:             #F4F5F7;
+  --color-surface:        #FFFFFF;
+  --color-surface-2:      #F8F9FA;
+  --color-surface-raised: #FFFFFF;
+  --color-surface-sunken: #EDEFF2;
+
+  /* ── BORDERS ── */
+  --color-border:         #E2E5E9;
+  --color-border-strong:  #CBD2D9;
+
+  /* ── TEXT ── */
+  /* Muted tiers are DARKER than a naive dark→light mirror: pale grays that
+     read fine on #111315 wash out on white. Hierarchy stays, contrast holds. */
+  --color-text:           #1A202C;
+  --color-text-primary:   #1A202C;
+  --color-text-secondary: #445062;
+  --color-text-tertiary:  #5B6B80;
+  --color-text-muted:     #5B6B80;
+  --color-text-subtle:    #75859B;
+  --color-text-mono:      #C2410C;
+
+  /* ── ACCENT (orange — hue unchanged, soft tints reduced) ── */
+  --color-accent-soft:    rgba(249, 115, 22, 0.10);
+  --color-focus-ring:     rgba(249, 115, 22, 0.30);
+
+  /* ── STATUS: SUCCESS ── */
+  --color-stock-ok-bg:       rgba(16, 185, 129, 0.12);
+  --color-stock-ok-text:     #047857;
+  --color-stock-ok-dot:      #10B981;
+  --color-move-receipt-bg:   rgba(16, 185, 129, 0.12);
+  --color-move-receipt-text: #047857;
+  --color-move-receipt-dot:  #10B981;
+
+  /* ── STATUS: WARNING / REPAIR ── */
+  --color-stock-low-bg:      rgba(245, 158, 11, 0.14);
+  --color-stock-low-text:    #B45309;
+  --color-stock-low-dot:     #F59E0B;
+  --color-move-repair-bg:    rgba(245, 158, 11, 0.14);
+  --color-move-repair-text:  #B45309;
+  --color-move-repair-dot:   #F59E0B;
+
+  /* ── STATUS: ERROR ── */
+  --color-stock-empty-bg:    rgba(244, 63, 94, 0.10);
+  --color-stock-empty-text:  #BE123C;
+  --color-stock-empty-dot:   #F43F5E;
+
+  /* ── STATUS: INSTALL / INFO ── */
+  --color-move-install-bg:   rgba(56, 189, 248, 0.12);
+  --color-move-install-text: #0369A1;
+  --color-move-install-dot:  #0EA5E9;
+
+  /* ── STATUS: NEUTRAL / REMOVAL ── */
+  --color-move-removal-bg:   rgba(100, 116, 139, 0.10);
+  --color-move-removal-text: #475569;
+  --color-move-removal-dot:  #64748B;
+
+  /* ── STATUS: GENERIC SEMANTIC ── */
+  --color-success: #059669;
+  --color-warning: #D97706;
+  --color-error:   #DC2626;
+  --color-info:    #0284C7;
+
+  /* ── RGB CHANNELS — light mirrors ── */
+  --rgb-bg:             244 245 247;
+  --rgb-surface:        255 255 255;
+  --rgb-surface-2:      248 249 250;
+  --rgb-surface-raised: 255 255 255;
+  --rgb-surface-sunken: 237 239 242;
+  --rgb-border:         226 229 233;
+  --rgb-border-strong:  203 210 217;
+  --rgb-text:           26 32 44;
+  --rgb-text-primary:   26 32 44;
+  --rgb-text-secondary: 68 80 98;
+  --rgb-text-tertiary:  91 107 128;
+  --rgb-text-muted:     91 107 128;
+  --rgb-text-subtle:    117 133 155;
+  --rgb-text-mono:      194 65 12;
+  --rgb-success:        5 150 105;
+  --rgb-warning:        217 119 6;
+  --rgb-error:          220 38 38;
+  --rgb-info:           2 132 199;
+
+  /* ── SHADOWS — much softer on light ── */
+  --shadow-sm:       0 1px 2px 0 rgb(16 24 40 / 0.06);
+  --shadow-md:       0 4px 6px -1px rgb(16 24 40 / 0.07), 0 2px 4px -2px rgb(16 24 40 / 0.05);
+  --shadow-lg:       0 10px 15px -3px rgb(16 24 40 / 0.08), 0 4px 6px -4px rgb(16 24 40 / 0.05);
+  --shadow-xl:       0 20px 25px -5px rgb(16 24 40 / 0.09), 0 8px 10px -6px rgb(16 24 40 / 0.05);
+  --shadow-2xl:      0 25px 50px -12px rgb(16 24 40 / 0.18);
+  --shadow-card:     0 1px 2px rgb(16 24 40 / 0.05), 0 4px 12px rgb(16 24 40 / 0.06);
+  --shadow-elevated: 0 8px 24px rgb(16 24 40 / 0.10);
+  --shadow-popover:  0 12px 32px rgb(16 24 40 / 0.14);
+}
+
+/* =========================================================
    Base
    ========================================================= */
 html {
@@ -183,17 +289,18 @@ body {
   font-size: 0.875rem; /* 14px default body */
 }
 
-/* Browser autofill: keep the dark theme — Chrome forces a white/yellow bg on
+/* Browser autofill: keep the active theme — Chrome forces a white/yellow bg on
    autofilled inputs. The 100000s transition hack defers that paint indefinitely
-   so the input's own (transparent/dark) background shows; text stays light. */
+   so the input's own (transparent) background shows; text follows the theme
+   text token (light text on dark, dark text on light). */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 input:-webkit-autofill:active,
 textarea:-webkit-autofill,
 select:-webkit-autofill {
-  -webkit-text-fill-color: #F8FAFC !important;
-  caret-color: #F8FAFC;
+  -webkit-text-fill-color: var(--color-text, #F8FAFC) !important;
+  caret-color: var(--color-text, #F8FAFC);
   transition: background-color 100000s ease-in-out 0s;
 }
 
@@ -245,6 +352,13 @@ select:-webkit-autofill {
     radial-gradient(1200px 600px at 10% -10%, rgba(249, 115, 22, 0.04), transparent 60%),
     radial-gradient(1000px 500px at 110% 10%,  rgba(56, 189, 248, 0.03), transparent 60%),
     var(--color-bg, #111315);
+}
+/* Light: same radials at half strength — a whisper of warmth over the gray bg */
+html.light .app-shell-bg {
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(249, 115, 22, 0.025), transparent 60%),
+    radial-gradient(1000px 500px at 110% 10%,  rgba(56, 189, 248, 0.02), transparent 60%),
+    var(--color-bg, #F4F5F7);
 }
 
 /* =========================================================
@@ -536,6 +650,9 @@ select:-webkit-autofill {
   z-index: var(--z-overlay);
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
+}
+html.light .sidebar-overlay {
+  background: rgba(15, 23, 42, 0.35);
 }
 
 .sidebar-drawer {

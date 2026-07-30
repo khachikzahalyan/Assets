@@ -6,13 +6,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#111315" />
     <title>AMS — Asset Management System</title>
-    <!-- Critical inline styles: paint the dark theme on the very first frame,
-         BEFORE the JS-injected index.css loads, so there is no white flash on
-         refresh (dev injects CSS via JS; this guarantees dark from byte 0). -->
+    <!-- Anti-FOUC theme boot: read the persisted theme BEFORE first paint and
+         tag <html> with .light so the critical styles below and index.css both
+         resolve to the right palette from byte 0. Default = dark. -->
+    <script>
+      (function () {
+        try {
+          if (localStorage.getItem('ams-theme') === 'light') {
+            document.documentElement.classList.add('light')
+            var m = document.querySelector('meta[name="theme-color"]')
+            if (m) m.setAttribute('content', '#FFFFFF')
+          }
+        } catch (e) { /* storage unavailable — stay dark */ }
+      })()
+    </script>
+    <!-- Critical inline styles: paint the active theme on the very first frame,
+         BEFORE the JS-injected index.css loads, so there is no wrong-color flash
+         on refresh (dev injects CSS via JS; this guarantees the theme from byte 0). -->
     <style>
       html { background-color: #111315; color-scheme: dark; }
       body { margin: 0; background-color: #111315; color: #F8FAFC; }
       #root { min-height: 100vh; background-color: #111315; }
+      html.light { background-color: #F4F5F7; color-scheme: light; }
+      html.light body { background-color: #F4F5F7; color: #1A202C; }
+      html.light #root { background-color: #F4F5F7; }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />

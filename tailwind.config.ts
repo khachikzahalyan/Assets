@@ -1,5 +1,6 @@
 import type { Config } from 'tailwindcss'
 import { fontFamily } from 'tailwindcss/defaultTheme'
+import plugin from 'tailwindcss/plugin'
 
 const config: Config = {
   darkMode: ['class'],
@@ -115,7 +116,13 @@ const config: Config = {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    // `light:` variant — activates under html.light. Dark is the :root default,
+    // so components keep their dark classes as-is and add light: overrides only.
+    plugin(({ addVariant }) => {
+      addVariant('light', '.light &')
+    }),
+  ],
 }
 
 export default config

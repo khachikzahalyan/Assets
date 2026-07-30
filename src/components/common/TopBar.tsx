@@ -5,6 +5,7 @@ import { Breadcrumbs } from './Breadcrumbs'
 import { LanguageToggle } from './LanguageToggle'
 import { ProfileMenu } from './ProfileMenu'
 import { NotificationBell } from './NotificationBell'
+import { ThemeToggle } from './ThemeToggle'
 
 export interface TopBarProps {
   breadcrumbs: string[]
@@ -23,8 +24,9 @@ export function TopBar({ breadcrumbs, customContent }: TopBarProps) {
         {customContent != null ? customContent : <Breadcrumbs items={breadcrumbs} />}
       </div>
 
-      {/* Right cluster: bell (admins) + language toggle + profile */}
+      {/* Right cluster: theme + bell (admins) + language toggle + profile */}
       <div className="flex items-center gap-2">
+        <ThemeToggle />
         {canManageReturns && (
           <NotificationBell onSelect={(assetId) => navigate(`/assets/${assetId}`)} />
         )}

@@ -127,6 +127,9 @@ import {
   ArrowLeftRight,
   ClipboardList,
   Gamepad2,
+  // Theme toggle icons
+  Sun,
+  Moon,
   type LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -257,6 +260,8 @@ const REGISTRY: Record<string, LucideIcon> = {
   'arrow-left-right': ArrowLeftRight,
   'clipboard-list': ClipboardList,
   'gamepad-2': Gamepad2,
+  sun: Sun,
+  moon: Moon,
   'scan-line': ScanLine,
   barcode: Barcode,
   wifi: Wifi,
