@@ -276,6 +276,7 @@ export function TransferPanel({ asset: _asset, refData, caps, busy, onCommit, on
         kind: 'asset',
         assetLabel: label,
         assetCode: _asset.invCode,
+        assetId: _asset.id,
       })
     }
   }

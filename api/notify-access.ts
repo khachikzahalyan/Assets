@@ -31,9 +31,16 @@ function escapeHtml(value: string): string {
 
 type AccessEmailKind = 'role' | 'employee' | 'asset'
 
+function mintConfirmToken(assetId: string, secret: string, ttlSec = 2592000): string {
+  const payload = { a: assetId, exp: Math.floor(Date.now() / 1000) + ttlSec }
+  const body = Buffer.from(JSON.stringify(payload)).toString('base64url')
+  const sig = crypto.createHmac('sha256', secret).update(body).digest('base64url')
+  return `${body}.${sig}`
+}
+
 function renderAccessEmail(input: {
   kind: AccessEmailKind; name: string; roleLabel?: string; role?: string
-  assetLabel?: string; assetCode?: string; appUrl: string; brand: string
+  assetLabel?: string; assetCode?: string; confirmUrl?: string; appUrl: string; brand: string
 }): { subject: string; html: string; text: string } {
   const { kind, appUrl, brand } = input
   const name = escapeHtml(input.name.trim() || brand)
@@ -79,10 +86,15 @@ function renderAccessEmail(input: {
   const tail = isRole
     ? `Войдите в систему с помощью вашего Google-аккаунта — отдельный пароль не требуется.`
     : isAsset
-    ? `Актив закреплён за вами. Подробности доступны в системе.`
+    ? (input.confirmUrl
+        ? `Пожалуйста, подтвердите, что получили актив — нажмите кнопку ниже.`
+        : `Актив закреплён за вами. Подробности доступны в системе.`)
     : `Как только администратор назначит вам доступ, вы сможете войти по кнопке ниже с помощью вашего Google-аккаунта.`
 
-  const ctaLabel = isRole ? 'Войти в систему →' : `Открыть ${brandSafe} →`
+  const ctaHref = (isAsset && input.confirmUrl) ? input.confirmUrl : url
+  const ctaLabel = isRole ? 'Войти в систему →'
+    : (isAsset && input.confirmUrl) ? '✓ Подтвердить получение'
+    : `Открыть ${brandSafe} →`
 
   const html = `<!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
@@ -113,7 +125,7 @@ function renderAccessEmail(input: {
         <tr><td style="padding:24px 34px 8px;">
           <table role="presentation" cellpadding="0" cellspacing="0"><tr>
             <td style="background:${ACCENT};border-radius:9px;">
-              <a href="${url}" style="display:inline-block;padding:14px 28px;font:700 15px/1 ${SANS};color:#ffffff;text-decoration:none;border-radius:9px;">${ctaLabel}</a>
+              <a href="${ctaHref}" style="display:inline-block;padding:14px 28px;font:700 15px/1 ${SANS};color:#ffffff;text-decoration:none;border-radius:9px;">${ctaLabel}</a>
             </td>
           </tr></table>
         </td></tr>
@@ -217,7 +229,7 @@ async function verifyAdmin(idToken: string, projectId: string): Promise<{ uid: s
 
 interface NotifyBody {
   email?: unknown; name?: unknown; kind?: unknown; roleLabel?: unknown; role?: unknown
-  assetLabel?: unknown; assetCode?: unknown
+  assetLabel?: unknown; assetCode?: unknown; assetId?: unknown
 }
 
 function parseBody(raw: unknown): NotifyBody {
@@ -256,10 +268,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     const role = typeof body.role === 'string' ? body.role : undefined
     const assetLabel = typeof body.assetLabel === 'string' ? body.assetLabel : undefined
     const assetCode = typeof body.assetCode === 'string' ? body.assetCode : undefined
+    const assetId = typeof body.assetId === 'string' ? body.assetId : undefined
     if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { res.status(400).json({ error: 'invalid_email' }); return }
+
+    // For asset handovers: mint a signed confirm-receipt magic link (if configured).
+    const confirmSecret = process.env['CONFIRM_SECRET']
+    const confirmUrl = (kind === 'asset' && assetId && confirmSecret)
+      ? `${appUrl.replace(/\/+$/, '')}/api/confirm-receipt?token=${mintConfirmToken(assetId, confirmSecret)}`
+      : undefined
 
     const { subject, html, text } = renderAccessEmail({
       kind, name, appUrl, brand: senderName,
+      ...(confirmUrl ? { confirmUrl } : {}),
       ...(roleLabel ? { roleLabel } : {}),
       ...(role ? { role } : {}),
       ...(assetLabel ? { assetLabel } : {}),

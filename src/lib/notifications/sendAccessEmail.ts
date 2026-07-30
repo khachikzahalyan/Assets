@@ -28,6 +28,8 @@ export interface SendAccessEmailInput {
   assetLabel?: string
   /** Asset inventory code, for kind='asset'. */
   assetCode?: string
+  /** Asset document id, for kind='asset' — used to mint the confirm-receipt magic link. */
+  assetId?: string
 }
 
 export async function sendAccessEmail(input: SendAccessEmailInput): Promise<{ ok: boolean }> {
@@ -53,6 +55,7 @@ export async function sendAccessEmail(input: SendAccessEmailInput): Promise<{ ok
         ...(input.role ? { role: input.role } : {}),
         ...(input.assetLabel ? { assetLabel: input.assetLabel } : {}),
         ...(input.assetCode ? { assetCode: input.assetCode } : {}),
+        ...(input.assetId ? { assetId: input.assetId } : {}),
       }),
     })
     return { ok: res.ok }
