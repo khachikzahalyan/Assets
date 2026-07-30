@@ -1,7 +1,7 @@
 /**
  * Client helper — fires the AMS access-notification email.
  *
- * Single call site for BOTH triggers (role granted / employee added). It attaches
+ * Single call site for the triggers (role granted / employee added / asset handed over). It attaches
  * the current admin's Firebase ID token and POSTs to the Vercel function
  * `/api/notify-access` (same origin). BEST-EFFORT by contract: it never throws
  * and returns `{ ok }`, so callers can show a non-blocking toast on failure and
@@ -18,12 +18,16 @@ export interface SendAccessEmailInput {
   email: string
   /** Recipient display name (optional; server falls back to email/brand). */
   name?: string
-  /** 'role' = access granted (shows role); 'employee' = HR record created. */
-  kind: 'role' | 'employee'
+  /** 'role' = access granted; 'employee' = HR record created; 'asset' = asset handed over. */
+  kind: 'role' | 'employee' | 'asset'
   /** Human-readable RU role label, for kind='role'. */
   roleLabel?: string
   /** Role id (super_admin | asset_admin | tech_admin | employee) — selects the badge icon in the email. */
   role?: string
+  /** Asset display label (brand+model or category), for kind='asset'. */
+  assetLabel?: string
+  /** Asset inventory code, for kind='asset'. */
+  assetCode?: string
 }
 
 export async function sendAccessEmail(input: SendAccessEmailInput): Promise<{ ok: boolean }> {
@@ -44,6 +48,8 @@ export async function sendAccessEmail(input: SendAccessEmailInput): Promise<{ ok
         kind: input.kind,
         ...(input.roleLabel ? { roleLabel: input.roleLabel } : {}),
         ...(input.role ? { role: input.role } : {}),
+        ...(input.assetLabel ? { assetLabel: input.assetLabel } : {}),
+        ...(input.assetCode ? { assetCode: input.assetCode } : {}),
       }),
     })
     return { ok: res.ok }

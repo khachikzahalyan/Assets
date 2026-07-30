@@ -25,7 +25,8 @@ const glyphSvg = (key, sizePx, stroke = '#ffffff', width = 2) => {
 }
 
 /* ── Header art: 480×92 CSS-px @2x = 960×184. Dark field + thin orange
-     network art (echoes the login decor) + centered orange app badge. ── */
+     network art (echoes the login decor). No centered app badge — the AMS
+     logo row is rendered as HTML in the email body just below this strip. ── */
 const headerHtml = `<!doctype html><html><body style="margin:0">
 <div id="art" style="position:relative;width:480px;height:92px;background:#12141C;overflow:hidden;font-family:Arial">
   <svg width="480" height="92" style="position:absolute;inset:0">
@@ -41,9 +42,6 @@ const headerHtml = `<!doctype html><html><body style="margin:0">
     <circle cx="404" cy="46" r="2" fill="rgba(249,115,22,0.4)"/>
     <circle cx="36" cy="26" r="2" fill="rgba(249,115,22,0.35)"/>
   </svg>
-  <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:44px;height:44px;background:linear-gradient(180deg,#FB923C,#EA580C);border-radius:12px;box-shadow:0 0 0 6px rgba(249,115,22,0.12),0 4px 14px rgba(249,115,22,0.35);display:flex;align-items:center;justify-content:center;">
-    ${glyphSvg('layers', 24)}
-  </div>
 </div></body></html>`
 
 /* ── Role badge: 34×34 CSS-px @2x = 68×68, transparent corners ── */

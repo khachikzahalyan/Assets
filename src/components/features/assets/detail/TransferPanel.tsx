@@ -8,6 +8,7 @@ import { Icon } from '@/components/ui'
 import { DatePicker } from '@/components/ui'
 import { SearchSelect } from '@/components/features/assets/create/SearchSelect'
 import { ModeTile } from './ModeTile'
+import { sendAccessEmail } from '@/lib/notifications/sendAccessEmail'
 
 // ---------------------------------------------------------------------------
 // Transfer mode definitions
@@ -74,10 +75,17 @@ function TransferModeForm({
               title={t('detail.transfer.employeeLabel')}
               options={refData.employees
                 .filter(e => !e.former)
-                .map(e => ({
-                  value: e.id,
-                  label: [e.firstName, e.lastName].filter(Boolean).join(' '),
-                }))}
+                .map(e => {
+                  const deptName = e.departmentId
+                    ? refData.departments.find(d => d.id === e.departmentId)?.name
+                    : undefined
+                  const meta = [e.position, deptName].filter(Boolean).join(' · ')
+                  return {
+                    value: e.id,
+                    label: [e.firstName, e.lastName].filter(Boolean).join(' '),
+                    ...(meta ? { meta } : {}),
+                  }
+                })}
             />
           </div>
           {caps?.isLaptop && (
@@ -258,6 +266,18 @@ export function TransferPanel({ asset: _asset, refData, caps, busy, onCommit, on
 
     const patch = buildTransferPatch(target, employeeDeptId)
     onCommit(patch)
+
+    // Best-effort: notify the receiving employee by email (never blocks the transfer).
+    if (mode === 'employee' && empRow?.email?.trim()) {
+      const label = [_asset.brand, _asset.model].filter(Boolean).join(' ').trim() || _asset.invCode
+      void sendAccessEmail({
+        email: empRow.email.trim(),
+        name: `${empRow.firstName ?? ''} ${empRow.lastName ?? ''}`.trim() || empRow.email.trim(),
+        kind: 'asset',
+        assetLabel: label,
+        assetCode: _asset.invCode,
+      })
+    }
   }
 
   // Reset per-mode target fields when mode changes

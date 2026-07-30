@@ -28,10 +28,11 @@ function escapeHtml(value: string): string {
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;')
 }
 
-type AccessEmailKind = 'role' | 'employee'
+type AccessEmailKind = 'role' | 'employee' | 'asset'
 
 function renderAccessEmail(input: {
-  kind: AccessEmailKind; name: string; roleLabel?: string; role?: string; appUrl: string; brand: string
+  kind: AccessEmailKind; name: string; roleLabel?: string; role?: string
+  assetLabel?: string; assetCode?: string; appUrl: string; brand: string
 }): { subject: string; html: string; text: string } {
   const { kind, appUrl, brand } = input
   const name = escapeHtml(input.name.trim() || brand)
@@ -39,15 +40,22 @@ function renderAccessEmail(input: {
   const base = escapeHtml(appUrl.replace(/\/+$/, ''))
   const brandSafe = escapeHtml(brand)
   const isRole = kind === 'role'
+  const isAsset = kind === 'asset'
 
-  const subject = isRole ? `Вам открыт доступ в ${brand}` : `Вас добавили в ${brand}`
+  const subject = isRole ? `Вам открыт доступ в ${brand}`
+    : isAsset ? `Вам передан актив в ${brand}`
+    : `Вас добавили в ${brand}`
 
   const lead = isRole
     ? `Для вас открыт доступ в систему учёта активов <b style="color:#1A202C;">${brandSafe}</b>.<br>Ниже — назначенная роль и способ входа.`
+    : isAsset
+    ? `На вас оформлен актив в системе учёта активов <b style="color:#1A202C;">${brandSafe}</b>.`
     : `Вас добавили в систему учёта активов <b style="color:#1A202C;">${brandSafe}</b> как сотрудника.`
 
   const roleKey = input.role && KNOWN_ROLES.has(input.role) ? input.role : null
-  const roleCard = isRole && input.roleLabel?.trim()
+  const assetSafe = escapeHtml((input.assetLabel ?? '').trim())
+  const codeSafe = escapeHtml((input.assetCode ?? '').trim())
+  const card = isRole && input.roleLabel?.trim()
     ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:22px 0 2px;">
          <tr><td style="background:#FBF4EA;border:1px solid #F0DFC8;border-radius:10px;padding:16px 20px 17px;">
            <div style="font:700 11px/1 ${SANS};letter-spacing:.14em;color:#B45309;">НАЗНАЧЕННАЯ РОЛЬ</div>
@@ -57,10 +65,20 @@ function renderAccessEmail(input: {
            </tr></table>
          </td></tr>
        </table>`
+    : isAsset && (assetSafe || codeSafe)
+    ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:22px 0 2px;">
+         <tr><td style="background:#FBF4EA;border:1px solid #F0DFC8;border-radius:10px;padding:16px 20px 17px;">
+           <div style="font:700 11px/1 ${SANS};letter-spacing:.14em;color:#B45309;">ПЕРЕДАННЫЙ АКТИВ</div>
+           <div style="font:700 21px/1.2 ${SERIF};color:#1A202C;margin-top:9px;">${assetSafe || '—'}</div>
+           ${codeSafe ? `<div style="font:700 13px/1 ${SANS};letter-spacing:.02em;color:#64748B;margin-top:7px;">${codeSafe}</div>` : ''}
+         </td></tr>
+       </table>`
     : ''
 
   const tail = isRole
     ? `Войдите в систему с помощью вашего Google-аккаунта — отдельный пароль не требуется.`
+    : isAsset
+    ? `Актив закреплён за вами. Подробности доступны в системе.`
     : `Как только администратор назначит вам доступ, вы сможете войти по кнопке ниже с помощью вашего Google-аккаунта.`
 
   const ctaLabel = isRole ? 'Войти в систему →' : `Открыть ${brandSafe} →`
@@ -88,7 +106,7 @@ function renderAccessEmail(input: {
         <tr><td style="padding:34px 34px 6px;">
           <div style="font:400 25px/1.3 ${SERIF};color:#1A202C;">Здравствуйте, <b>${name}</b>.</div>
           <div style="font:400 15.5px/1.65 ${SANS};color:#475569;margin-top:14px;">${lead}</div>
-          ${roleCard}
+          ${card}
           <div style="font:400 15.5px/1.65 ${SANS};color:#475569;margin-top:20px;">${tail}</div>
         </td></tr>
         <tr><td style="padding:24px 34px 8px;">
@@ -112,8 +130,11 @@ function renderAccessEmail(input: {
 
   const text = [
     `Здравствуйте, ${input.name.trim() || brand}!`, '',
-    isRole ? `Вам открыт доступ в систему ${brand}.` : `Вас добавили в систему ${brand} как сотрудника.`,
+    isRole ? `Вам открыт доступ в систему ${brand}.`
+      : isAsset ? `Вам передан актив в системе ${brand}.`
+      : `Вас добавили в систему ${brand} как сотрудника.`,
     ...(isRole && input.roleLabel?.trim() ? [`Назначенная роль: ${input.roleLabel.trim()}`] : []),
+    ...(isAsset && (assetSafe || codeSafe) ? [`Актив: ${[input.assetLabel?.trim(), input.assetCode?.trim()].filter(Boolean).join(' · ')}`] : []),
     '', tail.replace(/<[^>]+>/g, ''), appUrl, '',
     `Это автоматическое письмо от системы ${brand}.`,
   ].join('\n')
@@ -193,7 +214,10 @@ async function verifyAdmin(idToken: string, projectId: string): Promise<{ uid: s
 
 // ─────────────────────────────────── handler ───────────────────────────────────
 
-interface NotifyBody { email?: unknown; name?: unknown; kind?: unknown; roleLabel?: unknown; role?: unknown }
+interface NotifyBody {
+  email?: unknown; name?: unknown; kind?: unknown; roleLabel?: unknown; role?: unknown
+  assetLabel?: unknown; assetCode?: unknown
+}
 
 function parseBody(raw: unknown): NotifyBody {
   if (raw && typeof raw === 'object') return raw as NotifyBody
@@ -226,15 +250,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     const body = parseBody(req.body)
     const email = typeof body.email === 'string' ? body.email.trim() : ''
     const name = typeof body.name === 'string' ? body.name : ''
-    const kind: AccessEmailKind = body.kind === 'employee' ? 'employee' : 'role'
+    const kind: AccessEmailKind = body.kind === 'employee' ? 'employee' : body.kind === 'asset' ? 'asset' : 'role'
     const roleLabel = typeof body.roleLabel === 'string' ? body.roleLabel : undefined
     const role = typeof body.role === 'string' ? body.role : undefined
+    const assetLabel = typeof body.assetLabel === 'string' ? body.assetLabel : undefined
+    const assetCode = typeof body.assetCode === 'string' ? body.assetCode : undefined
     if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { res.status(400).json({ error: 'invalid_email' }); return }
 
     const { subject, html, text } = renderAccessEmail({
       kind, name, appUrl, brand: senderName,
       ...(roleLabel ? { roleLabel } : {}),
       ...(role ? { role } : {}),
+      ...(assetLabel ? { assetLabel } : {}),
+      ...(assetCode ? { assetCode } : {}),
     })
 
     const resp = await fetch('https://api.brevo.com/v3/smtp/email', {

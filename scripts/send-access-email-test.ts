@@ -29,12 +29,16 @@ async function main() {
   const appUrl = process.env['APP_URL'] || 'https://telcell-ams.vercel.app/'
   const to = process.env['TEST_TO'] || 'zahalyan.khachik@gmail.com'
   const name = process.env['TEST_NAME'] || 'Погос'
-  const kind: AccessEmailKind = process.env['TEST_KIND'] === 'employee' ? 'employee' : 'role'
+  const kindEnv = process.env['TEST_KIND']
+  const kind: AccessEmailKind = kindEnv === 'employee' ? 'employee' : kindEnv === 'asset' ? 'asset' : 'role'
   const roleLabel = process.env['TEST_ROLE_LABEL'] || 'Админ активов'
+  const assetLabel = process.env['TEST_ASSET_LABEL'] || 'Dell XPS 15'
+  const assetCode = process.env['TEST_ASSET_CODE'] || '450/293919'
 
   const { subject, html, text } = renderAccessEmail({
     kind, name, appUrl, brand: senderName,
     ...(kind === 'role' ? { roleLabel } : {}),
+    ...(kind === 'asset' ? { assetLabel, assetCode } : {}),
   })
 
   console.log(`→ Sending "${subject}" to ${to} (from ${senderName} <${senderEmail}>)…`)

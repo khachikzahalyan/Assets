@@ -16,7 +16,7 @@
  *   - 'employee' → HR record created (no role yet): softer copy + «Открыть AMS».
  */
 
-export type AccessEmailKind = 'role' | 'employee'
+export type AccessEmailKind = 'role' | 'employee' | 'asset'
 
 export interface AccessEmailInput {
   kind: AccessEmailKind
@@ -26,6 +26,10 @@ export interface AccessEmailInput {
   roleLabel?: string
   /** Role id (super_admin | asset_admin | tech_admin | employee) — selects the badge icon. */
   role?: string
+  /** Asset display label (brand+model or category), for kind='asset'. */
+  assetLabel?: string
+  /** Asset inventory code, for kind='asset'. */
+  assetCode?: string
   /** Absolute app URL for the CTA button + fallback link + hosted assets. */
   appUrl: string
   /** Brand shown in the header + sender ("AMS"). */
@@ -60,18 +64,23 @@ export function renderAccessEmail(input: AccessEmailInput): RenderedEmail {
   const base = escapeHtml(appUrl.replace(/\/+$/, ''))
   const brandSafe = escapeHtml(brand)
   const isRole = kind === 'role'
+  const isAsset = kind === 'asset'
 
-  const subject = isRole
-    ? `Вам открыт доступ в ${brand}`
+  const subject = isRole ? `Вам открыт доступ в ${brand}`
+    : isAsset ? `Вам передан актив в ${brand}`
     : `Вас добавили в ${brand}`
 
   const lead = isRole
     ? `Для вас открыт доступ в систему учёта активов <b style="color:#1A202C;">${brandSafe}</b>.<br>Ниже — назначенная роль и способ входа.`
+    : isAsset
+    ? `На вас оформлен актив в системе учёта активов <b style="color:#1A202C;">${brandSafe}</b>.`
     : `Вас добавили в систему учёта активов <b style="color:#1A202C;">${brandSafe}</b> как сотрудника.`
 
-  // «НАЗНАЧЕННАЯ РОЛЬ» card — cream panel, badge icon by role id + serif label
+  // Cream card — «НАЗНАЧЕННАЯ РОЛЬ» (role badge + label) or «ПЕРЕДАННЫЙ АКТИВ» (asset + code)
   const roleKey = input.role && KNOWN_ROLES.has(input.role) ? input.role : null
-  const roleCard = isRole && input.roleLabel?.trim()
+  const assetSafe = escapeHtml((input.assetLabel ?? '').trim())
+  const codeSafe = escapeHtml((input.assetCode ?? '').trim())
+  const card = isRole && input.roleLabel?.trim()
     ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:22px 0 2px;">
          <tr><td style="background:#FBF4EA;border:1px solid #F0DFC8;border-radius:10px;padding:16px 20px 17px;">
            <div style="font:700 11px/1 ${SANS};letter-spacing:.14em;color:#B45309;">НАЗНАЧЕННАЯ РОЛЬ</div>
@@ -81,10 +90,20 @@ export function renderAccessEmail(input: AccessEmailInput): RenderedEmail {
            </tr></table>
          </td></tr>
        </table>`
+    : isAsset && (assetSafe || codeSafe)
+    ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:22px 0 2px;">
+         <tr><td style="background:#FBF4EA;border:1px solid #F0DFC8;border-radius:10px;padding:16px 20px 17px;">
+           <div style="font:700 11px/1 ${SANS};letter-spacing:.14em;color:#B45309;">ПЕРЕДАННЫЙ АКТИВ</div>
+           <div style="font:700 21px/1.2 ${SERIF};color:#1A202C;margin-top:9px;">${assetSafe || '—'}</div>
+           ${codeSafe ? `<div style="font:700 13px/1 ${SANS};letter-spacing:.02em;color:#64748B;margin-top:7px;">${codeSafe}</div>` : ''}
+         </td></tr>
+       </table>`
     : ''
 
   const tail = isRole
     ? `Войдите в систему с помощью вашего Google-аккаунта — отдельный пароль не требуется.`
+    : isAsset
+    ? `Актив закреплён за вами. Подробности доступны в системе.`
     : `Как только администратор назначит вам доступ, вы сможете войти по кнопке ниже с помощью вашего Google-аккаунта.`
 
   const ctaLabel = isRole ? 'Войти в систему →' : `Открыть ${brandSafe} →`
@@ -116,7 +135,7 @@ export function renderAccessEmail(input: AccessEmailInput): RenderedEmail {
         <tr><td style="padding:34px 34px 6px;">
           <div style="font:400 25px/1.3 ${SERIF};color:#1A202C;">Здравствуйте, <b>${name}</b>.</div>
           <div style="font:400 15.5px/1.65 ${SANS};color:#475569;margin-top:14px;">${lead}</div>
-          ${roleCard}
+          ${card}
           <div style="font:400 15.5px/1.65 ${SANS};color:#475569;margin-top:20px;">${tail}</div>
         </td></tr>
 
@@ -149,8 +168,11 @@ export function renderAccessEmail(input: AccessEmailInput): RenderedEmail {
     '',
     isRole
       ? `Вам открыт доступ в систему ${brand}.`
+      : isAsset
+      ? `Вам передан актив в системе ${brand}.`
       : `Вас добавили в систему ${brand} как сотрудника.`,
     ...(isRole && input.roleLabel?.trim() ? [`Назначенная роль: ${input.roleLabel.trim()}`] : []),
+    ...(isAsset && (assetSafe || codeSafe) ? [`Актив: ${[input.assetLabel?.trim(), input.assetCode?.trim()].filter(Boolean).join(' · ')}`] : []),
     '',
     `${tail.replace(/<[^>]+>/g, '')}`,
     appUrl,
