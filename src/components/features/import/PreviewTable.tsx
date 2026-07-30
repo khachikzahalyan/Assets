@@ -63,7 +63,7 @@ export function PreviewTable({ sheet, rows }: PreviewTableProps) {
             return (
               <tr
                 key={row.rowNumber}
-                className={`border-b border-border/50 ${isError ? 'bg-rose-950/10' : 'bg-emerald-950/5'}`}
+                className={`border-b border-border/50 ${isError ? 'bg-rose-950/10 light:bg-rose-50' : 'bg-emerald-950/5 light:bg-emerald-50/50'}`}
               >
                 <td className="py-2 px-3 tabular-nums text-text-subtle">{row.rowNumber}</td>
                 {sheet === 'employees' ? (
@@ -109,7 +109,7 @@ export function PreviewTable({ sheet, rows }: PreviewTableProps) {
                   {isError ? (
                     <div className="space-y-0.5">
                       {issueTexts.map((msg, i) => (
-                        <div key={i} className="text-rose-400 text-[12px]">{msg}</div>
+                        <div key={i} className="text-rose-400 light:text-rose-700 text-[12px]">{msg}</div>
                       ))}
                     </div>
                   ) : (

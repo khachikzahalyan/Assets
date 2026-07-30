@@ -202,8 +202,8 @@ export function DatePicker({ value, onChange, min, max, disabled = false, placeh
                     className={`${dayCellSize} text-[14px] rounded-md transition-colors font-medium
                       ${isSel ? 'bg-accent text-white shadow-sm'
                         : dis ? 'text-border-strong cursor-not-allowed'
-                        : isOut ? 'text-[#475569] hover:bg-surface-2 hover:text-text-tertiary'
-                        : isTd ? 'text-accent ring-1 ring-[#F97316]/40 hover:bg-[rgba(249,115,22,0.08)]'
+                        : isOut ? 'text-[#475569] light:text-slate-300 hover:bg-surface-2 hover:text-text-tertiary'
+                        : isTd ? 'text-accent ring-1 ring-accent/40 hover:bg-[rgba(249,115,22,0.08)]'
                         : 'text-text-primary hover:bg-surface-2'}`}
                   >{c.day}</button>
                 )
@@ -233,7 +233,7 @@ export function DatePicker({ value, onChange, min, max, disabled = false, placeh
         )}
       </div>
 
-      <div className="flex items-center justify-between px-3 py-2 border-t border-border bg-[#111315]/40">
+      <div className="flex items-center justify-between px-3 py-2 border-t border-border bg-bg/40 light:bg-surface-sunken">
         <button type="button" onClick={handleClear} className="text-[13px] font-semibold text-text-subtle hover:text-text-primary transition-colors px-2 py-1 rounded">Очистить</button>
         {showPlusYear && (
           <button type="button" onClick={handleOneYear} className="text-[13px] font-semibold text-accent hover:bg-[rgba(249,115,22,0.12)] transition-colors px-2 py-1 rounded">На 1 год</button>

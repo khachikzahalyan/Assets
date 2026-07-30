@@ -40,9 +40,9 @@ function warrantyStatus(endsAt: string): {
   const diffMs  = end.getTime() - now.getTime()
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
 
-  if (diffDays < 0)  return { key: 'expired',  label: 'Истекла',                           chipCls: 'bg-rose-500/15 text-rose-300',       icon: 'shield-off',   barCls: 'bg-rose-400'   }
-  if (diffDays < 30) return { key: 'expiring', label: `Истекает через ${diffDays} дн.`,    chipCls: 'bg-amber-500/15 text-amber-300',     icon: 'shield-alert', barCls: 'bg-amber-400'  }
-  return                    { key: 'active',   label: 'Активна',                           chipCls: 'bg-emerald-500/15 text-emerald-300', icon: 'shield-check', barCls: 'bg-emerald-400' }
+  if (diffDays < 0)  return { key: 'expired',  label: 'Истекла',                           chipCls: 'bg-rose-500/15 text-rose-300 light:text-rose-700',       icon: 'shield-off',   barCls: 'bg-rose-400'   }
+  if (diffDays < 30) return { key: 'expiring', label: `Истекает через ${diffDays} дн.`,    chipCls: 'bg-amber-500/15 text-amber-300 light:text-amber-700',     icon: 'shield-alert', barCls: 'bg-amber-400'  }
+  return                    { key: 'active',   label: 'Активна',                           chipCls: 'bg-emerald-500/15 text-emerald-300 light:text-emerald-700', icon: 'shield-check', barCls: 'bg-emerald-400' }
 }
 
 /** Calendar-month difference between two ISO date strings. */
@@ -62,8 +62,8 @@ function WarrantyBlock({ purchaseDate, warrantyEndsAt }: WarrantyBlockProps) {
   const months    = monthDiff(purchaseDate, warrantyEndsAt)
   const remaining = 100 - barPct
 
-  const iconColor = status.key === 'active' ? 'text-emerald-500' : status.key === 'expiring' ? 'text-amber-500' : 'text-rose-400'
-  const pctColor  = status.key === 'expired' ? 'text-rose-400'   : status.key === 'expiring' ? 'text-amber-500' : 'text-emerald-300'
+  const iconColor = status.key === 'active' ? 'text-emerald-500' : status.key === 'expiring' ? 'text-amber-500' : 'text-rose-400 light:text-rose-600'
+  const pctColor  = status.key === 'expired' ? 'text-rose-400 light:text-rose-600'   : status.key === 'expiring' ? 'text-amber-500' : 'text-emerald-300 light:text-emerald-600'
 
   return (
     <div className="mb-4 p-3.5 rounded-xl bg-bg ring-1 ring-border">
@@ -125,7 +125,7 @@ export function DocumentsTab({ acts, onOpen, purchaseDate, warrantyEndsAt }: Doc
             >
               <Icon name="file-text" size={16} className="text-text-tertiary shrink-0" />
               <div className="flex-1 min-w-0">
-                <p className="text-[14px] text-[#E2E8F0] truncate">{act.name}</p>
+                <p className="text-[14px] text-[#E2E8F0] light:text-slate-800 truncate">{act.name}</p>
                 <p className="text-[12px] text-text-subtle">{fmtRuDate(act.date)}</p>
               </div>
               <Btn variant="ghost" size="sm" onClick={() => onOpen(act.path)}>

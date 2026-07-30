@@ -75,7 +75,7 @@ export function UninstallModal({ open, onClose, sku, asset, slot: _slot, stock, 
       <div className="px-5 pt-4 pb-3 border-b border-border flex-shrink-0">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-[#F97316]/15 text-accent-light flex-shrink-0">
+            <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-[#F97316]/15 text-accent flex-shrink-0">
               <Icon name="rotate-ccw" size={14} />
             </div>
             <h2 className="text-[16px] font-bold text-text-primary leading-tight">{t('uninstallModal.title')}</h2>
@@ -103,7 +103,7 @@ export function UninstallModal({ open, onClose, sku, asset, slot: _slot, stock, 
           <div className="flex items-stretch">
             {/* FROM: asset */}
             <div className="flex-1 px-3.5 py-2.5 bg-[#F97316]/10 border-r border-border">
-              <div className="text-[12px] font-semibold uppercase tracking-widest text-accent-light mb-1">Снимается с</div>
+              <div className="text-[12px] font-semibold uppercase tracking-widest text-accent mb-1">Снимается с</div>
               <div className="font-mono text-[14px] font-bold text-accent">{asset.id}</div>
               <div className="text-[13.5px] text-text-tertiary mt-0.5 leading-tight truncate" title={asset.name}>{asset.name}</div>
             </div>
@@ -112,7 +112,7 @@ export function UninstallModal({ open, onClose, sku, asset, slot: _slot, stock, 
             {!isService && (
               <div className="flex flex-col items-center justify-center px-2 bg-bg gap-0.5">
                 <div className="w-5 h-5 rounded-full bg-[#F97316]/15 flex items-center justify-center">
-                  <Icon name="arrow-right" size={10} className="text-accent-light" />
+                  <Icon name="arrow-right" size={10} className="text-accent" />
                 </div>
               </div>
             )}
@@ -126,25 +126,25 @@ export function UninstallModal({ open, onClose, sku, asset, slot: _slot, stock, 
                     <Icon name="package" size={12} className="text-text-subtle flex-shrink-0" />
                     <span className="text-[13px] text-text-tertiary tabular-nums">{stock.onHand} шт</span>
                     <Icon name="arrow-right" size={9} className="text-text-subtle" />
-                    <span className="text-[13.5px] font-bold text-emerald-300 tabular-nums">{stock.onHand + 1} шт</span>
+                    <span className="text-[13.5px] font-bold text-emerald-300 tabular-nums light:text-emerald-700">{stock.onHand + 1} шт</span>
                   </div>
                 ) : (
                   <div className="text-[13px] text-text-tertiary mt-0.5">НА СКЛАДЕ +1</div>
                 )}
                 <div className="mt-1 inline-flex items-center gap-1 bg-emerald-500/10 border border-emerald-500/30 rounded-md px-1.5 py-0.5">
-                  <Icon name="plus" size={9} className="text-emerald-300" />
-                  <span className="text-[12px] font-semibold text-emerald-300">1 единица</span>
+                  <Icon name="plus" size={9} className="text-emerald-300 light:text-emerald-700" />
+                  <span className="text-[12px] font-semibold text-emerald-300 light:text-emerald-700">1 единица</span>
                 </div>
               </div>
             ) : (
               <div className="flex-1 px-3.5 py-2.5 bg-red-500/5">
-                <div className="text-[12px] font-semibold uppercase tracking-widest text-red-400 mb-1">Списание</div>
+                <div className="text-[12px] font-semibold uppercase tracking-widest text-red-400 mb-1 light:text-red-700">Списание</div>
                 <div className="flex items-center gap-1 mt-0.5">
-                  <Icon name="x-circle" size={12} className="text-red-400 flex-shrink-0" />
-                  <span className="text-[13px] text-red-300 font-semibold">Неисправно</span>
+                  <Icon name="x-circle" size={12} className="text-red-400 flex-shrink-0 light:text-red-700" />
+                  <span className="text-[13px] text-red-300 font-semibold light:text-red-700">Неисправно</span>
                 </div>
                 <div className="mt-1 inline-flex items-center gap-1 bg-red-500/10 border border-red-500/30 rounded-md px-1.5 py-0.5">
-                  <span className="text-[12px] font-semibold text-red-300">Не рабочие +1</span>
+                  <span className="text-[12px] font-semibold text-red-300 light:text-red-700">Не рабочие +1</span>
                 </div>
               </div>
             ))}
@@ -192,13 +192,13 @@ export function UninstallModal({ open, onClose, sku, asset, slot: _slot, stock, 
 
         {/* Service device info card */}
         {isService && (
-          <div className="rounded-lg border border-slate-600/40 bg-slate-800/50 px-4 py-3 flex items-start gap-3">
-            <span className="flex-shrink-0 mt-0.5 w-5 h-5 rounded-full bg-slate-600/40 inline-flex items-center justify-center">
-              <Icon name="info" size={11} className="text-slate-300" />
+          <div className="rounded-lg border border-slate-600/40 bg-slate-800/50 px-4 py-3 flex items-start gap-3 light:bg-surface-sunken light:border-border">
+            <span className="flex-shrink-0 mt-0.5 w-5 h-5 rounded-full bg-slate-600/40 inline-flex items-center justify-center light:bg-surface-2">
+              <Icon name="info" size={11} className="text-slate-300 light:text-text-tertiary" />
             </span>
             <div className="min-w-0 flex-1">
-              <div className="text-[14px] font-semibold text-slate-200 leading-tight">Замена через сервис</div>
-              <div className="text-[13px] text-slate-400 mt-1 leading-snug">Запчасть была заменена в сервисном центре. Склад не изменится.</div>
+              <div className="text-[14px] font-semibold text-slate-200 leading-tight light:text-text-primary">Замена через сервис</div>
+              <div className="text-[13px] text-slate-400 mt-1 leading-snug light:text-text-tertiary">Запчасть была заменена в сервисном центре. Склад не изменится.</div>
             </div>
           </div>
         )}
@@ -212,13 +212,13 @@ export function UninstallModal({ open, onClose, sku, asset, slot: _slot, stock, 
             value={note}
             onChange={e => setNote(e.target.value)}
             placeholder="Например: «Сбой при загрузке»"
-            className="w-full h-9 px-3 text-[15px] bg-surface border border-border rounded-lg placeholder:text-text-subtle focus:outline-none focus:border-accent focus:ring-2 focus:ring-[#F97316]/15 transition-all"
+            className="w-full h-9 px-3 text-[15px] bg-surface border border-border rounded-lg placeholder:text-text-subtle focus:outline-none focus:border-accent focus:ring-2 focus:ring-[var(--color-focus-ring)] transition-all"
           />
         </div>
       </div>
 
       {error && (
-        <div className="mx-5 text-[12.5px] text-rose-400 bg-rose-950/30 border border-rose-800/40 rounded-lg px-3 py-2" role="alert">
+        <div className="mx-5 text-[12.5px] text-rose-400 bg-rose-950/30 border border-rose-800/40 rounded-lg px-3 py-2 light:bg-rose-50 light:border-rose-200 light:text-rose-700" role="alert">
           {error}
         </div>
       )}
@@ -254,7 +254,7 @@ export function UninstallModal({ open, onClose, sku, asset, slot: _slot, stock, 
     <>
       {!isMobile && ReactDOM.createPortal(
         <div className="fixed inset-0 z-[80]">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" onClick={handleClose} />
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] light:bg-slate-900/35" onClick={handleClose} />
           <div
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-surface border border-border rounded-2xl shadow-2xl"
             role="dialog"

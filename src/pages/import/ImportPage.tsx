@@ -68,7 +68,7 @@ function StepIndicator({ current, t }: { current: WizardStep; t: (k: string) => 
                 isActive
                   ? 'bg-accent/15 text-accent-light'
                   : isDone
-                    ? 'text-emerald-400'
+                    ? 'text-emerald-400 light:text-emerald-700'
                     : 'text-text-subtle',
               ].join(' ')}
             >
@@ -364,12 +364,12 @@ export function ImportPage({ assetRepo, employeeRepo, assignmentRepo }: ImportPa
             <div className="space-y-6">
               {/* Error banners */}
               {loadError && (
-                <div className="bg-rose-950/20 border border-rose-800/30 rounded-xl px-4 py-3 text-[13px] text-rose-400">
+                <div className="bg-rose-950/20 light:bg-rose-50 border border-rose-800/30 light:border-rose-200 rounded-xl px-4 py-3 text-[13px] text-rose-400 light:text-rose-700">
                   {t('error.loadRefFailed')}
                 </div>
               )}
               {parseError && (
-                <div className="bg-rose-950/20 border border-rose-800/30 rounded-xl px-4 py-3 text-[13px] text-rose-400">
+                <div className="bg-rose-950/20 light:bg-rose-50 border border-rose-800/30 light:border-rose-200 rounded-xl px-4 py-3 text-[13px] text-rose-400 light:text-rose-700">
                   {t('error.parseFailed')}
                 </div>
               )}
@@ -434,11 +434,11 @@ export function ImportPage({ assetRepo, employeeRepo, assignmentRepo }: ImportPa
               <div className="flex items-center justify-between">
                 <h2 className="text-[15px] font-semibold text-text-primary">{t('preview.heading')}</h2>
                 <div className="flex items-center gap-2 text-[12.5px]">
-                  <span className="text-emerald-400 font-medium">
+                  <span className="text-emerald-400 light:text-emerald-700 font-medium">
                     {t('preview.readyCount', { count: plan.readyEmployees + plan.readyAssets })}
                   </span>
                   {(plan.errorEmployees + plan.errorAssets) > 0 && (
-                    <span className="text-rose-400 font-medium">
+                    <span className="text-rose-400 light:text-rose-700 font-medium">
                       {t('preview.errorCount', { count: plan.errorEmployees + plan.errorAssets })}
                     </span>
                   )}

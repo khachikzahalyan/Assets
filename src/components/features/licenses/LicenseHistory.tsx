@@ -39,7 +39,7 @@ export function LicenseHistory({ entries }: LicenseHistoryProps) {
               {sorted.map(entry => (
                 <li
                   key={entry.id}
-                  className="flex items-start gap-3 py-1.5 border-b border-[#1F242B] last:border-0"
+                  className="flex items-start gap-3 py-1.5 border-b border-border last:border-0"
                 >
                   <div className="flex-1 min-w-0">
                     <span className="text-[12px] font-medium text-text-primary">

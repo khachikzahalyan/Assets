@@ -21,7 +21,7 @@ export function IconBtn({
 }: IconBtnProps) {
   const tones = {
     slate:  'text-text-tertiary hover:text-text-primary hover:bg-surface-2',
-    rose:   'text-[#FDA4AF] hover:text-[#FDA4AF] hover:bg-rose-950/40',
+    rose:   'text-[#FDA4AF] light:text-rose-600 hover:text-[#FDA4AF] light:hover:text-rose-700 hover:bg-rose-950/40 light:hover:bg-rose-50',
     indigo: 'text-accent hover:text-accent-light hover:bg-[rgba(249,115,22,0.12)]',
   }
   const sizes = { sm: 'w-7 h-7', md: 'w-8 h-8', lg: 'w-9 h-9' }

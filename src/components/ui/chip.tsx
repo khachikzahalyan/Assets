@@ -23,15 +23,15 @@ export interface ChipProps {
  *  controls (e.g. a button-height status pill) can match Chip exactly. */
 export const CHIP_PALETTE: Record<ChipColor, string> = {
   gray:   'bg-surface-2 text-text-tertiary border-border',
-  green:  'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
-  blue:   'bg-sky-500/10 text-sky-300 border-sky-500/30',
-  red:    'bg-rose-500/10 text-rose-300 border-rose-500/30',
-  amber:  'bg-amber-500/15 text-amber-300 border-amber-500/30',
-  orange: 'bg-accent/10 text-accent-light border-accent/30',
-  indigo: 'bg-[rgba(249,115,22,0.12)] text-accent border-[rgba(249,115,22,0.30)]',
-  violet: 'bg-violet-500/15 text-violet-300 border-violet-500/30',
-  teal:   'bg-teal-500/15 text-teal-300 border-teal-500/30',
-  cyan:   'bg-cyan-500/15 text-cyan-300 border-cyan-500/30',
+  green:  'bg-emerald-500/15 text-emerald-300 light:text-emerald-700 border-emerald-500/30',
+  blue:   'bg-sky-500/10 text-sky-300 light:text-sky-700 border-sky-500/30',
+  red:    'bg-rose-500/10 text-rose-300 light:text-rose-700 border-rose-500/30',
+  amber:  'bg-amber-500/15 text-amber-300 light:text-amber-700 border-amber-500/30',
+  orange: 'bg-accent/10 text-accent-light light:text-accent-dark border-accent/30',
+  indigo: 'bg-[rgba(249,115,22,0.12)] text-accent light:text-accent-dark border-[rgba(249,115,22,0.30)]',
+  violet: 'bg-violet-500/15 text-violet-300 light:text-violet-700 border-violet-500/30',
+  teal:   'bg-teal-500/15 text-teal-300 light:text-teal-700 border-teal-500/30',
+  cyan:   'bg-cyan-500/15 text-cyan-300 light:text-cyan-700 border-cyan-500/30',
 }
 
 /** Status-dot colour per chip colour — shared with Chip. */

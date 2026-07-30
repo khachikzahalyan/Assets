@@ -83,7 +83,7 @@ export function RevealKeyButton({ collection, licenseId, revealFn }: RevealKeyBu
 
   if (error) {
     return (
-      <span role="alert" className="text-[11px] text-[#FDA4AF]">{error}</span>
+      <span role="alert" className="text-[11px] text-[#FDA4AF] light:text-rose-700">{error}</span>
     )
   }
 

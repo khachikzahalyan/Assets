@@ -104,7 +104,7 @@ export function BranchesPage({ repository }: BranchesPageProps) {
           <span
             className={[
               'w-[28px] h-[28px] rounded-[8px] inline-flex items-center justify-center flex-shrink-0',
-              b.type === 'warehouse' ? 'bg-amber-500/15 text-amber-300' : 'bg-sky-500/15 text-sky-300',
+              b.type === 'warehouse' ? 'bg-amber-500/15 text-amber-300 light:text-amber-700' : 'bg-sky-500/15 text-sky-300 light:text-sky-700',
             ].join(' ')}
             aria-hidden="true"
           >

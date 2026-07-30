@@ -53,7 +53,7 @@ export function WarehouseMobileDetail({
         <div className="flex items-center gap-2 flex-shrink-0">
           <span className={`text-[11px] font-bold rounded-full px-2.5 py-1 flex-shrink-0
             ${totalOnHand > 0
-              ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'
+              ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 light:text-emerald-700'
               : 'bg-surface-2 border border-border text-text-subtle'}`}>
             ● {totalOnHand}шт
           </span>

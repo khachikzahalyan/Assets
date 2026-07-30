@@ -74,7 +74,7 @@ export function AssignmentCard({
       const dept = refData.departments.find(d => d.id === ass.departmentId)
       return (
         <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-surface-2 ring-1 ring-border">
-          <div className="w-9 h-9 rounded-full bg-amber-500/15 text-amber-300 flex items-center justify-center shrink-0">
+          <div className="w-9 h-9 rounded-full bg-amber-500/15 text-amber-300 light:text-amber-700 flex items-center justify-center shrink-0">
             <Icon name="layout-list" size={16} />
           </div>
           <div className="min-w-0 flex-1">
@@ -89,7 +89,7 @@ export function AssignmentCard({
       const br = refData.branches.find(b => b.id === ass.branchId)
       return (
         <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-surface-2 ring-1 ring-border">
-          <div className="w-9 h-9 rounded-full bg-teal-500/15 text-teal-300 flex items-center justify-center shrink-0">
+          <div className="w-9 h-9 rounded-full bg-teal-500/15 text-teal-300 light:text-teal-700 flex items-center justify-center shrink-0">
             <Icon name="git-branch" size={16} />
           </div>
           <div className="min-w-0 flex-1">
@@ -105,8 +105,8 @@ export function AssignmentCard({
         ? t('detail.transfer.kindAudit')
         : t('detail.transfer.kindIntern')
       return (
-        <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-rose-500/10 ring-1 ring-rose-500/30">
-          <div className="w-9 h-9 rounded-full bg-rose-500/15 text-rose-300 flex items-center justify-center shrink-0">
+        <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-rose-500/10 light:bg-rose-50 ring-1 ring-rose-500/30 light:ring-rose-200">
+          <div className="w-9 h-9 rounded-full bg-rose-500/15 text-rose-300 light:text-rose-700 flex items-center justify-center shrink-0">
             <Icon name="timer" size={16} />
           </div>
           <div className="min-w-0 flex-1">
@@ -114,7 +114,7 @@ export function AssignmentCard({
               {t('assignee.temp')} — {kindLabel}
             </p>
             {ass.expiresAt && (
-              <p className="text-[12px] text-rose-300 font-medium inline-flex items-center gap-1">
+              <p className="text-[12px] text-rose-300 light:text-rose-700 font-medium inline-flex items-center gap-1">
                 <Icon name="clock" size={10} />
                 {ass.expiresAt}
               </p>

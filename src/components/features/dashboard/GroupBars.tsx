@@ -65,7 +65,7 @@ export function GroupBars({ byGroup }: GroupBarsProps) {
               </div>
               {/* 5px gradient track on mobile, 6px on desktop */}
               <div
-                className="w-full h-[5px] lg:h-1.5 rounded-full bg-white/5 overflow-hidden"
+                className="w-full h-[5px] lg:h-1.5 rounded-full bg-white/5 light:bg-black/5 overflow-hidden"
                 aria-hidden="true"
               >
                 <div

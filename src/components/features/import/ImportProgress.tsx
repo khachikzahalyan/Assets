@@ -52,7 +52,7 @@ export function ImportProgress({ event }: ImportProgressProps) {
                 isActive
                   ? 'bg-accent/10 border-accent/30'
                   : isDone
-                    ? 'bg-emerald-950/10 border-emerald-800/20'
+                    ? 'bg-emerald-950/10 light:bg-emerald-50 border-emerald-800/20 light:border-emerald-200'
                     : 'bg-surface border-border',
               ].join(' ')}
             >
@@ -75,7 +75,7 @@ export function ImportProgress({ event }: ImportProgressProps) {
                   isActive
                     ? 'text-accent-light'
                     : isDone
-                      ? 'text-emerald-400'
+                      ? 'text-emerald-400 light:text-emerald-700'
                       : 'text-text-subtle',
                 ].join(' ')}
               >

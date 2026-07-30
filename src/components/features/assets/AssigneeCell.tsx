@@ -53,7 +53,7 @@ export const AssigneeCell = memo(function AssigneeCell({
     let subEl: React.ReactNode = null
     if (isTemporaryAssignment(asset)) {
       subEl = (
-        <div className="text-[13px] text-amber-300 font-medium leading-tight mt-0.5">
+        <div className="text-[13px] text-amber-300 light:text-amber-700 font-medium leading-tight mt-0.5">
           {tempLabel}
         </div>
       )
@@ -97,10 +97,10 @@ export const AssigneeCell = memo(function AssigneeCell({
     }
     const subCls =
       hold === 'overdue'
-        ? 'text-rose-400'
+        ? 'text-rose-400 light:text-rose-700'
         : hold === 'dueSoon'
-          ? 'text-amber-300'
-          : 'text-amber-300/80'
+          ? 'text-amber-300 light:text-amber-700'
+          : 'text-amber-300/80 light:text-amber-700/80'
     return (
       <div className="min-w-0">
         <div className="text-[15px] font-semibold truncate leading-tight text-text-primary">

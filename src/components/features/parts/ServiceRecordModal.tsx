@@ -86,14 +86,14 @@ export function ServiceRecordModal({ open, onClose, asset, onConfirm }: ServiceR
       <div className="px-5 py-4 border-b border-border flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h2 className="text-[17px] font-bold text-text-primary leading-tight flex items-center gap-2">
-            <span className="w-7 h-7 rounded-md bg-cyan-500/15 text-cyan-300 inline-flex items-center justify-center flex-shrink-0">
+            <span className="w-7 h-7 rounded-md bg-cyan-500/15 text-cyan-300 inline-flex items-center justify-center flex-shrink-0 light:text-cyan-700">
               <Icon name="clipboard-list" size={13} />
             </span>
             {t('serviceModal.title')}
           </h2>
           <div className="text-[13.5px] text-text-tertiary mt-1 truncate">
             <span className="font-mono text-text-secondary">{asset.id}</span>
-            <span className="mx-1.5 text-[#475569]">·</span>
+            <span className="mx-1.5 text-text-subtle">·</span>
             <span>{asset.name}</span>
           </div>
         </div>
@@ -133,8 +133,8 @@ export function ServiceRecordModal({ open, onClose, asset, onConfirm }: ServiceR
                   className={
                     'h-7 px-2.5 rounded-md text-[14px] font-medium border transition-colors ' +
                     (active
-                      ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-200'
-                      : 'bg-[#0F1216] border-border text-text-tertiary hover:text-text-primary hover:border-[#3A3F46]')
+                      ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-200 light:text-cyan-700 light:border-cyan-500/60'
+                      : 'bg-[#0F1216] border-border text-text-tertiary hover:text-text-primary hover:border-[#3A3F46] light:bg-surface light:hover:border-border-strong')
                   }
                 >
                   {k.label}
@@ -170,13 +170,13 @@ export function ServiceRecordModal({ open, onClose, asset, onConfirm }: ServiceR
             onChange={e => setNote(e.target.value)}
             rows={3}
             placeholder="Например: продул вентиляторы, заменил термопасту"
-            className="w-full p-2.5 rounded-md bg-[#0F1216] border border-border text-[14.5px] text-text-primary placeholder:text-text-subtle focus:outline-none focus:border-accent resize-none leading-snug"
+            className="w-full p-2.5 rounded-md bg-[#0F1216] border border-border text-[14.5px] text-text-primary placeholder:text-text-subtle focus:outline-none focus:border-accent resize-none leading-snug light:bg-surface-sunken"
           />
         </div>
       </div>
 
       {error && (
-        <div className="mx-5 mt-3 text-[12.5px] text-rose-400 bg-rose-950/30 border border-rose-800/40 rounded-lg px-3 py-2" role="alert">
+        <div className="mx-5 mt-3 text-[12.5px] text-rose-400 bg-rose-950/30 border border-rose-800/40 rounded-lg px-3 py-2 light:bg-rose-50 light:border-rose-200 light:text-rose-700" role="alert">
           {error}
         </div>
       )}
@@ -206,7 +206,7 @@ export function ServiceRecordModal({ open, onClose, asset, onConfirm }: ServiceR
     <>
       {!isMobile && ReactDOM.createPortal(
         <div className="fixed inset-0 z-[80]">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" onClick={handleClose} />
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] light:bg-slate-900/35" onClick={handleClose} />
           <div
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-surface border border-border rounded-2xl shadow-2xl"
             role="dialog"

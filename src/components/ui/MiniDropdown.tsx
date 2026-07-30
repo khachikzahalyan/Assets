@@ -122,7 +122,7 @@ export function MiniDropdown({ value, onChange, options, placeholder = 'Выбе
 
   const triggerCls = disabled
     ? 'bg-bg border-border opacity-50 cursor-not-allowed'
-    : open ? 'bg-surface border-accent shadow-[0_0_0_3px_rgba(249,115,22,0.15)]'
+    : open ? 'bg-surface border-accent shadow-[0_0_0_3px_rgba(249,115,22,0.15)] light:shadow-[0_0_0_3px_rgba(249,115,22,0.10)]'
     : selectedLabel ? 'bg-surface border-border hover:border-border-strong'
     : 'bg-surface border-border hover:border-border-strong'
 
@@ -164,7 +164,7 @@ export function MiniDropdown({ value, onChange, options, placeholder = 'Выбе
             maxHeight: pos.maxHeight,
             zIndex: 1000,
           }}
-          className="bg-surface rounded-xl ring-1 ring-border shadow-xl shadow-slate-900/30 py-1.5 overflow-y-auto w-max anim-fade-slide-in"
+          className="bg-surface rounded-xl ring-1 ring-border shadow-xl shadow-slate-900/30 light:shadow-slate-300/60 py-1.5 overflow-y-auto w-max anim-fade-slide-in"
         >
           {options.map((opt, idx) => {
             const isSelected = opt.value === value

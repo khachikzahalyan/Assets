@@ -133,14 +133,14 @@ export function KeyDetailsModal({
       onMouseDown={e => { if (e.target === e.currentTarget) onClose() }}
     >
       <div
-        className={`relative w-full max-w-md bg-surface rounded-xl shadow-2xl shadow-black/60 border border-border overflow-hidden flex flex-col max-h-[90vh] ${MODAL_SHEET}`}
+        className={`relative w-full max-w-md bg-surface rounded-xl shadow-2xl shadow-black/60 light:shadow-slate-300/60 border border-border overflow-hidden flex flex-col max-h-[90vh] ${MODAL_SHEET}`}
         style={{ animation: 'modalPop 200ms cubic-bezier(.22,1,.36,1) both' }}
         role="dialog"
         aria-modal="true"
         aria-labelledby={TITLE_ID}
       >
         {/* Pull-handle — mobile only */}
-        <div className="max-md:block hidden mx-auto h-1 w-9 rounded-full bg-white/20 mb-3 mt-2" />
+        <div className="max-md:block hidden mx-auto h-1 w-9 rounded-full bg-white/20 light:bg-black/10 mb-3 mt-2" />
         {/* Header — no close button (dismiss via backdrop tap / Escape / swipe handle) */}
         <header className="flex items-center gap-2.5 px-5 py-4 border-b border-border flex-shrink-0">
           <span className="w-8 h-8 rounded-md bg-surface-2 inline-flex items-center justify-center flex-shrink-0">
@@ -154,7 +154,7 @@ export function KeyDetailsModal({
           <div className="rounded-xl border border-border bg-bg p-4">
             <div className="flex items-center justify-between gap-2 mb-3">
               <div className="flex items-center gap-2.5 min-w-0">
-                <span className="w-9 h-9 rounded-lg bg-[#0F1620] border border-border inline-flex items-center justify-center flex-shrink-0">
+                <span className="w-9 h-9 rounded-lg bg-[#0F1620] light:bg-slate-100 border border-border inline-flex items-center justify-center flex-shrink-0">
                   <MsLogo size={18} />
                 </span>
                 <div className="min-w-0">
@@ -169,9 +169,9 @@ export function KeyDetailsModal({
                   className={[
                     'flex-shrink-0 inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-[12px] font-medium border transition-colors',
                     copyError
-                      ? 'bg-rose-500/10 border-rose-500/30 text-rose-300'
+                      ? 'bg-rose-500/10 border-rose-500/30 text-rose-300 light:text-rose-700'
                       : copied
-                        ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400'
+                        ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400 light:text-emerald-700'
                         : 'bg-surface-2 border-border text-text-tertiary hover:text-text-primary hover:border-border-strong',
                   ].join(' ')}
                 >
@@ -210,7 +210,7 @@ export function KeyDetailsModal({
                     <div className="pb-4 flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap mb-0.5">
                         <span className="text-[13.5px] font-semibold text-text-primary leading-tight truncate">{assetName}</span>
-                        <span className="inline-flex items-center text-[10.5px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 flex-shrink-0">
+                        <span className="inline-flex items-center text-[10.5px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 light:text-emerald-700 flex-shrink-0">
                           {t('keyDetails.now')}
                         </span>
                       </div>

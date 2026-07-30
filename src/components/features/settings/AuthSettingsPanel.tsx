@@ -51,7 +51,7 @@ function DialogShell({ onBackdropClick, children, labelledBy }: DialogShellProps
         className={`w-[440px] max-w-[90vw] rounded-lg border border-border bg-surface p-5 mx-4 max-md:mx-0 ${MODAL_SHEET}`}
         onClick={e => e.stopPropagation()}
       >
-        <div className="max-md:block hidden mx-auto h-1 w-9 rounded-full bg-white/20 mb-3" />
+        <div className="max-md:block hidden mx-auto h-1 w-9 rounded-full bg-white/20 light:bg-black/10 mb-3" />
         {children}
       </div>
     </div>,
@@ -114,8 +114,8 @@ function DangerConfirmDialog({ saving, onConfirm, onCancel, t }: DangerConfirmPr
   return (
     <DialogShell onBackdropClick={onCancel} labelledBy="settings-danger-title">
       <div className="flex items-center gap-2 mb-3">
-        <Icon name="triangle-alert" size={16} className="text-[#FDBA74] flex-shrink-0" />
-        <h3 id="settings-danger-title" className="text-[15px] font-semibold text-[#FDBA74]">
+        <Icon name="triangle-alert" size={16} className="text-[#FDBA74] light:text-amber-700 flex-shrink-0" />
+        <h3 id="settings-danger-title" className="text-[15px] font-semibold text-[#FDBA74] light:text-amber-700">
           {t('dangerConfirm.title')}
         </h3>
       </div>
@@ -132,7 +132,7 @@ function DangerConfirmDialog({ saving, onConfirm, onCancel, t }: DangerConfirmPr
           onChange={e => setToken(e.target.value)}
           placeholder={required}
           autoFocus
-          className="w-full h-9 px-3 text-sm bg-bg border border-border rounded-lg text-text-primary placeholder:text-text-subtle focus:outline-none focus:border-accent focus:ring-2 focus:ring-[rgba(249,115,22,0.40)] transition-all duration-150 font-mono tracking-tight"
+          className="w-full h-9 px-3 text-sm bg-bg border border-border rounded-lg text-text-primary placeholder:text-text-subtle focus:outline-none focus:border-accent focus:ring-2 focus:ring-[var(--color-focus-ring)] transition-all duration-150 font-mono tracking-tight"
         />
       </Field>
       <div className="flex justify-end gap-2 mt-4">
@@ -377,14 +377,10 @@ export function AuthSettingsPanel({ repository }: AuthSettingsPanelProps) {
           {!loading && workingDomains.length === 0 && (
             <div
               role="alert"
-              className="flex items-start gap-2.5 px-4 py-3 rounded-lg border"
-              style={{
-                borderColor: '#7c2d12',
-                background: 'rgba(249,115,22,0.08)',
-              }}
+              className="flex items-start gap-2.5 px-4 py-3 rounded-lg border border-orange-900/60 light:border-orange-300 bg-accent/8 light:bg-orange-50"
             >
-              <Icon name="triangle-alert" size={15} className="text-[#FDBA74] flex-shrink-0 mt-0.5" />
-              <p className="text-[13px] text-[#FDBA74]">{t('failClosed.banner')}</p>
+              <Icon name="triangle-alert" size={15} className="text-[#FDBA74] light:text-amber-700 flex-shrink-0 mt-0.5" />
+              <p className="text-[13px] text-[#FDBA74] light:text-amber-700">{t('failClosed.banner')}</p>
             </div>
           )}
 
@@ -410,7 +406,7 @@ export function AuthSettingsPanel({ repository }: AuthSettingsPanelProps) {
                     type="button"
                     aria-label={t('auth.removeAria', { domain })}
                     onClick={() => handleRemoveDomain(domain)}
-                    className="w-6 h-6 max-md:w-8 max-md:h-8 rounded flex items-center justify-center text-text-subtle hover:text-[#FDA4AF] hover:bg-rose-950/40 transition-colors"
+                    className="w-6 h-6 max-md:w-8 max-md:h-8 rounded flex items-center justify-center text-text-subtle hover:text-[#FDA4AF] light:hover:text-rose-700 hover:bg-rose-950/40 light:hover:bg-rose-50 transition-colors"
                   >
                     <Icon name="x" size={13} />
                   </button>
@@ -439,16 +435,16 @@ export function AuthSettingsPanel({ repository }: AuthSettingsPanelProps) {
               </div>
             </Field>
             {!loading && addDomainError && (
-              <p role="alert" className="text-[12px] text-[#FDA4AF]">{addDomainError}</p>
+              <p role="alert" className="text-[12px] text-[#FDA4AF] light:text-rose-700">{addDomainError}</p>
             )}
           </div>
 
           {/* domain save feedback */}
           {saveDomainError && (
-            <p role="alert" className="text-[12px] text-[#FDA4AF]">{saveDomainError}</p>
+            <p role="alert" className="text-[12px] text-[#FDA4AF] light:text-rose-700">{saveDomainError}</p>
           )}
           {saveDomainSuccess && !domainDirty && (
-            <p className="text-[12px] text-emerald-400">{t('saved')}</p>
+            <p className="text-[12px] text-emerald-400 light:text-emerald-700">{t('saved')}</p>
           )}
 
           <div className="flex justify-end pt-2 border-t border-border">
@@ -494,7 +490,7 @@ export function AuthSettingsPanel({ repository }: AuthSettingsPanelProps) {
                     type="button"
                     aria-label={t('seedAdmins.removeAria', { email })}
                     onClick={() => handleRemoveSeed(email)}
-                    className="w-6 h-6 max-md:w-8 max-md:h-8 rounded flex items-center justify-center text-text-subtle hover:text-[#FDA4AF] hover:bg-rose-950/40 transition-colors"
+                    className="w-6 h-6 max-md:w-8 max-md:h-8 rounded flex items-center justify-center text-text-subtle hover:text-[#FDA4AF] light:hover:text-rose-700 hover:bg-rose-950/40 light:hover:bg-rose-50 transition-colors"
                   >
                     <Icon name="x" size={13} />
                   </button>
@@ -523,16 +519,16 @@ export function AuthSettingsPanel({ repository }: AuthSettingsPanelProps) {
               </div>
             </Field>
             {!loading && addSeedError && (
-              <p role="alert" className="text-[12px] text-[#FDA4AF]">{addSeedError}</p>
+              <p role="alert" className="text-[12px] text-[#FDA4AF] light:text-rose-700">{addSeedError}</p>
             )}
           </div>
 
           {/* seed save feedback */}
           {saveSeedError && (
-            <p role="alert" className="text-[12px] text-[#FDA4AF]">{saveSeedError}</p>
+            <p role="alert" className="text-[12px] text-[#FDA4AF] light:text-rose-700">{saveSeedError}</p>
           )}
           {saveSeedSuccess && !seedDirty && (
-            <p className="text-[12px] text-emerald-400">{t('seedAdmins.saved')}</p>
+            <p className="text-[12px] text-emerald-400 light:text-emerald-700">{t('seedAdmins.saved')}</p>
           )}
 
           <div className="flex justify-end pt-2 border-t border-border">

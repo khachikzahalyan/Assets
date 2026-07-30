@@ -58,7 +58,7 @@ export function EmployeeModalShell({
         tabIndex={-1}
         role="dialog"
         aria-modal="true"
-        className={`relative w-full ${width} bg-surface rounded-2xl shadow-2xl shadow-slate-900/20 border border-border/60 anim-modal-pop overflow-hidden max-md:rounded-t-[18px] max-md:rounded-b-none max-md:max-w-full max-md:max-h-[85vh] max-md:overflow-y-auto`}
+        className={`relative w-full ${width} bg-surface rounded-2xl shadow-2xl shadow-slate-900/20 light:shadow-slate-300/50 border border-border/60 anim-modal-pop overflow-hidden max-md:rounded-t-[18px] max-md:rounded-b-none max-md:max-w-full max-md:max-h-[85vh] max-md:overflow-y-auto`}
       >
         {/* Pull-handle — mobile only */}
         <div aria-hidden="true" className="hidden max-md:block mx-auto mt-2.5 mb-0 w-10 h-1 rounded-full bg-[rgba(148,163,184,0.35)]" />

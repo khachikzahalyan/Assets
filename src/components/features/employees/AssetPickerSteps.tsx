@@ -264,7 +264,7 @@ export function AssetPickerReviewStep({
                       type="button"
                       onClick={() => removeFromCart(a.id)}
                       title="Убрать из корзины"
-                      className="w-7 h-7 rounded-md text-text-subtle hover:text-rose-300 hover:bg-rose-500/10 flex items-center justify-center transition-colors shrink-0"
+                      className="w-7 h-7 rounded-md text-text-subtle hover:text-rose-300 light:hover:text-rose-700 hover:bg-rose-500/10 flex items-center justify-center transition-colors shrink-0"
                     >
                       <Icon name="x" size={14} />
                     </button>

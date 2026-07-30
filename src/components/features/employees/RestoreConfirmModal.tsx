@@ -28,7 +28,7 @@ export function RestoreConfirmModal({
     <EmployeeModalShell open={open} onClose={onClose} width="max-w-md">
       {/* Body */}
       <div className="px-5 pt-5 pb-3 flex items-start gap-3">
-        <div className="w-10 h-10 rounded-xl bg-violet-500/10 text-violet-300 flex items-center justify-center shrink-0">
+        <div className="w-10 h-10 rounded-xl bg-violet-500/10 text-violet-300 light:text-violet-700 flex items-center justify-center shrink-0">
           <Icon name="rotate-ccw" size={18} />
         </div>
         <div className="flex-1">

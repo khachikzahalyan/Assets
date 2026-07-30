@@ -215,7 +215,7 @@ export function EmployeesPage({
                         onClick={handleNavigateImport}
                         className="bg-surface border border-border-strong text-text-primary hover:bg-bg h-8 px-3 rounded-lg text-[13px] font-semibold inline-flex items-center gap-1.5 transition-colors duration-150 max-md:hidden"
                       >
-                        <Icon name="file-up" size={13} className="text-sky-300" />
+                        <Icon name="file-up" size={13} className="text-sky-300 light:text-sky-700" />
                         <span>{t('toolbar.import', { ns: 'assets' })}</span>
                       </button>
                     )}

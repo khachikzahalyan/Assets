@@ -253,9 +253,9 @@ export function AssetPickerSheet({
       {/* Cancel-with-cart confirmation overlay */}
       {pendingClose && (
         <div className="absolute inset-0 bg-surface/85 backdrop-blur-[1px] flex items-center justify-center p-6 rounded-2xl">
-          <div className="w-full max-w-sm bg-surface rounded-xl border border-border shadow-xl shadow-black/40 p-5">
+          <div className="w-full max-w-sm bg-surface rounded-xl border border-border shadow-xl shadow-black/40 light:shadow-slate-300/60 p-5">
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-lg bg-amber-500/10 text-amber-300 flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-lg bg-amber-500/10 text-amber-300 light:text-amber-700 flex items-center justify-center shrink-0">
                 <Icon name="alert-triangle" size={18} />
               </div>
               <div className="flex-1 min-w-0">

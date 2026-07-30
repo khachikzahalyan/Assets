@@ -111,7 +111,7 @@ export function NotificationBell({ repository, onSelect }: NotificationBellProps
             <div className="text-[11px] text-text-subtle">{t('subtitle')}</div>
           </div>
           {error ? (
-            <div className="px-3.5 py-3 text-[12.5px] text-rose-400">
+            <div className="px-3.5 py-3 text-[12.5px] text-rose-400 light:text-rose-700">
               {t('loadError')}
             </div>
           ) : loading && notifications.length === 0 ? (
@@ -160,7 +160,7 @@ export function NotificationBell({ repository, onSelect }: NotificationBellProps
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-[11px] text-text-tertiary">{kindLabel(n.tempKind)}</span>
-                      <span className={`text-[12px] font-medium ${overdue ? 'text-rose-400' : 'text-amber-300'}`}>
+                      <span className={`text-[12px] font-medium ${overdue ? 'text-rose-400 light:text-rose-700' : 'text-amber-300 light:text-amber-700'}`}>
                         {statusText}
                       </span>
                     </div>

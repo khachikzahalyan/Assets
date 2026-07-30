@@ -89,7 +89,7 @@ export function MyAssetsPage({ repository }: MyAssetsPageProps) {
         <SectionCard title={t('self.myAssets')} icon="package">
           <div className="space-y-2">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-3 rounded-md border border-[#1E293B] bg-[#0F172A] px-3 py-2 min-h-[44px]">
+              <div key={i} className="flex items-center gap-3 rounded-md border border-border bg-bg px-3 py-2 min-h-[44px]">
                 <div className="h-[12px] w-[80px] rounded anim-skeleton flex-shrink-0" />
                 <div className="h-[13px] flex-1 rounded anim-skeleton" style={{ maxWidth: `${40 + (i % 4) * 10}%` }} />
                 <div className="h-[20px] w-[60px] rounded-md anim-skeleton flex-shrink-0" />
@@ -127,7 +127,7 @@ export function MyAssetsPage({ repository }: MyAssetsPageProps) {
               return (
                 <li
                   key={a.id}
-                  className="flex items-center gap-3 rounded-md border border-[#1E293B] bg-[#0F172A] px-3 py-2 min-h-[44px]"
+                  className="flex items-center gap-3 rounded-md border border-border bg-bg px-3 py-2 min-h-[44px]"
                 >
                   <span className="font-mono text-[12px] text-text-tertiary min-w-[80px]">{a.invCode}</span>
                   <span className="flex-1 text-[13px] text-text-primary">

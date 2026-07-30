@@ -78,9 +78,9 @@ export const HistoryRowMobile = memo(function HistoryRowMobile({
 
   /* Icon tile tint — kind-keyed (NOT category-keyed) */
   const tileCls =
-    kind === 'broken'  ? 'bg-rose-500/15 text-rose-300'   :
-    kind === 'install' ? 'bg-amber-500/15 text-amber-300'  :
-    'bg-emerald-500/15 text-emerald-300'
+    kind === 'broken'  ? 'bg-rose-500/15 text-rose-300 light:text-rose-700'   :
+    kind === 'install' ? 'bg-amber-500/15 text-amber-300 light:text-amber-700'  :
+    'bg-emerald-500/15 text-emerald-300 light:text-emerald-700'
 
   /* Status pill */
   const pillCls =
@@ -111,7 +111,7 @@ export const HistoryRowMobile = memo(function HistoryRowMobile({
       <span className="truncate">{displayTitle}</span>
       {isServiceReplace && (
         <span
-          className="inline-flex items-center border rounded-[4px] px-[5px] py-[1px] text-[9px] font-bold whitespace-nowrap leading-none flex-shrink-0 bg-teal-500/15 text-teal-300 border-teal-500/30"
+          className="inline-flex items-center border rounded-[4px] px-[5px] py-[1px] text-[9px] font-bold whitespace-nowrap leading-none flex-shrink-0 bg-teal-500/15 text-teal-300 border-teal-500/30 light:text-teal-700 light:border-teal-500/40"
           aria-label={t('warehouse.serviceChip')}
         >
           {t('warehouse.serviceChip')}

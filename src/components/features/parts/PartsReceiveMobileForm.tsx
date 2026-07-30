@@ -127,7 +127,7 @@ export function PartsReceiveMobileForm({
           type="button"
           onClick={onCancel}
           aria-label={t('addModal.close')}
-          className="w-[30px] h-[30px] rounded-[9px] bg-white/6 flex items-center justify-center text-text-secondary hover:bg-white/10 transition-colors"
+          className="w-[30px] h-[30px] rounded-[9px] bg-white/6 flex items-center justify-center text-text-secondary hover:bg-white/10 transition-colors light:bg-black/5 light:hover:bg-black/8"
         >
           <Icon name="x" size={14} />
         </button>
@@ -142,7 +142,7 @@ export function PartsReceiveMobileForm({
             {/* Submit-error banner */}
             {submitError && (
               <div
-                className="flex items-center gap-2.5 bg-rose-950/30 border border-rose-800/40 text-rose-400 px-3.5 py-2.5 rounded-xl text-[13px]"
+                className="flex items-center gap-2.5 bg-rose-950/30 border border-rose-800/40 text-rose-400 px-3.5 py-2.5 rounded-xl text-[13px] light:bg-rose-50 light:border-rose-200 light:text-rose-700"
                 role="alert"
               >
                 <Icon name="triangle-alert" size={13} className="flex-shrink-0" />

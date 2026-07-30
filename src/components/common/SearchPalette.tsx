@@ -177,13 +177,13 @@ export function SearchPalette({ open, onClose, onPick }: SearchPaletteProps) {
 
   return createPortal(
     <div className="fixed inset-0 z-[60] flex items-start justify-center pt-[12vh] px-4 max-md:items-end max-md:pt-0 max-md:px-0">
-      <div className="absolute inset-0 bg-black/60 anim-backdrop-fade" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/60 light:bg-slate-900/35 anim-backdrop-fade" onClick={onClose} />
       <div
         className="relative w-full max-w-xl bg-surface rounded-xl border border-border anim-modal-pop overflow-hidden max-md:rounded-t-[18px] max-md:rounded-b-none max-md:max-w-full max-md:max-h-[90dvh] max-md:flex max-md:flex-col"
-        style={{ boxShadow: '0 12px 32px rgba(0,0,0,0.55)' }}
+        style={{ boxShadow: 'var(--shadow-popover)' }}
       >
         {/* Pull handle — mobile only */}
-        <div className="hidden max-md:block mx-auto h-1 w-9 rounded-full bg-white/20 mt-2 mb-1 flex-shrink-0" />
+        <div className="hidden max-md:block mx-auto h-1 w-9 rounded-full bg-white/20 light:bg-black/10 mt-2 mb-1 flex-shrink-0" />
         {/* Search input row */}
         <div className="flex items-center gap-2 px-4 h-12 border-b border-border">
           <Icon name="search" size={16} className="text-text-subtle" />

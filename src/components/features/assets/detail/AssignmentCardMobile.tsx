@@ -106,7 +106,7 @@ export function AssignmentCardMobile({
       const dept = refData.departments.find(d => d.id === ass.departmentId)
       return (
         <div className={`${baseCard} ${innerPad}`}>
-          <div className="w-9 h-9 rounded-[10px] bg-amber-500/15 text-amber-300 flex items-center justify-center shrink-0">
+          <div className="w-9 h-9 rounded-[10px] bg-amber-500/15 text-amber-300 light:text-amber-700 flex items-center justify-center shrink-0">
             <Icon name="layout-list" size={16} />
           </div>
           <div className="min-w-0 flex-1">
@@ -121,7 +121,7 @@ export function AssignmentCardMobile({
       const br = refData.branches.find(b => b.id === ass.branchId)
       return (
         <div className={`${baseCard} ${innerPad}`}>
-          <div className="w-9 h-9 rounded-[10px] bg-teal-500/15 text-teal-300 flex items-center justify-center shrink-0">
+          <div className="w-9 h-9 rounded-[10px] bg-teal-500/15 text-teal-300 light:text-teal-700 flex items-center justify-center shrink-0">
             <Icon name="git-branch" size={16} />
           </div>
           <div className="min-w-0 flex-1">
@@ -137,8 +137,8 @@ export function AssignmentCardMobile({
         ? t('detail.transfer.kindAudit')
         : t('detail.transfer.kindIntern')
       return (
-        <div className={`${baseCard} ${innerPad} bg-rose-500/10 border-rose-500/30`}>
-          <div className="w-9 h-9 rounded-[10px] bg-rose-500/15 text-rose-300 flex items-center justify-center shrink-0">
+        <div className={`${baseCard} ${innerPad} bg-rose-500/10 light:bg-rose-50 border-rose-500/30 light:border-rose-200`}>
+          <div className="w-9 h-9 rounded-[10px] bg-rose-500/15 text-rose-300 light:text-rose-700 flex items-center justify-center shrink-0">
             <Icon name="timer" size={16} />
           </div>
           <div className="min-w-0 flex-1">
@@ -146,7 +146,7 @@ export function AssignmentCardMobile({
               {t('assignee.temp')} — {kindLabel}
             </p>
             {ass.expiresAt && (
-              <p className="text-[11px] text-rose-300 inline-flex items-center gap-1">
+              <p className="text-[11px] text-rose-300 light:text-rose-700 inline-flex items-center gap-1">
                 <Icon name="clock" size={10} />
                 {ass.expiresAt}
               </p>
@@ -164,8 +164,8 @@ export function AssignmentCardMobile({
 
       {/* Header — blue icon + «НАЗНАЧЕНИЕ» label, no action button */}
       <div className="flex items-center gap-2.5 px-4 py-3 border-b border-border/60">
-        <div className="w-[26px] h-[26px] rounded-lg bg-sky-500/12 flex items-center justify-center shrink-0">
-          <Icon name="user-check" size={13} className="text-sky-300" />
+        <div className="w-[26px] h-[26px] rounded-lg bg-sky-500/[0.12] flex items-center justify-center shrink-0">
+          <Icon name="user-check" size={13} className="text-sky-300 light:text-sky-700" />
         </div>
         {/* leading-none — centers the caps-only label against the icon box (same fix as SectionCard) */}
         <span className="text-[10px] font-bold uppercase tracking-[1.4px] leading-none text-text-secondary">

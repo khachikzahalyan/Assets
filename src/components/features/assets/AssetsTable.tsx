@@ -235,7 +235,7 @@ export function AssetsTable({
                     {title}
                   </span>
                   {isRemote && (
-                    <span className="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-semibold uppercase tracking-wide bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+                    <span className="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-semibold uppercase tracking-wide bg-cyan-500/15 text-cyan-300 light:text-cyan-700 border border-cyan-500/30">
                       <Icon name="house" size={10} />
                       {t('badges.remote')}
                     </span>

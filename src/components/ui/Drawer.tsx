@@ -62,7 +62,7 @@ export function Drawer({ open, onClose, children, ariaLabel }: DrawerProps) {
         /* Mobile: min-h 70dvh so the sheet always rises to ~70% of the screen —
            the flex-1 scroll region absorbs the extra height (10+ assets stay
            comfortably scrollable); max-h 92dvh caps very long content. */
-        className="ams-drawer-panel absolute top-0 right-0 h-full bg-surface border-l border-border shadow-2xl shadow-slate-900/20 anim-drawer-slide-in flex flex-col max-md:top-auto max-md:bottom-0 max-md:left-0 max-md:h-auto max-md:min-h-[70dvh] max-md:max-h-[92dvh] max-md:w-full max-md:max-w-full max-md:rounded-t-[18px] max-md:border-l-0 max-md:border-t max-md:border-border max-md:overflow-hidden"
+        className="ams-drawer-panel absolute top-0 right-0 h-full bg-surface border-l border-border shadow-2xl shadow-slate-900/20 light:shadow-slate-300/50 anim-drawer-slide-in flex flex-col max-md:top-auto max-md:bottom-0 max-md:left-0 max-md:h-auto max-md:min-h-[70dvh] max-md:max-h-[92dvh] max-md:w-full max-md:max-w-full max-md:rounded-t-[18px] max-md:border-l-0 max-md:border-t max-md:border-border max-md:overflow-hidden"
       >
         {/* Pull-handle — mobile only */}
         <div

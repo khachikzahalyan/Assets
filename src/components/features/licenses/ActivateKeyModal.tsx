@@ -95,14 +95,14 @@ export function ActivateKeyModal({
       onMouseDown={e => { if (e.target === e.currentTarget) onClose() }}
     >
       <div
-        className={`relative w-full max-w-lg bg-surface rounded-xl shadow-2xl shadow-black/60 border border-border overflow-hidden flex flex-col max-h-[90vh] ${MODAL_SHEET}`}
+        className={`relative w-full max-w-lg bg-surface rounded-xl shadow-2xl shadow-black/60 light:shadow-slate-300/60 border border-border overflow-hidden flex flex-col max-h-[90vh] ${MODAL_SHEET}`}
         style={{ animation: 'modalPop 200ms cubic-bezier(.22,1,.36,1) both' }}
         role="dialog"
         aria-modal="true"
         aria-labelledby={ACTIVATE_TITLE_ID}
       >
         {/* Pull-handle — mobile only */}
-        <div className="max-md:block hidden mx-auto h-1 w-9 rounded-full bg-white/20 mb-3 mt-2" />
+        <div className="max-md:block hidden mx-auto h-1 w-9 rounded-full bg-white/20 light:bg-black/10 mb-3 mt-2" />
         {/* Header */}
         <header className="flex items-center justify-between px-5 py-4 border-b border-border flex-shrink-0">
           <div className="flex items-center gap-2.5">
@@ -117,7 +117,7 @@ export function ActivateKeyModal({
         <div className="p-5 space-y-4 overflow-y-auto flex flex-col min-h-0">
           {/* Key being activated */}
           <div className="rounded-lg border border-border bg-bg px-3.5 py-3 flex-shrink-0 flex items-center gap-3.5">
-            <span className="w-11 h-11 rounded-lg bg-[#0F1620] border border-border inline-flex items-center justify-center flex-shrink-0">
+            <span className="w-11 h-11 rounded-lg bg-[#0F1620] light:bg-slate-100 border border-border inline-flex items-center justify-center flex-shrink-0">
               <MsLogo size={22} />
             </span>
             <div className="min-w-0">
@@ -193,7 +193,7 @@ export function ActivateKeyModal({
               className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3.5 py-3 flex-shrink-0"
               data-testid="activate-old-key-note"
             >
-              <div className="text-[10.5px] uppercase tracking-[0.08em] font-semibold text-amber-300/90 mb-1">
+              <div className="text-[10.5px] uppercase tracking-[0.08em] font-semibold text-amber-300/90 light:text-amber-700 mb-1">
                 {t('activate.oldKeyLabel')}
               </div>
               <div className="flex items-baseline gap-2 min-w-0">
@@ -207,7 +207,7 @@ export function ActivateKeyModal({
           )}
 
           {submitError && (
-            <p role="alert" className="text-[12px] text-[#FDA4AF]">{submitError}</p>
+            <p role="alert" className="text-[12px] text-[#FDA4AF] light:text-rose-700">{submitError}</p>
           )}
         </div>
 

@@ -15,8 +15,8 @@ export function LoginPage() {
 
   return (
     <div
-      className="flex max-lg:flex-col max-lg:h-[100dvh] max-lg:overflow-hidden lg:min-h-screen"
-      style={{ background: '#1C1F26', fontFamily: "'Inter', system-ui, sans-serif" }}
+      className="flex max-lg:flex-col max-lg:h-[100dvh] max-lg:overflow-hidden lg:min-h-screen bg-[#1C1F26] light:bg-bg"
+      style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
     >
       <MobileHero />
       <FormPanel />

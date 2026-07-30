@@ -78,7 +78,7 @@ export function CategoryGroupChips({
                   type="button"
                   data-testid={`group-delete-${g.id}`}
                   onClick={e => { e.stopPropagation(); onDelete(g) }}
-                  className="w-5 h-5 flex items-center justify-center rounded text-text-tertiary hover:text-rose-400 hover:bg-rose-950/30 transition-colors"
+                  className="w-5 h-5 flex items-center justify-center rounded text-text-tertiary hover:text-rose-400 light:hover:text-rose-700 hover:bg-rose-950/30 light:hover:bg-rose-50 transition-colors"
                   aria-label={`${t('groupDelete.title')} — ${g.name}`}
                 >
                   <Icon name="trash-2" size={11} />

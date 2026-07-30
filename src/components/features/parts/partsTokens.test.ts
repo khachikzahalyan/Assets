@@ -157,7 +157,7 @@ describe('custom sized category "dock"', () => {
   it('dock gets blue tint from TINT_BY_TOKEN', () => {
     const tints = buildCategoryTint(DEFS_WITH_DOCK)
     expect(tints['dock']?.iconBg).toBe('bg-blue-500/15')
-    expect(tints['dock']?.iconText).toBe('text-blue-300')
+    expect(tints['dock']?.iconText).toBe('text-blue-300 light:text-blue-700')
   })
 
   it('dock with unknown tintToken falls back to TINT_FALLBACK', () => {

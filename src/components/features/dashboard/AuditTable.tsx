@@ -12,7 +12,7 @@ type BadgeTone = 'green' | 'blue' | 'violet' | 'red' | 'neutral'
 const BADGE_CLS: Record<BadgeTone, string> = {
   green:   'bg-success/15 text-success border border-success/20',
   blue:    'bg-info/15 text-info border border-info/20',
-  violet:  'bg-violet-500/15 text-violet-300 border border-violet-500/20',
+  violet:  'bg-violet-500/15 text-violet-300 light:text-violet-700 border border-violet-500/20',
   red:     'bg-error/15 text-error border border-error/20',
   neutral: 'bg-surface-2 text-text-subtle border border-border',
 }

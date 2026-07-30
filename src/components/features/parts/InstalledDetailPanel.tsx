@@ -116,7 +116,7 @@ export function InstalledDetailPanel({ asset, onUninstall, movements = [], parts
   /* ── No selection placeholder ── */
   if (!asset) {
     return (
-      <div className="h-full bg-surface border border-border rounded-xl shadow-sm shadow-black/30 flex items-center justify-center p-8">
+      <div className="h-full bg-surface border border-border rounded-xl shadow-sm shadow-black/30 light:shadow-slate-300/60 flex items-center justify-center p-8">
         <div className="text-center max-w-xs">
           <span className="w-12 h-12 rounded-full bg-surface-2 text-text-subtle inline-flex items-center justify-center mb-3">
             <Icon name="monitor" size={20} />
@@ -153,7 +153,7 @@ export function InstalledDetailPanel({ asset, onUninstall, movements = [], parts
     : { backgroundColor: 'rgba(249,115,22,0.10)', color: '#F97316' }
 
   return (
-    <div className="h-full bg-surface border border-border rounded-xl shadow-sm shadow-black/30 flex flex-col overflow-hidden">
+    <div className="h-full bg-surface border border-border rounded-xl shadow-sm shadow-black/30 light:shadow-slate-300/60 flex flex-col overflow-hidden">
       {/* ── Device header ── */}
       <div className="px-5 py-4 border-b border-border flex items-start justify-between gap-3 flex-shrink-0">
         <div className="flex items-center gap-3 min-w-0">
@@ -181,7 +181,7 @@ export function InstalledDetailPanel({ asset, onUninstall, movements = [], parts
           className={`h-10 px-4 text-[14.5px] transition-colors cursor-pointer border-b-2 ${
             innerTab === 'installed'
               ? 'text-accent border-accent font-semibold'
-              : 'text-text-tertiary border-transparent hover:text-text-primary hover:border-[#3A3F46]'
+              : 'text-text-tertiary border-transparent hover:text-text-primary hover:border-[#3A3F46] light:hover:border-border-strong'
           }`}
         >
           {t('device.tabInstalled', 'Установлено')}
@@ -201,7 +201,7 @@ export function InstalledDetailPanel({ asset, onUninstall, movements = [], parts
           className={`h-10 px-4 text-[14.5px] transition-colors cursor-pointer border-b-2 ${
             innerTab === 'history'
               ? 'text-accent border-accent font-semibold'
-              : 'text-text-tertiary border-transparent hover:text-text-primary hover:border-[#3A3F46]'
+              : 'text-text-tertiary border-transparent hover:text-text-primary hover:border-[#3A3F46] light:hover:border-border-strong'
           }`}
         >
           {t('device.tabHistory', 'История')}
@@ -266,7 +266,7 @@ function InstalledBody({ rows, onUninstall, t }: InstalledBodyProps) {
         return (
           <li
             key={row.sku.id}
-            className="flex items-center gap-3 px-5 py-3 hover:bg-[#111315]/60 transition-colors group"
+            className="flex items-center gap-3 px-5 py-3 hover:bg-[#111315]/60 light:hover:bg-black/[0.03] transition-colors group"
           >
             <span
               className={`w-9 h-9 rounded-lg ${tint.iconBg} ${tint.iconText} inline-flex items-center justify-center flex-shrink-0`}
@@ -279,7 +279,7 @@ function InstalledBody({ rows, onUninstall, t }: InstalledBodyProps) {
                 {row.sku.variantLabel && (
                   <>
                     {' · '}
-                    <span className={row.entry.replaced ? 'text-amber-300' : undefined}>
+                    <span className={row.entry.replaced ? 'text-amber-300 light:text-amber-700' : undefined}>
                       {row.sku.variantLabel}
                     </span>
                   </>
@@ -297,7 +297,7 @@ function InstalledBody({ rows, onUninstall, t }: InstalledBodyProps) {
                 type="button"
                 onClick={() => onUninstall(row.entry, slotIdx)}
                 title={t('actions.uninstall')}
-                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md text-[13.5px] font-semibold text-sky-300 border border-sky-500/30 bg-sky-500/10 hover:bg-sky-500/15 transition-colors flex-shrink-0"
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md text-[13.5px] font-semibold text-sky-300 border border-sky-500/30 bg-sky-500/10 hover:bg-sky-500/15 transition-colors flex-shrink-0 light:text-sky-700 light:border-sky-500/40"
               >
                 <Icon name="rotate-ccw" size={11} />
                 {t('device.uninstallBtn', 'Снять')}
@@ -391,7 +391,7 @@ function HistoryBody({ movements, parts, t }: HistoryBodyProps) {
         return (
           <li
             key={mv.id || i}
-            className="flex items-center gap-3 px-5 py-3 hover:bg-[#111315]/60 transition-colors"
+            className="flex items-center gap-3 px-5 py-3 hover:bg-[#111315]/60 light:hover:bg-black/[0.03] transition-colors"
           >
             <span className={`w-2 h-2 rounded-full flex-shrink-0 ${dotColor}`} />
             <span

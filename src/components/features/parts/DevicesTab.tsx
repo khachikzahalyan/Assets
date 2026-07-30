@@ -145,7 +145,7 @@ export function DevicesTab({
                     'max-md:w-auto max-md:rounded-full max-md:h-auto max-md:py-[7px] max-md:px-[18px] max-md:text-[12.5px] max-md:font-semibold max-md:whitespace-nowrap max-md:flex-shrink-0 ' +
                     (active
                       ? 'bg-accent border-accent text-white'
-                      : 'bg-surface border-border text-text-tertiary hover:text-text-primary hover:border-[#3A3F46] max-md:border-white/10')
+                      : 'bg-surface border-border text-text-tertiary hover:text-text-primary hover:border-[#3A3F46] max-md:border-white/10 light:max-md:border-black/10')
                   }
                 >
                   {t(f.labelKey, f.labelFallback)}

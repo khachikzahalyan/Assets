@@ -87,7 +87,7 @@ export function MyActsPage({ repository }: MyActsPageProps) {
       <PageHeader icon="file-text" title={t('self.myActs')} className="max-md:hidden" />
 
       {actionError && (
-        <p role="alert" className="text-[12px] text-[#FDA4AF] px-1">{actionError}</p>
+        <p role="alert" className="text-[12px] text-[#FDA4AF] light:text-rose-700 px-1">{actionError}</p>
       )}
 
       <SectionCard title={t('self.myActs')} icon="file-text">

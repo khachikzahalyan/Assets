@@ -12,7 +12,7 @@ export const DPPortal = forwardRef<HTMLDivElement, {
       data-dp-portal="true"
       data-ams-dropdown="true"
       style={{ position: 'fixed', top: pos.top, left: pos.left, width: pos.width, zIndex: 1000 }}
-      className="bg-surface ring-1 ring-border rounded-xl shadow-xl shadow-slate-900/40 anim-fade-slide-in overflow-hidden"
+      className="bg-surface ring-1 ring-border rounded-xl shadow-xl shadow-slate-900/40 light:shadow-slate-300/60 anim-fade-slide-in overflow-hidden"
     >
       {children}
     </div>

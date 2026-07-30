@@ -41,7 +41,7 @@ export function BranchBars({ branches }: BranchBarsProps) {
                   </div>
                   {/* 5px accent gradient bar on mobile, 8px on desktop */}
                   <div
-                    className="w-full h-[5px] lg:h-2 rounded-full bg-white/5 overflow-hidden"
+                    className="w-full h-[5px] lg:h-2 rounded-full bg-white/5 light:bg-black/5 overflow-hidden"
                     aria-hidden="true"
                   >
                     <div

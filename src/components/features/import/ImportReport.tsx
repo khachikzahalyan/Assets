@@ -15,8 +15,8 @@ export function ImportReport({ result, onToAssets, onImportMore }: ImportReportP
     <div className="space-y-6 py-6 max-w-lg mx-auto">
       {/* Success header */}
       <div className="text-center">
-        <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emerald-950/30 border border-emerald-800/30 mb-4">
-          <Icon name="check-circle" size={24} className="text-emerald-400" />
+        <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emerald-950/30 light:bg-emerald-50 border border-emerald-800/30 light:border-emerald-200 mb-4">
+          <Icon name="check-circle" size={24} className="text-emerald-400 light:text-emerald-700" />
         </div>
         <h2 className="text-[16px] font-semibold text-text-primary">
           {t('report.heading')}
@@ -44,9 +44,9 @@ export function ImportReport({ result, onToAssets, onImportMore }: ImportReportP
 
       {/* Skipped rows */}
       {result.skipped.length === 0 ? (
-        <div className="flex items-center gap-2 bg-emerald-950/10 border border-emerald-800/20 rounded-xl px-4 py-3">
-          <Icon name="check" size={14} className="text-emerald-400 flex-shrink-0" />
-          <span className="text-[13px] text-emerald-400">{t('report.noSkipped')}</span>
+        <div className="flex items-center gap-2 bg-emerald-950/10 light:bg-emerald-50 border border-emerald-800/20 light:border-emerald-200 rounded-xl px-4 py-3">
+          <Icon name="check" size={14} className="text-emerald-400 light:text-emerald-700 flex-shrink-0" />
+          <span className="text-[13px] text-emerald-400 light:text-emerald-700">{t('report.noSkipped')}</span>
         </div>
       ) : (
         <div>
@@ -65,7 +65,7 @@ export function ImportReport({ result, onToAssets, onImportMore }: ImportReportP
                   <tr key={i} className="border-b border-border/40">
                     <td className="py-1.5 px-2 text-text-secondary">{s.sheet}</td>
                     <td className="py-1.5 px-2 text-text-secondary tabular-nums">{s.rowNumber}</td>
-                    <td className="py-1.5 px-2 text-rose-400">{s.reason}</td>
+                    <td className="py-1.5 px-2 text-rose-400 light:text-rose-700">{s.reason}</td>
                   </tr>
                 ))}
               </tbody>

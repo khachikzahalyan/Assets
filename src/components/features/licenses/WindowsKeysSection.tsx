@@ -49,7 +49,7 @@ function Toast({ msg, onDone }: { msg: string; onDone: () => void }) {
       role="status"
       aria-live="polite"
     >
-      <div className="flex items-center gap-2.5 bg-surface border border-border text-text-primary px-4 py-3 rounded-xl shadow-xl shadow-black/60 text-[14px] font-medium max-w-xs">
+      <div className="flex items-center gap-2.5 bg-surface border border-border text-text-primary px-4 py-3 rounded-xl shadow-xl shadow-black/60 light:shadow-slate-300/60 text-[14px] font-medium max-w-xs">
         <span className="w-5 h-5 rounded-full bg-emerald-500 inline-flex items-center justify-center flex-shrink-0">
           <Icon name="check" size={12} className="text-white" />
         </span>
@@ -313,7 +313,7 @@ export function WindowsKeysSection({
            absorbs the space and the pagination pins to the card bottom.
            max-md:rounded-t-none/border-t-0/!mt-0: fuses with the page tab+search
            header above into ONE visual card (assets etalon). */
-        className="bg-surface border border-border rounded-xl shadow-sm shadow-black/30 overflow-hidden flex flex-col flex-1 min-h-0 max-md:rounded-t-none max-md:border-t-0 max-md:!mt-0"
+        className="bg-surface border border-border rounded-xl shadow-sm shadow-black/30 light:shadow-slate-200/80 overflow-hidden flex flex-col flex-1 min-h-0 max-md:rounded-t-none max-md:border-t-0 max-md:!mt-0"
         aria-label={t('keys.sectionTitle')}
       >
         {/* Section header — icon+title removed on BOTH breakpoints (owner request),

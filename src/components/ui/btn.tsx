@@ -22,7 +22,7 @@ export function Btn({
     primary:   'bg-accent text-white shadow-sm hover:bg-accent-hover hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(249,115,22,0.40)]',
     secondary: 'bg-surface border border-border hover:border-border-strong hover:bg-surface-2 text-text-primary shadow-sm disabled:opacity-50 disabled:cursor-not-allowed',
     ghost:     'text-text-secondary hover:bg-surface-2 hover:text-text-primary disabled:opacity-50 disabled:cursor-not-allowed',
-    danger:    'bg-surface border border-rose-800/60 text-[#FDA4AF] hover:bg-rose-950/40 hover:border-rose-700/60 shadow-sm disabled:opacity-50',
+    danger:    'bg-surface border border-rose-800/60 light:border-rose-300 text-[#FDA4AF] light:text-rose-700 hover:bg-rose-950/40 light:hover:bg-rose-50 hover:border-rose-700/60 light:hover:border-rose-400 shadow-sm disabled:opacity-50',
   }
   const sizes = {
     sm: 'h-7 px-2.5 text-[12px] gap-1',

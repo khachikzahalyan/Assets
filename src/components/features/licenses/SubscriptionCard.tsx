@@ -26,7 +26,7 @@ export function SubscriptionCard({ sub, employees, onUpdateAssignees }: Subscrip
 
   return (
     <article
-      className="bg-surface border border-border rounded-xl shadow-sm shadow-black/30 p-5 flex flex-col gap-4"
+      className="bg-surface border border-border rounded-xl shadow-sm shadow-black/30 light:shadow-slate-200/80 p-5 flex flex-col gap-4"
       data-testid={`sub-card-${sub.id}`}
     >
       {/* Card header */}
@@ -35,7 +35,7 @@ export function SubscriptionCard({ sub, employees, onUpdateAssignees }: Subscrip
           <div className="flex items-center gap-2 flex-wrap">
             <h3 className="text-[15px] font-bold text-text-primary tracking-tight truncate">{sub.name}</h3>
             {expiringSoon && (
-              <span className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11.5px] font-semibold border bg-amber-500/15 text-amber-300 border-amber-500/25 flex-shrink-0">
+              <span className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11.5px] font-semibold border bg-amber-500/15 text-amber-300 light:text-amber-700 border-amber-500/25 light:border-amber-200 flex-shrink-0">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                   <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
                   <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
@@ -84,7 +84,7 @@ export function SubscriptionCard({ sub, employees, onUpdateAssignees }: Subscrip
           <div className="text-[11px] uppercase tracking-[0.06em] font-semibold text-text-subtle mb-0.5">
             {t('subs.expiryDate')}
           </div>
-          <div className={`text-[13.5px] font-mono ${expiringSoon ? 'text-amber-300 font-semibold' : 'text-text-secondary'}`}>
+          <div className={`text-[13.5px] font-mono ${expiringSoon ? 'text-amber-300 light:text-amber-700 font-semibold' : 'text-text-secondary'}`}>
             {sub.expiryDate ? fmtDate(sub.expiryDate, i18n.language) : '—'}
           </div>
         </div>

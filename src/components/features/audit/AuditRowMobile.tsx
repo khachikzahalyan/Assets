@@ -96,7 +96,7 @@ export const AuditRowMobile = memo(function AuditRowMobile({ log, refData, expan
   )
 
   const footer = isOpen ? (
-    <div className="mt-1 -mx-[14px] -mb-[7px] bg-[#15181C] px-3 py-2 border-t border-border">
+    <div className="mt-1 -mx-[14px] -mb-[7px] bg-[#15181C] light:bg-surface-sunken px-3 py-2 border-t border-border">
       <AuditDiff log={log} />
     </div>
   ) : undefined

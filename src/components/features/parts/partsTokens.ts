@@ -46,14 +46,14 @@ export const TINT_FALLBACK: Tint = { iconBg: 'bg-surface-2', iconText: 'text-tex
  * Unknown tokens fall back to TINT_FALLBACK at call sites.
  */
 export const TINT_BY_TOKEN: Record<string, Tint> = {
-  amber:   { iconBg: 'bg-amber-500/15',   iconText: 'text-amber-300' },
-  cyan:    { iconBg: 'bg-cyan-500/15',    iconText: 'text-cyan-300' },
-  sky:     { iconBg: 'bg-sky-500/15',     iconText: 'text-sky-300' },
-  emerald: { iconBg: 'bg-emerald-500/15', iconText: 'text-emerald-300' },
-  violet:  { iconBg: 'bg-violet-500/15',  iconText: 'text-violet-300' },
-  rose:    { iconBg: 'bg-rose-500/15',    iconText: 'text-rose-300' },
-  blue:    { iconBg: 'bg-blue-500/15',    iconText: 'text-blue-300' },
-  orange:  { iconBg: 'bg-orange-500/15',  iconText: 'text-orange-300' },
+  amber:   { iconBg: 'bg-amber-500/15',   iconText: 'text-amber-300 light:text-amber-700' },
+  cyan:    { iconBg: 'bg-cyan-500/15',    iconText: 'text-cyan-300 light:text-cyan-700' },
+  sky:     { iconBg: 'bg-sky-500/15',     iconText: 'text-sky-300 light:text-sky-700' },
+  emerald: { iconBg: 'bg-emerald-500/15', iconText: 'text-emerald-300 light:text-emerald-700' },
+  violet:  { iconBg: 'bg-violet-500/15',  iconText: 'text-violet-300 light:text-violet-700' },
+  rose:    { iconBg: 'bg-rose-500/15',    iconText: 'text-rose-300 light:text-rose-700' },
+  blue:    { iconBg: 'bg-blue-500/15',    iconText: 'text-blue-300 light:text-blue-700' },
+  orange:  { iconBg: 'bg-orange-500/15',  iconText: 'text-orange-300 light:text-orange-700' },
   slate:   { iconBg: 'bg-surface-2',      iconText: 'text-text-tertiary' },
 }
 
@@ -79,7 +79,7 @@ export function buildPartCatMeta(
  */
 export function buildCategoryTint(defs: PartCategoryDef[]): Record<string, Tint> {
   const out: Record<string, Tint> = {
-    battery: { iconBg: 'bg-rose-500/15', iconText: 'text-rose-300' },
+    battery: { iconBg: 'bg-rose-500/15', iconText: 'text-rose-300 light:text-rose-700' },
   }
   for (const d of defs) {
     out[d.id] = TINT_BY_TOKEN[d.tintToken] ?? TINT_FALLBACK
@@ -180,14 +180,14 @@ export const INSTALLED_ICON: Record<string, string> = {
   gpu: 'circuit-board',
 }
 export const INSTALLED_TINT: Record<string, Tint> = {
-  psu: { iconBg: 'bg-amber-500/15', iconText: 'text-amber-300' },
-  battery: { iconBg: 'bg-rose-500/15', iconText: 'text-rose-300' },
-  cooler: { iconBg: 'bg-cyan-500/15', iconText: 'text-cyan-300' },
-  ram: { iconBg: 'bg-emerald-500/15', iconText: 'text-emerald-300' },
-  ssd: { iconBg: 'bg-sky-500/15', iconText: 'text-sky-300' },
-  hdd: { iconBg: 'bg-sky-500/15', iconText: 'text-sky-300' },
-  nvme: { iconBg: 'bg-sky-500/15', iconText: 'text-sky-300' },
-  gpu: { iconBg: 'bg-violet-500/15', iconText: 'text-violet-300' },
+  psu: { iconBg: 'bg-amber-500/15', iconText: 'text-amber-300 light:text-amber-700' },
+  battery: { iconBg: 'bg-rose-500/15', iconText: 'text-rose-300 light:text-rose-700' },
+  cooler: { iconBg: 'bg-cyan-500/15', iconText: 'text-cyan-300 light:text-cyan-700' },
+  ram: { iconBg: 'bg-emerald-500/15', iconText: 'text-emerald-300 light:text-emerald-700' },
+  ssd: { iconBg: 'bg-sky-500/15', iconText: 'text-sky-300 light:text-sky-700' },
+  hdd: { iconBg: 'bg-sky-500/15', iconText: 'text-sky-300 light:text-sky-700' },
+  nvme: { iconBg: 'bg-sky-500/15', iconText: 'text-sky-300 light:text-sky-700' },
+  gpu: { iconBg: 'bg-violet-500/15', iconText: 'text-violet-300 light:text-violet-700' },
 }
 export const installedRowVisual = (cat: string): { icon: string; tint: Tint } => ({
   icon: INSTALLED_ICON[cat] ?? PART_CAT_BY_ID[cat]?.icon ?? 'package',
@@ -222,9 +222,9 @@ export interface FamilyChip {
   accent: string
 }
 export const FAMILY_CHIP: Record<string, FamilyChip> = {
-  desktop: { iconName: 'pc-case', iconBg: 'bg-blue-500/15', iconText: 'text-blue-300', accent: '#3B82F6' },
-  laptop: { iconName: 'laptop', iconBg: 'bg-violet-500/15', iconText: 'text-violet-300', accent: '#8B5CF6' },
-  server: { iconName: 'server', iconBg: 'bg-emerald-500/15', iconText: 'text-emerald-300', accent: '#10B981' },
+  desktop: { iconName: 'pc-case', iconBg: 'bg-blue-500/15', iconText: 'text-blue-300 light:text-blue-700', accent: '#3B82F6' },
+  laptop: { iconName: 'laptop', iconBg: 'bg-violet-500/15', iconText: 'text-violet-300 light:text-violet-700', accent: '#8B5CF6' },
+  server: { iconName: 'server', iconBg: 'bg-emerald-500/15', iconText: 'text-emerald-300 light:text-emerald-700', accent: '#10B981' },
 }
 export const FAMILY_CHIP_FALLBACK: FamilyChip = {
   iconName: 'cpu', iconBg: 'bg-surface-2', iconText: 'text-text-tertiary', accent: '#F97316',
@@ -238,11 +238,11 @@ export interface StatTone {
   value: string
 }
 export const STAT_TONES: Record<string, StatTone> = {
-  emerald: { iconBg: 'bg-emerald-500/15', iconText: 'text-emerald-300', value: 'text-emerald-300' },
-  amber: { iconBg: 'bg-amber-500/15', iconText: 'text-amber-300', value: 'text-amber-300' },
-  rose: { iconBg: 'bg-rose-500/15', iconText: 'text-rose-300', value: 'text-rose-300' },
-  violet: { iconBg: 'bg-violet-500/15', iconText: 'text-violet-300', value: 'text-violet-300' },
-  blue: { iconBg: 'bg-blue-500/15', iconText: 'text-blue-300', value: 'text-blue-300' },
+  emerald: { iconBg: 'bg-emerald-500/15', iconText: 'text-emerald-300 light:text-emerald-700', value: 'text-emerald-300 light:text-emerald-700' },
+  amber: { iconBg: 'bg-amber-500/15', iconText: 'text-amber-300 light:text-amber-700', value: 'text-amber-300 light:text-amber-700' },
+  rose: { iconBg: 'bg-rose-500/15', iconText: 'text-rose-300 light:text-rose-700', value: 'text-rose-300 light:text-rose-700' },
+  violet: { iconBg: 'bg-violet-500/15', iconText: 'text-violet-300 light:text-violet-700', value: 'text-violet-300 light:text-violet-700' },
+  blue: { iconBg: 'bg-blue-500/15', iconText: 'text-blue-300 light:text-blue-700', value: 'text-blue-300 light:text-blue-700' },
   slate: { iconBg: 'bg-surface-2', iconText: 'text-text-tertiary', value: 'text-text-primary' },
 }
 

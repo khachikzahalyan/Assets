@@ -155,7 +155,7 @@ export function PartsReceivePage({ repository }: PartsReceivePageProps = {}) {
                   onClick={() => setRamDdr(ddr)}
                   className={`px-2.5 h-6 rounded-full text-[13px] font-semibold transition-all border
                     ${ramDdr === ddr
-                      ? 'bg-accent border-accent text-white shadow-sm shadow-[#FB923C]/40'
+                      ? 'bg-accent border-accent text-white shadow-sm shadow-[#FB923C]/40 light:shadow-[#F97316]/20'
                       : 'bg-surface border-border text-text-tertiary hover:border-border-strong hover:text-text-secondary'}`}
                 >
                   {ddr}
@@ -184,7 +184,7 @@ export function PartsReceivePage({ repository }: PartsReceivePageProps = {}) {
                 key={p.id}
                 className={`bg-surface border rounded-lg p-2 transition-all
                   ${isActive
-                    ? 'border-accent shadow-sm shadow-[#FB923C]/40'
+                    ? 'border-accent shadow-sm shadow-[#FB923C]/40 light:shadow-[#F97316]/20'
                     : 'border-border hover:border-border-strong'}`}
               >
                 {/* Top row: size label + onHand chip */}
@@ -360,7 +360,7 @@ export function PartsReceivePage({ repository }: PartsReceivePageProps = {}) {
           {/* Error banner for submit failures */}
           {submitError && (
             <div
-              className="flex items-center gap-2.5 bg-rose-950/30 border border-rose-800/40 text-rose-400 px-4 py-3 rounded-xl text-[13.5px]"
+              className="flex items-center gap-2.5 bg-rose-950/30 light:bg-rose-50 border border-rose-800/40 light:border-rose-200 text-rose-400 light:text-rose-700 px-4 py-3 rounded-xl text-[13.5px]"
               role="alert"
             >
               <Icon name="triangle-alert" size={14} className="flex-shrink-0" />

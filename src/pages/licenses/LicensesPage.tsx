@@ -437,7 +437,7 @@ export function LicensesPage({
              * appears on the 'free' filter), matching the loaded default view.
              */
             <section
-              className="bg-surface border border-border rounded-xl shadow-sm shadow-black/30 overflow-hidden flex flex-col flex-1 min-h-0 max-md:rounded-t-none max-md:border-t-0 max-md:!mt-0"
+              className="bg-surface border border-border rounded-xl shadow-sm shadow-black/30 light:shadow-slate-200/80 overflow-hidden flex flex-col flex-1 min-h-0 max-md:rounded-t-none max-md:border-t-0 max-md:!mt-0"
               aria-hidden="true"
             >
               {/* Header — identical geometry to WindowsKeysSection: real filter TabStrip */}
@@ -558,7 +558,7 @@ function AssigneeErrorToast({ msg, onDone }: { msg: string; onDone: () => void }
       role="alert"
       aria-live="assertive"
     >
-      <div className="flex items-center gap-2.5 bg-surface border border-rose-500/30 text-text-primary px-4 py-3 rounded-xl shadow-xl shadow-black/60 text-[14px] font-medium max-w-xs">
+      <div className="flex items-center gap-2.5 bg-surface border border-rose-500/30 light:border-rose-200 text-text-primary px-4 py-3 rounded-xl shadow-xl shadow-black/60 light:shadow-slate-300/60 text-[14px] font-medium max-w-xs">
         <span className="w-5 h-5 rounded-full bg-rose-500 inline-flex items-center justify-center flex-shrink-0">
           <Icon name="triangle-alert" size={12} className="text-white" />
         </span>

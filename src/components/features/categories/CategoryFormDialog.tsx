@@ -43,7 +43,7 @@ export function CategoryFormDialog(p: CategoryFormDialogProps) {
         className={`w-[480px] rounded-lg border border-border bg-surface p-5 mx-4 max-md:mx-0 ${MODAL_SHEET}`}
         onClick={e => e.stopPropagation()}
       >
-        <div className="max-md:block hidden mx-auto h-1 w-9 rounded-full bg-white/20 mb-3" />
+        <div className="max-md:block hidden mx-auto h-1 w-9 rounded-full bg-white/20 mb-3 light:bg-black/10" />
         <h3 className="text-[15px] font-semibold text-text-primary mb-4">
           {p.initial ? t('form.editTitle') : t('form.createTitle')}
         </h3>

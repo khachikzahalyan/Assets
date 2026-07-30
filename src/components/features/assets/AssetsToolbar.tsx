@@ -138,7 +138,7 @@ export function AssetsToolbar({
             aria-label={t('toolbar.import')}
             className="bg-surface border border-border-strong text-text-primary hover:bg-bg h-8 px-3 rounded-lg text-[13px] font-semibold inline-flex items-center gap-1.5 transition-colors duration-150 max-md:hidden"
           >
-            <Icon name="file-up" size={13} className="text-sky-300" />
+            <Icon name="file-up" size={13} className="text-sky-300 light:text-sky-700" />
             <span>{t('toolbar.import')}</span>
           </button>
         )}
@@ -152,7 +152,7 @@ export function AssetsToolbar({
           aria-label={t('export.xlsx')}
           className="bg-surface border border-border-strong text-text-primary hover:bg-bg h-8 px-3 rounded-lg text-[13px] font-semibold inline-flex items-center gap-1.5 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed max-md:hidden"
         >
-          <Icon name="file-spreadsheet" size={13} className="text-emerald-300" />
+          <Icon name="file-spreadsheet" size={13} className="text-emerald-300 light:text-emerald-700" />
           <span>{t('export.xlsx')}</span>
         </button>
 

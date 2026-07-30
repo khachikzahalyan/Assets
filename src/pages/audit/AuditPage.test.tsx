@@ -393,5 +393,30 @@ describe('AuditPage', () => {
         expect(rows.length - 1).toBe(10)
       })
     })
+
+    it('deep-page navigation re-fetches: page 2→3 shows the FINAL 5 rows (not a repeat of page 2)', async () => {
+      // Regression for the cursor-key bug: deep pages shared a constant null cache
+      // key, so useCachedResource never re-ran the fetch past page 2 — every deep
+      // page showed page 2's rows and hasNext stayed true forever. 25 logs = pages
+      // of 10 / 10 / 5. The decisive check is page 3 = 5 rows (the buggy build
+      // showed 10, a stale repeat of page 2), and ent-01 (the very last, oldest
+      // entry) is present only on page 3.
+      const logs = makePageLogs(25, 'uid-alice')
+      const repo = new InMemoryAuditLogRepository(logs, ACTOR_NAMES)
+      renderPage(repo)
+
+      await waitFor(() => expect(screen.getAllByRole('row').length - 1).toBe(10))
+
+      const nextLabel = i18n.t('pagination.next', { ns: 'audit' })
+      // Page 1 → 2
+      fireEvent.click(screen.getByRole('button', { name: nextLabel }))
+      await waitFor(() => expect(screen.getAllByRole('row').length - 1).toBe(10))
+      expect(screen.queryByText('ent-01')).toBeNull() // last entry not yet visible
+
+      // Page 2 → 3 (the turn the bug froze)
+      fireEvent.click(screen.getByRole('button', { name: nextLabel }))
+      await waitFor(() => expect(screen.getAllByRole('row').length - 1).toBe(5))
+      expect(screen.getByText('ent-01')).toBeInTheDocument()
+    })
   })
 })

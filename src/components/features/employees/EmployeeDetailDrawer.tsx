@@ -58,26 +58,26 @@ export interface EmployeeDetailDrawerProps {
 /** Canonical icon tint map — unique hue per meaningful icon name. */
 const ICON_TINT: Record<string, string> = {
   cpu: 'text-accent',
-  'memory-stick': 'text-emerald-300',
-  'hard-drive': 'text-sky-300',
-  fan: 'text-cyan-300',
-  plug: 'text-amber-300',
-  'battery-medium': 'text-rose-300',
-  microchip: 'text-violet-300',
-  users: 'text-blue-400',
-  'map-pin': 'text-emerald-400',
-  wrench: 'text-amber-400',
-  'key-round': 'text-violet-400',
-  'scan-line': 'text-cyan-400',
-  history: 'text-sky-400',
-  'file-text': 'text-teal-400',
-  package: 'text-fuchsia-400',
-  boxes: 'text-indigo-400',
-  'building-2': 'text-lime-400',
-  building: 'text-lime-400',
-  mail: 'text-rose-400',
-  phone: 'text-teal-400',
-  'user-circle': 'text-blue-400',
+  'memory-stick': 'text-emerald-300 light:text-emerald-700',
+  'hard-drive': 'text-sky-300 light:text-sky-700',
+  fan: 'text-cyan-300 light:text-cyan-700',
+  plug: 'text-amber-300 light:text-amber-700',
+  'battery-medium': 'text-rose-300 light:text-rose-700',
+  microchip: 'text-violet-300 light:text-violet-700',
+  users: 'text-blue-400 light:text-blue-600',
+  'map-pin': 'text-emerald-400 light:text-emerald-700',
+  wrench: 'text-amber-400 light:text-amber-700',
+  'key-round': 'text-violet-400 light:text-violet-700',
+  'scan-line': 'text-cyan-400 light:text-cyan-700',
+  history: 'text-sky-400 light:text-sky-700',
+  'file-text': 'text-teal-400 light:text-teal-700',
+  package: 'text-fuchsia-400 light:text-fuchsia-700',
+  boxes: 'text-indigo-400 light:text-indigo-700',
+  'building-2': 'text-lime-400 light:text-lime-700',
+  building: 'text-lime-400 light:text-lime-700',
+  mail: 'text-rose-400 light:text-rose-700',
+  phone: 'text-teal-400 light:text-teal-700',
+  'user-circle': 'text-blue-400 light:text-blue-600',
 }
 
 function iconTint(name: string): string {
@@ -251,7 +251,7 @@ export function EmployeeDetailDrawer({
           {/* Status dot — bottom-right corner */}
           <span
             className={`absolute bottom-0 right-0 w-3 h-3 rounded-full ring-2 ring-border ${
-              isActive ? 'bg-emerald-500' : 'bg-slate-300'
+              isActive ? 'bg-emerald-500' : 'bg-slate-300 light:bg-slate-500'
             }`}
             title={t(`status.${emp.status}`)}
           />
@@ -357,7 +357,7 @@ export function EmployeeDetailDrawer({
             <button
               type="button"
               onClick={toggleAll}
-              className="ml-3 text-[13.5px] font-semibold text-emerald-300 hover:underline"
+              className="ml-3 text-[13.5px] font-semibold text-emerald-300 light:text-emerald-700 hover:underline"
             >
               {selected.size < linkedAssets.length
                 ? t('transfer.selectAll')
@@ -381,7 +381,7 @@ export function EmployeeDetailDrawer({
             <button
               type="button"
               onClick={() => onLinkAssets(emp.id)}
-              className="inline-flex items-center gap-1 h-7 px-2.5 max-md:px-2 rounded-md text-[14px] max-md:text-[12px] font-semibold whitespace-nowrap text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/15 transition-colors"
+              className="inline-flex items-center gap-1 h-7 px-2.5 max-md:px-2 rounded-md text-[14px] max-md:text-[12px] font-semibold whitespace-nowrap text-emerald-300 light:text-emerald-700 bg-emerald-500/10 border border-emerald-500/30 light:border-emerald-200 hover:bg-emerald-500/15 transition-colors"
             >
               <Icon name="link-2" size={12} />
               {t('detail.linkAsset')}

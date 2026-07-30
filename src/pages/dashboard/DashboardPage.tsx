@@ -106,7 +106,7 @@ export function DashboardPage({ repo }: DashboardPageProps) {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {[
             { icon: 'building',         iconCls: 'bg-success/15 text-success',           title: t('branches.title') },
-            { icon: 'key-round',        iconCls: 'bg-violet-500/15 text-violet-300',      title: t('license.title') },
+            { icon: 'key-round',        iconCls: 'bg-violet-500/15 text-violet-300 light:text-violet-700',      title: t('license.title') },
             { icon: 'arrow-right-left', iconCls: 'bg-success/15 text-success',            title: t('recentActivity') },
           ].map((p, i) => (
             <div key={i} className="bg-surface border border-border rounded-xl overflow-hidden">

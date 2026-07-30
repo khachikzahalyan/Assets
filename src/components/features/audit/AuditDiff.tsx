@@ -37,8 +37,8 @@ export function AuditDiff({ log }: AuditDiffProps) {
             {rows.map(r => (
               <tr key={r.key} className="align-top border-t border-border">
                 <td className="py-1 pr-3 font-mono text-text-tertiary whitespace-nowrap">{r.key}</td>
-                <td className="py-1 pr-3 font-mono text-[#F87171] break-all">{r.before ?? '—'}</td>
-                <td className="py-1 font-mono text-[#34D399] break-all">{r.after ?? '—'}</td>
+                <td className="py-1 pr-3 font-mono text-[#F87171] light:text-rose-700 break-all">{r.before ?? '—'}</td>
+                <td className="py-1 font-mono text-[#34D399] light:text-emerald-700 break-all">{r.after ?? '—'}</td>
               </tr>
             ))}
           </tbody>

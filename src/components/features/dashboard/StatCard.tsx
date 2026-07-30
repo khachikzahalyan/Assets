@@ -69,9 +69,9 @@ const ACCENT: Record<
     glow:        'bg-info/20',
   },
   violet: {
-    iconBox:     'bg-violet-500/15 text-violet-300',
-    number:      'text-violet-300',
-    label:       'text-violet-300',
+    iconBox:     'bg-violet-500/15 text-violet-300 light:text-violet-700',
+    number:      'text-violet-300 light:text-violet-700',
+    label:       'text-violet-300 light:text-violet-700',
     hoverBorder: 'hover:border-violet-500/50',
     cardBg:      'from-violet-500/15 to-violet-500/[0.06]',
     cardBorder:  'border-violet-500/30',

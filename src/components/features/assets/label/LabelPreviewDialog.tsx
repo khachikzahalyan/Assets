@@ -92,7 +92,7 @@ export function LabelPreviewDialog({ assets, onClose, onPrint }: LabelPreviewDia
           {/* Pull handle — visible on mobile only */}
           <div
             aria-hidden="true"
-            className="md:hidden mx-auto mt-2.5 mb-1 w-10 h-1 rounded-full bg-white/20"
+            className="md:hidden mx-auto mt-2.5 mb-1 w-10 h-1 rounded-full bg-slate-400/35"
           />
 
           {/* Header — minimal (just close); the label itself is the focus */}
@@ -122,7 +122,7 @@ export function LabelPreviewDialog({ assets, onClose, onPrint }: LabelPreviewDia
             style={{ paddingBottom: 'calc(max(16px, env(safe-area-inset-bottom, 0px)) + 8px)' }}
           >
             {commitError && (
-              <p role="alert" className="text-[12px] text-rose-400 self-end max-md:self-start">{commitError}</p>
+              <p role="alert" className="text-[12px] text-rose-400 light:text-rose-700 self-end max-md:self-start">{commitError}</p>
             )}
             <div className="flex items-center justify-end gap-2 max-md:flex-col-reverse max-md:gap-2.5">
               <Btn

@@ -44,7 +44,7 @@ export function LanguageToggle() {
       {open && (
         <div
           className="ams-lang-dropdown absolute right-0 top-full mt-1.5 w-44 bg-surface-2 border border-border rounded-lg anim-dropdown-in overflow-hidden z-[200]"
-          style={{ boxShadow: '0 12px 32px rgba(0,0,0,0.55)' }}
+          style={{ boxShadow: 'var(--shadow-popover)' }}
         >
           {langs.map((l) => {
             const isActive = i18n.language?.startsWith(l.id)

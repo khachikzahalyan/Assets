@@ -59,12 +59,12 @@ export interface TileAccentEntry { bg: string; text: string }
 export const TILE_ACCENT: Record<string, TileAccentEntry> = {
   slate:   { bg: 'bg-surface-2',                    text: 'text-text-tertiary'  },
   indigo:  { bg: 'bg-[rgba(249,115,22,0.20)]',      text: 'text-accent'  },  // CPU → orange
-  emerald: { bg: 'bg-emerald-500/15',               text: 'text-emerald-300'},
-  amber:   { bg: 'bg-amber-500/15',                 text: 'text-amber-300'  },
-  sky:     { bg: 'bg-sky-500/15',                   text: 'text-sky-300'    },
-  rose:    { bg: 'bg-rose-500/15',                  text: 'text-rose-300'   },
-  violet:  { bg: 'bg-violet-500/15',                text: 'text-violet-300' },
-  cyan:    { bg: 'bg-cyan-500/15',                  text: 'text-cyan-300'   },
+  emerald: { bg: 'bg-emerald-500/15',               text: 'text-emerald-300 light:text-emerald-700'},
+  amber:   { bg: 'bg-amber-500/15',                 text: 'text-amber-300 light:text-amber-700'  },
+  sky:     { bg: 'bg-sky-500/15',                   text: 'text-sky-300 light:text-sky-700'    },
+  rose:    { bg: 'bg-rose-500/15',                  text: 'text-rose-300 light:text-rose-700'   },
+  violet:  { bg: 'bg-violet-500/15',                text: 'text-violet-300 light:text-violet-700' },
+  cyan:    { bg: 'bg-cyan-500/15',                  text: 'text-cyan-300 light:text-cyan-700'   },
 }
 
 // ---------------------------------------------------------------------------
@@ -77,19 +77,19 @@ export const HISTORY_TINT: Record<string, HistoryTintEntry> = {
   'pencil':           { bg: 'bg-[rgba(249,115,22,0.12)]', text: 'text-accent'  },
   'arrow-right-left': { bg: 'bg-accent/15',             text: 'text-accent-light'  },
   'memory-stick':     { bg: 'bg-[rgba(249,115,22,0.12)]', text: 'text-accent'  },
-  'hard-drive':       { bg: 'bg-amber-500/15',             text: 'text-amber-300'  },
-  'plug':             { bg: 'bg-sky-500/15',               text: 'text-sky-300'    },
-  'fan':              { bg: 'bg-sky-500/15',               text: 'text-sky-300'    },
-  'plus':             { bg: 'bg-emerald-500/15',           text: 'text-emerald-300'},
-  'archive-x':        { bg: 'bg-rose-500/15',              text: 'text-rose-300'   },
-  'hammer':           { bg: 'bg-amber-500/15',             text: 'text-amber-300'  },
+  'hard-drive':       { bg: 'bg-amber-500/15',             text: 'text-amber-300 light:text-amber-700'  },
+  'plug':             { bg: 'bg-sky-500/15',               text: 'text-sky-300 light:text-sky-700'    },
+  'fan':              { bg: 'bg-sky-500/15',               text: 'text-sky-300 light:text-sky-700'    },
+  'plus':             { bg: 'bg-emerald-500/15',           text: 'text-emerald-300 light:text-emerald-700'},
+  'archive-x':        { bg: 'bg-rose-500/15',              text: 'text-rose-300 light:text-rose-700'   },
+  'hammer':           { bg: 'bg-amber-500/15',             text: 'text-amber-300 light:text-amber-700'  },
   'wrench':           { bg: 'bg-[rgba(249,115,22,0.12)]', text: 'text-accent'  },
   'eye':              { bg: 'bg-surface-2',                text: 'text-text-tertiary'  },
-  'inbox':            { bg: 'bg-sky-500/15',               text: 'text-sky-300'    },
-  'map-pin':          { bg: 'bg-emerald-500/15',           text: 'text-emerald-300'},
-  'clock':            { bg: 'bg-rose-500/15',              text: 'text-rose-300'   },
+  'inbox':            { bg: 'bg-sky-500/15',               text: 'text-sky-300 light:text-sky-700'    },
+  'map-pin':          { bg: 'bg-emerald-500/15',           text: 'text-emerald-300 light:text-emerald-700'},
+  'clock':            { bg: 'bg-rose-500/15',              text: 'text-rose-300 light:text-rose-700'   },
   'circle':           { bg: 'bg-surface-2',                text: 'text-text-tertiary'  },
-  'check-circle':     { bg: 'bg-emerald-500/15',           text: 'text-emerald-300'},
+  'check-circle':     { bg: 'bg-emerald-500/15',           text: 'text-emerald-300 light:text-emerald-700'},
 }
 
 const FALLBACK_TINT: HistoryTintEntry = { bg: 'bg-surface-2', text: 'text-text-tertiary' }
@@ -361,8 +361,8 @@ export function buildSpecsLines(
   // green; once a part change marks the slot replaced, the tile flips to
   // «Заменено» amber — mirrors the Parts «Установлено» list (single source: the
   // asset's resolved upgradeCurrent). A replaced kind is one with replaced:true.
-  const FACTORY_GREEN = 'text-emerald-300'
-  const REPLACED_AMBER = 'text-amber-300'
+  const FACTORY_GREEN = 'text-emerald-300 light:text-emerald-700'
+  const REPLACED_AMBER = 'text-amber-300 light:text-amber-700'
   const replacedKinds = new Set(
     (upgradeCurrent ?? []).filter(s => s.replaced).map(s => s.kind),
   )

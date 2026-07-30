@@ -146,7 +146,7 @@ export function DepartmentsPage({ repository, employeeRepository }: DepartmentsP
         onDelete={askDelete}
         minRows={PAGE_SIZE}
         mobileIcon={() => (
-          <span className="w-[28px] h-[28px] rounded-[8px] inline-flex items-center justify-center flex-shrink-0 bg-sky-500/15 text-sky-300" aria-hidden="true">
+          <span className="w-[28px] h-[28px] rounded-[8px] inline-flex items-center justify-center flex-shrink-0 bg-sky-500/15 text-sky-300 light:text-sky-700" aria-hidden="true">
             <Icon name="network" size={14} />
           </span>
         )}
@@ -214,7 +214,7 @@ export function DepartmentsPage({ repository, employeeRepository }: DepartmentsP
           >
             <header className="flex items-center justify-between gap-3 px-5 pt-5 pb-3">
               <div className="flex items-center gap-2.5 min-w-0">
-                <span className="w-7 h-7 rounded-md bg-sky-500/15 text-sky-300 inline-flex items-center justify-center flex-shrink-0">
+                <span className="w-7 h-7 rounded-md bg-sky-500/15 text-sky-300 inline-flex items-center justify-center flex-shrink-0 light:text-sky-700">
                   <Icon name="network" size={14} />
                 </span>
                 <h2 id="dept-roster-title" className="text-[15px] font-bold text-text-primary truncate">

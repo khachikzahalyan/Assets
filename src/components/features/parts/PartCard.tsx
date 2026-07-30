@@ -166,7 +166,7 @@ export const PartCard = memo(function PartCard({
       className={`
         relative bg-surface border rounded-xl overflow-hidden transition-all cursor-pointer
         ${selected
-          ? 'border-[#F97316] shadow-md shadow-[#FB923C]/40 ring-2 ring-[#F97316]/15'
+          ? 'border-[#F97316] shadow-md shadow-[#FB923C]/40 light:shadow-[#F97316]/20 ring-2 ring-[#F97316]/15'
           : 'border-border shadow-sm shadow-black/30 hover:shadow-md hover:border-border-strong'}
       `}
     >
@@ -200,7 +200,7 @@ export const PartCard = memo(function PartCard({
                 onClick={() => setRamDdr(ddr)}
                 className={`px-2.5 h-6 rounded-full text-[13px] font-semibold transition-all border
                   ${ramDdr === ddr
-                    ? 'bg-accent border-accent text-white shadow-sm shadow-[#FB923C]/40'
+                    ? 'bg-accent border-accent text-white shadow-sm shadow-[#FB923C]/40 light:shadow-[#F97316]/20'
                     : 'bg-surface border-border text-text-tertiary hover:border-border-strong hover:text-text-secondary'}`}
               >
                 {ddr}
@@ -274,7 +274,7 @@ export const PartCard = memo(function PartCard({
         if (visibleVariants.length === 0) {
           return (
             <div
-              className="border-t border-[#2A2F36]/60 bg-[#1B1F24]/70 px-4 py-3 text-center"
+              className="border-t border-[#2A2F36]/60 bg-[#1B1F24]/70 px-4 py-3 text-center light:bg-surface-sunken light:border-border"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="text-[14px] text-text-tertiary">{t('warehouse.noneAvailable')}</div>
@@ -285,7 +285,7 @@ export const PartCard = memo(function PartCard({
 
         return (
           <div
-            className="border-t border-[#2A2F36]/60 bg-[#1B1F24]/70 max-h-[220px] overflow-y-auto"
+            className="border-t border-[#2A2F36]/60 bg-[#1B1F24]/70 max-h-[220px] overflow-y-auto light:bg-surface-sunken light:border-border"
             onClick={(e) => e.stopPropagation()}
           >
             <ul className="divide-y divide-border">

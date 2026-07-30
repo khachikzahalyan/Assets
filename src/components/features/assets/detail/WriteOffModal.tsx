@@ -53,7 +53,7 @@ export function WriteOffModal({ asset, busy, onClose, onConfirm }: WriteOffModal
     >
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"
+        className="absolute inset-0 bg-black/40 light:bg-slate-900/35 backdrop-blur-[2px]"
         onClick={() => !busy && onClose()}
         aria-hidden="true"
       />
@@ -73,12 +73,12 @@ export function WriteOffModal({ asset, busy, onClose, onConfirm }: WriteOffModal
         {/* Pull-handle — mobile only */}
         <div
           aria-hidden="true"
-          className="md:hidden mx-auto mt-2.5 mb-1 w-10 h-1 rounded-full bg-[rgba(148,163,184,0.35)]"
+          className="md:hidden mx-auto mt-2.5 mb-1 w-10 h-1 rounded-full bg-slate-400/35"
         />
 
         {/* Header */}
         <div className="px-5 pt-4 pb-3 flex items-start gap-3">
-          <span className="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-300 flex items-center justify-center shrink-0 ring-1 ring-rose-500/30">
+          <span className="w-10 h-10 rounded-xl bg-rose-500/10 light:bg-rose-50 text-rose-300 light:text-rose-700 flex items-center justify-center shrink-0 ring-1 ring-rose-500/30 light:ring-rose-200">
             <Icon name="archive-x" size={18} />
           </span>
           <div className="min-w-0 flex-1">
@@ -137,7 +137,7 @@ export function WriteOffModal({ asset, busy, onClose, onConfirm }: WriteOffModal
               type="button"
               onClick={handleConfirm}
               disabled={!trimmed || busy}
-              className="inline-flex items-center justify-center h-9 px-3.5 text-sm gap-1.5 rounded-lg font-medium bg-surface border border-rose-800/60 text-[#FDA4AF] hover:bg-rose-950/40 hover:border-rose-700/60 shadow-sm disabled:opacity-50 transition-all max-md:w-full max-md:h-11"
+              className="inline-flex items-center justify-center h-9 px-3.5 text-sm gap-1.5 rounded-lg font-medium bg-surface border border-rose-800/60 light:border-rose-300 text-rose-300 light:text-rose-700 hover:bg-rose-950/40 light:hover:bg-rose-50 hover:border-rose-700/60 light:hover:border-rose-400 shadow-sm disabled:opacity-50 transition-all max-md:w-full max-md:h-11"
             >
               {busy
                 ? <Icon name="loader-circle" size={13} className="animate-spin" />

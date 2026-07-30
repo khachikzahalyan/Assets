@@ -66,12 +66,11 @@ export const MobileCard = memo(function MobileCard({
 
   const iconTile = (
     <span
-      className="w-[28px] h-[28px] rounded-[8px] inline-flex items-center justify-center flex-shrink-0"
-      style={
-        catColor
-          ? { backgroundColor: catColor.bg, color: catColor.icon }
-          : { backgroundColor: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.40)' }
-      }
+      className={[
+        'w-[28px] h-[28px] rounded-[8px] inline-flex items-center justify-center flex-shrink-0',
+        !catColor ? 'bg-white/[0.04] light:bg-black/[0.05] text-white/40 light:text-black/30' : '',
+      ].join(' ')}
+      {...(catColor ? { style: { backgroundColor: catColor.bg, color: catColor.icon } } : {})}
     >
       <Icon name={cat?.lucideIcon ?? 'box'} size={15} aria-hidden="true" />
     </span>
@@ -85,7 +84,7 @@ export const MobileCard = memo(function MobileCard({
       {/* Icon-only remote chip — same cyan palette as the desktop «УДАЛЁННЫЙ» badge */}
       {isRemote && (
         <span
-          className="shrink-0 inline-flex items-center justify-center w-[16px] h-[16px] rounded-[4px] bg-cyan-500/15 text-cyan-300 border border-cyan-500/30"
+          className="shrink-0 inline-flex items-center justify-center w-[16px] h-[16px] rounded-[4px] bg-cyan-500/15 text-cyan-300 light:text-cyan-700 border border-cyan-500/30"
           aria-label="Удалённый"
         >
           <Icon name="house" size={9} aria-hidden="true" />
@@ -98,7 +97,7 @@ export const MobileCard = memo(function MobileCard({
     <div
       className={[
         'text-[11px] leading-snug truncate',
-        isAuditOrIntern ? 'text-amber-300' : 'text-text-tertiary',
+        isAuditOrIntern ? 'text-amber-300 light:text-amber-700' : 'text-text-tertiary',
       ].join(' ')}
     >
       {subline}

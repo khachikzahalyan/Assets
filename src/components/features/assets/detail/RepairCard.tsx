@@ -46,10 +46,10 @@ export function RepairCard({
       {isInRepair ? (
         // State: in-repair alert + return button
         <div className="space-y-3">
-          <div className="flex items-start gap-2 px-2.5 py-2 rounded-lg bg-amber-500/10 border border-amber-500/30">
-            <Icon name="alert-circle" size={14} className="text-amber-300 shrink-0 mt-0.5" />
+          <div className="flex items-start gap-2 px-2.5 py-2 rounded-lg bg-amber-500/10 light:bg-amber-50 border border-amber-500/30 light:border-amber-200">
+            <Icon name="alert-circle" size={14} className="text-amber-300 light:text-amber-700 shrink-0 mt-0.5" />
             <div className="min-w-0 flex-1">
-              <p className="text-[14px] font-semibold text-amber-300">{t('detail.repair.inRepair')}</p>
+              <p className="text-[14px] font-semibold text-amber-300 light:text-amber-700">{t('detail.repair.inRepair')}</p>
             </div>
           </div>
           <Btn
@@ -70,7 +70,7 @@ export function RepairCard({
         <button
           type="button"
           onClick={openForm}
-          className="w-full flex items-center justify-center gap-2 py-2 rounded-xl border border-dashed border-border text-[14px] text-text-primary hover:border-amber-500/30 hover:text-amber-300 hover:bg-amber-500/10 transition-colors"
+          className="w-full flex items-center justify-center gap-2 py-2 rounded-xl border border-dashed border-border text-[14px] text-text-primary hover:border-amber-500/30 hover:text-amber-300 light:hover:text-amber-700 hover:bg-amber-500/10 transition-colors"
         >
           <Icon name="wrench" size={13} />
           {t('detail.repair.sendToRepair')}
@@ -116,7 +116,7 @@ export function RepairCard({
               type="button"
               onClick={handleConfirm}
               disabled={!reason.trim() || busy}
-              className="flex-1 flex items-center justify-center gap-1.5 py-1.5 max-md:py-2 rounded-xl text-[14px] bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-sm"
+              className="flex-1 flex items-center justify-center gap-1.5 py-1.5 max-md:py-2 rounded-xl text-[14px] bg-amber-500 light:bg-amber-600 text-white hover:bg-amber-600 light:hover:bg-amber-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-sm"
             >
               {busy
                 ? <Icon name="loader-circle" size={13} className="animate-spin" />

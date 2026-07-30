@@ -18,7 +18,7 @@ export function LicensePanel({ stats, serverLicenseCount }: LicensePanelProps) {
       data-testid="section-licenses"
     >
       <header className="flex items-center gap-2.5 px-5 py-3.5 border-b border-border">
-        <span className="w-6 h-6 lg:w-7 lg:h-7 rounded-md bg-violet-500/15 text-violet-300 inline-flex items-center justify-center flex-shrink-0">
+        <span className="w-6 h-6 lg:w-7 lg:h-7 rounded-md bg-violet-500/15 text-violet-300 light:text-violet-700 inline-flex items-center justify-center flex-shrink-0">
           <Icon name="key-round" size={14} />
         </span>
         <h2 className="text-[12px] lg:text-[13px] font-semibold text-text-primary">
@@ -48,7 +48,7 @@ export function LicensePanel({ stats, serverLicenseCount }: LicensePanelProps) {
         {/* 3-col mini stat boxes */}
         <div className="grid grid-cols-3 gap-2">
           {/* Free */}
-          <div className="bg-white/[0.03] border border-border rounded-lg p-2.5 text-center">
+          <div className="bg-white/[0.03] light:bg-black/[0.03] border border-border rounded-lg p-2.5 text-center">
             <div className="text-[20px] font-mono font-bold tabular-nums text-success">
               {stats.free}
             </div>
@@ -56,13 +56,13 @@ export function LicensePanel({ stats, serverLicenseCount }: LicensePanelProps) {
           </div>
           {/* In use — violet highlight */}
           <div className="bg-violet-500/[0.06] border border-violet-500/20 rounded-lg p-2.5 text-center">
-            <div className="text-[20px] font-mono font-bold tabular-nums text-violet-300">
+            <div className="text-[20px] font-mono font-bold tabular-nums text-violet-300 light:text-violet-700">
               {stats.inUse}
             </div>
             <div className="text-[10.5px] text-text-subtle mt-0.5">{t('license.inUse')}</div>
           </div>
           {/* Retired */}
-          <div className="bg-white/[0.03] border border-border rounded-lg p-2.5 text-center">
+          <div className="bg-white/[0.03] light:bg-black/[0.03] border border-border rounded-lg p-2.5 text-center">
             <div className="text-[20px] font-mono font-bold tabular-nums text-text-subtle">
               {stats.retired}
             </div>
@@ -74,9 +74,9 @@ export function LicensePanel({ stats, serverLicenseCount }: LicensePanelProps) {
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center justify-between">
             <span className="text-[11.5px] text-text-subtle">{t('license.usage')}</span>
-            <span className="text-[11.5px] font-mono text-violet-300">{usagePct}%</span>
+            <span className="text-[11.5px] font-mono text-violet-300 light:text-violet-700">{usagePct}%</span>
           </div>
-          <div className="w-full h-1.5 rounded-full bg-white/5 overflow-hidden" aria-hidden="true">
+          <div className="w-full h-1.5 rounded-full bg-white/5 light:bg-black/5 overflow-hidden" aria-hidden="true">
             <div
               className="h-full rounded-full bg-gradient-to-r from-violet-500 to-violet-400/60 transition-all duration-300"
               style={{ width: `${usagePct}%` }}

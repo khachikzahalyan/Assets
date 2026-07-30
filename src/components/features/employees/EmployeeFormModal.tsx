@@ -59,7 +59,7 @@ function blankDraft(): Draft {
 
 const LABEL_CLS =
   'block mb-1 text-[11px] uppercase tracking-[0.06em] font-semibold text-text-subtle'
-const ERROR_CLS = 'mt-1 text-[11px] text-[#FDA4AF]'
+const ERROR_CLS = 'mt-1 text-[11px] text-[#FDA4AF] light:text-rose-700'
 
 interface FieldWrapProps {
   label: string
@@ -73,7 +73,7 @@ function FieldWrap({ label, required, error, children }: FieldWrapProps) {
     <label className="block">
       <span className={LABEL_CLS}>
         {label}
-        {required && <span className="text-[#FDA4AF] ml-0.5">*</span>}
+        {required && <span className="text-[#FDA4AF] light:text-rose-700 ml-0.5">*</span>}
       </span>
       {children}
       {error && <span className={ERROR_CLS}>{error}</span>}

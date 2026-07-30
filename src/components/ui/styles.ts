@@ -13,14 +13,14 @@
  * + RolesPage (with extra backdrop-blur-sm via cn).
  */
 export const DIALOG_BACKDROP =
-  'fixed inset-0 z-50 flex items-center justify-center max-md:items-end bg-black/60'
+  'fixed inset-0 z-50 flex items-center justify-center max-md:items-end bg-black/60 light:bg-slate-900/35'
 
 /**
  * License-module modal backdrop — z-200, centered, with blur and padding.
  * 4 usages: ActivateKeyModal, AddSubscriptionModal, KeyDetailsModal, ManageAssigneesModal.
  */
 export const DIALOG_BACKDROP_BLUR =
-  'fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 max-md:items-end max-md:p-0'
+  'fixed inset-0 z-[200] bg-black/60 light:bg-slate-900/35 backdrop-blur-sm flex items-center justify-center p-4 max-md:items-end max-md:p-0'
 
 /**
  * Mobile bottom-sheet panel classes — slide up from bottom on ≤767px.
@@ -35,7 +35,7 @@ export const MODAL_SHEET =
  * 3 usages.
  */
 export const MODAL_BACKDROP_ABS =
-  'absolute inset-0 bg-black/60 backdrop-blur-[2px] anim-backdrop-fade'
+  'absolute inset-0 bg-black/60 light:bg-slate-900/35 backdrop-blur-[2px] anim-backdrop-fade'
 
 /**
  * List-row separator — border bottom, remove on last child (border-b-0 variant).

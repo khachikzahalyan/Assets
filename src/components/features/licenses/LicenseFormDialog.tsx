@@ -129,12 +129,12 @@ export function LicenseFormDialog({ open, kind, submitting, submitError, onSubmi
         className={`w-[480px] max-md:w-full max-md:rounded-b-none max-md:rounded-t-[18px] max-h-[90vh] max-md:max-h-[85vh] overflow-y-auto rounded-lg border border-border bg-surface p-5 mx-4 max-md:mx-0 ${MODAL_SHEET}`}
         onClick={e => e.stopPropagation()}
       >
-        <div className="max-md:block hidden mx-auto h-1 w-9 rounded-full bg-white/20 mb-3" />
+        <div className="max-md:block hidden mx-auto h-1 w-9 rounded-full bg-white/20 light:bg-black/10 mb-3" />
         <h3 className="text-[15px] font-semibold text-text-primary mb-4">{title}</h3>
 
         <div className="space-y-3">
           {submitError && (
-            <p role="alert" className="text-[12px] text-[#FDA4AF] px-1">{submitError}</p>
+            <p role="alert" className="text-[12px] text-[#FDA4AF] light:text-rose-700 px-1">{submitError}</p>
           )}
 
           {/* Name */}
@@ -148,7 +148,7 @@ export function LicenseFormDialog({ open, kind, submitting, submitError, onSubmi
               />
             </Field>
             {nameError && (
-              <p role="alert" className="mt-1 text-[12px] text-[#FDA4AF]">{nameError}</p>
+              <p role="alert" className="mt-1 text-[12px] text-[#FDA4AF] light:text-rose-700">{nameError}</p>
             )}
           </div>
 

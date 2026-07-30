@@ -14,7 +14,7 @@ export function ErrorState({ title, description, onRetry }: ErrorStateProps) {
   const resolvedDescription = description ?? t('states.errorDesc')
   return (
     <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
-      <span className="w-14 h-14 rounded-2xl bg-rose-950/40 text-[#FDA4AF] border border-rose-800/40 inline-flex items-center justify-center mb-4">
+      <span className="w-14 h-14 rounded-2xl bg-rose-950/40 light:bg-rose-50 text-[#FDA4AF] light:text-rose-700 border border-rose-800/40 light:border-rose-200 inline-flex items-center justify-center mb-4">
         <Icon name="triangle-alert" size={24} />
       </span>
       <h3 className="text-[14px] font-semibold text-text-primary mb-1">{resolvedTitle}</h3>

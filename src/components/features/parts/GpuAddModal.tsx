@@ -88,7 +88,7 @@ export function GpuAddModal({ open, onClose, onConfirm }: GpuAddModalProps) {
             onChange={e => setName(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="например, NVIDIA GeForce RTX 4060"
-            className="w-full bg-surface-2 border border-border rounded-lg px-3 py-2 text-[15.5px] text-text-primary placeholder:text-text-subtle outline-none focus:border-accent focus:ring-1 focus:ring-[#F97316]/30 transition-colors"
+            className="w-full bg-surface-2 border border-border rounded-lg px-3 py-2 text-[15.5px] text-text-primary placeholder:text-text-subtle outline-none focus:border-accent focus:ring-1 focus:ring-[var(--color-focus-ring)] transition-colors"
           />
         </div>
         <div>
@@ -103,13 +103,13 @@ export function GpuAddModal({ open, onClose, onConfirm }: GpuAddModalProps) {
             value={qty}
             onChange={e => setQty(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="w-full bg-surface-2 border border-border rounded-lg px-3 py-2 text-[15.5px] text-text-primary placeholder:text-text-subtle outline-none focus:border-accent focus:ring-1 focus:ring-[#F97316]/30 transition-colors"
+            className="w-full bg-surface-2 border border-border rounded-lg px-3 py-2 text-[15.5px] text-text-primary placeholder:text-text-subtle outline-none focus:border-accent focus:ring-1 focus:ring-[var(--color-focus-ring)] transition-colors"
           />
         </div>
       </div>
 
       {error && (
-        <div className="mx-5 text-[12.5px] text-rose-400 bg-rose-950/30 border border-rose-800/40 rounded-lg px-3 py-2 mb-3" role="alert">
+        <div className="mx-5 text-[12.5px] text-rose-400 bg-rose-950/30 border border-rose-800/40 rounded-lg px-3 py-2 mb-3 light:bg-rose-50 light:border-rose-200 light:text-rose-700" role="alert">
           {error}
         </div>
       )}
@@ -129,7 +129,7 @@ export function GpuAddModal({ open, onClose, onConfirm }: GpuAddModalProps) {
           onClick={() => { void handleSubmit() }}
           className={`px-4 py-2 rounded-lg text-[15px] font-semibold transition-colors
             ${canCreate && !submitting
-              ? 'bg-accent text-white hover:bg-[#EA6C0C] shadow-sm shadow-[#FB923C]/40'
+              ? 'bg-accent text-white hover:bg-[#EA6C0C] shadow-sm shadow-[#FB923C]/40 light:shadow-[#F97316]/20'
               : 'bg-surface-2 text-text-subtle cursor-not-allowed border border-border'}`}
         >
           {submitting ? t('gpuModal.saving') : 'Создать'}
@@ -144,7 +144,7 @@ export function GpuAddModal({ open, onClose, onConfirm }: GpuAddModalProps) {
     <>
       {!isMobile && ReactDOM.createPortal(
         <div className="fixed inset-0 z-[80]">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" onClick={handleClose} />
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] light:bg-slate-900/35" onClick={handleClose} />
           <div
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm bg-surface border border-border rounded-2xl shadow-2xl"
             role="dialog"

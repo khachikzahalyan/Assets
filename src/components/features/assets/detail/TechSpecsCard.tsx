@@ -70,7 +70,7 @@ export function TechSpecsCard({
       aria-label={copied ? t('detail.specs.copied') : t('detail.specs.copy')}
       className={`flex-shrink-0 inline-flex items-center gap-1.5 h-8 max-md:h-11 px-3 rounded-lg text-[12.5px] font-medium border transition-colors ${
         copied
-          ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400'
+          ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400 light:text-emerald-700'
           : 'bg-surface-2 border-border text-text-tertiary hover:text-text-primary hover:border-border-strong'
       }`}
     >

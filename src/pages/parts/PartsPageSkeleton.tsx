@@ -16,7 +16,7 @@
  * ── WAREHOUSE branch — mirrors WarehouseTab ──
  * Desktop (lg): grid-cols-12 master-detail:
  *   Left  (col-span-5): vertical list of PartCard-footprint shimmer cards.
- *   Right (col-span-7): one card (shadow-sm shadow-black/30) with a SKU list zone
+ *   Right (col-span-7): one card (shadow-sm shadow-black/30 light:shadow-slate-300/60) with a SKU list zone
  *                       + a real «ИСТОРИЯ» metrics strip (local chrome) + placeholder
  *                       history rows mirroring HistoryPanel's empty-state slots.
  * Mobile (max-md): category header row + placeholder detail rows (WarehouseMobileDetail
@@ -69,7 +69,7 @@ function DevicesSkeleton() {
             // First pill = 'all' — active style
             (i === 0
               ? 'bg-accent border-accent text-white opacity-80'
-              : 'bg-surface border-border text-text-tertiary max-md:border-white/10 opacity-80')
+              : 'bg-surface border-border text-text-tertiary max-md:border-white/10 light:max-md:border-black/10 opacity-80')
           }
         >
           {t(f.labelKey, f.labelFallback)}
@@ -142,7 +142,7 @@ function DevicesSkeleton() {
             Local chrome only (translated prompts, no async data) — rendered real.
             Mirrors InstalledDetailPanel when asset=null (lines ~117-128). */}
         <div className="hidden lg:flex lg:col-span-7 min-h-0 flex-col overflow-hidden">
-          <div className="h-full bg-surface border border-border rounded-xl shadow-sm shadow-black/30 flex items-center justify-center p-8">
+          <div className="h-full bg-surface border border-border rounded-xl shadow-sm shadow-black/30 light:shadow-slate-300/60 flex items-center justify-center p-8">
             <div className="text-center max-w-xs">
               <span className="w-12 h-12 rounded-full bg-surface-2 text-text-subtle inline-flex items-center justify-center mb-3">
                 <Icon name="monitor" size={20} aria-hidden="true" />
@@ -177,7 +177,7 @@ function WarehouseSkeleton() {
           <div className="flex flex-col gap-2.5 overflow-y-auto pr-1">
             {Array.from({ length: 8 }).map((_, i) => (
               /* PartCard footprint: bg-surface border rounded-xl, header px-4 py-3.5 */
-              <div key={i} className="bg-surface border border-border rounded-xl shadow-sm shadow-black/30 overflow-hidden">
+              <div key={i} className="bg-surface border border-border rounded-xl shadow-sm shadow-black/30 light:shadow-slate-300/60 overflow-hidden">
                 <div className="flex items-center gap-3 px-4 py-3.5">
                   {/* Icon plaque — w-10 h-10 rounded-lg (PartCard line ~176) */}
                   <div className="w-10 h-10 rounded-lg anim-skeleton flex-shrink-0" />
@@ -195,9 +195,9 @@ function WarehouseSkeleton() {
         </div>
 
         {/* RIGHT: SKU list + history — col-span-7 (mirrors WarehouseTab line ~238 + renderRightPanel).
-            Single card: bg-surface border rounded-xl shadow-sm shadow-black/30. */}
+            Single card: bg-surface border rounded-xl shadow-sm shadow-black/30 light:shadow-slate-300/60. */}
         <div className="col-span-7 flex flex-col gap-3 min-h-0">
-          <div className="bg-surface border border-border rounded-xl shadow-sm shadow-black/30 flex flex-col">
+          <div className="bg-surface border border-border rounded-xl shadow-sm shadow-black/30 light:shadow-slate-300/60 flex flex-col">
             {/* SKU rows — mirror WarehouseSkuList <li> geometry: px-5 py-3, 8×8 icon plaque,
                 divide-y between rows. */}
             <ul className="divide-y divide-border flex-shrink-0">

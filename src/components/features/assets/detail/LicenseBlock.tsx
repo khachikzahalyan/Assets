@@ -58,7 +58,7 @@ interface LicenseBlockProps {
 
 function MsLogo() {
   return (
-    <div className="w-11 h-11 rounded-lg bg-[#0F1620] border border-border inline-flex items-center justify-center shrink-0">
+    <div className="w-11 h-11 rounded-lg bg-[#0F1620] light:bg-slate-100 border border-border inline-flex items-center justify-center shrink-0">
       <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
         <rect x="1"  y="1"  width="10" height="10" fill="#F25022"/>
         <rect x="13" y="1"  width="10" height="10" fill="#7FBA00"/>
@@ -136,7 +136,7 @@ function RetailKeyArea({ licenseId }: { licenseId: string }) {
           aria-label={copied ? t('detail.license.copied') : t('detail.license.copy')}
           className={`flex-shrink-0 inline-flex items-center gap-1.5 h-7 px-2.5 rounded-lg text-[12px] font-medium border transition-colors ${
             copied
-              ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400'
+              ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400 light:text-emerald-700'
               : 'bg-surface-2 border-border text-text-tertiary hover:text-text-primary hover:border-border-strong'
           }`}
         >
@@ -261,11 +261,11 @@ export function LicenseBlock({
               </div>
               <span className="text-[13px] font-bold text-text-primary flex-1 truncate">{r.name}</span>
               {r.oem ? (
-                <span className="shrink-0 bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[10px] font-bold rounded-md px-2 py-0.5">
+                <span className="shrink-0 bg-amber-500/10 border border-amber-500/30 text-amber-300 light:text-amber-700 text-[10px] font-bold rounded-md px-2 py-0.5">
                   {t('detail.license.oem')}
                 </span>
               ) : (
-                <span className="shrink-0 bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-[10px] font-bold rounded-md px-2 py-0.5">
+                <span className="shrink-0 bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 light:text-emerald-700 text-[10px] font-bold rounded-md px-2 py-0.5">
                   {t('licenses:assignment.unassigned')}
                 </span>
               )}
@@ -292,11 +292,11 @@ export function LicenseBlock({
         </div>
         <span className="text-[13px] font-bold text-text-primary flex-1 truncate">{licName}</span>
         {isOemCompact ? (
-          <span className="shrink-0 bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[10px] font-bold rounded-md px-2 py-0.5">
+          <span className="shrink-0 bg-amber-500/10 border border-amber-500/30 text-amber-300 light:text-amber-700 text-[10px] font-bold rounded-md px-2 py-0.5">
             {t('detail.license.oem')}
           </span>
         ) : (
-          <span className="shrink-0 bg-blue-500/10 border border-blue-500/30 text-blue-300 text-[10px] font-bold rounded-md px-2 py-0.5">
+          <span className="shrink-0 bg-blue-500/10 border border-blue-500/30 text-blue-300 light:text-blue-700 text-[10px] font-bold rounded-md px-2 py-0.5">
             {t('detail.license.retail')}
           </span>
         )}
@@ -328,7 +328,7 @@ export function LicenseBlock({
               // STATE 1: Retail → key line
               <div>
                 {copyError && (
-                  <p className="mt-0.5 text-[11px] text-[#FDA4AF]">{t('detail.license.copyFailed')}</p>
+                  <p className="mt-0.5 text-[11px] text-rose-300 light:text-rose-700">{t('detail.license.copyFailed')}</p>
                 )}
                 {/* Probing the key — shimmer bar matched to the real key width
                     (≈29 mono chars · tracking-wider) and the key line's height, so
@@ -359,7 +359,7 @@ export function LicenseBlock({
               aria-label={copied ? t('detail.license.copied') : t('detail.license.copy')}
               className={`flex-shrink-0 inline-flex items-center gap-1.5 h-8 max-md:h-11 px-3 rounded-lg text-[12.5px] font-medium border transition-colors ${
                 copied
-                  ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400'
+                  ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400 light:text-emerald-700'
                   : 'bg-surface-2 border-border text-text-tertiary hover:text-text-primary hover:border-border-strong'
               }`}
             >

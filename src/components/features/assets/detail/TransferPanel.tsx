@@ -99,8 +99,8 @@ function TransferModeForm({
                     className={`flex-1 h-8 max-md:h-9 rounded-[7px] inline-flex items-center justify-center gap-1.5 text-[13px] font-semibold transition-colors
                       ${workMode === wm
                         ? wm === 'office'
-                          ? 'bg-emerald-500/15 text-emerald-300 ring-1 ring-inset ring-emerald-500/30'
-                          : 'bg-cyan-500/15 text-cyan-300 ring-1 ring-inset ring-cyan-500/30'
+                          ? 'bg-emerald-500/15 text-emerald-300 light:text-emerald-700 ring-1 ring-inset ring-emerald-500/30'
+                          : 'bg-cyan-500/15 text-cyan-300 light:text-cyan-700 ring-1 ring-inset ring-cyan-500/30'
                         : 'text-text-tertiary hover:text-text-primary hover:bg-surface-2'
                       }`}
                   >

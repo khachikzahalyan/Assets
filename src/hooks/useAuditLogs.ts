@@ -55,9 +55,17 @@ export function useAuditLogs(
 
   const currentCursor = cursorStack[cursorStack.length - 1] ?? null
 
-  // Cache page 1 only; deep pages are uncached (key=null → plain fetch semantics).
+  // Every page gets a STABLE, UNIQUE cache key. Page 1 keeps its warm-remount key.
+  // Deep pages MUST NOT share a constant key: useCachedResource only re-fetches on
+  // [key, tick] change, so the old `key = null` for every deep page meant turning
+  // page 2→3→4… never re-ran the fetch — every deep page showed page 2's rows and
+  // hasNext stayed true forever (the "table never changes / phantom 850 entries"
+  // bug). Keying on the page depth makes each turn re-fetch (and cache, with the
+  // 50-entry LRU eviction bounding growth).
   const repoId = cacheIdentity(repository)
-  const pageKey = currentCursor === null ? `audit:${repoId}:${queryKey}` : null
+  const pageKey = currentCursor === null
+    ? `audit:${repoId}:${queryKey}`
+    : `audit:${repoId}:${queryKey}:p${cursorStack.length}`
 
   const { data: pageData, loading, error: pageError, reload: reloadPage } = useCachedResource(
     pageKey,

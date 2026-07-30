@@ -78,7 +78,7 @@ export function KeyRowMobile({
 
   const iconTile = (
     <span
-      className="w-[28px] h-[28px] rounded-[8px] inline-flex items-center justify-center flex-shrink-0 bg-amber-500/15 text-amber-300"
+      className="w-[28px] h-[28px] rounded-[8px] inline-flex items-center justify-center flex-shrink-0 bg-amber-500/15 text-amber-300 light:text-amber-700"
       aria-hidden="true"
     >
       <Icon name="key-round" size={13} />

@@ -75,14 +75,14 @@ export function ManageAssigneesModal({
       onMouseDown={e => { if (e.target === e.currentTarget) onClose() }}
     >
       <div
-        className={`relative w-full max-w-lg bg-surface rounded-xl shadow-2xl shadow-black/60 border border-border flex flex-col max-h-[90vh] ${MODAL_SHEET}`}
+        className={`relative w-full max-w-lg bg-surface rounded-xl shadow-2xl shadow-black/60 light:shadow-slate-300/60 border border-border flex flex-col max-h-[90vh] ${MODAL_SHEET}`}
         style={{ animation: 'modalPop 200ms cubic-bezier(.22,1,.36,1) both' }}
         role="dialog"
         aria-modal="true"
         aria-labelledby={MANAGE_TITLE_ID}
       >
         {/* Pull-handle — mobile only */}
-        <div className="max-md:block hidden mx-auto h-1 w-9 rounded-full bg-white/20 mb-3 mt-2" />
+        <div className="max-md:block hidden mx-auto h-1 w-9 rounded-full bg-white/20 light:bg-black/10 mb-3 mt-2" />
         {/* Header */}
         <header className="flex items-center justify-between px-5 py-4 border-b border-border flex-shrink-0">
           <div className="flex items-center gap-2.5 min-w-0">
@@ -158,7 +158,7 @@ export function ManageAssigneesModal({
           <button
             type="button"
             onClick={onClose}
-            className="h-9 px-5 rounded-lg bg-gradient-to-b from-accent-light to-accent text-white text-[13.5px] font-semibold shadow-sm shadow-accent/20 hover:shadow-md hover:shadow-accent/30 transition-all"
+            className="h-9 px-5 rounded-lg bg-gradient-to-b from-accent-light to-accent text-white text-[13.5px] font-semibold shadow-sm shadow-accent/20 light:shadow-[#F97316]/20 hover:shadow-md hover:shadow-accent/30 light:hover:shadow-[#F97316]/20 transition-all"
           >
             {t('manage.done')}
           </button>

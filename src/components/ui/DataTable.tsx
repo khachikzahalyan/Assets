@@ -74,7 +74,7 @@ export interface DataTableProps<T> {
  * Generic CSS-grid ARIA table that matches the /assets table visual style exactly.
  *
  * Style spec:
- * - Sticky 44px header, bg #111315, bottom-border rgba(42,47,54,0.9)
+ * - Sticky 44px header, bg var(--color-bg), bottom-border var(--color-border)
  * - Column headers: 12px uppercase, tracking-[0.09em], font-semibold, text-text-tertiary
  * - First column paddingLeft:20; non-first columns px-3
  * - Rows: border-t border-border, orange hover rgba(249,115,22,0.08)
@@ -137,8 +137,8 @@ export function DataTable<T>({
           position: 'sticky',
           top: 0,
           zIndex: 2,
-          background: '#111315',
-          borderBottom: '1px solid rgba(42,47,54,0.9)',
+          background: 'var(--color-bg)',
+          borderBottom: '1px solid var(--color-border)',
           flexShrink: 0,
         }}
       >
@@ -238,8 +238,8 @@ export function DataTable<T>({
               {expandedContent != null && (
                 <div
                   style={{
-                    borderTop: '1px solid rgba(42,47,54,0.9)',
-                    background: '#15181C',
+                    borderTop: '1px solid var(--color-border)',
+                    background: 'var(--color-surface-sunken)',
                   }}
                 >
                   {expandedContent}
@@ -263,7 +263,7 @@ export function DataTable<T>({
             data-testid={placeholderTestId}
             style={{
               minHeight: 58,
-              ...(i === 0 ? { borderTop: '1px solid rgba(42,47,54,0.35)' } : {}),
+              ...(i === 0 ? { borderTop: '1px solid var(--color-border)' } : {}),
               pointerEvents: 'none',
               ...(fillHeight ? { flex: '1 1 0' } : {}),
             }}

@@ -101,7 +101,7 @@ export function WorkstationLicenseTable({ rows, renderActions }: WorkstationLice
   if (isMobile) {
     // ── Mobile card list ────────────────────────────────────────────────────────
     return (
-      <div className="flex flex-col divide-y divide-[#1F242B]">
+      <div className="flex flex-col divide-y divide-border">
         {rows.map((row) => (
           <div key={row.id} className="py-3 px-1 space-y-1.5">
             {/* Name + status */}

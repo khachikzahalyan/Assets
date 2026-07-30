@@ -97,7 +97,7 @@ export function AssetDetailDesktopView({
       <div className="lg:h-full lg:flex lg:flex-col lg:min-h-0">
       {/* Action error banner */}
       {actionError && (
-        <p role="alert" className="mb-3 text-[12px] text-[#FDA4AF] px-1">{actionError}</p>
+        <p role="alert" className="mb-3 text-[12px] text-rose-300 light:text-rose-700 px-1">{actionError}</p>
       )}
 
       {/*

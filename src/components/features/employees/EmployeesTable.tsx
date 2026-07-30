@@ -86,8 +86,7 @@ export function EmployeesTable({
         return (
           <div className="flex items-center gap-1.5 overflow-hidden min-w-0">
             <span
-              className="shrink-0 inline-flex"
-              style={{ color: isHeadOffice ? '#10B981' : '#38BDF8' }}
+              className={`shrink-0 inline-flex ${isHeadOffice ? 'text-emerald-500' : 'text-sky-400 light:text-sky-600'}`}
             >
               <Icon name={isHeadOffice ? 'landmark' : 'building'} size={12} />
             </span>
@@ -192,7 +191,7 @@ export function EmployeesTable({
               onClick={e => { e.stopPropagation(); onRestore(emp.id) }}
               title={t('detail.restore')}
               aria-label={t('detail.restore')}
-              className="inline-flex items-center justify-center w-7 h-7 rounded-md text-text-subtle hover:text-violet-300 hover:bg-violet-500/10 transition-colors duration-100 opacity-0 group-hover:opacity-100 focus:opacity-100"
+              className="inline-flex items-center justify-center w-7 h-7 rounded-md text-text-subtle hover:text-violet-300 light:hover:text-violet-700 hover:bg-violet-500/10 transition-colors duration-100 opacity-0 group-hover:opacity-100 focus:opacity-100"
             >
               <Icon name="rotate-ccw" size={13} />
             </button>

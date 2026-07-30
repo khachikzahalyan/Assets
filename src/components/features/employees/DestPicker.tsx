@@ -64,8 +64,8 @@ const KIND_ACCENT = {
   },
   department: {
     icon: 'layout-list',
-    iconCls: 'bg-amber-500/15 text-amber-300',
-    chipCls: 'bg-amber-500/10 ring-amber-500/30 text-amber-300 hover:bg-amber-500/15',
+    iconCls: 'bg-amber-500/15 text-amber-300 light:text-amber-700',
+    chipCls: 'bg-amber-500/10 ring-amber-500/30 text-amber-300 light:text-amber-700 hover:bg-amber-500/15',
   },
   branch: {
     icon: 'git-branch',
@@ -74,8 +74,8 @@ const KIND_ACCENT = {
   },
   temporary: {
     icon: 'timer',
-    iconCls: 'bg-rose-500/15 text-rose-300',
-    chipCls: 'bg-rose-500/10 ring-rose-500/30 text-rose-300 hover:bg-rose-500/15',
+    iconCls: 'bg-rose-500/15 text-rose-300 light:text-rose-700',
+    chipCls: 'bg-rose-500/10 ring-rose-500/30 text-rose-300 light:text-rose-700 hover:bg-rose-500/15',
   },
 } as const
 
@@ -466,7 +466,7 @@ export function DestPicker({
               ...(pos.left !== undefined ? { left: pos.left } : {}),
               ...(pos.right !== undefined ? { right: pos.right } : {}),
             }}
-            className="bg-surface shadow-2xl shadow-slate-900/15 rounded-2xl ring-1 ring-border p-1.5 anim-fade-slide-in"
+            className="bg-surface shadow-2xl shadow-slate-900/15 light:shadow-slate-300/50 rounded-2xl ring-1 ring-border p-1.5 anim-fade-slide-in"
           >
             {pickerContent}
           </div>,

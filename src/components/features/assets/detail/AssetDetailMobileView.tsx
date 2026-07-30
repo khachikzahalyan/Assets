@@ -135,7 +135,7 @@ export function AssetDetailMobileView({
     <div className="flex flex-col h-[calc(100dvh-128px)] overflow-hidden">
       {/* Action error banner */}
       {actionError && (
-        <p role="alert" className="mx-3.5 mt-2 text-[12px] text-rose-300 px-1 flex-shrink-0">
+        <p role="alert" className="mx-3.5 mt-2 text-[12px] text-rose-300 light:text-rose-700 px-1 flex-shrink-0">
           {actionError}
         </p>
       )}

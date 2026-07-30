@@ -246,7 +246,7 @@ export function CategoryPicker({ categories, value, onChange, categoryGroupId, d
       </div>
 
       {/* Footer: kbd hints + count — hidden on mobile sheet */}
-      <div className="px-3 py-1.5 border-t border-border text-[12px] text-text-subtle flex items-center gap-3 bg-[#111315]/50">
+      <div className="px-3 py-1.5 border-t border-border text-[12px] text-text-subtle flex items-center gap-3 bg-bg/50">
         <span className="hidden md:flex items-center gap-1">
           <kbd className="px-1 py-0.5 bg-surface border border-border rounded text-[11px] font-mono text-text-primary">↑↓</kbd>
           {' '}навигация
@@ -315,7 +315,7 @@ export function CategoryPicker({ categories, value, onChange, categoryGroupId, d
             width: pos.width,
             zIndex: 1000,
           }}
-          className="bg-surface ring-1 ring-[#2A2F36]/80 rounded-xl shadow-lg shadow-slate-900/10 anim-fade-slide-in overflow-hidden"
+          className="bg-surface ring-1 ring-border/80 rounded-xl shadow-lg shadow-slate-900/10 light:shadow-slate-300/40 anim-fade-slide-in overflow-hidden"
         >
           {categoryListContent}
         </div>,

@@ -331,7 +331,7 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
       {/* Write-error banner — max-md:my-2 so it isn't glued between cards */}
       {writeError && (
         <div
-          className="flex items-center gap-2.5 bg-rose-500/10 border border-rose-500/30 text-rose-300 px-4 py-3 rounded-xl text-[13.5px] flex-shrink-0 max-md:my-2"
+          className="flex items-center gap-2.5 bg-rose-500/10 border border-rose-500/30 text-rose-300 light:text-rose-700 px-4 py-3 rounded-xl text-[13.5px] flex-shrink-0 max-md:my-2"
           role="alert"
         >
           <Icon name="triangle-alert" size={15} className="flex-shrink-0" />
@@ -434,7 +434,7 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
           role="status"
           aria-live="polite"
         >
-          <div className="flex items-center gap-2.5 bg-surface border border-border text-text-primary px-4 py-3 rounded-xl shadow-xl shadow-black/60 text-[14px] font-medium max-w-sm">
+          <div className="flex items-center gap-2.5 bg-surface border border-border text-text-primary px-4 py-3 rounded-xl shadow-xl shadow-black/60 light:shadow-slate-300/60 text-[14px] font-medium max-w-sm">
             <span className="w-5 h-5 rounded-full bg-emerald-500 inline-flex items-center justify-center flex-shrink-0">
               <Icon name="check" size={11} className="text-white" />
             </span>

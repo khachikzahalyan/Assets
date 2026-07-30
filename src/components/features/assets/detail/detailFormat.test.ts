@@ -429,28 +429,28 @@ describe('buildSpecsLines — multi-slot storage', () => {
 // ---------------------------------------------------------------------------
 
 describe('buildSpecsLines — factory status valueClassName', () => {
-  it('cooling line has valueClassName "text-emerald-300" for a laptop category', () => {
+  it('cooling line has factory-green valueClassName for a laptop category', () => {
     const lines = buildSpecsLines({ cpu: 'i7' }, 'cat_laptop')
     const cooling = lines.find(l => l.labelKey === 'detail.specs.cooling')
 
     expect(cooling).toBeDefined()
-    expect(cooling!.valueClassName).toBe('text-emerald-300')
+    expect(cooling!.valueClassName).toBe('text-emerald-300 light:text-emerald-700')
   })
 
-  it('battery line has valueClassName "text-emerald-300" for a laptop category', () => {
+  it('battery line has factory-green valueClassName for a laptop category', () => {
     const lines = buildSpecsLines({ cpu: 'i7' }, 'cat_laptop')
     const battery = lines.find(l => l.labelKey === 'detail.specs.battery')
 
     expect(battery).toBeDefined()
-    expect(battery!.valueClassName).toBe('text-emerald-300')
+    expect(battery!.valueClassName).toBe('text-emerald-300 light:text-emerald-700')
   })
 
-  it('PSU line has valueClassName "text-emerald-300" for a desktop category', () => {
+  it('PSU line has factory-green valueClassName for a desktop category', () => {
     const lines = buildSpecsLines({ cpu: 'i7' }, 'cat_desktop')
     const psu = lines.find(l => l.labelKey === 'detail.specs.psu')
 
     expect(psu).toBeDefined()
-    expect(psu!.valueClassName).toBe('text-emerald-300')
+    expect(psu!.valueClassName).toBe('text-emerald-300 light:text-emerald-700')
   })
 
   it('cpu / gpu / ram / ssd lines do NOT carry valueClassName', () => {

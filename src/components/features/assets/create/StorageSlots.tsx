@@ -37,7 +37,7 @@ export function StorageSlots({ value, onChange }: StorageSlotsProps) {
             type="button"
             onClick={() => removeRow(r._id)}
             disabled={rows.length <= 1}
-            className="w-8 h-8 inline-flex items-center justify-center text-text-subtle hover:text-rose-300 hover:bg-rose-500/10 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            className="w-8 h-8 inline-flex items-center justify-center text-text-subtle hover:text-rose-300 light:hover:text-rose-700 hover:bg-rose-500/10 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             aria-label={`Удалить накопитель ${idx + 1}`}
           ><Icon name="x" size={14} /></button>
         </div>

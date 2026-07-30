@@ -67,7 +67,7 @@ export function DetailHero({
               {asset.serial && (
                 <span className="inline-flex items-center gap-1.5 text-text-tertiary max-md:text-[12px]">
                   <span className="uppercase tracking-wide text-[12px] max-md:text-[10px] text-text-subtle">SN</span>
-                  <span className="font-mono text-[#E2E8F0] break-all max-md:text-[11px]">{asset.serial}</span>
+                  <span className="font-mono text-[#E2E8F0] light:text-slate-700 break-all max-md:text-[11px]">{asset.serial}</span>
                 </span>
               )}
             </div>
@@ -88,7 +88,7 @@ export function DetailHero({
               <button
                 type="button"
                 onClick={onPrint}
-                className="inline-flex items-center gap-1.5 h-8 max-md:h-11 px-2.5 rounded-lg text-[13px] font-semibold text-accent bg-accent/10 border border-accent/30 hover:bg-accent/15 hover:border-accent/50 transition-colors"
+                className="inline-flex items-center gap-1.5 h-8 max-md:h-11 px-2.5 rounded-lg text-[13px] font-semibold text-accent light:text-accent bg-accent/10 border border-accent/30 hover:bg-accent/15 hover:border-accent/50 transition-colors"
               >
                 <Icon name="barcode" size={14} />
                 {t('label.print')}
@@ -98,7 +98,7 @@ export function DetailHero({
               <button
                 type="button"
                 onClick={onWriteOff}
-                className="inline-flex items-center gap-1.5 h-8 max-md:h-11 px-2.5 rounded-lg text-[13px] font-semibold text-rose-300 bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500/15 hover:border-rose-500/50 transition-colors max-md:ml-auto"
+                className="inline-flex items-center gap-1.5 h-8 max-md:h-11 px-2.5 rounded-lg text-[13px] font-semibold text-rose-300 light:text-rose-700 bg-rose-500/10 light:bg-rose-50 border border-rose-500/30 light:border-rose-200 hover:bg-rose-500/15 hover:border-rose-500/50 transition-colors max-md:ml-auto"
               >
                 <Icon name="archive-x" size={13} />
                 {t('detail.hero.writeOff')}

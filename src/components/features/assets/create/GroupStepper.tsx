@@ -70,7 +70,7 @@ export function GroupStepper({ requiresSerial, quantity, setQuantity, rows, setR
   }
 
   return (
-    <div className="rounded-xl ring-1 ring-[#2A2F36]/70 bg-[#111315]/60 p-3.5 space-y-2.5 anim-fade-slide-in">
+    <div className="rounded-xl ring-1 ring-border/70 bg-bg/60 p-3.5 space-y-2.5 anim-fade-slide-in">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="text-[14px] font-semibold text-text-primary flex items-center gap-1.5 tracking-tight">
           <Icon name="copy-plus" size={13} className="text-text-subtle" />Партия активов
@@ -96,8 +96,8 @@ export function GroupStepper({ requiresSerial, quantity, setQuantity, rows, setR
       {rows.length > 0 && (
         <div className="space-y-1.5">
           {rows.map((r, i) => (
-            <div key={r.invCode} className="flex items-center gap-2 bg-surface ring-1 ring-[#2A2F36]/70 rounded-lg px-2.5 py-1.5">
-              <span className="w-5 h-5 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-[12px] font-bold flex items-center justify-center tabular-nums shrink-0">{i + 1}</span>
+            <div key={r.invCode} className="flex items-center gap-2 bg-surface ring-1 ring-border/70 rounded-lg px-2.5 py-1.5">
+              <span className="w-5 h-5 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 light:text-emerald-700 text-[12px] font-bold flex items-center justify-center tabular-nums shrink-0">{i + 1}</span>
               <span className="font-mono text-[14px] text-text-primary tracking-tight truncate" title={r.invCode}>{r.invCode}</span>
               {requiresSerial && (
                 <>
@@ -107,7 +107,7 @@ export function GroupStepper({ requiresSerial, quantity, setQuantity, rows, setR
               )}
               <div className="ml-auto flex items-center gap-0.5 shrink-0">
                 <button type="button" onClick={() => pullBackRow(i)} className="w-6 h-6 rounded text-text-subtle hover:text-accent hover:bg-[rgba(249,115,22,0.12)] flex items-center justify-center transition-colors" title="Редактировать" aria-label={`Редактировать строку ${i + 1}`}><Icon name="pencil" size={12} /></button>
-                <button type="button" onClick={() => deleteRow(i)} className="w-6 h-6 rounded text-text-subtle hover:text-rose-300 hover:bg-rose-500/10 flex items-center justify-center transition-colors" title="Удалить" aria-label={`Удалить строку ${i + 1}`}><Icon name="trash-2" size={12} /></button>
+                <button type="button" onClick={() => deleteRow(i)} className="w-6 h-6 rounded text-text-subtle hover:text-rose-300 light:hover:text-rose-700 hover:bg-rose-500/10 flex items-center justify-center transition-colors" title="Удалить" aria-label={`Удалить строку ${i + 1}`}><Icon name="trash-2" size={12} /></button>
               </div>
             </div>
           ))}
@@ -116,13 +116,13 @@ export function GroupStepper({ requiresSerial, quantity, setQuantity, rows, setR
 
       {allDone ? (
         <div className="bg-emerald-500/10 ring-1 ring-emerald-500/30 rounded-lg px-3 py-2.5 flex items-center gap-2">
-          <Icon name="circle-check" size={14} className="text-emerald-300 shrink-0" />
-          <span className="text-[14px] font-medium text-emerald-300">Все {total} {pluralAssets(total)} добавлены — нажмите «Создать»</span>
+          <Icon name="circle-check" size={14} className="text-emerald-300 light:text-emerald-700 shrink-0" />
+          <span className="text-[14px] font-medium text-emerald-300 light:text-emerald-700">Все {total} {pluralAssets(total)} добавлены — нажмите «Создать»</span>
         </div>
       ) : (
-        <div key={done} className="bg-surface ring-1 ring-[#2A2F36]/70 rounded-lg p-2.5 space-y-2">
+        <div key={done} className="bg-surface ring-1 ring-border/70 rounded-lg p-2.5 space-y-2">
           <div className="flex items-center gap-2 text-[14px] font-semibold text-text-primary tracking-tight">
-            <span className="w-5 h-5 rounded bg-[rgba(249,115,22,0.12)] border border-[#F97316]/50 text-accent-hover text-[12px] font-bold flex items-center justify-center tabular-nums shrink-0">{done + 1}</span>Текущая запись
+            <span className="w-5 h-5 rounded bg-accent/[0.12] border border-accent/50 text-accent-hover text-[12px] font-bold flex items-center justify-center tabular-nums shrink-0">{done + 1}</span>Текущая запись
           </div>
           <div className={`grid gap-2 ${requiresSerial ? 'grid-cols-2 max-md:grid-cols-1' : 'grid-cols-1'}`}>
             <Field label="Инвентарный код" required {...(invDup ? { hint: 'Этот код уже добавлен в партию' } : {})}>

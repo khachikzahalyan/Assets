@@ -10,12 +10,12 @@ import { Icon } from './icon'
  * `undefined` = the default muted tone.
  */
 const ICON_TONES: Record<string, string> = {
-  blue:   'bg-sky-500/15 text-sky-300',
-  green:  'bg-emerald-500/15 text-emerald-300',
-  orange: 'bg-amber-500/15 text-amber-300',
-  violet: 'bg-violet-500/15 text-violet-300',
-  cyan:   'bg-cyan-500/15 text-cyan-300',
-  rose:   'bg-rose-500/15 text-rose-300',
+  blue:   'bg-sky-500/15 text-sky-300 light:text-sky-700',
+  green:  'bg-emerald-500/15 text-emerald-300 light:text-emerald-700',
+  orange: 'bg-amber-500/15 text-amber-300 light:text-amber-700',
+  violet: 'bg-violet-500/15 text-violet-300 light:text-violet-700',
+  cyan:   'bg-cyan-500/15 text-cyan-300 light:text-cyan-700',
+  rose:   'bg-rose-500/15 text-rose-300 light:text-rose-700',
 }
 
 export interface SectionCardProps {
@@ -44,7 +44,7 @@ export function SectionCard({
   return (
     <section
       className={`bg-surface border border-border rounded-xl overflow-hidden ${className}`}
-      style={{ boxShadow: '0 1px 2px rgba(0,0,0,0.4),0 4px 12px rgba(0,0,0,0.25)' }}
+      style={{ boxShadow: 'var(--shadow-card)' }}
     >
       {!noHeader && (
         <header className="flex items-center justify-between px-5 py-3.5 max-md:px-3.5 max-md:py-3 border-b border-border">

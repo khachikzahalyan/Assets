@@ -259,7 +259,7 @@ export function SelectMini({ id, label, leadingIcon, leadingIconMobile, value, o
               minWidth: pos.minWidth,
               zIndex: 1000,
             }}
-            className="bg-surface border border-border rounded-xl shadow-xl shadow-black/40 anim-fade-slide-in overflow-hidden"
+            className="bg-surface border border-border rounded-xl shadow-xl shadow-black/40 light:shadow-slate-300/60 anim-fade-slide-in overflow-hidden"
           >
             <div className="py-1.5 max-h-[280px] overflow-y-auto" role="listbox">
               {options.map(opt => {
@@ -290,7 +290,7 @@ export function SelectMini({ id, label, leadingIcon, leadingIconMobile, value, o
                       ) : (
                         <span
                           className="flex-shrink-0 inline-flex"
-                          style={{ color: isActive ? '#FFFFFF' : (opt.iconColor ?? '#64748B') }}
+                          style={{ color: isActive ? '#FFFFFF' : (opt.iconColor ?? 'var(--color-text-subtle)') }}
                         >
                           <Icon name={opt.icon ?? leadingIcon} size={12} />
                         </span>

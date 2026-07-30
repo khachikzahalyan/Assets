@@ -61,12 +61,12 @@ function iconTileCls(iconName: string): string {
     desktop: 'bg-accent/10 text-accent',
     monitor: 'bg-accent/10 text-accent',
     computer: 'bg-accent/10 text-accent',
-    smartphone: 'bg-violet-500/10 text-violet-300',
-    tablet: 'bg-violet-500/10 text-violet-300',
+    smartphone: 'bg-violet-500/10 text-violet-300 light:text-violet-700',
+    tablet: 'bg-violet-500/10 text-violet-300 light:text-violet-700',
     printer: 'bg-bg text-text-tertiary',
-    keyboard: 'bg-sky-500/10 text-sky-300',
-    mouse: 'bg-sky-500/10 text-sky-300',
-    armchair: 'bg-amber-500/10 text-amber-300',
+    keyboard: 'bg-sky-500/10 text-sky-300 light:text-sky-700',
+    mouse: 'bg-sky-500/10 text-sky-300 light:text-sky-700',
+    armchair: 'bg-amber-500/10 text-amber-300 light:text-amber-700',
   }
   return map[iconName] ?? 'bg-bg text-text-tertiary'
 }
@@ -81,13 +81,13 @@ function StepIndicator({ step, t }: { step: 'receive' | 'route'; t: TFunction<'e
       <div className="flex items-center gap-1.5">
         <span
           className={`w-2.5 h-2.5 rounded-full transition-colors duration-200 ${
-            step === 'receive' ? 'bg-emerald-500' : 'bg-slate-300'
+            step === 'receive' ? 'bg-emerald-500' : 'bg-slate-300 light:bg-slate-400'
           }`}
         />
         <span className="h-px bg-border" style={{ width: 80 }} />
         <span
           className={`w-2.5 h-2.5 rounded-full transition-colors duration-200 ${
-            step === 'route' ? 'bg-emerald-500' : 'bg-slate-300'
+            step === 'route' ? 'bg-emerald-500' : 'bg-slate-300 light:bg-slate-400'
           }`}
         />
       </div>
@@ -128,7 +128,7 @@ function ProgressBlock({
       <div className="ams-handover-progress-row1 flex items-center gap-3 flex-wrap">
         <span
           className={`ams-handover-progress-counter text-[14px] font-semibold tabular-nums ${
-            step === 'route' || allDone ? 'text-emerald-300' : 'text-text-primary'
+            step === 'route' || allDone ? 'text-emerald-300 light:text-emerald-700' : 'text-text-primary'
           }`}
         >
           {t('handover.received')} {step === 'route' ? total : checkedCount}/{total}
@@ -264,16 +264,16 @@ export function HandoverModal({
         tabIndex={-1}
         role="dialog"
         aria-modal="true"
-        className={`relative w-full max-w-3xl bg-surface rounded-2xl shadow-2xl shadow-slate-900/20 border border-border/60 anim-modal-pop flex flex-col md:max-h-[92vh] ${MODAL_SHEET}`}
+        className={`relative w-full max-w-3xl bg-surface rounded-2xl shadow-2xl shadow-slate-900/20 light:shadow-slate-300/50 border border-border/60 anim-modal-pop flex flex-col md:max-h-[92vh] ${MODAL_SHEET}`}
         style={{ minHeight: 'min(680px, 88vh)' }}
       >
         {/* Pull-handle — mobile only */}
-        <div className="max-md:block hidden mx-auto h-1 w-9 rounded-full bg-white/20 mb-3 mt-2" />
+        <div className="max-md:block hidden mx-auto h-1 w-9 rounded-full bg-white/20 light:bg-black/10 mb-3 mt-2" />
         {/* Sticky header */}
         <div
           className={`px-5 pt-4 pb-3 border-b border-border flex items-center gap-3 shrink-0 transition-shadow duration-200 ${
             scrolledFromTop
-              ? 'shadow-[0_1px_0_0_rgba(15,23,42,0.04),0_4px_8px_-6px_rgba(15,23,42,0.12)]'
+              ? 'shadow-[0_1px_0_0_rgba(15,23,42,0.04),0_4px_8px_-6px_rgba(15,23,42,0.12)] light:shadow-[0_1px_0_0_rgba(16,24,40,0.04),0_4px_8px_-6px_rgba(16,24,40,0.08)]'
               : ''
           }`}
         >
@@ -369,7 +369,7 @@ export function HandoverModal({
                 <div className="flex-1 min-w-0 pr-2">
                   <div
                     className={`text-[15px] font-medium truncate transition-colors duration-150 ${
-                      row.received ? 'text-emerald-300' : 'text-text-primary'
+                      row.received ? 'text-emerald-300 light:text-emerald-700' : 'text-text-primary'
                     }`}
                   >
                     {row.title}
@@ -394,7 +394,7 @@ export function HandoverModal({
               >
                 {/* Emerald check-tile */}
                 <span className="ams-handover-check w-5 h-5 rounded-md bg-emerald-500/15 flex items-center justify-center shrink-0">
-                  <Icon name="check" size={14} className="text-emerald-300" />
+                  <Icon name="check" size={14} className="text-emerald-300 light:text-emerald-700" />
                 </span>
 
                 {/* Category-tinted icon tile */}
@@ -406,7 +406,7 @@ export function HandoverModal({
 
                 {/* Title + meta */}
                 <div className="flex-1 min-w-0 pr-2">
-                  <div className="text-[15px] font-medium truncate text-emerald-300">
+                  <div className="text-[15px] font-medium truncate text-emerald-300 light:text-emerald-700">
                     {row.title}
                   </div>
                   <div className="ams-handover-meta flex items-center gap-2 mt-0.5 flex-wrap">
@@ -440,7 +440,7 @@ export function HandoverModal({
         <div
           className={`ams-handover-footer border-t border-border px-5 py-3 flex items-center gap-3 shrink-0 transition-shadow duration-200 max-md:flex-col max-md:items-stretch max-md:gap-2 ${
             scrolledFromBottom
-              ? 'shadow-[0_-1px_0_0_rgba(15,23,42,0.04),0_-4px_8px_-6px_rgba(15,23,42,0.12)]'
+              ? 'shadow-[0_-1px_0_0_rgba(15,23,42,0.04),0_-4px_8px_-6px_rgba(15,23,42,0.12)] light:shadow-[0_-1px_0_0_rgba(16,24,40,0.04),0_-4px_8px_-6px_rgba(16,24,40,0.08)]'
               : ''
           }`}
         >

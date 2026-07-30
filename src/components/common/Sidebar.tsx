@@ -21,12 +21,12 @@ export function Sidebar({ currentRoute, onNavigate }: SidebarProps) {
       {/* Brand row */}
       <div className="flex items-center justify-between px-5 h-16 border-b border-border flex-shrink-0">
         <div className="flex items-center gap-3">
-          <span className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent to-accent-dark text-white inline-flex items-center justify-center font-extrabold tracking-tight text-[14px] shadow-md shadow-accent/25">
+          <span className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent to-accent-dark text-white inline-flex items-center justify-center font-extrabold tracking-tight text-[14px] shadow-md shadow-accent/25 light:shadow-accent/15">
             AMS
           </span>
-          <div className="leading-tight">
+          <div className="leading-tight min-w-0">
             <div className="text-[15px] font-bold text-text-primary">{t('app.name', { ns: 'common' })}</div>
-            <div className="text-[11px] text-text-subtle -mt-0.5">{t('app.brandSub', { ns: 'common' })}</div>
+            <div className="text-[11px] text-text-subtle -mt-0.5 truncate">{t('app.title', { ns: 'common' })}</div>
           </div>
         </div>
       </div>

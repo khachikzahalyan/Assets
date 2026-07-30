@@ -56,7 +56,7 @@ export const DeviceGridCard = memo(function DeviceGridCard({ asset, selected, ha
     ? { boxShadow: `inset 2px 0 0 ${accent}` }
     : {}
 
-  const cardBg = selected ? 'bg-white/10' : 'bg-surface hover:bg-white/[0.05]'
+  const cardBg = selected ? 'bg-white/10 light:bg-black/5' : 'bg-surface hover:bg-white/[0.05] light:hover:bg-black/[0.03]'
 
   /* ── Mobile: full-width horizontal list card ─────────────────────────────
    * Layout (per owner screenshot):
@@ -65,8 +65,8 @@ export const DeviceGridCard = memo(function DeviceGridCard({ asset, selected, ha
    * ─────────────────────────────────────────────────────────────────────── */
   if (isMobile) {
     const chipTone = hasBroken
-      ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
-      : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+      ? 'bg-amber-500/15 text-amber-400 border-amber-500/30 light:text-amber-700 light:border-amber-500/40'
+      : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30 light:text-emerald-700 light:border-emerald-500/40'
 
     return (
       /* Single compact row (per owner): [icon] [name + mono subtitle] and the
@@ -102,7 +102,7 @@ export const DeviceGridCard = memo(function DeviceGridCard({ asset, selected, ha
           </span>
           {isService && (
             <span
-              className="inline-flex items-center justify-center w-[20px] h-[20px] bg-violet-500/10 text-violet-300 border border-violet-500/30 rounded-[6px] flex-shrink-0"
+              className="inline-flex items-center justify-center w-[20px] h-[20px] bg-violet-500/10 text-violet-300 border border-violet-500/30 rounded-[6px] flex-shrink-0 light:text-violet-700"
               title={t('device.service')}
               aria-label={t('device.service')}
             >
@@ -139,7 +139,7 @@ export const DeviceGridCard = memo(function DeviceGridCard({ asset, selected, ha
             {totalComponents}&nbsp;{t('devices.compShort', 'комп.')}
           </span>
           {isService && (
-            <span className="ml-1 inline-flex items-center gap-0.5 text-[10px] font-medium bg-sky-500/10 text-sky-300 border border-sky-500/30 rounded px-1 py-0.5 flex-shrink-0">
+            <span className="ml-1 inline-flex items-center gap-0.5 text-[10px] font-medium bg-sky-500/10 text-sky-300 border border-sky-500/30 rounded px-1 py-0.5 flex-shrink-0 light:text-sky-700">
               <Icon name="wrench" size={8} />
               {t('device.service')}
             </span>

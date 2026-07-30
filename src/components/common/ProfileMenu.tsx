@@ -55,7 +55,7 @@ export function ProfileMenu() {
              the topbar (top 49px / right 2px), 220px wide, 14px radius — instead of
              the anchored absolute dropdown used on desktop. */
           className="ams-profile-dropdown absolute right-0 top-full mt-1.5 w-64 max-md:fixed max-md:top-[49px] max-md:right-[2px] max-md:left-auto max-md:bottom-auto max-md:mt-0 max-md:w-[220px] max-md:rounded-[14px] bg-surface-2 border border-border rounded-xl anim-dropdown-in overflow-hidden z-[200]"
-          style={{ boxShadow: '0 12px 32px rgba(0,0,0,0.55)' }}
+          style={{ boxShadow: 'var(--shadow-popover)' }}
         >
           {/* User header — compact centered profile card: everything on the
               vertical axis, tight spacing so the menu stays short. */}
@@ -101,7 +101,7 @@ export function ProfileMenu() {
             <button
               type="button"
               onClick={() => { setOpen(false); signOut() }}
-              className="w-full flex items-center gap-2.5 px-3.5 py-2 text-left text-[12.5px] text-[#FDA4AF] hover:bg-rose-950/40 transition-colors"
+              className="w-full flex items-center gap-2.5 px-3.5 py-2 text-left text-[12.5px] text-[#FDA4AF] light:text-rose-700 hover:bg-rose-950/40 light:hover:bg-rose-50 transition-colors"
             >
               <Icon name="log-out" size={14} />
               {t('actions.signOut')}

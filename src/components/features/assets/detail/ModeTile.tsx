@@ -19,7 +19,7 @@ export function ModeTile({ icon, label, selected, onClick }: ModeTileProps) {
       <div
         className={`w-10 h-10 max-md:w-[46px] max-md:h-[46px] rounded-full flex items-center justify-center transition-all duration-150
           ${selected
-            ? 'bg-accent ring-2 ring-accent/40 ring-offset-2 ring-offset-surface shadow-[0_4px_14px_rgba(249,115,22,0.35)]'
+            ? 'bg-accent ring-2 ring-accent/40 ring-offset-2 ring-offset-surface shadow-[0_4px_14px_rgba(249,115,22,0.35)] light:shadow-[0_4px_14px_rgba(249,115,22,0.18)]'
             : 'bg-surface-2 border border-border group-hover:border-accent/40'}`}
       >
         <Icon

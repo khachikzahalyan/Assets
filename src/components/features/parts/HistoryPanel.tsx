@@ -224,8 +224,8 @@ export function HistoryPanel({
               aria-pressed={eventFilter === 'receive'}
               className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[12.5px] font-semibold transition-all cursor-pointer
                 ${eventFilter === 'receive'
-                  ? 'bg-emerald-500/25 text-emerald-200 ring-2 ring-emerald-400/60 shadow-inner'
-                  : `bg-emerald-500/10 text-emerald-300 ring-1 ring-emerald-500/30 hover:bg-emerald-500/20 ${eventFilter ? 'opacity-60 hover:opacity-100' : ''}`}`}
+                  ? 'bg-emerald-500/25 text-emerald-200 ring-2 ring-emerald-400/60 shadow-inner light:text-emerald-700'
+                  : `bg-emerald-500/10 text-emerald-300 ring-1 ring-emerald-500/30 hover:bg-emerald-500/20 light:text-emerald-700 ${eventFilter ? 'opacity-60 hover:opacity-100' : ''}`}`}
             >
               <Icon name="inbox" size={11} />
               {receiveCnt} {t('warehouse.filterReceive')}
@@ -238,8 +238,8 @@ export function HistoryPanel({
               aria-pressed={eventFilter === 'install'}
               className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[12.5px] font-semibold transition-all cursor-pointer
                 ${eventFilter === 'install'
-                  ? 'bg-violet-500/25 text-violet-200 ring-2 ring-violet-400/60 shadow-inner'
-                  : `bg-violet-500/10 text-violet-300 ring-1 ring-violet-500/30 hover:bg-violet-500/20 ${eventFilter ? 'opacity-60 hover:opacity-100' : ''}`}`}
+                  ? 'bg-violet-500/25 text-violet-200 ring-2 ring-violet-400/60 shadow-inner light:text-violet-700'
+                  : `bg-violet-500/10 text-violet-300 ring-1 ring-violet-500/30 hover:bg-violet-500/20 light:text-violet-700 ${eventFilter ? 'opacity-60 hover:opacity-100' : ''}`}`}
             >
               <Icon name="wrench" size={11} />
               {installCnt} {t('warehouse.filterInstall')}
@@ -252,8 +252,8 @@ export function HistoryPanel({
               aria-pressed={eventFilter === 'uninstall'}
               className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[12.5px] font-semibold transition-all cursor-pointer
                 ${eventFilter === 'uninstall'
-                  ? 'bg-blue-500/25 text-blue-200 ring-2 ring-blue-400/60 shadow-inner'
-                  : `bg-blue-500/10 text-blue-300 ring-1 ring-blue-500/30 hover:bg-blue-500/20 ${eventFilter ? 'opacity-60 hover:opacity-100' : ''}`}`}
+                  ? 'bg-blue-500/25 text-blue-200 ring-2 ring-blue-400/60 shadow-inner light:text-blue-700'
+                  : `bg-blue-500/10 text-blue-300 ring-1 ring-blue-500/30 hover:bg-blue-500/20 light:text-blue-700 ${eventFilter ? 'opacity-60 hover:opacity-100' : ''}`}`}
             >
               <Icon name="rotate-ccw" size={11} />
               {uninstallCnt} {t('warehouse.filterUninstall')}
@@ -266,8 +266,8 @@ export function HistoryPanel({
               aria-pressed={eventFilter === 'move'}
               className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[12.5px] font-semibold transition-all cursor-pointer
                 ${eventFilter === 'move'
-                  ? 'bg-amber-500/25 text-amber-200 ring-2 ring-amber-400/60 shadow-inner'
-                  : `bg-amber-500/10 text-amber-300 ring-1 ring-amber-500/30 hover:bg-amber-500/20 ${eventFilter ? 'opacity-60 hover:opacity-100' : ''}`}`}
+                  ? 'bg-amber-500/25 text-amber-200 ring-2 ring-amber-400/60 shadow-inner light:text-amber-700'
+                  : `bg-amber-500/10 text-amber-300 ring-1 ring-amber-500/30 hover:bg-amber-500/20 light:text-amber-700 ${eventFilter ? 'opacity-60 hover:opacity-100' : ''}`}`}
             >
               <Icon name="arrow-left-right" size={11} />
               {moveCnt} {t('warehouse.filterMove')}
@@ -277,7 +277,7 @@ export function HistoryPanel({
             <button
               type="button"
               onClick={() => setEventFilter(null)}
-              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[12.5px] font-semibold transition-all cursor-pointer bg-slate-500/15 text-slate-300 ring-1 ring-slate-500/30 hover:bg-slate-500/25"
+              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[12.5px] font-semibold transition-all cursor-pointer bg-slate-500/15 text-slate-300 ring-1 ring-slate-500/30 hover:bg-slate-500/25 light:text-slate-600"
             >
               <Icon name="x" size={11} />
               {t('warehouse.filterReset')}
@@ -445,7 +445,7 @@ export function HistoryPanel({
                   const assetName = (mv as MovementRuntime).assetName ?? null
                   const subline = assetCode ? (
                     <>
-                      <span className="font-mono text-[13px] uppercase tracking-wider bg-white/5 border border-white/10 rounded px-1.5 py-0.5 text-zinc-300 flex-shrink-0">
+                      <span className="font-mono text-[13px] uppercase tracking-wider bg-white/5 border border-white/10 rounded px-1.5 py-0.5 text-zinc-300 flex-shrink-0 light:bg-slate-100 light:border-slate-300 light:text-slate-600">
                         {assetCode}
                       </span>
                       {assetName && (
@@ -462,7 +462,7 @@ export function HistoryPanel({
                   return (
                     <li
                       key={mv.id}
-                      className="flex items-center gap-3 px-5 h-[56px] flex-shrink-0 hover:bg-[#111315]/60 transition-colors"
+                      className="flex items-center gap-3 px-5 h-[56px] flex-shrink-0 hover:bg-[#111315]/60 light:hover:bg-black/[0.03] transition-colors"
                     >
                       <span className={`w-2 h-2 rounded-full flex-shrink-0 ${dotColor}`} />
                       <div className="flex items-center gap-1.5 min-w-0 flex-1">

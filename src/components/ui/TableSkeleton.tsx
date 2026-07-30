@@ -79,8 +79,8 @@ export function TableSkeleton({
         style={{
           flexShrink: 0,
           height: 44,
-          background: '#111315',
-          borderBottom: '1px solid rgba(42,47,54,0.9)',
+          background: 'var(--color-bg)',
+          borderBottom: '1px solid var(--color-border)',
           display: 'grid',
           gridTemplateColumns: effectiveGrid,
           alignItems: 'center',
@@ -130,7 +130,7 @@ export function TableSkeleton({
             style={{
               flex: '1 1 0',
               minHeight: 58,
-              borderTop: '1px solid rgba(42,47,54,0.35)',
+              borderTop: '1px solid var(--color-border)',
               display: 'grid',
               gridTemplateColumns: effectiveGrid,
               alignItems: 'center',

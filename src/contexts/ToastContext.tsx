@@ -41,8 +41,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           >
             <div className={
               tt.variant === 'error'
-                ? 'w-7 h-7 rounded-md bg-rose-500/15 text-rose-300 flex items-center justify-center shrink-0'
-                : 'w-7 h-7 rounded-md bg-emerald-500/15 text-emerald-300 flex items-center justify-center shrink-0'
+                ? 'w-7 h-7 rounded-md bg-rose-500/15 text-rose-300 light:text-rose-700 flex items-center justify-center shrink-0'
+                : 'w-7 h-7 rounded-md bg-emerald-500/15 text-emerald-300 light:text-emerald-700 flex items-center justify-center shrink-0'
             }>
               <Icon name={tt.variant === 'error' ? 'alert-circle' : 'check'} size={14} />
             </div>

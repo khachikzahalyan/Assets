@@ -85,7 +85,7 @@ export function DetailHeroMobile({
             <button
               type="button"
               onClick={onWriteOff}
-              className="inline-flex items-center gap-1 h-7 px-2.5 rounded-lg text-[12px] font-semibold text-rose-300 bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500/15 hover:border-rose-500/50 transition-colors"
+              className="inline-flex items-center gap-1 h-7 px-2.5 rounded-lg text-[12px] font-semibold text-rose-300 light:text-rose-700 bg-rose-500/10 light:bg-rose-50 border border-rose-500/30 light:border-rose-200 hover:bg-rose-500/15 hover:border-rose-500/50 transition-colors"
             >
               <Icon name="archive-x" size={12} aria-hidden="true" />
               {t('detail.hero.writeOff')}
@@ -100,7 +100,7 @@ export function DetailHeroMobile({
           {asset.invCode}
         </span>
         {asset.serial && (
-          <span className="font-mono text-[12px] text-[#E2E8F0] truncate">
+          <span className="font-mono text-[12px] text-[#E2E8F0] light:text-slate-700 truncate">
             {asset.serial}
           </span>
         )}

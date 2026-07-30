@@ -47,13 +47,13 @@ export const ASSET_GROUP_TONES: Record<
     hoverBg: 'hover:bg-accent/10',
   },
   sky: {
-    tile: 'bg-sky-500/10 text-sky-300',
+    tile: 'bg-sky-500/10 text-sky-300 light:text-sky-700',
     border: 'border-sky-500/30',
     hoverBorder: 'hover:border-sky-500/40',
     hoverBg: 'hover:bg-sky-500/10',
   },
   emerald: {
-    tile: 'bg-emerald-500/10 text-emerald-300',
+    tile: 'bg-emerald-500/10 text-emerald-300 light:text-emerald-700',
     border: 'border-emerald-500/30',
     hoverBorder: 'hover:border-emerald-500/40',
     hoverBg: 'hover:bg-emerald-500/10',

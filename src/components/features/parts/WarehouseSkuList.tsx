@@ -113,7 +113,7 @@ export function WarehouseSkuList({
             <button
               type="button"
               onClick={onAddGpu}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13.5px] font-semibold text-accent border border-[#F97316]/30 bg-[#F97316]/10 hover:bg-[#F97316]/15 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13.5px] font-semibold text-accent border border-[#F97316]/30 bg-[#F97316]/10 hover:bg-[#F97316]/15 transition-colors light:border-[#F97316]/40"
             >
               <Icon name="plus" size={12} />
               {t('gpu.addBtn')}
@@ -208,7 +208,7 @@ export function WarehouseSkuList({
         return (
           <li
             key={sku.id}
-            className="flex items-center gap-3 px-5 py-3 hover:bg-[#22272E]/60 transition-colors"
+            className="flex items-center gap-3 px-5 py-3 hover:bg-[#22272E]/60 light:hover:bg-black/[0.03] transition-colors"
           >
             <span className={`w-8 h-8 rounded-lg ${skuTint.iconBg} ${skuTint.iconText} inline-flex items-center justify-center flex-shrink-0`}>
               <Icon name={icon} size={14} />

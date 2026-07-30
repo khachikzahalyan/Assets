@@ -241,7 +241,7 @@ export function ViewPopover({
               width: 260,
               zIndex: 1000,
             }}
-            className="bg-surface border border-border rounded-xl shadow-2xl shadow-slate-900/20 anim-fade-slide-in overflow-hidden"
+            className="bg-surface border border-border rounded-xl shadow-2xl shadow-slate-900/20 light:shadow-slate-400/25 anim-fade-slide-in overflow-hidden"
           >
             {/* Header */}
             <div className="px-3.5 pt-3 pb-2 border-b border-border flex items-center justify-between">

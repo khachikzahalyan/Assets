@@ -85,7 +85,7 @@ export function LicensePicker({
             ${!showDigital ? 'col-span-2' : ''}
             ${licenseMode === 'manual'
               ? 'bg-[rgba(249,115,22,0.12)] border-accent ring-1 ring-[#F97316]/15'
-              : 'bg-[#111315]/40 border-2 border-[#2A2F36]/60 hover:border-border-strong'}`}
+              : 'bg-[#111315]/40 light:bg-black/[0.03] border-2 border-[#2A2F36]/60 light:border-slate-200 hover:border-border-strong'}`}
         >
           <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors
             ${licenseMode === 'manual' ? 'bg-accent text-white' : 'bg-surface-2 text-text-tertiary'}`}>
@@ -105,7 +105,7 @@ export function LicensePicker({
             className={`relative flex items-center gap-2 px-2.5 py-2.5 rounded-xl border-2 transition-colors duration-150 text-left
               ${licenseMode === 'oem_digital'
                 ? 'bg-[rgba(249,115,22,0.12)] border-accent ring-1 ring-[#F97316]/15'
-                : 'bg-[#111315]/40 border-2 border-[#2A2F36]/60 hover:border-border-strong'}`}
+                : 'bg-[#111315]/40 light:bg-black/[0.03] border-2 border-[#2A2F36]/60 light:border-slate-200 hover:border-border-strong'}`}
           >
             <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors
               ${licenseMode === 'oem_digital' ? 'bg-accent text-white' : 'bg-surface-2 text-text-tertiary'}`}>
