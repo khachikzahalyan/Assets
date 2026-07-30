@@ -78,6 +78,7 @@
   "recentAudit": "Недавние события аудита",
   "status": {
     "st_assigned": "Выдано",
+    "st_pending": "Ожидание",
     "st_disposed": "Списано",
     "st_repair": "В ремонте",
     "st_warehouse": "На складе",

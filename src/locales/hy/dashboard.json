@@ -78,6 +78,7 @@
   "recentAudit": "Վերջին աուդիտի իրադարձություններ",
   "status": {
     "st_assigned": "Հանձնված",
+    "st_pending": "Սպասման մեջ",
     "st_disposed": "Դուրս գրված",
     "st_repair": "Վերանորոգման մեջ",
     "st_warehouse": "Պահեստում",

@@ -86,12 +86,14 @@ describe('KpiTile', () => {
 describe('StatusBreakdown', () => {
   const statuses: StatusRow[] = [
     { id: 'st_warehouse', name: 'На складе',  color: 'gray' },
+    { id: 'st_pending',   name: 'Ожидание',   color: 'violet' },
     { id: 'st_assigned',  name: 'Выдано',     color: 'green' },
     { id: 'st_repair',    name: 'В ремонте',  color: 'orange' },
     { id: 'st_disposed',  name: 'Списано',    color: 'red' },
   ]
   const byStatus: Record<AssetStatusId, number> = {
     st_warehouse: 10,
+    st_pending: 0,
     st_assigned: 25,
     st_repair: 3,
     st_disposed: 2,
@@ -125,7 +127,7 @@ describe('StatusBreakdown', () => {
 
   it('does not crash when total is 0', () => {
     const zero: Record<AssetStatusId, number> = {
-      st_warehouse: 0, st_assigned: 0, st_repair: 0, st_disposed: 0,
+      st_warehouse: 0, st_pending: 0, st_assigned: 0, st_repair: 0, st_disposed: 0,
     }
     expect(() =>
       wrap(<StatusBreakdown byStatus={zero} statuses={statuses} total={0} />)

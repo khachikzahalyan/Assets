@@ -24,9 +24,10 @@ export interface CategorySeed {
 
 export const STATUS_SEED: StatusSeed[] = [
   { id: 'st_warehouse', name: 'На складе', color: 'gray',   isFinal: false, isSystem: true, sortOrder: 0 },
-  { id: 'st_assigned',  name: 'Выдано',    color: 'green',  isFinal: false, isSystem: true, sortOrder: 1 },
-  { id: 'st_repair',    name: 'В ремонте', color: 'orange', isFinal: false, isSystem: true, sortOrder: 2 },
-  { id: 'st_disposed',  name: 'Списано',   color: 'red',    isFinal: true,  isSystem: true, sortOrder: 3 },
+  { id: 'st_pending',   name: 'Ожидание',  color: 'violet', isFinal: false, isSystem: true, sortOrder: 1 },
+  { id: 'st_assigned',  name: 'Выдано',    color: 'green',  isFinal: false, isSystem: true, sortOrder: 2 },
+  { id: 'st_repair',    name: 'В ремонте', color: 'orange', isFinal: false, isSystem: true, sortOrder: 3 },
+  { id: 'st_disposed',  name: 'Списано',   color: 'red',    isFinal: true,  isSystem: true, sortOrder: 4 },
 ]
 
 export const BRANCH_SEED: BranchSeed[] = [

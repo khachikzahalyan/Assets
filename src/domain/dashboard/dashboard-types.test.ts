@@ -6,7 +6,7 @@ describe('dashboard types helpers', () => {
     const s = emptyAssetStats()
     expect(s.total).toBe(0)
     expect(s.byStatus).toEqual({
-      st_warehouse: 0, st_assigned: 0, st_repair: 0, st_disposed: 0,
+      st_warehouse: 0, st_pending: 0, st_assigned: 0, st_repair: 0, st_disposed: 0,
     })
     expect(s.byGroup).toEqual([
       { group: 'devices', count: 0 },

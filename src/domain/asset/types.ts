@@ -1,16 +1,18 @@
 import type { UpgradeSlot } from '@/domain/part/types'
 
-/** The four canonical AMS asset statuses (CONFIRMED v8). Order = display order. */
-export const ASSET_STATUS_IDS = ['st_warehouse', 'st_assigned', 'st_repair', 'st_disposed'] as const
+/** The canonical AMS asset statuses. Order = display order.
+ * st_pending = «Ожидание»: transferred to an employee but receipt not yet confirmed. */
+export const ASSET_STATUS_IDS = ['st_warehouse', 'st_pending', 'st_assigned', 'st_repair', 'st_disposed'] as const
 export type AssetStatusId = (typeof ASSET_STATUS_IDS)[number]
 
 export function isAssetStatusId(v: string): v is AssetStatusId {
   return (ASSET_STATUS_IDS as readonly string[]).includes(v)
 }
 
-/** Named accessors for the four fixed status ids (avoid scattering string literals). */
+/** Named accessors for the fixed status ids (avoid scattering string literals). */
 export const ASSET_STATUS = {
   warehouse: 'st_warehouse',
+  pending: 'st_pending',
   assigned: 'st_assigned',
   repair: 'st_repair',
   disposed: 'st_disposed',

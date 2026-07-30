@@ -12,9 +12,14 @@ import type { ChipColor } from '@/components/ui/chip'
  */
 export function deriveDisplayStatusId(
   asset: Asset,
-): 'st_warehouse' | 'st_assigned' | 'st_repair' | 'st_disposed' {
-  if (asset.statusId === ASSET_STATUS.repair || asset.statusId === ASSET_STATUS.disposed) {
-    return asset.statusId as 'st_repair' | 'st_disposed'
+): 'st_warehouse' | 'st_pending' | 'st_assigned' | 'st_repair' | 'st_disposed' {
+  // Lifecycle + pending-acceptance statuses win over the assignment-derived one.
+  if (
+    asset.statusId === ASSET_STATUS.repair ||
+    asset.statusId === ASSET_STATUS.disposed ||
+    asset.statusId === ASSET_STATUS.pending
+  ) {
+    return asset.statusId as 'st_repair' | 'st_disposed' | 'st_pending'
   }
   return asset.assignment ? ASSET_STATUS.assigned : ASSET_STATUS.warehouse
 }
@@ -32,6 +37,7 @@ export function deriveDisplayStatus(asset: Asset, statuses: StatusRow[]): Status
 /** Maps derived status id → Chip color for the status chip in asset tables/cards. */
 export const STATUS_CHIP_COLOR: Record<string, ChipColor> = {
   [ASSET_STATUS.warehouse]: 'blue',
+  [ASSET_STATUS.pending]:   'violet',
   [ASSET_STATUS.assigned]:  'green',
   [ASSET_STATUS.repair]:    'amber',
   [ASSET_STATUS.disposed]:  'red',

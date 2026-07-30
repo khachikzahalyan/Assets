@@ -26,6 +26,7 @@ const ref: AssetReferenceData = {
     { id: 'st_warehouse', name: 'Warehouse', color: 'gray' },
     { id: 'st_assigned', name: 'Assigned', color: 'green' },
     { id: 'st_repair', name: 'In Repair', color: 'orange' },
+    { id: 'st_pending', name: 'Pending', color: 'violet' },
     { id: 'st_disposed', name: 'Disposed', color: 'red' },
   ],
   branches: [{ id: 'br_1', name: 'HQ' }, { id: 'br_2', name: 'West' }],
@@ -90,7 +91,7 @@ describe('InMemoryDashboardRepository', () => {
   it('loadAssetStats totals, byStatus, byGroup, topBranches', async () => {
     const s = await makeRepo().loadAssetStats(5)
     expect(s.total).toBe(4)
-    expect(s.byStatus).toEqual({ st_warehouse: 1, st_assigned: 1, st_repair: 1, st_disposed: 1 })
+    expect(s.byStatus).toEqual({ st_warehouse: 1, st_pending: 0, st_assigned: 1, st_repair: 1, st_disposed: 1 })
     expect(s.byGroup).toEqual([
       { group: 'devices', count: 2 },
       { group: 'network', count: 1 },

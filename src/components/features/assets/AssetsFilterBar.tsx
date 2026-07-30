@@ -21,6 +21,7 @@ export interface AssetsFilterBarProps {
 
 const STATUS_DOT_COLORS: Record<string, string> = {
   st_warehouse: '#38BDF8',
+  st_pending:   '#8B5CF6',
   st_assigned:  '#10B981',
   st_repair:    '#F59E0B',
   st_disposed:  '#F43F5E',

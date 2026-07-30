@@ -78,6 +78,7 @@
   "recentAudit": "Recent audit events",
   "status": {
     "st_assigned": "Assigned",
+    "st_pending": "Awaiting confirmation",
     "st_disposed": "Disposed",
     "st_repair": "In repair",
     "st_warehouse": "In warehouse",

@@ -3,7 +3,7 @@ import { ASSET_STATUS_IDS, isAssetStatusId, parseInventoryCode } from './types'
 
 describe('asset status enum', () => {
   it('has exactly the 4 canonical status ids', () => {
-    expect(ASSET_STATUS_IDS).toEqual(['st_warehouse', 'st_assigned', 'st_repair', 'st_disposed'])
+    expect(ASSET_STATUS_IDS).toEqual(['st_warehouse', 'st_pending', 'st_assigned', 'st_repair', 'st_disposed'])
   })
   it('isAssetStatusId narrows correctly', () => {
     expect(isAssetStatusId('st_assigned')).toBe(true)

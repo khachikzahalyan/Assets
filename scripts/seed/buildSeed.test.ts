@@ -19,12 +19,12 @@ import {
 describe('reference data', () => {
   it('has the 4 canonical system statuses with correct ids/flags', () => {
     expect(STATUS_SEED.map(s => s.id)).toEqual(
-      ['st_warehouse', 'st_assigned', 'st_repair', 'st_disposed'])
+      ['st_warehouse', 'st_pending', 'st_assigned', 'st_repair', 'st_disposed'])
     expect(STATUS_SEED.every(s => s.isSystem)).toBe(true)
     const disposed = STATUS_SEED.find(s => s.id === 'st_disposed')!
     expect(disposed.isFinal).toBe(true)
     expect(STATUS_SEED.filter(s => s.isFinal)).toHaveLength(1)
-    expect(STATUS_SEED.map(s => s.sortOrder)).toEqual([0, 1, 2, 3])
+    expect(STATUS_SEED.map(s => s.sortOrder)).toEqual([0, 1, 2, 3, 4])
   })
   it('has 5 branches with br_main as the warehouse type', () => {
     expect(BRANCH_SEED).toHaveLength(5)
@@ -144,7 +144,7 @@ describe('buildSeedDocs', () => {
     const docs = buildSeedDocs({ nowIso: '2026-06-20T00:00:00.000Z' })
     const cols = docs.reduce<Record<string, number>>((m, d) => {
       m[d.collection] = (m[d.collection] ?? 0) + 1; return m }, {})
-    expect(cols.asset_statuses).toBe(4)
+    expect(cols.asset_statuses).toBe(5)
     expect(cols.branches).toBe(5)
     expect(cols.departments).toBe(6)
     expect(cols.categories).toBe(CORE_CATEGORY_SEED.length) // core count
@@ -342,7 +342,7 @@ describe('emitted docs round-trip through InMemory repositories', () => {
       .map(d => ({ id: d.id, ...(d.data as object) })) as unknown as AssetStatus[]
     const repo = new InMemoryAssetStatusRepository(statuses)
     const out = await repo.listAssetStatuses()
-    expect(out.map(s => s.id)).toEqual(['st_warehouse', 'st_assigned', 'st_repair', 'st_disposed'])
+    expect(out.map(s => s.id)).toEqual(['st_warehouse', 'st_pending', 'st_assigned', 'st_repair', 'st_disposed'])
   })
 })
 

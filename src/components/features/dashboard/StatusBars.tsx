@@ -6,10 +6,11 @@ import { cn } from '@/lib/utils'
 
 /** Tailwind token-based color config per status id. */
 const STATUS_CFG: Record<string, { dot: string; bar: string }> = {
-  [ASSET_STATUS.warehouse]: { dot: 'bg-info',    bar: 'from-info to-info/25' },
-  [ASSET_STATUS.assigned]:  { dot: 'bg-success', bar: 'from-success to-success/25' },
-  [ASSET_STATUS.repair]:    { dot: 'bg-warning', bar: 'from-warning to-warning/25' },
-  [ASSET_STATUS.disposed]:  { dot: 'bg-error',   bar: 'from-error to-error/25' },
+  [ASSET_STATUS.warehouse]: { dot: 'bg-info',        bar: 'from-info to-info/25' },
+  [ASSET_STATUS.pending]:   { dot: 'bg-violet-500',  bar: 'from-violet-500 to-violet-500/25' },
+  [ASSET_STATUS.assigned]:  { dot: 'bg-success',     bar: 'from-success to-success/25' },
+  [ASSET_STATUS.repair]:    { dot: 'bg-warning',     bar: 'from-warning to-warning/25' },
+  [ASSET_STATUS.disposed]:  { dot: 'bg-error',       bar: 'from-error to-error/25' },
 }
 const DEFAULT_STATUS_CFG = STATUS_CFG[ASSET_STATUS.warehouse] as { dot: string; bar: string }
 

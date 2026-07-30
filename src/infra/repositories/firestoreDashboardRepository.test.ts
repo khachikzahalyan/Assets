@@ -148,7 +148,7 @@ describe('FirestoreDashboardRepository', () => {
 
       expect(s.total).toBe(4)
       expect(s.byStatus).toEqual({
-        st_warehouse: 1, st_assigned: 1, st_repair: 1, st_disposed: 1,
+        st_warehouse: 1, st_pending: 0, st_assigned: 1, st_repair: 1, st_disposed: 1,
       })
       expect(s.byGroup).toEqual([
         { group: 'devices',   count: 2 },
