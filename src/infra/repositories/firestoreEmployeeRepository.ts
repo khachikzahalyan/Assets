@@ -1,5 +1,5 @@
 import {
-  collection, doc, getDoc, getDocs, query as fsQuery, where, limit, serverTimestamp,
+  collection, doc, getDoc, getDocs, query as fsQuery, where, limit, serverTimestamp, deleteField,
   type Firestore, type Transaction,
 } from 'firebase/firestore'
 import type { Actor } from '@/domain/asset'
@@ -261,7 +261,59 @@ export class FirestoreEmployeeRepository implements EmployeeRepository {
         return { value: undefined as unknown as void }
       },
     )
+    // Offboarding: revoke the linked login account so a fired person can no longer
+    // sign in with their old role. Best-effort + idempotent (the employee flip
+    // already committed); never blocks termination.
+    await this.revokeLinkedAccount(id, actor)
     return { value: { ...before, status: 'terminated', terminatedAt: new Date().toISOString() }, auditId: r.auditId }
+  }
+
+  /**
+   * Revoke the login account linked to a terminated employee: drop its role and
+   * flip status to 'terminated' so it no longer grants access. The link is either
+   * invited/linked (users.employeeId == employeeId) or legacy (users/{employeeId}).
+   * De-escalation only — never touches a super_admin account, and skips the actor.
+   * Best-effort: any failure is swallowed (the account can be revoked manually).
+   */
+  private async revokeLinkedAccount(employeeId: string, actor: Actor): Promise<void> {
+    try {
+      let uid: string | null = null
+      const linked = await getDocs(
+        fsQuery(collection(this.db, 'users'), where('employeeId', '==', employeeId), limit(1)),
+      )
+      if (!linked.empty) uid = linked.docs[0]!.id
+      if (!uid) {
+        const legacy = await getDoc(doc(this.db, 'users', employeeId))
+        if (legacy.exists()) uid = employeeId
+      }
+      if (!uid || uid === actor.uid) return
+
+      const snap = await getDoc(doc(this.db, 'users', uid))
+      if (!snap.exists()) return
+      const data = snap.data() as { role?: string; status?: string }
+      if (data.role === 'super_admin') return // never revoke a super via offboarding
+
+      const targetUid = uid
+      await withAudit(this.audit,
+        {
+          entityType: 'user', entityId: targetUid, action: 'terminated',
+          actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
+          before: { role: data.role ?? null, status: data.status ?? null },
+          after: { role: null, status: 'terminated' },
+        },
+        async (txn) => {
+          const t = txn as unknown as Transaction
+          t.set(
+            doc(this.db, 'users', targetUid),
+            { role: deleteField(), status: 'terminated', updatedAt: serverTimestamp() },
+            { merge: true },
+          )
+          return { value: undefined as unknown as void }
+        },
+      )
+    } catch {
+      // Best-effort — the employee status flip already succeeded.
+    }
   }
 
   async restoreEmployee(id: string, actor: Actor): Promise<AuditedResult<Employee>> {

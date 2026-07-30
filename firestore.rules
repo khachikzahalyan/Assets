@@ -104,6 +104,19 @@ service cloud.firestore {
           && get(empPath).data.preassignedRole == request.resource.data.role;
       }
 
+      // Offboarding revocation: an admin who can terminate employees (super | asset)
+      // may REVOKE a login account — drop its role and set status 'terminated' so it
+      // no longer grants access. Pure de-escalation (role is removed, never granted
+      // or raised) and never against a super_admin account. Used by archiveEmployee
+      // to disable a fired person's account on the $0 (no Cloud Functions) plan.
+      function revokesAccount() {
+        return (isSuperAdmin() || isAssetAdmin())
+          && resource != null
+          && resource.data.role != 'super_admin'
+          && !('role' in request.resource.data)
+          && request.resource.data.status == 'terminated';
+      }
+
       // Create: super_admin (any shape) OR a self-claim of a no-role record that
       // introduces NO role field OR a preassigned-role self-claim (see above).
       allow create: if validRoleIfPresent() && (
@@ -129,6 +142,7 @@ service cloud.firestore {
             && request.resource.data.status == resource.data.status
           )
           || claimsPreassignedRole()
+          || revokesAccount()
         );
 
       allow delete: if isSuperAdmin();
@@ -222,9 +236,15 @@ service cloud.firestore {
     }
     // ---- /employees ----
     // Read: any admin, OR the employee reading their OWN doc (self-service profile).
-    // Create/Update: super | asset_admin. Doc id is the person's uid; email non-empty.
-    // Delete: super | asset_admin — ONLY as the termination MOVE leg (employee doc is
-    //   deleted while a matching former_employees/{id} doc is created in the same txn).
+    // Create/Update: super | asset_admin. Email non-empty; identity (first/last name)
+    //   is immutable after creation.
+    // Termination is an IN-PLACE status flip (status: 'terminated') via update — NOT a
+    //   delete. archiveEmployee also revokes the linked users/{uid} account (see the
+    //   /users revokesAccount() rule). Do NOT reintroduce a delete-and-move-to-
+    //   former_employees flow: former_employees is legacy read-only for old archived
+    //   data; the in-place flip is the source of truth.
+    // Delete: super | asset_admin — retained for genuine hard-deletes only, not for
+    //   the termination path.
     match /employees/{id} {
       // Read: any admin; the employee reading their OWN doc (by uid or linked
       // employeeId); OR a signed-in user reading the record whose email matches
@@ -263,11 +283,13 @@ service cloud.firestore {
       allow delete: if isSuperAdmin() || isAssetAdmin();
     }
 
-    // ---- /former_employees — archive of terminated employees ----
-    // Read: any admin (name resolution in history + the Архив list). NO employee
-    //   self-read (terminated people have no self-service access).
-    // Create/Update: super | asset_admin (archive + restore move legs); email non-empty.
-    // Delete: super | asset_admin (restore move deletes the archive doc).
+    // ---- /former_employees — LEGACY archive collection ----
+    // Current terminations are an in-place status flip on /employees (see above);
+    // this collection is NOT written by that path. It remains only for backward
+    // compatibility: reading old archived docs (name resolution in history / the
+    // Архив list) and the restore-from-legacy fallback. NO employee self-read.
+    // Create/Update/Delete: super | asset_admin — kept for the legacy restore
+    //   fallback and any one-off migration of pre-existing archive docs.
     match /former_employees/{id} {
       allow read: if isAnyAdmin();
       allow create, update: if (isSuperAdmin() || isAssetAdmin())

@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, it } from 'vitest'
 import { assertFails, assertSucceeds, type RulesTestEnvironment } from '@firebase/rules-unit-testing'
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore'
-import { makeTestEnv, seedDoc, seedUser } from './helpers'
+import { doc, setDoc, updateDoc, deleteField, serverTimestamp } from 'firebase/firestore'
+import { authedDb, makeTestEnv, seedDoc, seedUser } from './helpers'
 
 /**
  * Emulator-backed rules tests for the $0 invited-employee → role self-claim on
@@ -115,5 +115,44 @@ describe('/users preassigned-role self-claim', () => {
     })
     const db = authedWithEmail(INV_UID, INV_EMAIL)
     await assertSucceeds(setDoc(doc(db, `users/${INV_UID}`), claimDoc('tech_admin', EMP_ID, INV_EMAIL)))
+  })
+})
+
+describe('/users offboarding revocation (archiveEmployee)', () => {
+  const ASSET = 'asset1'
+  const TECH = 'tech1'
+  const TARGET = 'firedUid'
+
+  beforeEach(async () => {
+    await env.clearFirestore()
+    await seedUser(env, SUPER, 'super_admin')
+    await seedUser(env, ASSET, 'asset_admin')
+    await seedUser(env, TECH, 'tech_admin')
+  })
+
+  it('ALLOWS an asset_admin to revoke a non-super account (drop role + terminate)', async () => {
+    await seedUser(env, TARGET, 'employee')
+    const db = authedDb(env, ASSET)
+    await assertSucceeds(updateDoc(doc(db, `users/${TARGET}`), { role: deleteField(), status: 'terminated' }))
+  })
+
+  it('REJECTS revoking a super_admin account', async () => {
+    await seedUser(env, TARGET, 'super_admin')
+    const db = authedDb(env, ASSET)
+    await assertFails(updateDoc(doc(db, `users/${TARGET}`), { role: deleteField(), status: 'terminated' }))
+  })
+
+  it('REJECTS a tech_admin using the revocation path', async () => {
+    await seedUser(env, TARGET, 'employee')
+    const db = authedDb(env, TECH)
+    await assertFails(updateDoc(doc(db, `users/${TARGET}`), { role: deleteField(), status: 'terminated' }))
+  })
+
+  it('REJECTS granting a role via the revocation path (must be de-escalation only)', async () => {
+    await seedUser(env, TARGET, 'employee')
+    const db = authedDb(env, ASSET)
+    // Keeps a role instead of removing it → revokesAccount() fails, and asset_admin
+    // is not super, so the whole update is denied.
+    await assertFails(updateDoc(doc(db, `users/${TARGET}`), { role: 'super_admin', status: 'terminated' }))
   })
 })

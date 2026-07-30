@@ -64,3 +64,23 @@ describe('acts/* read', () => {
     await assertFails(getDownloadURL(ref(unauthedStorage(env), 'acts/a1/scan.pdf')))
   })
 })
+
+// The LINKED case: an invited/linked employee's HR doc id differs from their uid;
+// the asset stores assignment.employeeId = <HR doc id>, and users/{uid}.employeeId
+// points at it. Reading acts by uid ALONE (the old rule) broke this — the fix
+// resolves the caller's employeeId via their users doc.
+describe('acts/* read — linked employee (uid != employeeId)', () => {
+  const LINKED_UID = 'linkedUid1'
+  const HR_ID = 'emp_hr_9'
+  beforeEach(async () => {
+    await seedUser(env, LINKED_UID, 'employee', { employeeId: HR_ID })
+    await seedDoc(env, 'assets/a2', { invCode: '450/2', statusId: 'st_assigned', assignment: { mode: 'employee', employeeId: HR_ID } })
+    await up(authedStorage(env, ASSET), 'acts/a2/scan.pdf')
+  })
+  it('the linked employee CAN read their own act scan', async () => {
+    await assertSucceeds(getDownloadURL(ref(authedStorage(env, LINKED_UID), 'acts/a2/scan.pdf')))
+  })
+  it('an unrelated employee still CANNOT read', async () => {
+    await assertFails(getDownloadURL(ref(authedStorage(env, OTHER), 'acts/a2/scan.pdf')))
+  })
+})
