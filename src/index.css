@@ -290,20 +290,21 @@ html.light {
    Base
    ========================================================= */
 
-/* Root font-size — DOWNWARD-ONLY proportional scaling (owner decision).
-   ≥1440px: constant 16px — big monitors NEVER blow up (full-zoom was
-   rejected 2026-07-31; do not scale above 1rem).
-   768–1440px: root tracks viewport (100vw/90), so a 13–14" laptop renders
-   the SAME composition as the 1440px reference, just proportionally
-   smaller — more content fits, nothing looks oversized.
-   Floor 13px keeps tablets readable. Mobile <768px: its own base (15px). */
+/* Root font-size — DOWNWARD-ONLY proportional scaling, 1920px anchor.
+   Owner decision 2026-07-31 (calibrated against their browser-zoom-67%
+   reference screenshot): the app is DESIGNED for a ~1920px viewport; any
+   narrower desktop screen renders that same composition scaled down to fit
+   (a 1366px laptop ≈ the 67% zoom the owner applies manually). ≥1920px the
+   root is CONSTANT 16px — big monitors never blow up (upward zoom rejected).
+   Floor 10px below ~1200px. Mobile <768px keeps its own 15px base — the
+   mobile layout is a separate pattern and must not shrink. */
 html {
   font-size: 0.9375rem;
   background-color: var(--color-bg);
 }
 @media (min-width: 768px) {
   html {
-    font-size: clamp(0.8125rem, 100vw / 90, 1rem);
+    font-size: clamp(0.625rem, 100vw / 120, 1rem);
   }
 }
 

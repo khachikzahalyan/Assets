@@ -361,12 +361,15 @@ export function Icon({ name, size = 16, className }: IconProps) {
   if (!REGISTRY[name] && import.meta.env.DEV) {
     console.warn(`[Icon] unknown name "${name}" — rendering fallback`)
   }
+  // size is the px value at the 1920px design reference; rendered in rem so
+  // icons shrink together with text under the downward-only root scaling.
   return (
     <Cmp
       size={size}
       strokeWidth={1.75}
       aria-hidden
       className={cn('inline-block shrink-0 align-[-2px]', className)}
+      style={{ width: `${size / 16}rem`, height: `${size / 16}rem` }}
     />
   )
 }
