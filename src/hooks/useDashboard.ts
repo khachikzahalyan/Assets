@@ -19,14 +19,23 @@ export interface UseDashboardResult {
   reload: () => void
 }
 
-/** Section permissions per role — MUST mirror nav RoleGate (see config/nav.ts). */
+/**
+ * Section permissions per role. The KPI SUMMARY sections (assets, assignments,
+ * workstationLicenses, people) are visible to EVERY admin — the owner wants the
+ * dashboard overview complete for any admin, and firestore.rules already allow
+ * every admin to READ the underlying /assets, /licenses and /employees docs
+ * (secrets stay separately gated). Navigation is still role-gated: a KPI card for
+ * a route the role can't open renders as non-clickable (see DashboardPage).
+ * serverLicense + recentAudit stay super-only (more sensitive, not summary KPIs).
+ */
 function permissions(role: Role) {
+  const isAdmin = role === 'super_admin' || role === 'asset_admin' || role === 'tech_admin'
   return {
-    assets: role === 'super_admin' || role === 'asset_admin' || role === 'tech_admin',
-    assignments: role === 'super_admin' || role === 'asset_admin' || role === 'tech_admin',
-    workstationLicenses: role === 'super_admin' || role === 'tech_admin',
+    assets: isAdmin,
+    assignments: isAdmin,
+    workstationLicenses: isAdmin,
     serverLicense: role === 'super_admin',
-    people: role === 'super_admin' || role === 'asset_admin',
+    people: isAdmin,
     recentAudit: role === 'super_admin',
   }
 }

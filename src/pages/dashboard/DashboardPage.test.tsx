@@ -229,11 +229,11 @@ describe('DashboardPage asset_admin', () => {
     )
   })
 
-  it('does NOT show workstation license tile', async () => {
+  it('shows workstation license tile (KPI summary is complete for every admin)', async () => {
     renderPage('asset_admin')
-    // wait for data to load (total-assets 4 visible)
-    await waitFor(() => expect(screen.getByText('4')).toBeInTheDocument())
-    expect(screen.queryByTestId('section-licenses')).not.toBeInTheDocument()
+    await waitFor(() =>
+      expect(screen.getByTestId('section-licenses')).toBeInTheDocument(),
+    )
   })
 
   it('does NOT show server-licenses KPI', async () => {
@@ -278,10 +278,11 @@ describe('DashboardPage tech_admin', () => {
     )
   })
 
-  it('does NOT show people/employees tile', async () => {
+  it('shows people/employees tile (KPI summary is complete for every admin)', async () => {
     renderPage('tech_admin')
-    await waitFor(() => expect(screen.getByText('4')).toBeInTheDocument())
-    expect(screen.queryByTestId('section-people')).not.toBeInTheDocument()
+    await waitFor(() =>
+      expect(screen.getByTestId('section-people')).toBeInTheDocument(),
+    )
   })
 
   it('does NOT show server-licenses KPI', async () => {

@@ -14,7 +14,8 @@ export interface StatCardProps {
   icon: string
   label: string
   value: number | null
-  to: string
+  /** Navigation target. Omit to render a non-clickable card (role can't reach the route). */
+  to?: string
   accent: StatCardAccent
   /** Orange gradient hero card — bigger glow, special label colour. */
   featured?: boolean
@@ -100,23 +101,22 @@ export function StatCard({
 }: StatCardProps) {
   const cls = ACCENT[accent]
 
-  return (
-    <Link
-      to={to}
-      data-testid={testId}
-      className={cn(
-        'block rounded-xl border relative overflow-hidden',
-        'transition-colors duration-150',
-        'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent',
-        // Featured spans full 2-col width on mobile, reverts to 1 col on desktop
-        featured && 'col-span-2 lg:col-span-1',
-        // Background + border — every card gets its own accent gradient
-        'bg-gradient-to-br', cls.cardBg, cls.cardBorder,
-        cls.hoverBorder,
-        // Padding: denser on mobile
-        'p-3 lg:p-[18px]',
-      )}
-    >
+  const wrapperClass = cn(
+    'block rounded-xl border relative overflow-hidden',
+    'transition-colors duration-150',
+    'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent',
+    // Featured spans full 2-col width on mobile, reverts to 1 col on desktop
+    featured && 'col-span-2 lg:col-span-1',
+    // Background + border — every card gets its own accent gradient
+    'bg-gradient-to-br', cls.cardBg, cls.cardBorder,
+    // Hover-border only when the card actually navigates
+    to && cls.hoverBorder,
+    // Padding: denser on mobile
+    'p-3 lg:p-[18px]',
+  )
+
+  const inner = (
+    <>
       {/* Soft radial glow — accent-tinted, every card */}
       <span
         className={cn('absolute -top-6 -right-6 w-28 h-28 rounded-full blur-2xl pointer-events-none', cls.glow)}
@@ -204,6 +204,12 @@ export function StatCard({
           </div>
         </div>
       )}
-    </Link>
+    </>
   )
+
+  // A role that can't navigate to the target route gets a static (non-link) card
+  // — the KPI count is still visible, just without a dead link that would bounce.
+  return to
+    ? <Link to={to} data-testid={testId} className={wrapperClass}>{inner}</Link>
+    : <div data-testid={testId} className={wrapperClass}>{inner}</div>
 }

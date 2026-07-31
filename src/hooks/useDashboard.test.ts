@@ -31,30 +31,32 @@ describe('useDashboard role gating', () => {
     expect(result.current.data.recentAudit).toEqual([])
   })
 
-  it('asset_admin: assets+assignments+people; NO licenses/server/audit', async () => {
+  it('asset_admin: all KPI sections (assets+assignments+workstation+people); NO server/audit', async () => {
+    // KPI summary is complete for every admin (owner request); only serverLicense
+    // + recentAudit stay super-only.
     const repo = fakeRepo()
     const { result } = renderHook(() => useDashboard(repo, 'asset_admin'))
     await waitFor(() => expect(result.current.loading).toBe(false))
     expect(repo.loadAssetStats).toHaveBeenCalled()
     expect(repo.loadAssignmentActivity).toHaveBeenCalled()
     expect(repo.loadPeopleStats).toHaveBeenCalled()
-    expect(repo.loadWorkstationLicenseStats).not.toHaveBeenCalled()
+    expect(repo.loadWorkstationLicenseStats).toHaveBeenCalled()
     expect(repo.loadServerLicenseCount).not.toHaveBeenCalled()
     expect(repo.loadRecentAuditRows).not.toHaveBeenCalled()
-    expect(result.current.data.workstationLicenses).toBeNull()
+    expect(result.current.data.workstationLicenses).not.toBeNull()
     expect(result.current.data.serverLicenseCount).toBeNull()
     expect(result.current.data.people).not.toBeNull()
   })
 
-  it('tech_admin: assets+assignments+workstation licenses; NO server/people/audit', async () => {
+  it('tech_admin: all KPI sections (assets+assignments+workstation+people); NO server/audit', async () => {
     const repo = fakeRepo()
     const { result } = renderHook(() => useDashboard(repo, 'tech_admin'))
     await waitFor(() => expect(result.current.loading).toBe(false))
     expect(repo.loadWorkstationLicenseStats).toHaveBeenCalled()
+    expect(repo.loadPeopleStats).toHaveBeenCalled()
     expect(repo.loadServerLicenseCount).not.toHaveBeenCalled()
-    expect(repo.loadPeopleStats).not.toHaveBeenCalled()
     expect(repo.loadRecentAuditRows).not.toHaveBeenCalled()
-    expect(result.current.data.people).toBeNull()
+    expect(result.current.data.people).not.toBeNull()
   })
 
   it('fills currentlyOut from asset byStatus.st_assigned', async () => {

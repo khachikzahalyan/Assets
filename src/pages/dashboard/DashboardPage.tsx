@@ -14,6 +14,7 @@ import { useDashboard } from '@/hooks'
 import type { DashboardRepository } from '@/domain/dashboard'
 import { ASSET_STATUS } from '@/domain/asset'
 import { getSharedDashboardRepository } from '@/infra/repositories'
+import { canAccess } from '@/config/access'
 import { cn } from '@/lib/utils'
 
 export interface DashboardPageProps {
@@ -244,7 +245,7 @@ export function DashboardPage({ repo }: DashboardPageProps) {
             icon="key-round"
             label={t('kpi.licenses')}
             value={data.workstationLicenses.total}
-            to="/licenses"
+            {...(canAccess(role, 'licenses') ? { to: '/licenses' } : {})}
             accent="violet"
           />
         )}
@@ -253,7 +254,7 @@ export function DashboardPage({ repo }: DashboardPageProps) {
             icon="users"
             label={t('kpi.employees')}
             value={data.people.employeeCount}
-            to="/employees"
+            {...(canAccess(role, 'employees') ? { to: '/employees' } : {})}
             accent="amber"
             testId="section-people"
           />
