@@ -53,3 +53,6 @@ lerna-debug.log*
 
 .vercel
 .env*
+
+# Local verification artifacts (Playwright screenshots)
+docs/screenshots/
