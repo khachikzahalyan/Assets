@@ -636,29 +636,6 @@ html.light .app-shell-bg {
   }
 }
 
-/* ── DataTable horizontal-scroll guards ─────────────────────────────────────
-   Desktop grid tables have hard track minimums (sum ≈ 690–790px). Below
-   1024px viewport the content area next to the 260px sidebar can be narrower
-   than that; without a scroll region the ListCard's overflow-hidden CLIPS
-   data. The .ams-dt-scroll wrapper (DataTable.tsx) turns that into a graceful
-   horizontal scroll; the table itself floors at min-content so row borders /
-   hover backgrounds span the full scrolled width.
-   - .ams-dt-scroll      → all DataTables, ≤1023px (incl. rare mobile-rendered
-                           tables that previously clipped).
-   - .ams-dt-scroll-fill → fillHeight tables (ListCard pages), all desktop
-                           widths — also fixes the pre-existing slight clip of
-                           the widest tables at 1024–1100px viewports. Safe:
-                           fill tables never rely on ancestor-scroll sticky
-                           headers, so becoming a scroll container costs
-                           nothing. Content-driven tables at ≥1024 keep
-                           overflow visible to preserve their sticky headers. */
-@media (max-width: 1023px) {
-  .ams-dt-scroll { overflow-x: auto; }
-}
-@media (min-width: 768px) {
-  .ams-dt-scroll-fill { overflow-x: auto; }
-}
-
 /* ── Asset label printing — TSC TDP-225 (2" direct thermal, 203 dpi) ──
    LABEL SIZE lives here. Must EXACTLY match the TSC driver Stock size AND the
    driver Orientation must be Portrait — then the print reproduces this upright

@@ -120,24 +120,6 @@ export function DataTable<T>({
   }
 
   return (
-    /* ── Horizontal-scroll guard wrapper (.ams-dt-scroll, index.css) ─────────
-       The grid tracks carry hard px minimums (sum ≈ 690–790px on the widest
-       tables). When the container is narrower (e.g. 768–1023px viewport next
-       to the 260px sidebar) the wrapper scrolls horizontally instead of the
-       ListCard's overflow-hidden clipping data. minWidth:min-content on the
-       table floors it at the track minimums so row borders / hover
-       backgrounds span the full scrolled width. The wrapper mirrors the
-       table's former fillHeight flex contract so vertical layout chains are
-       unchanged. */
-    <div
-      className={fillHeight ? 'ams-dt-scroll ams-dt-scroll-fill' : 'ams-dt-scroll'}
-      style={{
-        width: '100%',
-        ...(fillHeight
-          ? { flex: '1 1 0', minHeight: 0, display: 'flex', flexDirection: 'column' }
-          : {}),
-      }}
-    >
     <div
       role="table"
       aria-label={ariaLabel}
@@ -145,7 +127,6 @@ export function DataTable<T>({
         display: 'flex',
         flexDirection: 'column',
         width: '100%',
-        minWidth: 'min-content',
         ...(fillHeight ? { flex: '1 1 0', minHeight: 0 } : {}),
       }}
     >
@@ -289,7 +270,6 @@ export function DataTable<T>({
           />
         ))}
       </div>
-    </div>
     </div>
   )
 }
