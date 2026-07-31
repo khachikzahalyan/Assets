@@ -10,7 +10,8 @@ export interface BottomNavProps {
 }
 
 /**
- * Fixed bottom tab bar — mobile only (hidden on lg+).
+ * Fixed bottom tab bar — mobile only (hidden on md+, i.e. ≥768px — MUST match
+ * the sidebar's md:block in AppShell and the 767px content mobile threshold).
  * Renders ALL of the role's nav items in a horizontally-scrollable strip
  * (the full set won't fit on one screen, so it scrolls left↔right).
  * Active item gets accent pill styling; inactive items use subtle text color.
@@ -24,7 +25,7 @@ export function BottomNav({ currentRoute, onNavigate }: BottomNavProps) {
   return (
     <nav
       className={[
-        'fixed bottom-0 inset-x-0 z-40 lg:hidden',
+        'fixed bottom-0 inset-x-0 z-40 md:hidden',
         'bg-surface border-t border-border',
         // Horizontal scroll strip — all items reachable by swiping left↔right.
         'flex items-stretch gap-1 overflow-x-auto no-scrollbar px-2',

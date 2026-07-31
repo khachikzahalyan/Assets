@@ -615,6 +615,50 @@ html.light .app-shell-bg {
   animation: contentEnter 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* ── Uniform desktop layout (≥768px): cap + center ──────────────────────────
+   The content column is capped at --content-max-width and centered so the UI
+   reads identically on a 14" MacBook and a 32" monitor ("кап + центр").
+   width:100% is REQUIRED: with margin-inline:auto a flex item stops stretching
+   on the cross axis and would shrink-wrap to content without it.
+   Mobile (≤767px) is untouched — the max-width:767 block below owns that. */
+@media (min-width: 768px) {
+  .app-shell-content {
+    width: 100%;
+    max-width: var(--content-max-width);
+    margin-inline: auto;
+  }
+
+  /* TopBar inner content aligns with the same capped column (the bar itself
+     stays full-width so its bottom border spans the screen). */
+  .app-shell-topbar-inner {
+    max-width: var(--content-max-width);
+    margin-inline: auto;
+  }
+}
+
+/* ── DataTable horizontal-scroll guards ─────────────────────────────────────
+   Desktop grid tables have hard track minimums (sum ≈ 690–790px). Below
+   1024px viewport the content area next to the 260px sidebar can be narrower
+   than that; without a scroll region the ListCard's overflow-hidden CLIPS
+   data. The .ams-dt-scroll wrapper (DataTable.tsx) turns that into a graceful
+   horizontal scroll; the table itself floors at min-content so row borders /
+   hover backgrounds span the full scrolled width.
+   - .ams-dt-scroll      → all DataTables, ≤1023px (incl. rare mobile-rendered
+                           tables that previously clipped).
+   - .ams-dt-scroll-fill → fillHeight tables (ListCard pages), all desktop
+                           widths — also fixes the pre-existing slight clip of
+                           the widest tables at 1024–1100px viewports. Safe:
+                           fill tables never rely on ancestor-scroll sticky
+                           headers, so becoming a scroll container costs
+                           nothing. Content-driven tables at ≥1024 keep
+                           overflow visible to preserve their sticky headers. */
+@media (max-width: 1023px) {
+  .ams-dt-scroll { overflow-x: auto; }
+}
+@media (min-width: 768px) {
+  .ams-dt-scroll-fill { overflow-x: auto; }
+}
+
 /* ── Asset label printing — TSC TDP-225 (2" direct thermal, 203 dpi) ──
    LABEL SIZE lives here. Must EXACTLY match the TSC driver Stock size AND the
    driver Orientation must be Portrait — then the print reproduces this upright

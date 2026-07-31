@@ -64,8 +64,12 @@ export function AppShell({ children }: AppShellProps) {
     <TopbarSlotContext.Provider value={topbarSlotApi}>
       <div className="app-shell-root app-shell-bg">
         <div className="app-shell-body">
-          {/* Desktop sidebar — hidden on mobile */}
-          <div className="hidden lg:block">
+          {/* Desktop sidebar — hidden on mobile.
+              md (768px) — MUST match BottomNav's md:hidden AND the content-layer
+              mobile threshold (useIsMobile / max-width:767px). A mismatched pair
+              creates a "no man's land" band (desktop tables + bottom nav, no
+              sidebar) — the bug seen on Retina displays at 125–150% zoom. */}
+          <div className="hidden md:block">
             <Sidebar currentRoute={currentRoute} onNavigate={onNavigate} />
           </div>
 
@@ -79,7 +83,7 @@ export function AppShell({ children }: AppShellProps) {
           </main>
         </div>
 
-        {/* Mobile bottom tab bar — self-hides on lg+ via lg:hidden; hidden during
+        {/* Mobile bottom tab bar — self-hides on md+ via md:hidden; hidden during
             focused full-screen flows that own the bottom (e.g. asset registration). */}
         {!hideBottomNav && <BottomNav currentRoute={currentRoute} onNavigate={onNavigate} />}
       </div>

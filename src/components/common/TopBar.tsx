@@ -18,20 +18,25 @@ export function TopBar({ breadcrumbs, customContent }: TopBarProps) {
   const canManageReturns = role === 'super_admin' || role === 'asset_admin'
 
   return (
-    <div className="app-shell-topbar flex items-center gap-3 px-4 lg:px-6">
-      {/* Topbar slot — page-supplied chips, else default breadcrumbs */}
-      <div className="flex-1 min-w-0">
-        {customContent != null ? customContent : <Breadcrumbs items={breadcrumbs} />}
-      </div>
+    <div className="app-shell-topbar flex items-center px-4 lg:px-6">
+      {/* Inner wrapper capped to --content-max-width and centered (≥768px, see
+          index.css) so topbar content aligns with the capped content column on
+          big monitors instead of drifting to the screen edges. */}
+      <div className="app-shell-topbar-inner flex items-center gap-3 w-full min-w-0">
+        {/* Topbar slot — page-supplied chips, else default breadcrumbs */}
+        <div className="flex-1 min-w-0">
+          {customContent != null ? customContent : <Breadcrumbs items={breadcrumbs} />}
+        </div>
 
-      {/* Right cluster: theme + bell (admins) + language toggle + profile */}
-      <div className="flex items-center gap-2">
-        <ThemeToggle />
-        {canManageReturns && (
-          <NotificationBell onSelect={(assetId) => navigate(`/assets/${assetId}`)} />
-        )}
-        <LanguageToggle />
-        <ProfileMenu />
+        {/* Right cluster: theme + bell (admins) + language toggle + profile */}
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          {canManageReturns && (
+            <NotificationBell onSelect={(assetId) => navigate(`/assets/${assetId}`)} />
+          )}
+          <LanguageToggle />
+          <ProfileMenu />
+        </div>
       </div>
     </div>
   )
