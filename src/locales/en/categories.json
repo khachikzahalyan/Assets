@@ -39,7 +39,8 @@
     "icon": "Icon",
     "save": "Save",
     "cancel": "Cancel",
-    "pickGroup": "Select group"
+    "pickGroup": "Select group",
+    "hasOemLicense": "Track product key (OS license)"
   },
   "groupForm": {
     "createTitle": "New category",

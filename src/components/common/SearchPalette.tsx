@@ -6,7 +6,7 @@ import { canAccess } from '@/config/access'
 import { Icon } from '@/components/ui/icon'
 import { Chip } from '@/components/ui/chip'
 import { useSearchPaletteData } from '@/hooks/useSearchPaletteData'
-import { assetTitle, deriveDisplayStatusId } from '@/components/features/assets/assetFormat'
+import { assetTitle, deriveDisplayStatusId, statusLabel } from '@/components/features/assets/assetFormat'
 
 /** Maximum results shown per entity type. */
 const MAX_PER_TYPE = 6
@@ -70,7 +70,10 @@ export function SearchPalette({ open, onClose, onPick }: SearchPaletteProps) {
         if (q && !searchable.includes(q)) continue
 
         const statusId   = deriveDisplayStatusId(a)
-        const statusName = ref.statuses.find(s => s.id === statusId)?.name ?? statusId
+        const statusName = statusLabel(
+          { id: statusId, name: ref.statuses.find(s => s.id === statusId)?.name ?? '' },
+          t,
+        )
         const holder     = a.assignment?.employeeId
           ? (() => {
               const emp = ref.employees.find(e => e.id === a.assignment!.employeeId)

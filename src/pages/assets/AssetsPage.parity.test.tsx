@@ -210,7 +210,7 @@ describe('AssetsPage parity — temp filter + derived-status', () => {
 
     // Assert: "Выдан" chip is visible (from DERIVE_ASSET's derived status).
     // getAllByText because it may also appear in the status SelectMini options.
-    const assignedChips = screen.getAllByText('Выдан')
+    const assignedChips = screen.getAllByText('Выдано')
     expect(assignedChips.length).toBeGreaterThanOrEqual(1)
   })
 
@@ -240,7 +240,7 @@ describe('AssetsPage parity — temp filter + derived-status', () => {
     // Assert: the derived display status is 'Выдан', not 'На складе'
     // 'На складе' may appear in the status SelectMini dropdown option but not in a chip
     // We assert 'Выдан' chips exist and that the chip context is for the row
-    const assignedText = screen.getAllByText('Выдан')
+    const assignedText = screen.getAllByText('Выдано')
     expect(assignedText.length).toBeGreaterThanOrEqual(1)
   })
 })

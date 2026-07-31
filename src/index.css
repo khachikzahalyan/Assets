@@ -290,15 +290,21 @@ html.light {
    Base
    ========================================================= */
 
-/* Fluid root font-size — gentle band, universal adaptive layout.
-   Owner decision 2026-07-31 (final, supersedes the proportional-zoom
-   experiment which was rejected): text stays a readable near-constant size
-   (15px @320 → 16px @1440 → ~17.4px @2560); the LAYOUT adapts to width
-   instead (auto-fit grids, fluid columns, no content cap). Do NOT scale the
-   root proportionally to 100vw — it blows the UI up on large monitors. */
+/* Root font-size — DOWNWARD-ONLY proportional scaling (owner decision).
+   ≥1440px: constant 16px — big monitors NEVER blow up (full-zoom was
+   rejected 2026-07-31; do not scale above 1rem).
+   768–1440px: root tracks viewport (100vw/90), so a 13–14" laptop renders
+   the SAME composition as the 1440px reference, just proportionally
+   smaller — more content fits, nothing looks oversized.
+   Floor 13px keeps tablets readable. Mobile <768px: its own base (15px). */
 html {
-  font-size: clamp(0.9375rem, 0.8875rem + 0.125vw, 1.09375rem);
+  font-size: 0.9375rem;
   background-color: var(--color-bg);
+}
+@media (min-width: 768px) {
+  html {
+    font-size: clamp(0.8125rem, 100vw / 90, 1rem);
+  }
 }
 
 body {

@@ -8,6 +8,12 @@ export interface Category {
   /** FK to the parent CategoryGroup record (display grouping). */
   categoryGroupId: string
   hasSpecs: boolean
+  /**
+   * Admin override: asset-create form shows the «Лицензия ОС» (product key)
+   * section for this category. undefined → fall back to the static taxonomy
+   * (resolveCategoryCapabilities).
+   */
+  hasOemLicense?: boolean
   lucideIcon: string
   createdAt: string
   updatedAt: string

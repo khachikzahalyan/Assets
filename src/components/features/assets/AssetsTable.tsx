@@ -6,6 +6,7 @@ import { HEAD_OFFICE_BRANCH_ID } from '@/domain/asset/transferRules'
 import type { ChipColor } from '@/components/ui/chip'
 import {
   deriveDisplayStatus,
+  statusLabel,
   STATUS_CHIP_COLOR,
   assetTitle,
   isTemporaryAssignment,
@@ -168,7 +169,7 @@ export function AssetsTable({
             key={a.id}
             a={a}
             title={title}
-            displayStatus={displayStatus}
+            displayStatus={{ ...displayStatus, name: statusLabel(displayStatus, t) }}
             statusColor={statusColor}
             subline={subline}
             isAuditOrIntern={isAuditOrIntern}
@@ -309,7 +310,7 @@ export function AssetsTable({
             STATUS_CHIP_COLOR[displayStatus.id] ??
             (displayStatus.color as ChipColor) ??
             'gray'
-          return <Chip color={statusColor} dot>{displayStatus.name}</Chip>
+          return <Chip color={statusColor} dot>{statusLabel(displayStatus, t)}</Chip>
         },
       },
       {

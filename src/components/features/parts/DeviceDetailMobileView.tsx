@@ -36,6 +36,8 @@ interface NativeRow {
   variantLabel: string | null
   entry: UpgradeSlot
   slotIdx: number
+  /** Spec-less slot (battery/cooler/…): title IS the state word — colour it. */
+  state: 'factory' | 'replaced' | null
 }
 
 function buildNativeRows(asset: PartsAsset): NativeRow[] {
@@ -44,11 +46,9 @@ function buildNativeRows(asset: PartsAsset): NativeRow[] {
       const category = kindToCategory(entry.kind, entry.storageType)
       const specText = entry.spec || (entry.replaced ? 'Заменено' : 'Заводской')
       let badge: string | null = entry.storageType ?? null
-      if (!badge) {
-        if (entry.spec && entry.replaced) badge = 'Заменено'
-        else if (entry.kind === 'battery' && !entry.replaced) badge = 'АКБ'
-      }
-      return { id: `__native_${entry.kind}_${i}`, name: specText || entry.kind, category, variantLabel: badge, entry, slotIdx: i }
+      if (!badge && entry.spec && entry.replaced) badge = 'Заменено'
+      const state: NativeRow['state'] = entry.spec ? null : (entry.replaced ? 'replaced' : 'factory')
+      return { id: `__native_${entry.kind}_${i}`, name: specText || entry.kind, category, variantLabel: badge, entry, slotIdx: i, state }
     })
     .sort((a, b) => {
       const r = componentRank(a.category) - componentRank(b.category)
@@ -160,7 +160,11 @@ export function DeviceDetailMobileView({
                       <Icon name={catIcon} size={14} />
                     </span>
                     <div className="flex-1 min-w-0">
-                      <div className="text-13.5 font-semibold text-text-primary leading-tight">
+                      <div className={`text-13.5 font-semibold leading-tight ${
+                        row.state === 'factory' ? 'text-emerald-300 light:text-emerald-700'
+                        : row.state === 'replaced' ? 'text-rose-300 light:text-rose-700'
+                        : 'text-text-primary'
+                      }`}>
                         {row.name}{row.variantLabel ? ` · ${row.variantLabel}` : ''}
                       </div>
                       <div className="text-11.5 text-text-secondary mt-0.5">{catLabel}</div>

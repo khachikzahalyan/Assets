@@ -47,17 +47,15 @@ interface NativeRow {
   qty: number
   native: true
   entry: UpgradeSlot
+  /** Spec-less slot (battery/cooler/…): title IS the state word — colour it. */
+  state: 'factory' | 'replaced' | null
 }
 
 function makeNativeRow(entry: UpgradeSlot, idx: number): NativeRow {
   const category = kindToCategory(entry.kind, entry.storageType)
   const specText = entry.spec || (entry.replaced ? 'Заменено' : 'Заводской')
   let badge: string | null = entry.storageType ?? null
-  if (!badge) {
-    if (entry.spec && entry.replaced) badge = 'Заменено'
-    else if (entry.kind === 'battery' && !entry.replaced) badge = 'АКБ'
-    else badge = null
-  }
+  if (!badge && entry.spec && entry.replaced) badge = 'Заменено'
   return {
     sku: {
       id: `__native_${entry.kind}_${idx}`,
@@ -68,6 +66,7 @@ function makeNativeRow(entry: UpgradeSlot, idx: number): NativeRow {
     qty: 1,
     native: true,
     entry,
+    state: entry.spec ? null : (entry.replaced ? 'replaced' : 'factory'),
   }
 }
 
@@ -274,7 +273,11 @@ function InstalledBody({ rows, onUninstall, t }: InstalledBodyProps) {
               <Icon name={catIcon} size={15} />
             </span>
             <div className="flex-1 min-w-0">
-              <div className="text-15 font-semibold truncate text-text-primary">
+              <div className={`text-15 font-semibold truncate ${
+                row.state === 'factory' ? 'text-emerald-300 light:text-emerald-700'
+                : row.state === 'replaced' ? 'text-rose-300 light:text-rose-700'
+                : 'text-text-primary'
+              }`}>
                 {row.sku.name}
                 {row.sku.variantLabel && (
                   <>

@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
 import type { Asset, AssetRepository, SelfServiceRefData } from '@/domain/asset'
 import { ASSET_STATUS } from '@/domain/asset'
+import { statusLabel } from '@/components/features/assets/assetFormat'
 import type { ChipColor } from '@/components/ui/chip'
 import { getSharedAssetRepository } from '@/infra/repositories'
 import { confirmReceipt } from '@/lib/notifications/confirmReceipt'
@@ -161,7 +162,7 @@ export function MyAssetsPage({ repository }: MyAssetsPageProps) {
                     </span>
                     {status && (
                       <Chip color={color} dot>
-                        {status.name}
+                        {statusLabel(status, t)}
                       </Chip>
                     )}
                   </div>

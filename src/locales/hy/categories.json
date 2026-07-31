@@ -39,7 +39,8 @@
     "icon": "Պատկերակ",
     "save": "Պահպանել",
     "cancel": "Չեղարկել",
-    "pickGroup": "Ընտրեք խումբը"
+    "pickGroup": "Ընտրեք խումբը",
+    "hasOemLicense": "Հետևել բանալուն (ՕՀ լիցենզիա)"
   },
   "groupForm": {
     "createTitle": "Նոր կատեգորիա",

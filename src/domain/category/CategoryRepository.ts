@@ -8,6 +8,7 @@ export interface CreateCategoryInput {
   group: CategoryGroupBehavior
   categoryGroupId?: string
   hasSpecs: boolean
+  hasOemLicense?: boolean
   lucideIcon?: string
 }
 
@@ -16,6 +17,7 @@ export interface UpdateCategoryInput {
   group?: CategoryGroupBehavior
   categoryGroupId?: string
   hasSpecs?: boolean
+  hasOemLicense?: boolean
   lucideIcon?: string
 }
 

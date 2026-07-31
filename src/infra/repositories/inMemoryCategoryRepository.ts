@@ -53,6 +53,7 @@ export class InMemoryCategoryRepository implements CategoryRepository {
       group: input.group,
       categoryGroupId: input.categoryGroupId ?? input.group,
       hasSpecs: input.hasSpecs,
+      ...(input.hasOemLicense !== undefined ? { hasOemLicense: input.hasOemLicense } : {}),
       lucideIcon: input.lucideIcon ?? 'package',
       createdAt: now,
       updatedAt: now,

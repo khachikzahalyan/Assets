@@ -1,3 +1,4 @@
+import type { TFunction } from 'i18next'
 import type { Asset, StatusRow } from '@/domain/asset'
 import { ASSET_STATUS } from '@/domain/asset'
 import type { ChipColor } from '@/components/ui/chip'
@@ -28,6 +29,15 @@ export function deriveDisplayStatusId(
 export function deriveDisplayStatus(asset: Asset, statuses: StatusRow[]): StatusRow {
   const id = deriveDisplayStatusId(asset)
   return statuses.find((s) => s.id === id) ?? { id, name: id, color: 'gray' }
+}
+
+/**
+ * Display label for a status: system statuses (st_*) are Tier-2 enums and
+ * translate via common:status.<id> in the UI language; custom statuses fall
+ * back to their Firestore doc name. Pass any namespace's `t`.
+ */
+export function statusLabel(status: Pick<StatusRow, 'id' | 'name'>, t: TFunction): string {
+  return t(`common:status.${status.id}`, { defaultValue: status.name || status.id })
 }
 
 // ---------------------------------------------------------------------------

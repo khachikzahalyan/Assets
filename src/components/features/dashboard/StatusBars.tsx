@@ -56,7 +56,7 @@ export function StatusBars({ byStatus, statuses, total }: StatusBarsProps) {
                   aria-hidden="true"
                 />
                 <span className="flex-1 text-12.5 text-text-secondary truncate">
-                  {status?.name ?? id}
+                  {t(`status.${id}`, { defaultValue: status?.name ?? id })}
                 </span>
                 <span className="text-12.5 font-mono tabular-nums text-text-primary ml-1">
                   {count}

@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import type { Asset, CategoryRow, StatusRow } from '@/domain/asset'
-import { assetTitle, STATUS_CHIP_COLOR } from '@/components/features/assets/assetFormat'
+import { assetTitle, statusLabel, STATUS_CHIP_COLOR } from '@/components/features/assets/assetFormat'
 import { resolveCategoryColor } from '@/components/common/categoryColors'
 import { Chip, Icon } from '@/components/ui'
 import { CHIP_PALETTE, CHIP_DOT } from '@/components/ui/chip'
@@ -82,7 +82,7 @@ export function DetailHero({
               }`}
             >
               <span className={`w-1.5 h-1.5 rounded-full ${CHIP_DOT[STATUS_CHIP_COLOR[statusRow.id] ?? 'gray']}`} />
-              {statusRow.name}
+              {statusLabel(statusRow, t)}
             </span>
             {onPrint && (
               <button

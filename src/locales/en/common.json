@@ -7,5 +7,6 @@
   "states": { "emptyTitle": "Nothing here yet", "errorTitle": "Something went wrong", "errorDesc": "Try refreshing the page or repeat the action in a few seconds." },
   "breadcrumb": { "root": "AMS", "personal": "My workspace" },
   "roleSwitcher": { "label": "View as…", "dev": "DEV" },
+  "status": { "st_warehouse": "In warehouse", "st_pending": "Awaiting confirmation", "st_assigned": "Assigned", "st_repair": "In repair", "st_disposed": "Disposed" },
   "pagination": { "prev": "Previous page", "next": "Next page", "shown": "Showing {{from}}–{{to}} of {{total}}", "shownBold": "Showing <0>{{from}}–{{to}}</0> of <1>{{total}}</1>" }
 }

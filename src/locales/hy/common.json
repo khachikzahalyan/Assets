@@ -7,5 +7,6 @@
   "states": { "emptyTitle": "Nothing here yet", "errorTitle": "Something went wrong", "errorDesc": "Try refreshing the page or repeat the action in a few seconds." },
   "breadcrumb": { "root": "AMS", "personal": "My workspace" },
   "roleSwitcher": { "label": "View as…", "dev": "DEV" },
+  "status": { "st_warehouse": "Պահեստում", "st_pending": "Սպասման մեջ", "st_assigned": "Հանձնված", "st_repair": "Վերանորոգման մեջ", "st_disposed": "Դուրս գրված" },
   "pagination": { "prev": "Նախորդ էջ", "next": "Հաջորդ էջ", "shown": "Ցուցադրված {{from}}–{{to}} / {{total}}", "shownBold": "Ցուցադրված <0>{{from}}–{{to}}</0> / <1>{{total}}</1>" }
 }

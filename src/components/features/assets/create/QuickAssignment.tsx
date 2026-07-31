@@ -5,6 +5,7 @@ import { SearchSelect } from './SearchSelect'
 import type { AssetAssignment, EmployeeRow, StatusRow } from '@/domain/asset'
 import type { RefRow } from '@/domain/asset'
 import { ASSET_STATUS } from '@/domain/asset'
+import { statusLabel } from '@/components/features/assets/assetFormat'
 
 export type QAPicked = 'warehouse' | 'employee' | 'department' | 'branch' | null
 
@@ -86,7 +87,10 @@ export function QuickAssignment({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLaptop])
 
-  const warehouseName = statuses.find(s => s.id === ASSET_STATUS.warehouse)?.name ?? 'На складе'
+  const warehouseName = statusLabel(
+    { id: ASSET_STATUS.warehouse, name: statuses.find(s => s.id === ASSET_STATUS.warehouse)?.name ?? '' },
+    t,
+  )
   // Warehouse always lives at the Head Office by default (br_main) — show that branch
   // with its own icon/colour (landmark / emerald), not the first branch in the list.
   const headBranch = branches.find(b => b.id === mainBranchId) ?? null

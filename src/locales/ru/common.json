@@ -7,5 +7,6 @@
   "states": { "emptyTitle": "Здесь пока пусто", "errorTitle": "Что-то пошло не так", "errorDesc": "Попробуйте обновить страницу или повторите действие через несколько секунд." },
   "breadcrumb": { "root": "AMS", "personal": "Личный кабинет" },
   "roleSwitcher": { "label": "Просмотр как…", "dev": "DEV" },
+  "status": { "st_warehouse": "На складе", "st_pending": "Ожидание", "st_assigned": "Выдано", "st_repair": "В ремонте", "st_disposed": "Списано" },
   "pagination": { "prev": "Предыдущая страница", "next": "Следующая страница", "shown": "Показано {{from}}–{{to}} из {{total}}", "shownBold": "Показано <0>{{from}}–{{to}}</0> из <1>{{total}}</1>" }
 }

@@ -41,7 +41,9 @@ export function StatusBreakdown({ byStatus, statuses, total }: StatusBreakdownPr
             <div key={id} className="flex flex-col gap-1">
               <div className="flex items-center justify-between">
                 <span className="text-12.5 text-text-tertiary">
-                  {status?.name ?? id}
+                  {/* System statuses are Tier-2 enums: UI language first,
+                      Firestore doc name only as fallback (custom statuses). */}
+                  {t(`status.${id}`, { defaultValue: status?.name ?? id })}
                 </span>
                 <span className="text-12.5 font-semibold text-text-primary tabular-nums">
                   {count}

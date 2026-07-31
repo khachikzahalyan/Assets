@@ -149,9 +149,9 @@ describe('AssetsPage', () => {
     const repo = new InMemoryAssetRepository(ASSETS, REF)
     renderPage('asset_admin', repo)
     await waitFor(() => {
-      // 'Выдан' is the name of st_assigned status in our fixture.
-      // It appears in both the status Select option AND the Chip span — use getAllByText.
-      const matches = screen.getAllByText('Выдан')
+      // st_assigned is a system status: the chip renders the ru translation
+      // «Выдано» (common:status.st_assigned), not the fixture doc name.
+      const matches = screen.getAllByText('Выдано')
       expect(matches.length).toBeGreaterThanOrEqual(1)
     })
   })
