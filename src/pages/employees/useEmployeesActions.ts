@@ -9,7 +9,29 @@ import type { Destination } from '@/components/features/employees/DestPicker'
 import { destToPatch } from './employeesHelpers'
 import { sendAccessEmail } from '@/lib/notifications/sendAccessEmail'
 import { ASSET_STATUS } from '@/domain/asset'
+import { getSharedSubscriptionRepository } from '@/infra/repositories/factories'
+import type { Actor } from '@/domain/asset'
 import type { EmployeesDataBag } from './useEmployeesData'
+
+/**
+ * Best-effort seat cleanup on termination: remove the fired employee from every
+ * subscription's assignedEmployeeIds so their seats free up (audited via
+ * updateAssignees). Swallows all failures — notably asset_admin cannot read
+ * /subscriptions (rules limit them to super|tech), so for that role the ghost
+ * seat stays visible in ManageAssigneesModal where super/tech can release it.
+ */
+async function releaseSubscriptionSeats(employeeId: string, actor: Actor): Promise<void> {
+  try {
+    const subRepo = getSharedSubscriptionRepository()
+    const subs = await subRepo.listSubscriptions()
+    for (const s of subs) {
+      if (!s.assignedEmployeeIds.includes(employeeId)) continue
+      try {
+        await subRepo.updateAssignees(s.id, s.assignedEmployeeIds.filter(id => id !== employeeId), actor)
+      } catch { /* per-sub best-effort */ }
+    }
+  } catch { /* no read access or offline — ghost row remains manually releasable */ }
+}
 
 export function useEmployeesActions(d: EmployeesDataBag) {
   const { t } = useTranslation('employees')
@@ -132,6 +154,7 @@ export function useEmployeesActions(d: EmployeesDataBag) {
     if (assetCountOf(empId) === 0) {
       try {
         await repo.archiveEmployee(empId, actor)
+        void releaseSubscriptionSeats(empId, actor)
         showToast(t('toast.archived'))
         await reload()
       } catch (err) {
@@ -174,6 +197,7 @@ export function useEmployeesActions(d: EmployeesDataBag) {
         }
       }
       await repo.archiveEmployee(handoverTarget.id, actor)
+      void releaseSubscriptionSeats(handoverTarget.id, actor)
       showToast(t('toast.handover'))
       setHandoverTarget(null)
       await reload()

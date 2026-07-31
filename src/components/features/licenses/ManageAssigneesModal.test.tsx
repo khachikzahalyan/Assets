@@ -230,4 +230,68 @@ describe('ManageAssigneesModal', () => {
     // Assert
     expect(onClose).toHaveBeenCalled()
   })
+
+  // ── 7. Stale assignees: terminated + deleted still hold seats ───────────────
+  // Bug 2026-07-30: card said «2 сотрудника», modal showed 1 ✓ — the second
+  // seat was held by a terminated employee filtered out of the list, with no
+  // way to release it. Assigned-but-inactive people must stay visible and
+  // removable; unassigned terminated people must not be offered.
+
+  it('an assigned TERMINATED employee is rendered with the terminated badge and can be unassigned', async () => {
+    // Arrange — Bob is terminated but still holds a seat
+    const termBob = makeEmployee({ id: 'emp_bob', firstName: 'Bob', lastName: 'Jones', email: 'bob@example.test', status: 'terminated' })
+    const onUpdateAssignees = vi.fn().mockResolvedValue(undefined)
+    renderModal({ employees: [EMP_ALICE, termBob], initialAssignedIds: ['emp_alice', 'emp_bob'], onUpdateAssignees })
+
+    // Assert — Bob visible, marked selected, with the «Уволен» badge
+    const badge = i18n.t('manage.terminatedBadge', { ns: 'licenses' })
+    const bobBtn = screen.getByRole('button', { name: /Bob Jones/ })
+    expect(bobBtn).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByText(badge)).toBeInTheDocument()
+
+    // Act — release the ghost seat
+    fireEvent.click(bobBtn)
+
+    // Assert — id removed
+    await waitFor(() => {
+      expect(onUpdateAssignees).toHaveBeenCalledWith('sub_1', ['emp_alice'])
+    })
+  })
+
+  it('an UNASSIGNED terminated employee is not offered in the list', () => {
+    // Arrange — Carol is terminated and holds no seat
+    const termCarol = makeEmployee({ id: 'emp_carol', firstName: 'Carol', lastName: 'White', email: 'carol@example.test', status: 'terminated' })
+    renderModal({ employees: [EMP_ALICE, termCarol], initialAssignedIds: [] })
+
+    // Assert
+    expect(screen.queryByText('Carol White')).toBeNull()
+  })
+
+  it('an assigned id with NO employee record renders a ghost row that can release the seat', async () => {
+    // Arrange — 'emp_gone' no longer exists in /employees at all
+    const onUpdateAssignees = vi.fn().mockResolvedValue(undefined)
+    renderModal({ employees: [EMP_ALICE], initialAssignedIds: ['emp_alice', 'emp_gone'], onUpdateAssignees })
+
+    // Assert — ghost row present and selected
+    const ghost = i18n.t('manage.ghostEmployee', { ns: 'licenses' })
+    const ghostBtn = screen.getByRole('button', { name: new RegExp(ghost) })
+    expect(ghostBtn).toHaveAttribute('aria-pressed', 'true')
+
+    // Act — release
+    fireEvent.click(ghostBtn)
+
+    // Assert
+    await waitFor(() => {
+      expect(onUpdateAssignees).toHaveBeenCalledWith('sub_1', ['emp_alice'])
+    })
+  })
+
+  it('footer seat count includes ghost seats (matches the card)', () => {
+    // Arrange — 1 live + 1 ghost = 2 seats used
+    renderModal({ employees: [EMP_ALICE], initialAssignedIds: ['emp_alice', 'emp_gone'] })
+
+    // Assert — subtitle shows 2 / 10
+    const subtitle = i18n.t('manage.subtitle', { ns: 'licenses', count: 2, total: 10 })
+    expect(screen.getByText(subtitle)).toBeInTheDocument()
+  })
 })

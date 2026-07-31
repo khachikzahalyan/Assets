@@ -121,6 +121,21 @@ describe('LicenseBlock — license-type badge', () => {
     expect(screen.queryByText(/OEM — /)).toBeNull()
   })
 
+  it('compact + Retail + super_admin: reveals the KEY and a copy button (mobile parity)', async () => {
+    const lic = makeLicense()
+    render(
+      <I18nextProvider i18n={i18n}>
+        <AuthContext.Provider value={{ ...AUTH, role: 'super_admin', user: { ...AUTH.user, role: 'super_admin' } }}>
+          <LicenseBlock asset={ACTIVE_ASSET} licenses={[lic]} compact />
+        </AuthContext.Provider>
+      </I18nextProvider>,
+    )
+    // Key is revealed asynchronously by the reveal probe — must be visible on mobile.
+    expect(await screen.findByText('XXXXX-XXXXX-XXXXX-XXXXX-XXXXX')).toBeInTheDocument()
+    // And a copy control is present.
+    expect(screen.getByRole('button', { name: /Копировать/i })).toBeInTheDocument()
+  })
+
   it('compact + bound OEM: shows «OEM» chip', () => {
     const lic = makeLicense({ name: 'OEM — Asus VivoBook Pro', type: 'OEM', isReusable: false })
     renderBlock(<LicenseBlock asset={ACTIVE_ASSET} licenses={[lic]} compact />)

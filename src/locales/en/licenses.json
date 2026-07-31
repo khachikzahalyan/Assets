@@ -131,7 +131,9 @@
     "notFound": "Nothing found",
     "searchPlaceholder": "Search by name, position or email…",
     "subtitle": "Employees · {{count}} / {{total}} seats",
-    "title": "Employees"
+    "title": "Employees",
+    "terminatedBadge": "Terminated",
+    "ghostEmployee": "Deleted employee"
   },
   "multiselect": {
     "done": "Done",
@@ -140,7 +142,9 @@
     "searchPlaceholder": "Search by name or position…",
     "selectedCount": "{{count}} selected"
   },
-  "validation": { "required": "Required field" },
+  "validation": {
+    "required": "Required field"
+  },
   "maskedKeyLabel": "Key hidden",
   "revealedKeyLabel": "Key (shown temporarily)",
   "copyKey": "Copy",

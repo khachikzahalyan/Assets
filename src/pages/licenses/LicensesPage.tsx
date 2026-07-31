@@ -209,15 +209,19 @@ export function LicensesPage({
   }, [subRepo])
 
   // ── Load employees ───────────────────────────────────────────────────────────
+  // ALL statuses: ManageAssigneesModal must resolve seats held by terminated
+  // employees (removable ghost rows). New-assignment pickers get active only.
   const loadEmployees = useCallback(async (guard?: { value: boolean }) => {
     try {
-      const rows = await empRepo.listEmployees({ status: 'active' })
+      const rows = await empRepo.listEmployees({ status: 'all' })
       if (guard && !guard.value) return
       setEmployees(rows)
     } catch {
       // Best-effort; no employees means selects stay empty
     }
   }, [empRepo])
+
+  const activeEmployees = useMemo(() => employees.filter(e => e.status === 'active'), [employees])
 
   // ── Initial load ─────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -529,7 +533,7 @@ export function LicensesPage({
       {/* Add subscription modal */}
       {addOpen && (
         <AddSubscriptionModal
-          employees={employees}
+          employees={activeEmployees}
           submitting={addSubmitting}
           submitError={addError}
           onSubmit={handleAddSubscription}

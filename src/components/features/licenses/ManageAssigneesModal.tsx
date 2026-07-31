@@ -50,15 +50,31 @@ export function ManageAssigneesModal({
     return () => document.removeEventListener('keydown', onKey)
   }, [onClose])
 
+  // Only ACTIVE employees are offered for assignment. Assigned ids that no
+  // longer resolve to an active employee (terminated, or the record was
+  // deleted) still hold a seat — they render as removable "ghost" rows above
+  // the list so the seat can be released. (Bug 2026-07-30: a terminated
+  // assignee was invisible here while the card kept counting their seat.)
+  const activeEmployees = useMemo(
+    () => employees.filter(e => e.status === 'active'),
+    [employees],
+  )
+  const ghostSeats = useMemo(
+    () => assigned
+      .filter(id => !activeEmployees.some(e => e.id === id))
+      .map(id => ({ id, employee: employees.find(e => e.id === id) ?? null })),
+    [assigned, activeEmployees, employees],
+  )
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
-    if (!q) return employees
-    return employees.filter(e =>
+    if (!q) return activeEmployees
+    return activeEmployees.filter(e =>
       `${e.firstName} ${e.lastName}`.toLowerCase().includes(q) ||
       (e.position ?? '').toLowerCase().includes(q) ||
       e.email.toLowerCase().includes(q),
     )
-  }, [employees, search])
+  }, [activeEmployees, search])
 
   const toggle = (empId: string) => {
     const next = assigned.includes(empId)
@@ -117,6 +133,37 @@ export function ManageAssigneesModal({
 
         {/* Employee list */}
         <div className="overflow-y-auto flex-1 py-1">
+          {/* Ghost seats: assigned but terminated/deleted — removable only */}
+          {ghostSeats.map(({ id, employee }) => {
+            const name = employee
+              ? `${employee.firstName} ${employee.lastName}`.trim()
+              : t('manage.ghostEmployee')
+            return (
+              <button
+                key={`ghost_${id}`}
+                type="button"
+                onClick={() => toggle(id)}
+                aria-pressed="true"
+                title={t('manage.done')}
+                className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors bg-rose-500/[0.06] hover:bg-rose-500/10"
+              >
+                <RoleIcon role="employee" size={32} className="flex-shrink-0 opacity-50 grayscale" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-[13.5px] font-semibold text-text-secondary truncate">{name}</div>
+                  {employee && (
+                    <div className="text-[12px] text-text-subtle font-mono truncate">{employee.email}</div>
+                  )}
+                </div>
+                {employee && (
+                  <span className="text-[10.5px] font-bold px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-300 light:text-rose-700 border border-rose-500/30 flex-shrink-0">
+                    {t('manage.terminatedBadge')}
+                  </span>
+                )}
+                <Icon name="check" size={15} className="ml-1 shrink-0 text-accent" />
+              </button>
+            )
+          })}
+
           {filtered.length === 0 ? (
             <div className="px-4 py-8 text-center text-[13.5px] text-text-subtle">
               {t('manage.notFound')}

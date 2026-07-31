@@ -131,7 +131,9 @@
     "notFound": "Ոչինչ չի գտնվել",
     "searchPlaceholder": "Փնտրել անվանումով, պաշտոնով կամ էլ. փոստով…",
     "subtitle": "Աշխատակիցներ · {{count}} / {{total}} նստատեղ",
-    "title": "Աշխատակիցներ"
+    "title": "Աշխատակիցներ",
+    "terminatedBadge": "Ազատված",
+    "ghostEmployee": "Ջնջված աշխատակից"
   },
   "multiselect": {
     "done": "Պատրաստ",
@@ -140,7 +142,9 @@
     "searchPlaceholder": "Փնտրել անվանումով կամ պաշտոնով…",
     "selectedCount": "{{count}} ընտ."
   },
-  "validation": { "required": "Պարտադիր դաշտ" },
+  "validation": {
+    "required": "Պարտադիր դաշտ"
+  },
   "maskedKeyLabel": "Բանալին թաքցված է",
   "revealedKeyLabel": "Բանալի (ցուցադրվում է ժամանակավորապես)",
   "copyKey": "Պատճենել",

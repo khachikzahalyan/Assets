@@ -279,26 +279,61 @@ export function LicenseBlock({
     // Badge reflects the REAL license type from data. Only the legacy
     // no-license-doc state (active asset, hasOemLicense category) assumes OEM.
     const isOemCompact = lic ? lic.type === 'OEM' : true
+    const canCopyCompact = role === 'super_admin' || role === 'tech_admin'
     return (
-      <div className="flex items-center gap-2.5">
-        {/* White MS-logo box — 30px */}
-        <div className="w-[30px] h-[30px] rounded-lg bg-white flex items-center justify-center shrink-0">
-          <svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true">
-            <rect x="1"  y="1"  width="10" height="10" fill="#F25022"/>
-            <rect x="13" y="1"  width="10" height="10" fill="#7FBA00"/>
-            <rect x="1"  y="13" width="10" height="10" fill="#00A4EF"/>
-            <rect x="13" y="13" width="10" height="10" fill="#FFB900"/>
-          </svg>
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center gap-2.5">
+          {/* White MS-logo box — 30px */}
+          <div className="w-[30px] h-[30px] rounded-lg bg-white flex items-center justify-center shrink-0">
+            <svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="1"  y="1"  width="10" height="10" fill="#F25022"/>
+              <rect x="13" y="1"  width="10" height="10" fill="#7FBA00"/>
+              <rect x="1"  y="13" width="10" height="10" fill="#00A4EF"/>
+              <rect x="13" y="13" width="10" height="10" fill="#FFB900"/>
+            </svg>
+          </div>
+          <span className="text-[13px] font-bold text-text-primary flex-1 truncate">{licName}</span>
+          {isOemCompact ? (
+            <span className="shrink-0 bg-amber-500/10 border border-amber-500/30 text-amber-300 light:text-amber-700 text-[10px] font-bold rounded-md px-2 py-0.5">
+              {t('detail.license.oem')}
+            </span>
+          ) : (
+            <span className="shrink-0 bg-blue-500/10 border border-blue-500/30 text-blue-300 light:text-blue-700 text-[10px] font-bold rounded-md px-2 py-0.5">
+              {t('detail.license.retail')}
+            </span>
+          )}
         </div>
-        <span className="text-[13px] font-bold text-text-primary flex-1 truncate">{licName}</span>
-        {isOemCompact ? (
-          <span className="shrink-0 bg-amber-500/10 border border-amber-500/30 text-amber-300 light:text-amber-700 text-[10px] font-bold rounded-md px-2 py-0.5">
-            {t('detail.license.oem')}
-          </span>
-        ) : (
-          <span className="shrink-0 bg-blue-500/10 border border-blue-500/30 text-blue-300 light:text-blue-700 text-[10px] font-bold rounded-md px-2 py-0.5">
-            {t('detail.license.retail')}
-          </span>
+
+        {/* Retail bound license: show the actual key + copy on mobile too — the
+            compact single-row view used to hide them entirely (desktop parity).
+            OEM keys are never revealed; non-copy roles see nothing. */}
+        {!isOemCompact && lic && canCopyCompact && (
+          <div className="flex items-center gap-2 min-w-0 pl-[40px]">
+            {hasKey === null && revealedKey === null && (
+              <div aria-hidden="true" className="h-[15px] flex-1 min-w-0 rounded anim-skeleton" />
+            )}
+            {revealedKey !== null && (
+              <p className="text-[13px] font-mono text-text-secondary tracking-wider truncate select-all flex-1 min-w-0">{revealedKey}</p>
+            )}
+            {hasKey === false && revealedKey === null && (
+              <p className="text-[12.5px] text-text-subtle italic flex-1 min-w-0">{t('detail.license.keyAbsent')}</p>
+            )}
+            {hasKey === true && (
+              <button
+                type="button"
+                onClick={handleCopy}
+                aria-label={copied ? t('detail.license.copied') : t('detail.license.copy')}
+                className={`flex-shrink-0 inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-[12px] font-medium border transition-colors ${
+                  copied
+                    ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400 light:text-emerald-700'
+                    : 'bg-surface-2 border-border text-text-tertiary hover:text-text-primary hover:border-border-strong'
+                }`}
+              >
+                <Icon name={copied ? 'check' : 'copy'} size={12} />
+                {copied ? t('detail.license.copied') : t('detail.license.copy')}
+              </button>
+            )}
+          </div>
         )}
       </div>
     )

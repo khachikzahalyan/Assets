@@ -136,7 +136,9 @@
     "notFound": "Ничего не найдено",
     "searchPlaceholder": "Поиск по имени, должности или email…",
     "subtitle": "Сотрудники · {{count}} / {{total}} мест",
-    "title": "Сотрудники"
+    "title": "Сотрудники",
+    "terminatedBadge": "Уволен",
+    "ghostEmployee": "Удалённый сотрудник"
   },
   "multiselect": {
     "done": "Готово",
