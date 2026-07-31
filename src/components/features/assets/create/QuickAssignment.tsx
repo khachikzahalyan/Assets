@@ -93,8 +93,18 @@ export function QuickAssignment({
   const showWorkMode = isLaptop && (picked === 'employee' || picked === 'department')
 
   // Exclude former (fired) employees — they're merged into refData only for
-  // past-holder name display, never as a valid assignment target.
-  const employeeOptions = employees.filter(e => !e.former).map(e => ({ value: e.id, label: [e.firstName, e.lastName].filter(Boolean).join(' ') || e.email || e.id }))
+  // past-holder name display, never as a valid assignment target. Each option
+  // carries a right-aligned meta line: «должность · отдел» (owner request).
+  const deptNameById = new Map(departments.map(d => [d.id, d.name]))
+  const employeeOptions = employees.filter(e => !e.former).map(e => {
+    const deptName = e.departmentId ? deptNameById.get(e.departmentId) : undefined
+    const meta = [e.position, deptName].filter(Boolean).join(' · ')
+    return {
+      value: e.id,
+      label: [e.firstName, e.lastName].filter(Boolean).join(' ') || e.email || e.id,
+      ...(meta ? { meta } : {}),
+    }
+  })
   const departmentOptions = departments.map(d => ({ value: d.id, label: d.name }))
   const branchOptions = branches.map(b => ({ value: b.id, label: b.name }))
 
@@ -111,10 +121,10 @@ export function QuickAssignment({
               aria-pressed={active}
               className={`group flex flex-col items-center justify-center gap-1.5 py-2.5 px-1.5 rounded-lg border transition-all duration-150 text-[13px] font-semibold tracking-tight
                 ${active
-                  ? `${ACTIVE_CHIP} text-white`
-                  : 'bg-surface border-border text-text-primary hover:border-border-strong hover:bg-surface-2'}`}
+                  ? `${ACTIVE_CHIP} text-white light:text-accent-dark`
+                  : 'bg-surface border-border text-text-primary light:bg-white hover:border-border-strong hover:bg-surface-2'}`}
             >
-              <div className={`w-7 h-7 rounded-md flex items-center justify-center transition-colors ${active ? ACTIVE_ICON_BOX : 'bg-surface-2 text-text-primary group-hover:bg-border'}`}>
+              <div className={`w-7 h-7 rounded-md flex items-center justify-center transition-colors ${active ? ACTIVE_ICON_BOX : 'bg-surface-2 text-text-primary light:bg-slate-100 group-hover:bg-border light:group-hover:bg-slate-200'}`}>
                 <Icon name={b.icon} size={14} />
               </div>
               <span>{t(b.key)}</span>

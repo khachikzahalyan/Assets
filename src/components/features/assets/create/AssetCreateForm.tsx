@@ -342,13 +342,10 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
       {/* B1: In-card header row with AMS pill+title on left, toggle+X on right */}
       <div className="flex items-center justify-between max-md:px-3 max-md:pt-2.5 max-md:pb-2.5 px-5 py-3 border-b border-border/60 gap-2 overflow-hidden">
         <div className="flex items-center gap-2 min-w-0 flex-1">
-          {/* AMS pill badge */}
-          <span className="inline-flex items-center bg-[#F97316]/15 text-accent text-[11px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-md ring-1 ring-[#F97316]/30 shrink-0">AMS</span>
           <div className="min-w-0">
             <h2 className="text-[15px] font-semibold text-text-primary leading-tight truncate">
               {isGroup ? t('form.createTitleGroup') : t('form.createTitle')}
             </h2>
-            <p className="text-[13px] text-text-subtle mt-0.5 truncate">{t('form.subtitleCat', { cat: selectedCategory?.name ?? '—' })}</p>
           </div>
         </div>
         <div className="flex items-center gap-1.5 flex-shrink-0">

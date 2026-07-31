@@ -69,14 +69,14 @@ describe('AssetCreatePage', () => {
   vi.setConfig({ testTimeout: 15000 })
   it('save is disabled until identity + a Quick Assignment recipient are provided', async () => {
     setup()
-    await waitFor(() => screen.getByText(/Регистрация актива/i))
+    await waitFor(() => screen.getByText(/Добавление актива/i))
     const save = screen.getByRole('button', { name: /Создать актив/i })
     expect(save).toBeDisabled()
   })
 
   it('warehouse + filled identity creates with derived warehouse status and one audit entry', async () => {
     const { store, onCreated } = setup()
-    await waitFor(() => screen.getByText(/Регистрация актива/i))
+    await waitFor(() => screen.getByText(/Добавление актива/i))
 
     // 1. Select the category (cat_laptop) via the combobox
     await chooseCategory('Ноутбук')

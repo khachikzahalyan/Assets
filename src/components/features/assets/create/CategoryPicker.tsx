@@ -307,6 +307,7 @@ export function CategoryPicker({ categories, value, onChange, categoryGroupId, d
       {/* Desktop: clamped portal dropdown */}
       {!isMobile && open && pos && createPortal(
         <div
+          ref={portalRef}
           data-cb-portal="true"
           style={{
             position: 'fixed',

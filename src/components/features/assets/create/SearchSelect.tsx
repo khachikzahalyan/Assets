@@ -9,6 +9,8 @@ export interface SearchSelectOption {
   value: string
   label: string
   icon?: string
+  /** Optional secondary text shown right-aligned + muted (e.g. position · department). */
+  meta?: string
 }
 
 export interface SearchSelectProps {
@@ -250,12 +252,22 @@ export function SearchSelect({
                     <Icon name={opt.icon} size={12} />
                   </div>
                 )}
-                <span className="truncate flex-1">{opt.label}</span>
+                <span className="truncate flex-1 min-w-0">{opt.label}</span>
+                {opt.meta && (
+                  <span
+                    className={[
+                      'shrink-0 truncate max-w-[52%] text-[13px]',
+                      isActive ? 'text-white/75' : 'text-text-tertiary',
+                    ].join(' ')}
+                  >
+                    {opt.meta}
+                  </span>
+                )}
                 {isSelected && (
                   <Icon
                     name="check"
                     size={13}
-                    className={['ml-auto shrink-0', isActive ? 'text-white' : 'text-accent'].join(' ')}
+                    className={['shrink-0', isActive ? 'text-white' : 'text-accent'].join(' ')}
                   />
                 )}
               </button>
