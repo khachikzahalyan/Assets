@@ -50,6 +50,33 @@ const config: Config = {
         sans: ['Inter', ...fontFamily.sans],
         mono: ['JetBrains Mono', ...fontFamily.mono],
       },
+      // Numeric font-size utilities (text-9, text-13, text-13.5, etc.)
+      // Values are plain strings (no tuple) — no default line-height attached.
+      // Half sizes use dot notation in the key (Tailwind allows dots in keys).
+      // At the 1440px reference viewport each N maps to exactly N px.
+      fontSize: {
+        '9':          'var(--fs-9)',
+        '10':         'var(--fs-10)',
+        '10.5':       'var(--fs-10p5)',
+        '11':         'var(--fs-11)',
+        '11.5':       'var(--fs-11p5)',
+        '12':         'var(--fs-12)',
+        '12.5':       'var(--fs-12p5)',
+        '13':         'var(--fs-13)',
+        '13.5':       'var(--fs-13p5)',
+        '14':         'var(--fs-14)',
+        '14.5':       'var(--fs-14p5)',
+        '15':         'var(--fs-15)',
+        '15.5':       'var(--fs-15p5)',
+        '16':         'var(--fs-16)',
+        '17':         'var(--fs-17)',
+        '18':         'var(--fs-18)',
+        '20':         'var(--fs-20)',
+        '22':         'var(--fs-22)',
+        'display-sm': 'var(--fs-display-sm)',
+        'display-md': 'var(--fs-display-md)',
+        'display-lg': 'var(--fs-display-lg)',
+      },
       borderRadius: {
         card: 'var(--radius-card)',
         btn: 'var(--radius-btn)',
