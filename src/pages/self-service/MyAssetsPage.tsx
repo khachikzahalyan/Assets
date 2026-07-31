@@ -4,9 +4,12 @@ import {
   PageHeader, SectionCard, Chip, ErrorState, EmptyState,
 } from '@/components/ui'
 import { useAuth } from '@/contexts/AuthContext'
+import { useToast } from '@/contexts/ToastContext'
 import type { Asset, AssetRepository, SelfServiceRefData } from '@/domain/asset'
+import { ASSET_STATUS } from '@/domain/asset'
 import type { ChipColor } from '@/components/ui/chip'
 import { getSharedAssetRepository } from '@/infra/repositories'
+import { confirmReceipt } from '@/lib/notifications/confirmReceipt'
 
 const VALID_CHIP_COLORS: ReadonlySet<string> = new Set<ChipColor>([
   'gray', 'green', 'blue', 'red', 'amber', 'orange', 'indigo', 'violet', 'teal', 'cyan',
@@ -22,6 +25,7 @@ export interface MyAssetsPageProps {
 export function MyAssetsPage({ repository }: MyAssetsPageProps) {
   const { t } = useTranslation('employees')
   const { user } = useAuth()
+  const { showToast } = useToast()
   // Invited employees: HR record id differs from uid — server-provisioned link wins.
   const employeeDocId = user.employeeId ?? user.id
 
@@ -31,6 +35,7 @@ export function MyAssetsPage({ repository }: MyAssetsPageProps) {
   const [loadError, setLoadError] = useState<string | null>(null)
   const [assets, setAssets]       = useState<Asset[]>([])
   const [ref, setRef]             = useState<SelfServiceRefData | null>(null)
+  const [confirmingId, setConfirmingId] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -48,6 +53,24 @@ export function MyAssetsPage({ repository }: MyAssetsPageProps) {
       setLoading(false)
     }
   }, [repo, employeeDocId, t])
+
+  // In-app receipt confirmation: flips st_pending → st_assigned via the authed API.
+  // The realtime subscription (or load() fallback) refreshes the row afterwards.
+  const handleConfirm = useCallback(async (assetId: string) => {
+    setConfirmingId(assetId)
+    const { ok } = await confirmReceipt(assetId)
+    if (ok) {
+      showToast(t('self.confirmReceiptDone'))
+      // Optimistic: reflect the flip immediately (realtime will reconcile).
+      setAssets(prev => prev.map(a =>
+        a.id === assetId ? { ...a, statusId: ASSET_STATUS.assigned } : a,
+      ))
+      if (typeof repo.subscribeAssetsForEmployee !== 'function') void load()
+    } else {
+      showToast(t('self.confirmReceiptFailed'), { variant: 'error' })
+    }
+    setConfirmingId(null)
+  }, [repo, load, showToast, t])
 
   useEffect(() => {
     // Realtime path: subscribe so an admin's transfer appears without a reload.
@@ -121,22 +144,39 @@ export function MyAssetsPage({ repository }: MyAssetsPageProps) {
         ) : (
           <ul className="space-y-2">
             {assets.map(a => {
-              const status   = statusMap.get(a.statusId)
-              const category = categoryMap.get(a.categoryId)
-              const color    = toChipColor(status?.color ?? 'gray')
+              const status    = statusMap.get(a.statusId)
+              const category  = categoryMap.get(a.categoryId)
+              const color     = toChipColor(status?.color ?? 'gray')
+              const isPending = a.statusId === ASSET_STATUS.pending
+              const isBusy    = confirmingId === a.id
               return (
                 <li
                   key={a.id}
-                  className="flex items-center gap-3 rounded-md border border-border bg-bg px-3 py-2 min-h-[44px]"
+                  className="rounded-md border border-border bg-bg px-3 py-2"
                 >
-                  <span className="font-mono text-[12px] text-text-tertiary min-w-[80px]">{a.invCode}</span>
-                  <span className="flex-1 text-[13px] text-text-primary">
-                    {[a.brand, a.model].filter(Boolean).join(' ') || category?.name || '—'}
-                  </span>
-                  {status && (
-                    <Chip color={color} dot>
-                      {status.name}
-                    </Chip>
+                  <div className="flex items-center gap-3 min-h-[28px]">
+                    <span className="font-mono text-[12px] text-text-tertiary min-w-[80px]">{a.invCode}</span>
+                    <span className="flex-1 text-[13px] text-text-primary">
+                      {[a.brand, a.model].filter(Boolean).join(' ') || category?.name || '—'}
+                    </span>
+                    {status && (
+                      <Chip color={color} dot>
+                        {status.name}
+                      </Chip>
+                    )}
+                  </div>
+                  {isPending && (
+                    <div className="mt-2 flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => void handleConfirm(a.id)}
+                        disabled={isBusy}
+                        className="inline-flex items-center gap-1.5 h-8 max-md:h-11 px-3 rounded-lg text-[13px] font-semibold text-accent light:text-accent bg-accent/10 border border-accent/30 hover:bg-accent/15 hover:border-accent/50 transition-colors disabled:opacity-60 disabled:pointer-events-none"
+                      >
+                        <span aria-hidden="true">✓</span>
+                        {t('self.confirmReceipt')}
+                      </button>
+                    </div>
                   )}
                 </li>
               )

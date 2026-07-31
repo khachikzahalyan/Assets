@@ -67,6 +67,9 @@
     "uidHint": "The employee's Firebase Auth uid. Matches users/{uid}."
   },
   "self": {
+    "confirmReceipt": "Confirm receipt",
+    "confirmReceiptDone": "Receipt confirmed",
+    "confirmReceiptFailed": "Could not confirm. Please try again later.",
     "myActs": "My acts",
     "myAssets": "My assets",
     "noActs": "You have no signed acts",

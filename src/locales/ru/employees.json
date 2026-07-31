@@ -76,6 +76,9 @@
     "uidHint": "Firebase Auth uid сотрудника. Совпадает с users/{uid}."
   },
   "self": {
+    "confirmReceipt": "Подтвердить получение",
+    "confirmReceiptDone": "Получение подтверждено",
+    "confirmReceiptFailed": "Не удалось подтвердить. Попробуйте позже.",
     "myActs": "Мои акты",
     "myAssets": "Мои активы",
     "noActs": "У вас нет подписанных актов",
