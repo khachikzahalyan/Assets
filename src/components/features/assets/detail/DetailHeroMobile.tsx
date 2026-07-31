@@ -61,7 +61,7 @@ export function DetailHeroMobile({
         </div>
 
         <div className="flex-1 min-w-0">
-          <h1 className="text-[17px] font-bold text-text-primary leading-snug truncate">
+          <h1 className="text-17 font-bold text-text-primary leading-snug truncate">
             {assetTitle(asset, category?.name, category?.group)}
           </h1>
           {category && (
@@ -74,7 +74,7 @@ export function DetailHeroMobile({
         {/* Compact control cluster (owner: «делай компактнее») */}
         <div className="flex items-center gap-1.5 shrink-0">
           <span
-            className={`inline-flex items-center gap-1.5 h-7 px-2.5 rounded-lg text-[12px] font-semibold border ${
+            className={`inline-flex items-center gap-1.5 h-7 px-2.5 rounded-lg text-12 font-semibold border ${
               CHIP_PALETTE[chipColor]
             }`}
           >
@@ -85,7 +85,7 @@ export function DetailHeroMobile({
             <button
               type="button"
               onClick={onWriteOff}
-              className="inline-flex items-center gap-1 h-7 px-2.5 rounded-lg text-[12px] font-semibold text-rose-300 light:text-rose-700 bg-rose-500/10 light:bg-rose-50 border border-rose-500/30 light:border-rose-200 hover:bg-rose-500/15 hover:border-rose-500/50 transition-colors"
+              className="inline-flex items-center gap-1 h-7 px-2.5 rounded-lg text-12 font-semibold text-rose-300 light:text-rose-700 bg-rose-500/10 light:bg-rose-50 border border-rose-500/30 light:border-rose-200 hover:bg-rose-500/15 hover:border-rose-500/50 transition-colors"
             >
               <Icon name="archive-x" size={12} aria-hidden="true" />
               {t('detail.hero.writeOff')}
@@ -96,11 +96,11 @@ export function DetailHeroMobile({
 
       {/* ── Divider + one compact identifier line: [inv chip] [SN] serial ── */}
       <div className="mt-2 pt-2 border-t border-border flex items-center gap-2 min-w-0">
-        <span className="inline-flex items-center font-mono text-[12px] font-bold bg-surface-2 text-text-primary ring-1 ring-border px-2 py-0.5 rounded-md shrink-0">
+        <span className="inline-flex items-center font-mono text-12 font-bold bg-surface-2 text-text-primary ring-1 ring-border px-2 py-0.5 rounded-md shrink-0">
           {asset.invCode}
         </span>
         {asset.serial && (
-          <span className="font-mono text-[12px] text-[#E2E8F0] light:text-slate-700 truncate">
+          <span className="font-mono text-12 text-[#E2E8F0] light:text-slate-700 truncate">
             {asset.serial}
           </span>
         )}

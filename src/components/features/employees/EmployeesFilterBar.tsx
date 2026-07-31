@@ -79,8 +79,8 @@ export function EmployeesFilterBar({
   return (
     <div className={[
       'flex items-center gap-2 px-4 py-2 flex-wrap',
-      'max-md:flex-nowrap max-md:overflow-x-auto max-md:gap-[6px]',
-      'max-md:px-[14px] max-md:py-[8px]',
+      'max-md:flex-nowrap max-md:overflow-x-auto max-md:gap-1.5',
+      'max-md:px-3.5 max-md:py-2',
       'no-scrollbar max-md:scroll-fade-x',
     ].join(' ')}>
       <SelectMini
@@ -132,7 +132,7 @@ export function EmployeesFilterBar({
             sort: 'updated_desc',
           })}
           aria-label={t('filter.reset')}
-          className="ml-auto inline-flex items-center gap-1 h-8 px-2.5 rounded-lg text-[14px] font-semibold text-text-primary hover:bg-surface-2 max-md:hidden"
+          className="ml-auto inline-flex items-center gap-1 h-8 px-2.5 rounded-lg text-14 font-semibold text-text-primary hover:bg-surface-2 max-md:hidden"
         >
           <Icon name="x" size={12} />
           {t('filter.reset')}

@@ -99,7 +99,7 @@ export const HistoryRowMobile = memo(function HistoryRowMobile({
   /* Slots */
   const iconTile = (
     <span
-      className={`w-[28px] h-[28px] rounded-[8px] inline-flex items-center justify-center flex-shrink-0 ${tileCls}`}
+      className={`w-[1.75rem] h-[1.75rem] rounded-[8px] inline-flex items-center justify-center flex-shrink-0 ${tileCls}`}
       aria-hidden="true"
     >
       <Icon name={catIconName} size={13} />
@@ -107,11 +107,11 @@ export const HistoryRowMobile = memo(function HistoryRowMobile({
   )
 
   const titleNode = (
-    <div className="text-[13px] font-bold text-text-primary truncate leading-snug mb-[2px] flex items-center gap-1.5">
+    <div className="text-13 font-bold text-text-primary truncate leading-snug mb-0.5 flex items-center gap-1.5">
       <span className="truncate">{displayTitle}</span>
       {isServiceReplace && (
         <span
-          className="inline-flex items-center border rounded-[4px] px-[5px] py-[1px] text-[9px] font-bold whitespace-nowrap leading-none flex-shrink-0 bg-teal-500/15 text-teal-300 border-teal-500/30 light:text-teal-700 light:border-teal-500/40"
+          className="inline-flex items-center border rounded-[4px] px-[0.3125rem] py-[1px] text-9 font-bold whitespace-nowrap leading-none flex-shrink-0 bg-teal-500/15 text-teal-300 border-teal-500/30 light:text-teal-700 light:border-teal-500/40"
           aria-label={t('warehouse.serviceChip')}
         >
           {t('warehouse.serviceChip')}
@@ -121,7 +121,7 @@ export const HistoryRowMobile = memo(function HistoryRowMobile({
   )
 
   const sublineNode = (
-    <div className="text-[11px] text-text-tertiary truncate leading-snug">
+    <div className="text-11 text-text-tertiary truncate leading-snug">
       {!assetCode ? (
         <span className="inline-flex items-center gap-1">
           <Icon name="package" size={9} aria-hidden="true" />
@@ -138,17 +138,17 @@ export const HistoryRowMobile = memo(function HistoryRowMobile({
   )
 
   const right = (
-    <div className="flex flex-col items-end gap-[3px] flex-shrink-0">
+    <div className="flex flex-col items-end gap-[0.1875rem] flex-shrink-0">
       <span
         className={[
-          'inline-flex items-center border rounded-[5px] px-[7px] py-[2px]',
-          'text-[10px] font-bold whitespace-nowrap leading-none',
+          'inline-flex items-center border rounded-[5px] px-[0.4375rem] py-0.5',
+          'text-10 font-bold whitespace-nowrap leading-none',
           pillCls,
         ].join(' ')}
       >
         {pillLabel}
       </span>
-      <span className="font-['JetBrains_Mono',ui-monospace,monospace] text-[10px] text-text-subtle whitespace-nowrap tabular-nums">
+      <span className="font-['JetBrains_Mono',ui-monospace,monospace] text-10 text-text-subtle whitespace-nowrap tabular-nums">
         {fmtPartsDate(mv.at)}
       </span>
     </div>

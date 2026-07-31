@@ -64,7 +64,7 @@ function StepIndicator({ current, t }: { current: WizardStep; t: (k: string) => 
           <div key={step} className="flex items-center">
             <div
               className={[
-                'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12.5px] font-medium whitespace-nowrap transition-colors',
+                'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-12.5 font-medium whitespace-nowrap transition-colors',
                 isActive
                   ? 'bg-accent/15 text-accent-light'
                   : isDone
@@ -76,7 +76,7 @@ function StepIndicator({ current, t }: { current: WizardStep; t: (k: string) => 
                 <Icon name="check" size={12} />
               ) : (
                 <span className={[
-                  'w-4 h-4 rounded-full inline-flex items-center justify-center text-[10px] font-bold',
+                  'w-4 h-4 rounded-full inline-flex items-center justify-center text-10 font-bold',
                   isActive ? 'bg-accent text-white' : 'bg-surface-2 text-text-subtle',
                 ].join(' ')}>
                   {idx + 1}
@@ -349,7 +349,7 @@ export function ImportPage({ assetRepo, employeeRepo, assignmentRepo }: ImportPa
         >
           <Icon name="arrow-left" size={18} />
         </button>
-        <h1 className="text-[15px] font-semibold text-text-primary">{t('title')}</h1>
+        <h1 className="text-15 font-semibold text-text-primary">{t('title')}</h1>
         <div className="ml-auto">
           <StepIndicator current={step} t={t} />
         </div>
@@ -364,12 +364,12 @@ export function ImportPage({ assetRepo, employeeRepo, assignmentRepo }: ImportPa
             <div className="space-y-6">
               {/* Error banners */}
               {loadError && (
-                <div className="bg-rose-950/20 light:bg-rose-50 border border-rose-800/30 light:border-rose-200 rounded-xl px-4 py-3 text-[13px] text-rose-400 light:text-rose-700">
+                <div className="bg-rose-950/20 light:bg-rose-50 border border-rose-800/30 light:border-rose-200 rounded-xl px-4 py-3 text-13 text-rose-400 light:text-rose-700">
                   {t('error.loadRefFailed')}
                 </div>
               )}
               {parseError && (
-                <div className="bg-rose-950/20 light:bg-rose-50 border border-rose-800/30 light:border-rose-200 rounded-xl px-4 py-3 text-[13px] text-rose-400 light:text-rose-700">
+                <div className="bg-rose-950/20 light:bg-rose-50 border border-rose-800/30 light:border-rose-200 rounded-xl px-4 py-3 text-13 text-rose-400 light:text-rose-700">
                   {t('error.parseFailed')}
                 </div>
               )}
@@ -377,12 +377,12 @@ export function ImportPage({ assetRepo, employeeRepo, assignmentRepo }: ImportPa
               {/* Step 1: Template */}
               <div className="bg-surface border border-border rounded-xl p-5 space-y-3">
                 <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-accent/15 inline-flex items-center justify-center text-[11px] font-bold text-accent-light">
+                  <span className="w-6 h-6 rounded-full bg-accent/15 inline-flex items-center justify-center text-11 font-bold text-accent-light">
                     1
                   </span>
-                  <h2 className="text-[14px] font-semibold text-text-primary">{t('template.heading')}</h2>
+                  <h2 className="text-14 font-semibold text-text-primary">{t('template.heading')}</h2>
                 </div>
-                <p className="text-[13px] text-text-secondary">{t('template.desc')}</p>
+                <p className="text-13 text-text-secondary">{t('template.desc')}</p>
                 <Btn
                   variant="secondary"
                   size="sm"
@@ -397,15 +397,15 @@ export function ImportPage({ assetRepo, employeeRepo, assignmentRepo }: ImportPa
               {/* Step 2: Upload */}
               <div className="bg-surface border border-border rounded-xl p-5 space-y-3">
                 <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-accent/15 inline-flex items-center justify-center text-[11px] font-bold text-accent-light">
+                  <span className="w-6 h-6 rounded-full bg-accent/15 inline-flex items-center justify-center text-11 font-bold text-accent-light">
                     2
                   </span>
-                  <h2 className="text-[14px] font-semibold text-text-primary">{t('upload.heading')}</h2>
+                  <h2 className="text-14 font-semibold text-text-primary">{t('upload.heading')}</h2>
                 </div>
-                <p className="text-[13px] text-text-secondary">{t('upload.desc')}</p>
+                <p className="text-13 text-text-secondary">{t('upload.desc')}</p>
 
                 {step === 'upload' && uploadPhase !== 'idle' ? (
-                  <div className="flex items-center gap-2 text-[13px] text-text-tertiary">
+                  <div className="flex items-center gap-2 text-13 text-text-tertiary">
                     <Icon name="loader-2" size={14} className="animate-spin text-accent" />
                     {uploadPhase === 'parsing' ? t('upload.parsing') : t('upload.validating')}
                   </div>
@@ -432,8 +432,8 @@ export function ImportPage({ assetRepo, employeeRepo, assignmentRepo }: ImportPa
           {step === 'preview' && plan && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-[15px] font-semibold text-text-primary">{t('preview.heading')}</h2>
-                <div className="flex items-center gap-2 text-[12.5px]">
+                <h2 className="text-15 font-semibold text-text-primary">{t('preview.heading')}</h2>
+                <div className="flex items-center gap-2 text-12.5">
                   <span className="text-emerald-400 light:text-emerald-700 font-medium">
                     {t('preview.readyCount', { count: plan.readyEmployees + plan.readyAssets })}
                   </span>

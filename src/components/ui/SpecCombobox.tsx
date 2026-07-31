@@ -86,7 +86,7 @@ export function SpecCombobox({ value, onChange, suggestions, placeholder, id }: 
           autoCapitalize="off"
           spellCheck={false}
           placeholder={placeholder}
-          className="flex-1 min-w-0 px-0 py-2.5 text-[15px] bg-transparent text-text-primary outline-none placeholder:text-text-subtle"
+          className="flex-1 min-w-0 px-0 py-2.5 text-15 bg-transparent text-text-primary outline-none placeholder:text-text-subtle"
         />
         <button
           type="button"
@@ -112,7 +112,7 @@ export function SpecCombobox({ value, onChange, suggestions, placeholder, id }: 
                 type="button"
                 onMouseDown={(e) => { e.preventDefault(); pick(s) }}
                 onMouseEnter={() => setActiveIdx(idx)}
-                className={`block w-full px-3 py-2 text-[14.5px] text-left transition-colors duration-75 ${isActive ? 'bg-accent text-white' : 'text-text-primary hover:bg-accent hover:text-white'}`}
+                className={`block w-full px-3 py-2 text-14.5 text-left transition-colors duration-75 ${isActive ? 'bg-accent text-white' : 'text-text-primary hover:bg-accent hover:text-white'}`}
               >{s}</button>
             )
           })}

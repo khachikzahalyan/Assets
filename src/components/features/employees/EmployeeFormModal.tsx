@@ -58,8 +58,8 @@ function blankDraft(): Draft {
 // ── Sub-components ────────────────────────────────────────────────────────────
 
 const LABEL_CLS =
-  'block mb-1 text-[11px] uppercase tracking-[0.06em] font-semibold text-text-subtle'
-const ERROR_CLS = 'mt-1 text-[11px] text-[#FDA4AF] light:text-rose-700'
+  'block mb-1 text-11 uppercase tracking-[0.06em] font-semibold text-text-subtle'
+const ERROR_CLS = 'mt-1 text-11 text-[#FDA4AF] light:text-rose-700'
 
 interface FieldWrapProps {
   label: string
@@ -94,7 +94,7 @@ interface ReadOnlyValueProps {
 function ReadOnlyValue({ children, mono, icon }: ReadOnlyValueProps) {
   return (
     <div
-      className={`w-full h-9 px-3 flex items-center gap-2 text-[16px] rounded-lg border border-border bg-surface-2 text-text-primary ${
+      className={`w-full h-9 px-3 flex items-center gap-2 text-16 rounded-lg border border-border bg-surface-2 text-text-primary ${
         mono ? 'font-mono tracking-tight' : ''
       }`}
     >
@@ -211,10 +211,10 @@ export function EmployeeFormModal({
       {/* Header — prototype lines 1524-1537 */}
       <div className="px-6 pt-5 pb-4 border-b border-border flex items-center justify-between">
         <div>
-          <div className="text-[17px] font-bold text-text-primary tracking-tight">
+          <div className="text-17 font-bold text-text-primary tracking-tight">
             {isEdit ? t('form.editTitle') : t('form.createTitle')}
           </div>
-          <div className="text-[14px] text-text-subtle mt-0.5">
+          <div className="text-14 text-text-subtle mt-0.5">
             {isEdit ? t('form.editSubtitle') : t('form.createSubtitle')}
           </div>
         </div>

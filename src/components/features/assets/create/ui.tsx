@@ -29,12 +29,12 @@ export function Field({ label, required, hint, children }: FieldProps) {
   return (
     <label className="block">
       {label && (
-        <div className="text-[13px] max-lg:text-[9.5px] uppercase tracking-[0.07em] max-lg:tracking-[1.4px] font-semibold max-lg:font-bold text-text-tertiary max-lg:text-text-subtle mb-1.5 flex items-center gap-1">
+        <div className="text-13 max-lg:text-10 uppercase tracking-[0.07em] max-lg:tracking-[1.4px] font-semibold max-lg:font-bold text-text-tertiary max-lg:text-text-subtle mb-1.5 flex items-center gap-1">
           {label}{required && <span className="text-accent ml-0.5">*</span>}
         </div>
       )}
       {children}
-      {hint && <div className="text-[13px] text-text-subtle mt-1 leading-snug">{hint}</div>}
+      {hint && <div className="text-13 text-text-subtle mt-1 leading-snug">{hint}</div>}
     </label>
   )
 }
@@ -104,7 +104,7 @@ export function Input({
       autoFocus={autoFocus}
       min={min}
       max={max}
-      className={`w-full px-0 py-2.5 text-[15px] border-b ${invalid ? 'border-error' : 'border-border'} bg-transparent rounded-none text-text-primary placeholder:text-text-subtle outline-none shadow-none focus:border-accent focus:shadow-[0_2px_8px_rgba(217,119,87,0.1)] disabled:opacity-50 disabled:cursor-not-allowed transition-[border-color,box-shadow] duration-200${mono ? ' font-mono tracking-tight' : ''} ${className}`}
+      className={`w-full px-0 py-2.5 text-15 border-b ${invalid ? 'border-error' : 'border-border'} bg-transparent rounded-none text-text-primary placeholder:text-text-subtle outline-none shadow-none focus:border-accent focus:shadow-[0_2px_8px_rgba(217,119,87,0.1)] disabled:opacity-50 disabled:cursor-not-allowed transition-[border-color,box-shadow] duration-200${mono ? ' font-mono tracking-tight' : ''} ${className}`}
     />
   )
 }

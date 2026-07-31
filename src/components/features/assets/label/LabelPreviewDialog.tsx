@@ -122,7 +122,7 @@ export function LabelPreviewDialog({ assets, onClose, onPrint }: LabelPreviewDia
             style={{ paddingBottom: 'calc(max(16px, env(safe-area-inset-bottom, 0px)) + 8px)' }}
           >
             {commitError && (
-              <p role="alert" className="text-[12px] text-rose-400 light:text-rose-700 self-end max-md:self-start">{commitError}</p>
+              <p role="alert" className="text-12 text-rose-400 light:text-rose-700 self-end max-md:self-start">{commitError}</p>
             )}
             <div className="flex items-center justify-end gap-2 max-md:flex-col-reverse max-md:gap-2.5">
               <Btn

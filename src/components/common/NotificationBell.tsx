@@ -87,7 +87,7 @@ export function NotificationBell({ repository, onSelect }: NotificationBellProps
         {count > 0 && (
           <span
             data-testid="bell-badge"
-            className="absolute top-1 right-1 min-w-[16px] h-4 px-1 inline-flex items-center justify-center rounded-full bg-accent text-white text-[10px] font-bold leading-none"
+            className="absolute top-1 right-1 min-w-[16px] h-4 px-1 inline-flex items-center justify-center rounded-full bg-accent text-white text-10 font-bold leading-none"
           >
             {count > 99 ? '99+' : count}
           </span>
@@ -107,11 +107,11 @@ export function NotificationBell({ repository, onSelect }: NotificationBellProps
           className="bg-surface-2 border border-border rounded-xl anim-fade-slide-in overflow-hidden"
         >
           <div className="px-3.5 py-3 border-b border-border">
-            <div className="text-[13px] font-semibold text-text-primary">{t('title')}</div>
-            <div className="text-[11px] text-text-subtle">{t('subtitle')}</div>
+            <div className="text-13 font-semibold text-text-primary">{t('title')}</div>
+            <div className="text-11 text-text-subtle">{t('subtitle')}</div>
           </div>
           {error ? (
-            <div className="px-3.5 py-3 text-[12.5px] text-rose-400 light:text-rose-700">
+            <div className="px-3.5 py-3 text-12.5 text-rose-400 light:text-rose-700">
               {t('loadError')}
             </div>
           ) : loading && notifications.length === 0 ? (
@@ -136,8 +136,8 @@ export function NotificationBell({ repository, onSelect }: NotificationBellProps
           ) : notifications.length === 0 ? (
             <div className="flex flex-col items-center gap-1.5 px-4 py-8 text-center">
               <Icon name="check-check" size={20} className="text-text-subtle" />
-              <div className="text-[13px] text-text-tertiary">{t('empty')}</div>
-              <div className="text-[11px] text-text-subtle max-w-[240px]">{t('emptyHint')}</div>
+              <div className="text-13 text-text-tertiary">{t('empty')}</div>
+              <div className="text-11 text-text-subtle max-w-[240px]">{t('emptyHint')}</div>
             </div>
           ) : (
             <div className="max-h-[360px] overflow-y-auto py-1">
@@ -155,12 +155,12 @@ export function NotificationBell({ repository, onSelect }: NotificationBellProps
                     className="w-full text-left px-3.5 py-2.5 hover:bg-surface transition-colors flex flex-col gap-0.5"
                   >
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-[13px] font-semibold text-text-primary truncate">{n.title}</span>
-                      <span className="text-[11px] font-mono text-text-subtle shrink-0">{n.invCode}</span>
+                      <span className="text-13 font-semibold text-text-primary truncate">{n.title}</span>
+                      <span className="text-11 font-mono text-text-subtle shrink-0">{n.invCode}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-[11px] text-text-tertiary">{kindLabel(n.tempKind)}</span>
-                      <span className={`text-[12px] font-medium ${overdue ? 'text-rose-400 light:text-rose-700' : 'text-amber-300 light:text-amber-700'}`}>
+                      <span className="text-11 text-text-tertiary">{kindLabel(n.tempKind)}</span>
+                      <span className={`text-12 font-medium ${overdue ? 'text-rose-400 light:text-rose-700' : 'text-amber-300 light:text-amber-700'}`}>
                         {statusText}
                       </span>
                     </div>

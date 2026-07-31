@@ -68,7 +68,7 @@ export function TechSpecsCard({
       type="button"
       onClick={handleCopy}
       aria-label={copied ? t('detail.specs.copied') : t('detail.specs.copy')}
-      className={`flex-shrink-0 inline-flex items-center gap-1.5 h-8 max-md:h-11 px-3 rounded-lg text-[12.5px] font-medium border transition-colors ${
+      className={`flex-shrink-0 inline-flex items-center gap-1.5 h-8 max-md:h-11 px-3 rounded-lg text-12.5 font-medium border transition-colors ${
         copied
           ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400 light:text-emerald-700'
           : 'bg-surface-2 border-border text-text-tertiary hover:text-text-primary hover:border-border-strong'
@@ -102,7 +102,7 @@ export function TechSpecsCard({
     return (
       <div>
         {showEmptyPlaceholder ? (
-          <p className="text-[13px] text-text-subtle italic">{t('detail.specs.empty')}</p>
+          <p className="text-13 text-text-subtle italic">{t('detail.specs.empty')}</p>
         ) : (
           <div className="grid grid-cols-2 gap-2">
             {lines.map((line, idx) => (
@@ -124,7 +124,7 @@ export function TechSpecsCard({
               <button
                 type="button"
                 onClick={onOpenParts}
-                className="col-span-2 bg-surface border border-border rounded-[10px] px-[13px] py-[10px] inline-flex items-center justify-center gap-1.5 text-[13.5px] font-semibold text-accent-light hover:border-accent/40 hover:bg-accent/5 transition-colors"
+                className="col-span-2 bg-surface border border-border rounded-[10px] px-[0.8125rem] py-2.5 inline-flex items-center justify-center gap-1.5 text-13.5 font-semibold text-accent-light hover:border-accent/40 hover:bg-accent/5 transition-colors"
               >
                 {t('detail.parts.openParts')}
                 <Icon name="arrow-right" size={13} />
@@ -132,7 +132,7 @@ export function TechSpecsCard({
             )}
             {showLicenseSection && (
               /* Full-width OEM compact row — matches prototype §682–688 (grid-column:1/-1). */
-              <div className="col-span-2 bg-surface border border-border rounded-[10px] px-[13px] py-[10px]">
+              <div className="col-span-2 bg-surface border border-border rounded-[10px] px-[0.8125rem] py-2.5">
                 <LicenseBlock
                   asset={asset}
                   licenses={licenses}
@@ -156,7 +156,7 @@ export function TechSpecsCard({
   return (
     <SectionCard title={t('detail.specs.title')} icon="cpu" iconTone="violet" action={copyBtn}>
       {showEmptyPlaceholder ? (
-        <p className="text-[13px] text-text-subtle italic">{t('detail.specs.empty')}</p>
+        <p className="text-13 text-text-subtle italic">{t('detail.specs.empty')}</p>
       ) : (
         <>
           {lines.length > 0 && (
@@ -194,7 +194,7 @@ export function TechSpecsCard({
       )}
       {partsNote && (
         <div className="mt-5 pt-3 border-t border-dashed border-border flex items-center justify-between gap-3 flex-wrap">
-          <span className="inline-flex items-center gap-1.5 text-[13px] text-text-tertiary">
+          <span className="inline-flex items-center gap-1.5 text-13 text-text-tertiary">
             <Icon name="info" size={12} className="text-text-subtle" />
             {t('detail.parts.note')}
           </span>
@@ -202,7 +202,7 @@ export function TechSpecsCard({
             <button
               type="button"
               onClick={onOpenParts}
-              className="inline-flex items-center justify-center gap-1.5 h-8 px-3.5 rounded-xl text-[14px] font-semibold text-accent-light bg-accent/10 ring-1 ring-inset ring-accent/30 hover:bg-accent/20 transition-colors"
+              className="inline-flex items-center justify-center gap-1.5 h-8 px-3.5 rounded-xl text-14 font-semibold text-accent-light bg-accent/10 ring-1 ring-inset ring-accent/30 hover:bg-accent/20 transition-colors"
             >
               {t('detail.parts.openParts')}
               <Icon name="arrow-right" size={13} />

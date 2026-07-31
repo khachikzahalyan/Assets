@@ -182,7 +182,7 @@ export function SearchSelect({
   }
 
   const triggerClass = [
-    'w-full px-3 py-2 text-[15px] border rounded-lg text-left outline-none transition-[background-color,border-color,box-shadow] duration-150 flex items-center justify-between gap-2',
+    'w-full px-3 py-2 text-15 border rounded-lg text-left outline-none transition-[background-color,border-color,box-shadow] duration-150 flex items-center justify-between gap-2',
     disabled
       ? 'bg-surface border-border opacity-50 cursor-not-allowed'
       : open
@@ -213,7 +213,7 @@ export function SearchSelect({
             onChange={e => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={searchPlaceholder ?? t('placeholders.categorySearch')}
-            className="w-full h-8 pl-7 pr-2 text-[16px] bg-transparent text-text-primary placeholder:text-text-subtle focus:outline-none"
+            className="w-full h-8 pl-7 pr-2 text-16 bg-transparent text-text-primary placeholder:text-text-subtle focus:outline-none"
           />
         </div>
       </div>
@@ -221,7 +221,7 @@ export function SearchSelect({
       {/* Option list */}
       <div ref={listRef} className="max-h-72 overflow-y-auto py-1" role="listbox">
         {filtered.length === 0 ? (
-          <div className="px-3 py-6 text-center text-[14px] text-text-primary">
+          <div className="px-3 py-6 text-center text-14 text-text-primary">
             {t('placeholders.noResults')}
           </div>
         ) : (
@@ -238,7 +238,7 @@ export function SearchSelect({
                 onMouseEnter={() => setActiveIdx(idx)}
                 onClick={() => selectOption(opt.value)}
                 className={[
-                  'w-full flex items-center gap-2 px-3 py-2 text-[16px] text-left transition-colors',
+                  'w-full flex items-center gap-2 px-3 py-2 text-16 text-left transition-colors',
                   isActive
                     ? 'bg-accent text-white'
                     : 'text-text-primary hover:bg-surface-2',
@@ -256,7 +256,7 @@ export function SearchSelect({
                 {opt.meta && (
                   <span
                     className={[
-                      'shrink-0 truncate max-w-[52%] text-[13px]',
+                      'shrink-0 truncate max-w-[52%] text-13',
                       isActive ? 'text-white/75' : 'text-text-tertiary',
                     ].join(' ')}
                   >
@@ -277,17 +277,17 @@ export function SearchSelect({
       </div>
 
       {/* Footer: kbd hints + count — hidden on mobile */}
-      <div className="px-3 py-1.5 border-t border-border text-[12px] text-text-subtle flex items-center gap-3 bg-bg/50">
+      <div className="px-3 py-1.5 border-t border-border text-12 text-text-subtle flex items-center gap-3 bg-bg/50">
         <span className="hidden md:flex items-center gap-1">
-          <kbd className="px-1 py-0.5 bg-surface border border-border rounded text-[11px] font-mono text-text-primary">↑↓</kbd>
+          <kbd className="px-1 py-0.5 bg-surface border border-border rounded text-11 font-mono text-text-primary">↑↓</kbd>
           {' '}навигация
         </span>
         <span className="hidden md:flex items-center gap-1">
-          <kbd className="px-1 py-0.5 bg-surface border border-border rounded text-[11px] font-mono text-text-primary">Enter</kbd>
+          <kbd className="px-1 py-0.5 bg-surface border border-border rounded text-11 font-mono text-text-primary">Enter</kbd>
           {' '}выбрать
         </span>
         <span className="hidden md:flex items-center gap-1">
-          <kbd className="px-1 py-0.5 bg-surface border border-border rounded text-[11px] font-mono text-text-primary">Esc</kbd>
+          <kbd className="px-1 py-0.5 bg-surface border border-border rounded text-11 font-mono text-text-primary">Esc</kbd>
           {' '}закрыть
         </span>
         <span className="ml-auto tabular-nums">{filtered.length} / {options.length}</span>

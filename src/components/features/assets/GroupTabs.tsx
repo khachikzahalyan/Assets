@@ -50,16 +50,16 @@ export const GroupTabs = memo(function GroupTabs({ tabs, selected, onSelect, cou
               // ── Shared base ──
               'inline-flex items-center transition-colors duration-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-border-strong shrink-0',
               // ── Desktop sizing / shape (md+) ──
-              'md:gap-1.5 md:h-8 md:px-2.5 md:rounded-lg md:text-[13px] md:font-semibold md:tracking-tight',
+              'md:gap-1.5 md:h-8 md:px-2.5 md:rounded-lg md:text-13 md:font-semibold md:tracking-tight',
               // Desktop active vs inactive chip
               active
                 ? 'md:bg-accent md:text-white'
                 : 'md:bg-surface md:text-text-primary md:border md:border-border md:hover:border-border-strong',
               // ── Mobile sizing / shape (max-md) ──
               // padding: 8px top/bottom, 10px right, 0 left; 6px right-margin for spacing
-              'max-md:relative max-md:h-auto max-md:gap-[5px]',
-              'max-md:pl-0 max-md:pr-[10px] max-md:py-[8px] max-md:mr-[6px]',
-              'max-md:text-[12.5px] max-md:font-semibold',
+              'max-md:relative max-md:h-auto max-md:gap-[0.3125rem]',
+              'max-md:pl-0 max-md:pr-2.5 max-md:py-2 max-md:mr-1.5',
+              'max-md:text-12.5 max-md:font-semibold',
               // Mobile text colour (active = accent, inactive = muted)
               active ? 'max-md:text-accent' : 'max-md:text-text-tertiary',
             ].join(' ')}
@@ -90,18 +90,18 @@ export const GroupTabs = memo(function GroupTabs({ tabs, selected, onSelect, cou
               aria-hidden="true"
               className={[
                 // Desktop count — subtle text
-                'tabular-nums text-[12px]',
+                'tabular-nums text-12',
                 active ? 'text-white/70' : 'text-text-subtle',
                 // Mobile count — badge pill
-                'max-md:text-[10px] max-md:font-bold max-md:rounded-[10px]',
+                'max-md:text-10 max-md:font-bold max-md:rounded-[10px]',
                 active
                   // Active: accent bg + white text
-                  ? 'max-md:bg-accent max-md:text-white max-md:px-[6px] max-md:py-[1px]'
+                  ? 'max-md:bg-accent max-md:text-white max-md:px-1.5 max-md:py-[1px]'
                   : count === 0
                     // Zero count: no bg, extra-muted text
-                    ? 'max-md:text-text-subtle max-md:opacity-60 max-md:px-[5px] max-md:py-[1px]'
+                    ? 'max-md:text-text-subtle max-md:opacity-60 max-md:px-[0.3125rem] max-md:py-[1px]'
                     // Non-zero inactive: faint bg
-                    : 'max-md:bg-surface max-md:text-text-subtle max-md:px-[6px] max-md:py-[1px]',
+                    : 'max-md:bg-surface max-md:text-text-subtle max-md:px-1.5 max-md:py-[1px]',
               ].join(' ')}
             >
               {count}

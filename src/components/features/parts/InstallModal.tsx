@@ -164,10 +164,10 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
       {/* Header */}
       <div className="px-5 pt-5 pb-3 border-b border-border flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-[17px] font-bold text-text-primary leading-tight">
+          <h2 className="text-17 font-bold text-text-primary leading-tight">
             Установить {sku.name}{sku.variantLabel ? ` · ${sku.variantLabel}` : ''}
           </h2>
-          <p className="mt-0.5 text-[14.5px] text-text-tertiary">
+          <p className="mt-0.5 text-14.5 text-text-tertiary">
             Остаток: <span className="font-semibold text-text-secondary">{workingStock(sku)} шт</span>
           </p>
         </div>
@@ -179,7 +179,7 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
       <div className="overflow-y-auto flex flex-col gap-4 px-5 py-4" style={{ maxHeight: '60vh' }}>
         {/* Stock warning */}
         {!isService && !stockOk && (
-          <div className="flex items-center gap-2 bg-rose-950/30 border border-rose-800/40 rounded-lg px-3 py-2 text-[12.5px] text-rose-300 light:bg-rose-50 light:border-rose-200 light:text-rose-700">
+          <div className="flex items-center gap-2 bg-rose-950/30 border border-rose-800/40 rounded-lg px-3 py-2 text-12.5 text-rose-300 light:bg-rose-50 light:border-rose-200 light:text-rose-700">
             <Icon name="triangle-alert" size={13} />
             {t('installModal.noStock')}
           </div>
@@ -188,7 +188,7 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
         {/* Asset selector — shared <Select> (themed dropdown, one control for mobile + desktop).
             The sr-only native <select> inside it stays first in the DOM for getAllByRole('combobox')[0]. */}
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="install-asset" className="text-[12.5px] font-medium text-text-tertiary">
+          <label htmlFor="install-asset" className="text-12.5 font-medium text-text-tertiary">
             {t('installModal.labelAsset')} <span className="text-rose-400 light:text-rose-600">*</span>
           </label>
           <Select
@@ -202,7 +202,7 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
 
         {/* Service notice */}
         {isService && (
-          <div className="flex items-center gap-2 bg-sky-950/30 border border-sky-800/40 rounded-lg px-3 py-2 text-[12.5px] text-sky-300 light:bg-sky-50 light:border-sky-200 light:text-sky-700">
+          <div className="flex items-center gap-2 bg-sky-950/30 border border-sky-800/40 rounded-lg px-3 py-2 text-12.5 text-sky-300 light:bg-sky-50 light:border-sky-200 light:text-sky-700">
             <Icon name="info" size={13} />
             {t('installModal.serviceNotice')}
           </div>
@@ -218,12 +218,12 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
               </span>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="font-mono text-[13.5px] font-bold text-accent">{selectedAsset.id}</span>
-                  <span className="inline-flex items-center px-1.5 py-0.5 text-[11.5px] font-semibold rounded bg-surface-2 text-text-primary border border-[#2A2F36]/80 light:border-border">
+                  <span className="font-mono text-13.5 font-bold text-accent">{selectedAsset.id}</span>
+                  <span className="inline-flex items-center px-1.5 py-0.5 text-11.5 font-semibold rounded bg-surface-2 text-text-primary border border-[#2A2F36]/80 light:border-border">
                     {selectedAsset.kind}
                   </span>
                 </div>
-                <div className="text-[13px] text-text-tertiary truncate">{selectedAsset.name}</div>
+                <div className="text-13 text-text-tertiary truncate">{selectedAsset.name}</div>
               </div>
             </div>
 
@@ -232,7 +232,7 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
               /* Empty slot — straight install */
               <div className="px-3 py-2.5 flex items-center gap-2 border-t border-border bg-[#161A1F] light:bg-surface-sunken">
                 <Icon name="info" size={13} className="text-text-subtle flex-shrink-0" />
-                <span className="text-[13.5px] text-text-subtle leading-snug">
+                <span className="text-13.5 text-text-subtle leading-snug">
                   Слот «{slotLabel}» пуст — будет выполнена установка
                 </span>
               </div>
@@ -273,7 +273,7 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
                           </span>
                         )}
                         <div className="min-w-0 flex-1">
-                          <div className="text-[15px] font-semibold text-text-primary leading-tight">
+                          <div className="text-15 font-semibold text-text-primary leading-tight">
                             <span>Заменить: </span>
                             <span>{slot.spec || ('Заводской ' + slotLabel.toLowerCase())}</span>
                             {slot.storageType ? <span> · {slot.storageType}</span> : null}
@@ -282,7 +282,7 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
                           {(isPicked || forcedReplace) && autoScrap && autoScrapCaption && (
                             <div className="mt-2 ml-1 flex items-center gap-1.5 bg-amber-500/10 ring-1 ring-amber-500/30 rounded-md px-2.5 py-2">
                               <Icon name="triangle-alert" size={12} className="text-amber-400 flex-shrink-0 light:text-amber-700" />
-                              <span className="text-[13px] text-amber-300 leading-snug light:text-amber-700">{autoScrapCaption}</span>
+                              <span className="text-13 text-amber-300 leading-snug light:text-amber-700">{autoScrapCaption}</span>
                             </div>
                           )}
                         </div>
@@ -291,12 +291,12 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
                       {/* Disposal sub-radios — only when this replace picked AND not autoScrap AND not service */}
                       {(isPicked || forcedReplace) && !autoScrap && !isService && (
                         <div className="ml-4 mt-1.5 mb-1 border border-border border-l-2 border-l-[#F97316]/30 bg-[#161A1F] rounded-lg px-3 py-2.5 light:bg-surface-sunken">
-                          <div className="text-[12px] uppercase tracking-wide text-text-subtle mb-2 leading-tight">
+                          <div className="text-12 uppercase tracking-wide text-text-subtle mb-2 leading-tight">
                             Что делать со старой деталью?
                           </div>
                           <div className="grid grid-cols-2 gap-2">
                             <label
-                              className={`flex items-center justify-center gap-2 px-2 py-2 rounded-md cursor-pointer transition-colors min-h-[36px] border
+                              className={`flex items-center justify-center gap-2 px-2 py-2 rounded-md cursor-pointer transition-colors min-h-[var(--ctl-h-md)] border
                                 ${disposal === 'warehouse'
                                   ? 'bg-emerald-500/10 ring-1 ring-emerald-500/30 border-emerald-500/40'
                                   : 'border-border hover:bg-surface-2'}`}
@@ -316,12 +316,12 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
                                 )}
                               </span>
                               <Icon name="package" size={12} className={`flex-shrink-0 ${disposal === 'warehouse' ? 'text-emerald-400 light:text-emerald-700' : 'text-text-subtle'}`} />
-                              <span className={`text-[13px] leading-tight ${disposal === 'warehouse' ? 'text-emerald-300 light:text-emerald-700' : 'text-text-secondary'}`}>
+                              <span className={`text-13 leading-tight ${disposal === 'warehouse' ? 'text-emerald-300 light:text-emerald-700' : 'text-text-secondary'}`}>
                                 Вернуть на склад
                               </span>
                             </label>
                             <label
-                              className={`flex items-center justify-center gap-2 px-2 py-2 rounded-md cursor-pointer transition-colors min-h-[36px] border
+                              className={`flex items-center justify-center gap-2 px-2 py-2 rounded-md cursor-pointer transition-colors min-h-[var(--ctl-h-md)] border
                                 ${disposal === 'broken'
                                   ? 'bg-red-500/10 ring-1 ring-red-500/30 border-red-500/40'
                                   : 'border-border hover:bg-surface-2'}`}
@@ -341,7 +341,7 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
                                 )}
                               </span>
                               <Icon name="x-circle" size={12} className={`flex-shrink-0 ${disposal === 'broken' ? 'text-red-400 light:text-red-700' : 'text-text-subtle'}`} />
-                              <span className={`text-[13px] leading-tight ${disposal === 'broken' ? 'text-red-300 light:text-red-700' : 'text-text-secondary'}`}>
+                              <span className={`text-13 leading-tight ${disposal === 'broken' ? 'text-red-300 light:text-red-700' : 'text-text-secondary'}`}>
                                 Списать
                               </span>
                             </label>
@@ -367,10 +367,10 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
                       className="mt-1 accent-emerald-500"
                     />
                     <div className="min-w-0 flex-1">
-                      <div className="text-[14px] font-semibold text-text-primary leading-tight">
+                      <div className="text-14 font-semibold text-text-primary leading-tight">
                         Добавить рядом — поставить ещё один {sku.name}{sku.variantLabel ? ` · ${sku.variantLabel}` : ''}
                       </div>
-                      <div className="text-[13px] text-emerald-300 mt-0.5 leading-snug light:text-emerald-700">
+                      <div className="text-13 text-emerald-300 mt-0.5 leading-snug light:text-emerald-700">
                         Старая запчасть остаётся в активе
                       </div>
                     </div>
@@ -383,7 +383,7 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
       </div>
 
       {error && (
-        <div className="mx-5 text-[12.5px] text-rose-400 bg-rose-950/30 border border-rose-800/40 rounded-lg px-3 py-2 light:bg-rose-50 light:border-rose-200 light:text-rose-700" role="alert">
+        <div className="mx-5 text-12.5 text-rose-400 bg-rose-950/30 border border-rose-800/40 rounded-lg px-3 py-2 light:bg-rose-50 light:border-rose-200 light:text-rose-700" role="alert">
           {error}
         </div>
       )}

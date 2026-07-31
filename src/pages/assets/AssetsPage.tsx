@@ -244,7 +244,7 @@ export function AssetsPage({ repository }: AssetsPageProps) {
           columns={6}
           firstColWide
           lastColAction
-          gridTemplate="minmax(240px,2.4fr) minmax(130px,1fr) minmax(100px,0.85fr) minmax(150px,1.2fr) minmax(110px,1fr) 56px"
+          gridTemplate="minmax(15rem,2.4fr) minmax(8.125rem,1fr) minmax(6.25rem,0.85fr) minmax(9.375rem,1.2fr) minmax(6.875rem,1fr) 3.5rem"
           headers={[t('cols.asset'), t('cols.branch'), t('cols.code'), t('cols.assignee'), t('cols.status'), '']}
         />
     if (error && !ref) return <ErrorState onRetry={reload} />
@@ -299,7 +299,7 @@ export function AssetsPage({ repository }: AssetsPageProps) {
            calc(100dvh-128px) left a dead band above the BottomNav on some
            devices). Header stack stays fixed, only the list scrolls.
            10px side gutters (owner request). */
-        className="max-md:mx-[10px]"
+        className="max-md:mx-2.5"
         toolbar={
           <>
             {/* Row 1: Group tabs + Search + Import + Export + Create */}

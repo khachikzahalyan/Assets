@@ -18,7 +18,7 @@ export function ImportReport({ result, onToAssets, onImportMore }: ImportReportP
         <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emerald-950/30 light:bg-emerald-50 border border-emerald-800/30 light:border-emerald-200 mb-4">
           <Icon name="check-circle" size={24} className="text-emerald-400 light:text-emerald-700" />
         </div>
-        <h2 className="text-[16px] font-semibold text-text-primary">
+        <h2 className="text-16 font-semibold text-text-primary">
           {t('report.heading')}
         </h2>
       </div>
@@ -34,8 +34,8 @@ export function ImportReport({ result, onToAssets, onImportMore }: ImportReportP
         ).map(({ key, count, icon }) => (
           <div key={key} className="bg-surface border border-border rounded-xl p-3 text-center">
             <Icon name={icon} size={16} className="text-text-tertiary mx-auto mb-1" />
-            <div className="text-[22px] font-bold text-text-primary tabular-nums">{count}</div>
-            <div className="text-[11px] text-text-tertiary leading-tight mt-0.5">
+            <div className="text-22 font-bold text-text-primary tabular-nums">{count}</div>
+            <div className="text-11 text-text-tertiary leading-tight mt-0.5">
               {t(key, { count })}
             </div>
           </div>
@@ -46,13 +46,13 @@ export function ImportReport({ result, onToAssets, onImportMore }: ImportReportP
       {result.skipped.length === 0 ? (
         <div className="flex items-center gap-2 bg-emerald-950/10 light:bg-emerald-50 border border-emerald-800/20 light:border-emerald-200 rounded-xl px-4 py-3">
           <Icon name="check" size={14} className="text-emerald-400 light:text-emerald-700 flex-shrink-0" />
-          <span className="text-[13px] text-emerald-400 light:text-emerald-700">{t('report.noSkipped')}</span>
+          <span className="text-13 text-emerald-400 light:text-emerald-700">{t('report.noSkipped')}</span>
         </div>
       ) : (
         <div>
-          <h3 className="text-[13px] font-semibold text-text-primary mb-2">{t('report.skippedHeading')}</h3>
+          <h3 className="text-13 font-semibold text-text-primary mb-2">{t('report.skippedHeading')}</h3>
           <div className="overflow-x-auto">
-            <table className="w-full text-[12px] border-collapse">
+            <table className="w-full text-12 border-collapse">
               <thead>
                 <tr className="border-b border-border">
                   <th className="text-left py-1.5 px-2 text-text-subtle font-medium">{t('report.skippedSheet')}</th>

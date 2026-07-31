@@ -59,7 +59,7 @@ export function RamSlots({ value, onChange, isServer = false }: RamSlotsProps) {
           {idx === 0 ? (
             <MiniDropdown value={ddrType} onChange={setType} options={typeOptions} placeholder="DDR" ariaLabel="Тип памяти DDR" />
           ) : <div aria-hidden="true" />}
-          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-surface-2 text-text-tertiary text-[13px] font-semibold ring-1 ring-border" aria-hidden="true">{idx + 1}</span>
+          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-surface-2 text-text-tertiary text-13 font-semibold ring-1 ring-border" aria-hidden="true">{idx + 1}</span>
           <MiniDropdown value={s.size} onChange={v => editSlot(s._id, v)} options={sizeOptions} placeholder="Размер модуля" ariaLabel={`Размер модуля ${idx + 1}`} />
           <button
             type="button"
@@ -74,7 +74,7 @@ export function RamSlots({ value, onChange, isServer = false }: RamSlotsProps) {
         type="button"
         onClick={addSlot}
         disabled={hasEmptySlot}
-        className="inline-flex items-center gap-1.5 text-[14px] font-medium text-accent hover:text-accent-hover hover:bg-[rgba(249,115,22,0.12)] px-2 py-1 rounded-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        className="inline-flex items-center gap-1.5 text-14 font-medium text-accent hover:text-accent-hover hover:bg-[rgba(249,115,22,0.12)] px-2 py-1 rounded-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
       ><Icon name="plus" size={13} />Добавить</button>
     </div>
   )

@@ -90,7 +90,7 @@ function TransferModeForm({
           </div>
           {caps?.isLaptop && (
             <div>
-              <label className="block text-[12px] uppercase tracking-[0.06em] font-semibold text-text-tertiary mb-1.5">
+              <label className="block text-12 uppercase tracking-[0.06em] font-semibold text-text-tertiary mb-1.5">
                 {t('detail.transfer.workModeLabel')}
               </label>
               {/* Segmented control: inset p-1 pocket so the active pill floats with
@@ -104,7 +104,7 @@ function TransferModeForm({
                     type="button"
                     onClick={() => setWorkMode(wm)}
                     aria-pressed={workMode === wm}
-                    className={`flex-1 h-8 max-md:h-9 rounded-[7px] inline-flex items-center justify-center gap-1.5 text-[13px] font-semibold transition-colors
+                    className={`flex-1 h-8 max-md:h-9 rounded-[7px] inline-flex items-center justify-center gap-1.5 text-13 font-semibold transition-colors
                       ${workMode === wm
                         ? wm === 'office'
                           ? 'bg-emerald-500/15 text-emerald-300 light:text-emerald-700 ring-1 ring-inset ring-emerald-500/30'
@@ -154,7 +154,7 @@ function TransferModeForm({
         <div className="mt-2 space-y-2">
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="block text-[12px] uppercase tracking-[0.06em] font-semibold text-text-tertiary mb-1">
+              <label className="block text-12 uppercase tracking-[0.06em] font-semibold text-text-tertiary mb-1">
                 {t('detail.transfer.kindLabel')}
               </label>
               <SearchSelect
@@ -171,7 +171,7 @@ function TransferModeForm({
               />
             </div>
             <div>
-              <label htmlFor="transfer-return-date" className="block text-[12px] uppercase tracking-[0.06em] font-semibold text-text-tertiary mb-1">
+              <label htmlFor="transfer-return-date" className="block text-12 uppercase tracking-[0.06em] font-semibold text-text-tertiary mb-1">
                 {t('detail.transfer.returnDateLabel')}
               </label>
               <DatePicker
@@ -309,7 +309,7 @@ export function TransferPanel({ asset: _asset, refData, caps, busy, onCommit, on
       {!mobileInline && (
         <div className="flex items-center gap-3 mb-2">
           <div className="flex-1 h-px bg-surface-2" />
-          <span className="text-[12px] text-text-tertiary uppercase tracking-widest whitespace-nowrap">
+          <span className="text-12 text-text-tertiary uppercase tracking-widest whitespace-nowrap">
             {t('detail.transfer.title')}
           </span>
           <div className="flex-1 h-px bg-surface-2" />
@@ -317,7 +317,7 @@ export function TransferPanel({ asset: _asset, refData, caps, busy, onCommit, on
       )}
 
       {/* Mode tiles row — 5 tiles in one row on all sizes; tighter gap on desktop-mobile */}
-      <div className={`grid grid-cols-5 ${mobileInline ? 'gap-1 mb-[13px]' : 'gap-1.5 max-md:gap-1'}`}>
+      <div className={`grid grid-cols-5 ${mobileInline ? 'gap-1 mb-[0.8125rem]' : 'gap-1.5 max-md:gap-1'}`}>
         {TRANSFER_MODES.map(m => (
           <ModeTile
             key={m.id}
@@ -348,15 +348,15 @@ export function TransferPanel({ asset: _asset, refData, caps, busy, onCommit, on
       </div>
 
       {/* Footer: Cancel + Commit */}
-      <div className={`flex pt-0.5 ${mobileInline ? 'mt-0 gap-[10px]' : 'mt-2 gap-2'}`}>
+      <div className={`flex pt-0.5 ${mobileInline ? 'mt-0 gap-2.5' : 'mt-2 gap-2'}`}>
         <button
           type="button"
           onClick={mobileInline ? handleReset : onCancel}
           disabled={busy}
           className={`flex items-center justify-center border border-border text-text-primary hover:bg-surface-2 transition-colors disabled:opacity-50
             ${mobileInline
-              ? 'flex-none px-4 py-2 rounded-lg text-[13px] font-semibold'
-              : 'flex-1 py-1.5 max-md:py-2 rounded-xl text-[14px] font-medium'
+              ? 'flex-none px-4 py-2 rounded-lg text-13 font-semibold'
+              : 'flex-1 py-1.5 max-md:py-2 rounded-xl text-14 font-medium'
             }`}
         >
           {t('detail.transfer.cancel')}
@@ -367,8 +367,8 @@ export function TransferPanel({ asset: _asset, refData, caps, busy, onCommit, on
           disabled={!isValid || busy}
           className={`flex-1 flex items-center justify-center gap-1.5 bg-accent text-white hover:bg-accent-hover disabled:opacity-35 disabled:cursor-not-allowed transition-all shadow-sm
             ${mobileInline
-              ? 'py-2 rounded-lg text-[13px] font-semibold'
-              : 'py-1.5 max-md:py-2 rounded-xl text-[14px]'
+              ? 'py-2 rounded-lg text-13 font-semibold'
+              : 'py-1.5 max-md:py-2 rounded-xl text-14'
             }`}
         >
           {busy

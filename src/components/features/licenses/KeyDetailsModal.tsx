@@ -146,7 +146,7 @@ export function KeyDetailsModal({
           <span className="w-8 h-8 rounded-md bg-surface-2 inline-flex items-center justify-center flex-shrink-0">
             <MsLogo size={18} />
           </span>
-          <h2 id={TITLE_ID} className="text-[15px] font-bold text-text-primary tracking-tight">{t('keyDetails.title')}</h2>
+          <h2 id={TITLE_ID} className="text-15 font-bold text-text-primary tracking-tight">{t('keyDetails.title')}</h2>
         </header>
 
         <div className="p-5 space-y-5 overflow-y-auto flex-1 min-h-0">
@@ -158,8 +158,8 @@ export function KeyDetailsModal({
                   <MsLogo size={18} />
                 </span>
                 <div className="min-w-0">
-                  <div className="text-[13.5px] font-semibold text-text-primary leading-tight truncate">{deviceName}</div>
-                  <div className="text-[11.5px] text-text-subtle">{t('keyDetails.keyLabel')}</div>
+                  <div className="text-13.5 font-semibold text-text-primary leading-tight truncate">{deviceName}</div>
+                  <div className="text-11.5 text-text-subtle">{t('keyDetails.keyLabel')}</div>
                 </div>
               </div>
               {canReveal && (
@@ -167,7 +167,7 @@ export function KeyDetailsModal({
                   type="button"
                   onClick={handleCopy}
                   className={[
-                    'flex-shrink-0 inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-[12px] font-medium border transition-colors',
+                    'flex-shrink-0 inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-12 font-medium border transition-colors',
                     copyError
                       ? 'bg-rose-500/10 border-rose-500/30 text-rose-300 light:text-rose-700'
                       : copied
@@ -184,7 +184,7 @@ export function KeyDetailsModal({
               )}
             </div>
             <div className="rounded-lg bg-surface border border-border px-3 py-2.5">
-              <span className="font-mono text-[14px] font-semibold text-text-primary tracking-[0.06em] break-all leading-snug select-all">
+              <span className="font-mono text-14 font-semibold text-text-primary tracking-[0.06em] break-all leading-snug select-all">
                 {displayKey}
               </span>
             </div>
@@ -192,12 +192,12 @@ export function KeyDetailsModal({
 
           {/* History timeline */}
           <div>
-            <div className="text-[10.5px] uppercase tracking-[0.09em] font-semibold text-text-subtle mb-3">
+            <div className="text-10.5 uppercase tracking-[0.09em] font-semibold text-text-subtle mb-3">
               {t('keyDetails.historyHeading')}
             </div>
 
             {historyEntries.length === 0 && !isInUse ? (
-              <div className="text-[13px] text-text-subtle italic">{t('keyDetails.historyEmpty')}</div>
+              <div className="text-13 text-text-subtle italic">{t('keyDetails.historyEmpty')}</div>
             ) : (
               <div className="space-y-0">
                 {/* Current entry */}
@@ -209,12 +209,12 @@ export function KeyDetailsModal({
                     </div>
                     <div className="pb-4 flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                        <span className="text-[13.5px] font-semibold text-text-primary leading-tight truncate">{assetName}</span>
-                        <span className="inline-flex items-center text-[10.5px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 light:text-emerald-700 flex-shrink-0">
+                        <span className="text-13.5 font-semibold text-text-primary leading-tight truncate">{assetName}</span>
+                        <span className="inline-flex items-center text-10.5 font-bold px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 light:text-emerald-700 flex-shrink-0">
                           {t('keyDetails.now')}
                         </span>
                       </div>
-                      {invCode && <div className="font-mono text-[11.5px] text-text-subtle">{invCode}</div>}
+                      {invCode && <div className="font-mono text-11.5 text-text-subtle">{invCode}</div>}
                     </div>
                   </div>
                 )}
@@ -237,18 +237,18 @@ export function KeyDetailsModal({
                         {!isLast && <div className="w-px flex-1 bg-border mt-1.5" />}
                       </div>
                       <div className={`${isLast ? '' : 'pb-4'} flex-1 min-w-0`}>
-                        <div className="text-[13px] font-medium text-text-tertiary leading-tight truncate mb-0.5">
+                        <div className="text-13 font-medium text-text-tertiary leading-tight truncate mb-0.5">
                           {actionLabel}
                         </div>
                         {resolvedAssetName && (
-                          <div className="text-[12.5px] text-text-primary truncate">{resolvedAssetName}</div>
+                          <div className="text-12.5 text-text-primary truncate">{resolvedAssetName}</div>
                         )}
                         {resolvedInvCode && (
-                          <div className="font-mono text-[11.5px] text-text-subtle">{resolvedInvCode}</div>
+                          <div className="font-mono text-11.5 text-text-subtle">{resolvedInvCode}</div>
                         )}
                         <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                          <span className="text-[11.5px] text-text-subtle">{dateStr}</span>
-                          <span className="text-[11px] px-1.5 py-0.5 rounded-md bg-surface-2 text-text-subtle">
+                          <span className="text-11.5 text-text-subtle">{dateStr}</span>
+                          <span className="text-11 px-1.5 py-0.5 rounded-md bg-surface-2 text-text-subtle">
                             {entry.actorRole}
                           </span>
                         </div>

@@ -21,7 +21,7 @@ export function MobileAddButton({ onClick, ariaLabel, className = '' }: MobileAd
       onClick={onClick}
       aria-label={ariaLabel}
       className={[
-        'w-[36px] h-[36px] min-w-[36px] flex-shrink-0',
+        'w-[var(--ctl-h-md)] h-[var(--ctl-h-md)] min-w-[var(--ctl-h-md)] flex-shrink-0',
         'rounded-[9px] bg-accent text-white',
         'inline-flex items-center justify-center',
         'shadow-[0_2px_10px] shadow-accent/35',

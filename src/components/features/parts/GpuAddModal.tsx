@@ -68,7 +68,7 @@ export function GpuAddModal({ open, onClose, onConfirm }: GpuAddModalProps) {
     <div className="flex flex-col gap-0">
       {/* header */}
       <div className="px-5 pt-5 pb-3 border-b border-border flex items-start justify-between gap-3 flex-shrink-0">
-        <h2 className="text-[17px] font-bold text-text-primary leading-tight">{t('gpuModal.title')}</h2>
+        <h2 className="text-17 font-bold text-text-primary leading-tight">{t('gpuModal.title')}</h2>
         <button type="button" onClick={handleClose} aria-label={t('gpuModal.close')} className="w-7 h-7 rounded-md flex items-center justify-center text-text-subtle hover:text-text-primary hover:bg-surface-2 transition-colors">
           <Icon name="x" size={14} />
         </button>
@@ -77,7 +77,7 @@ export function GpuAddModal({ open, onClose, onConfirm }: GpuAddModalProps) {
       {/* body */}
       <div className="px-5 py-4 flex flex-col gap-3">
         <div>
-          <label htmlFor="gpu-name-input" className="block text-[14px] font-semibold text-text-tertiary mb-1.5">
+          <label htmlFor="gpu-name-input" className="block text-14 font-semibold text-text-tertiary mb-1.5">
             {t('gpuModal.labelName')}
           </label>
           <input
@@ -88,11 +88,11 @@ export function GpuAddModal({ open, onClose, onConfirm }: GpuAddModalProps) {
             onChange={e => setName(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="например, NVIDIA GeForce RTX 4060"
-            className="w-full bg-surface-2 border border-border rounded-lg px-3 py-2 text-[15.5px] text-text-primary placeholder:text-text-subtle outline-none focus:border-accent focus:ring-1 focus:ring-[var(--color-focus-ring)] transition-colors"
+            className="w-full bg-surface-2 border border-border rounded-lg px-3 py-2 text-15.5 text-text-primary placeholder:text-text-subtle outline-none focus:border-accent focus:ring-1 focus:ring-[var(--color-focus-ring)] transition-colors"
           />
         </div>
         <div>
-          <label htmlFor="gpu-qty-input" className="block text-[14px] font-semibold text-text-tertiary mb-1.5">
+          <label htmlFor="gpu-qty-input" className="block text-14 font-semibold text-text-tertiary mb-1.5">
             {t('gpuModal.labelQty')}
           </label>
           <input
@@ -103,13 +103,13 @@ export function GpuAddModal({ open, onClose, onConfirm }: GpuAddModalProps) {
             value={qty}
             onChange={e => setQty(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="w-full bg-surface-2 border border-border rounded-lg px-3 py-2 text-[15.5px] text-text-primary placeholder:text-text-subtle outline-none focus:border-accent focus:ring-1 focus:ring-[var(--color-focus-ring)] transition-colors"
+            className="w-full bg-surface-2 border border-border rounded-lg px-3 py-2 text-15.5 text-text-primary placeholder:text-text-subtle outline-none focus:border-accent focus:ring-1 focus:ring-[var(--color-focus-ring)] transition-colors"
           />
         </div>
       </div>
 
       {error && (
-        <div className="mx-5 text-[12.5px] text-rose-400 bg-rose-950/30 border border-rose-800/40 rounded-lg px-3 py-2 mb-3 light:bg-rose-50 light:border-rose-200 light:text-rose-700" role="alert">
+        <div className="mx-5 text-12.5 text-rose-400 bg-rose-950/30 border border-rose-800/40 rounded-lg px-3 py-2 mb-3 light:bg-rose-50 light:border-rose-200 light:text-rose-700" role="alert">
           {error}
         </div>
       )}
@@ -119,7 +119,7 @@ export function GpuAddModal({ open, onClose, onConfirm }: GpuAddModalProps) {
         <button
           type="button"
           onClick={handleClose}
-          className="px-4 py-2 rounded-lg text-[15px] font-semibold text-text-tertiary bg-surface-2 border border-border hover:border-border-strong hover:text-text-secondary transition-colors"
+          className="px-4 py-2 rounded-lg text-15 font-semibold text-text-tertiary bg-surface-2 border border-border hover:border-border-strong hover:text-text-secondary transition-colors"
         >
           {t('gpuModal.cancel')}
         </button>
@@ -127,7 +127,7 @@ export function GpuAddModal({ open, onClose, onConfirm }: GpuAddModalProps) {
           type="button"
           disabled={!canCreate || submitting}
           onClick={() => { void handleSubmit() }}
-          className={`px-4 py-2 rounded-lg text-[15px] font-semibold transition-colors
+          className={`px-4 py-2 rounded-lg text-15 font-semibold transition-colors
             ${canCreate && !submitting
               ? 'bg-accent text-white hover:bg-[#EA6C0C] shadow-sm shadow-[#FB923C]/40 light:shadow-[#F97316]/20'
               : 'bg-surface-2 text-text-subtle cursor-not-allowed border border-border'}`}

@@ -83,21 +83,21 @@ export function RevealKeyButton({ collection, licenseId, revealFn }: RevealKeyBu
 
   if (error) {
     return (
-      <span role="alert" className="text-[11px] text-[#FDA4AF] light:text-rose-700">{error}</span>
+      <span role="alert" className="text-11 text-[#FDA4AF] light:text-rose-700">{error}</span>
     )
   }
 
   if (revealedKey !== null) {
     return (
       <div className="flex items-center gap-1.5 flex-wrap">
-        <span className="font-mono text-[11px] text-accent bg-bg px-2 py-0.5 rounded border border-border">
+        <span className="font-mono text-11 text-accent bg-bg px-2 py-0.5 rounded border border-border">
           {revealedKey}
         </span>
         <button
           type="button"
           onClick={handleCopy}
           aria-label={t('copyKey')}
-          className="text-[11px] text-text-subtle hover:text-text-primary transition-colors"
+          className="text-11 text-text-subtle hover:text-text-primary transition-colors"
         >
           {copied ? t('copied') : t('copyKey')}
         </button>
@@ -105,7 +105,7 @@ export function RevealKeyButton({ collection, licenseId, revealFn }: RevealKeyBu
           type="button"
           onClick={handleHide}
           aria-label={t('hideKey')}
-          className="text-[11px] text-text-subtle hover:text-text-primary transition-colors"
+          className="text-11 text-text-subtle hover:text-text-primary transition-colors"
         >
           {t('hideKey')}
         </button>

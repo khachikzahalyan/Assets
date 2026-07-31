@@ -20,7 +20,7 @@ export function HistoryEvent({ ev }: HistoryEventProps) {
       </div>
       <div className="flex-1 min-w-0 pt-1">
         {headLabel && (
-          <p className="font-semibold text-text-primary text-[14.5px] mb-1">{headLabel}</p>
+          <p className="font-semibold text-text-primary text-14.5 mb-1">{headLabel}</p>
         )}
         {hasDelta && (
           <div className="flex items-center gap-1.5 flex-wrap mb-1">
@@ -33,7 +33,7 @@ export function HistoryEvent({ ev }: HistoryEventProps) {
             {ev.after && <Chip color="green">{ev.after}</Chip>}
           </div>
         )}
-        <span className="text-[12px] text-text-tertiary tabular-nums">
+        <span className="text-12 text-text-tertiary tabular-nums">
           {ev.actor} · {fmtRuDate(ev.date)} · {relativeTime(ev.date)}
         </span>
       </div>

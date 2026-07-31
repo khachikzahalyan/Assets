@@ -21,7 +21,7 @@ export function LicensePanel({ stats, serverLicenseCount }: LicensePanelProps) {
         <span className="w-6 h-6 lg:w-7 lg:h-7 rounded-md bg-violet-500/15 text-violet-300 light:text-violet-700 inline-flex items-center justify-center flex-shrink-0">
           <Icon name="key-round" size={14} />
         </span>
-        <h2 className="text-[12px] lg:text-[13px] font-semibold text-text-primary">
+        <h2 className="text-12 lg:text-13 font-semibold text-text-primary">
           {t('license.title')}
         </h2>
       </header>
@@ -31,17 +31,17 @@ export function LicensePanel({ stats, serverLicenseCount }: LicensePanelProps) {
         <div>
           {/* Mobile: inline number + short label */}
           <div className="flex items-baseline gap-2 lg:hidden">
-            <div className="text-[36px] font-bold leading-none tracking-tight tabular-nums text-text-primary">
+            <div className="text-display-md font-bold leading-none tracking-tight tabular-nums text-text-primary">
               {stats.total}
             </div>
-            <div className="text-[11.5px] text-text-subtle">{t('license.total')}</div>
+            <div className="text-11.5 text-text-subtle">{t('license.total')}</div>
           </div>
           {/* Desktop: stacked */}
           <div className="hidden lg:block">
-            <div className="text-[42px] font-bold leading-none tracking-tight tabular-nums text-text-primary">
+            <div className="text-display-lg font-bold leading-none tracking-tight tabular-nums text-text-primary">
               {stats.total}
             </div>
-            <div className="text-[11.5px] text-text-subtle mt-1">{t('license.totalLabel')}</div>
+            <div className="text-11.5 text-text-subtle mt-1">{t('license.totalLabel')}</div>
           </div>
         </div>
 
@@ -49,32 +49,32 @@ export function LicensePanel({ stats, serverLicenseCount }: LicensePanelProps) {
         <div className="grid grid-cols-3 gap-2">
           {/* Free */}
           <div className="bg-white/[0.03] light:bg-black/[0.03] border border-border rounded-lg p-2.5 text-center">
-            <div className="text-[20px] font-mono font-bold tabular-nums text-success">
+            <div className="text-20 font-mono font-bold tabular-nums text-success">
               {stats.free}
             </div>
-            <div className="text-[10.5px] text-text-subtle mt-0.5">{t('license.free')}</div>
+            <div className="text-10.5 text-text-subtle mt-0.5">{t('license.free')}</div>
           </div>
           {/* In use — violet highlight */}
           <div className="bg-violet-500/[0.06] border border-violet-500/20 rounded-lg p-2.5 text-center">
-            <div className="text-[20px] font-mono font-bold tabular-nums text-violet-300 light:text-violet-700">
+            <div className="text-20 font-mono font-bold tabular-nums text-violet-300 light:text-violet-700">
               {stats.inUse}
             </div>
-            <div className="text-[10.5px] text-text-subtle mt-0.5">{t('license.inUse')}</div>
+            <div className="text-10.5 text-text-subtle mt-0.5">{t('license.inUse')}</div>
           </div>
           {/* Retired */}
           <div className="bg-white/[0.03] light:bg-black/[0.03] border border-border rounded-lg p-2.5 text-center">
-            <div className="text-[20px] font-mono font-bold tabular-nums text-text-subtle">
+            <div className="text-20 font-mono font-bold tabular-nums text-text-subtle">
               {stats.retired}
             </div>
-            <div className="text-[10.5px] text-text-subtle mt-0.5">{t('license.retired')}</div>
+            <div className="text-10.5 text-text-subtle mt-0.5">{t('license.retired')}</div>
           </div>
         </div>
 
         {/* Violet usage bar */}
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center justify-between">
-            <span className="text-[11.5px] text-text-subtle">{t('license.usage')}</span>
-            <span className="text-[11.5px] font-mono text-violet-300 light:text-violet-700">{usagePct}%</span>
+            <span className="text-11.5 text-text-subtle">{t('license.usage')}</span>
+            <span className="text-11.5 font-mono text-violet-300 light:text-violet-700">{usagePct}%</span>
           </div>
           <div className="w-full h-1.5 rounded-full bg-white/5 light:bg-black/5 overflow-hidden" aria-hidden="true">
             <div
@@ -91,8 +91,8 @@ export function LicensePanel({ stats, serverLicenseCount }: LicensePanelProps) {
             className="flex items-center gap-2 pt-3 border-t border-border"
           >
             <Icon name="server" size={13} className="text-text-subtle flex-shrink-0" />
-            <span className="text-[12px] text-text-subtle flex-1">{t('kpi.serverLicenses')}</span>
-            <span className="text-[12px] font-mono font-bold text-text-primary">
+            <span className="text-12 text-text-subtle flex-1">{t('kpi.serverLicenses')}</span>
+            <span className="text-12 font-mono font-bold text-text-primary">
               {serverLicenseCount}
             </span>
           </div>

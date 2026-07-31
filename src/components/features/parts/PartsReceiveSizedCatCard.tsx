@@ -46,7 +46,7 @@ export function PartsReceiveSizedCatCard({
         >
           <Icon name={cat.icon} size={11} />
         </span>
-        <span className="text-[13px] font-bold text-text-primary">{cat.label}</span>
+        <span className="text-13 font-bold text-text-primary">{cat.label}</span>
         {isRam && (
           <div className="flex items-center gap-1">
             {ddrLabels.map(ddr => (
@@ -54,7 +54,7 @@ export function PartsReceiveSizedCatCard({
                 key={ddr}
                 type="button"
                 onClick={() => setRamDdr(ddr)}
-                className={`px-1.5 h-5 rounded text-[10px] font-semibold transition-all border ${
+                className={`px-1.5 h-5 rounded text-10 font-semibold transition-all border ${
                   ramDdr === ddr
                     ? 'bg-accent border-accent text-white'
                     : 'bg-surface border-border text-text-tertiary hover:text-text-secondary'
@@ -65,13 +65,13 @@ export function PartsReceiveSizedCatCard({
             ))}
           </div>
         )}
-        <span className="ml-auto text-[10px] text-text-subtle tabular-nums flex-shrink-0">
+        <span className="ml-auto text-10 text-text-subtle tabular-nums flex-shrink-0">
           {visibleParts.length}&nbsp;{t('addModal.positions')}
         </span>
       </div>
 
       {/* Horizontal-scroll mini-stepper row */}
-      <div className="flex gap-[7px] overflow-x-auto pb-1">
+      <div className="flex gap-[0.4375rem] overflow-x-auto pb-1">
         {visibleParts.map(p => {
           const qtyValue = qtys[p.id] ?? ''
           const qtyNum = parseInt(qtyValue, 10) || 0
@@ -80,7 +80,7 @@ export function PartsReceiveSizedCatCard({
           return (
             <div key={p.id} className="flex-shrink-0 w-[72px]">
               <div
-                className={`text-[10.5px] mb-1 leading-none ${
+                className={`text-10.5 mb-1 leading-none ${
                   isActive ? 'text-accent' : 'text-text-secondary'
                 }`}
               >
@@ -101,7 +101,7 @@ export function PartsReceiveSizedCatCard({
                   <Icon name="minus" size={10} />
                 </button>
                 <div
-                  className={`flex-1 text-center text-[12px] font-semibold font-mono tabular-nums leading-none select-none ${
+                  className={`flex-1 text-center text-12 font-semibold font-mono tabular-nums leading-none select-none ${
                     isActive ? 'text-accent' : 'text-text-secondary'
                   }`}
                 >

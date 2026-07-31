@@ -63,7 +63,7 @@ function MobileLoadingBody() {
             <div className="h-[13px] w-[30%] rounded anim-skeleton" />
             <div className="ml-auto h-[10px] w-[48px] rounded anim-skeleton" />
           </div>
-          <div className="flex gap-[7px] overflow-x-hidden pb-1">
+          <div className="flex gap-[0.4375rem] overflow-x-hidden pb-1">
             {[0, 1, 2, 3, 4].map(j => (
               <div key={j} className="flex-shrink-0 w-[72px]">
                 <div className="h-[10px] w-[70%] mb-1 rounded anim-skeleton" />
@@ -122,12 +122,12 @@ export function PartsReceiveMobileForm({
     <div className="flex flex-col h-[calc(100dvh-136px)] overflow-hidden bg-bg">
       {/* ── Fixed header ───────────────────────────────────────────────── */}
       <div className="flex-shrink-0 flex items-center justify-between px-4 py-3.5 bg-surface-2 border-b border-border">
-        <span className="text-[15px] font-bold text-text-primary">{t('addModal.title')}</span>
+        <span className="text-15 font-bold text-text-primary">{t('addModal.title')}</span>
         <button
           type="button"
           onClick={onCancel}
           aria-label={t('addModal.close')}
-          className="w-[30px] h-[30px] rounded-[9px] bg-white/6 flex items-center justify-center text-text-secondary hover:bg-white/10 transition-colors light:bg-black/5 light:hover:bg-black/8"
+          className="w-[var(--ctl-h-sm)] h-[var(--ctl-h-sm)] rounded-[9px] bg-white/6 flex items-center justify-center text-text-secondary hover:bg-white/10 transition-colors light:bg-black/5 light:hover:bg-black/8"
         >
           <Icon name="x" size={14} />
         </button>
@@ -142,7 +142,7 @@ export function PartsReceiveMobileForm({
             {/* Submit-error banner */}
             {submitError && (
               <div
-                className="flex items-center gap-2.5 bg-rose-950/30 border border-rose-800/40 text-rose-400 px-3.5 py-2.5 rounded-xl text-[13px] light:bg-rose-50 light:border-rose-200 light:text-rose-700"
+                className="flex items-center gap-2.5 bg-rose-950/30 border border-rose-800/40 text-rose-400 px-3.5 py-2.5 rounded-xl text-13 light:bg-rose-50 light:border-rose-200 light:text-rose-700"
                 role="alert"
               >
                 <Icon name="triangle-alert" size={13} className="flex-shrink-0" />
@@ -161,10 +161,10 @@ export function PartsReceiveMobileForm({
             {/* Empty state */}
             {visibleCats.length === 0 ? (
               <div className="py-16 text-center">
-                <p className="text-[15px] font-semibold text-text-primary mb-1">
+                <p className="text-15 font-semibold text-text-primary mb-1">
                   {t('warehouse.emptyTitle')}
                 </p>
-                <p className="text-[13.5px] text-text-tertiary">{t('warehouse.emptyDesc')}</p>
+                <p className="text-13.5 text-text-tertiary">{t('warehouse.emptyDesc')}</p>
               </div>
             ) : (
               <>
@@ -214,7 +214,7 @@ export function PartsReceiveMobileForm({
           type="button"
           onClick={onCancel}
           disabled={submitting}
-          className="flex-shrink-0 px-5 py-3.5 rounded-xl text-[13.5px] font-semibold text-text-secondary border border-border bg-transparent hover:bg-surface transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-shrink-0 px-5 py-3.5 rounded-xl text-13.5 font-semibold text-text-secondary border border-border bg-transparent hover:bg-surface transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {t('addModal.cancel')}
         </button>
@@ -222,7 +222,7 @@ export function PartsReceiveMobileForm({
           type="button"
           onClick={onSubmit}
           disabled={!canSubmit || submitting}
-          className="flex-1 py-3.5 rounded-xl text-[14px] font-bold text-white bg-accent shadow-lg shadow-accent/30 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-1.5 transition-all active:opacity-90"
+          className="flex-1 py-3.5 rounded-xl text-14 font-bold text-white bg-accent shadow-lg shadow-accent/30 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-1.5 transition-all active:opacity-90"
         >
           {submitting ? (
             <>

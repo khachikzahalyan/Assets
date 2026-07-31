@@ -127,10 +127,10 @@ export function DevicesTab({
       <div className="lg:grid lg:grid-cols-12 lg:auto-rows-fr lg:gap-4 flex flex-col gap-4 flex-1 min-h-0">
 
         {/* LEFT COLUMN (col-span-5): pills + search + 2-col card grid */}
-        <div className="lg:col-span-5 flex flex-col gap-2.5 min-h-0 flex-1 max-md:px-[14px] max-md:pt-[10px]">
+        <div className="lg:col-span-5 flex flex-col gap-2.5 min-h-0 flex-1 max-md:px-3.5 max-md:pt-2.5">
 
           {/* Family filter pills — grid 4-in-row (desktop) / flex overflow-x-auto (mobile) */}
-          <div className="grid grid-cols-4 gap-1.5 flex-shrink-0 max-md:flex max-md:gap-[7px] max-md:overflow-x-auto max-md:pl-0" style={{ scrollbarWidth: 'none' }}>
+          <div className="grid grid-cols-4 gap-1.5 flex-shrink-0 max-md:flex max-md:gap-[0.4375rem] max-md:overflow-x-auto max-md:pl-0" style={{ scrollbarWidth: 'none' }}>
             {FAMILIES.map(f => {
               const active = family === f.id
               return (
@@ -139,10 +139,10 @@ export function DevicesTab({
                   type="button"
                   onClick={() => setFamily(f.id)}
                   className={
-                    'h-7 w-full rounded-md text-[14px] font-medium border transition-colors inline-flex items-center justify-center ' +
+                    'h-7 w-full rounded-md text-14 font-medium border transition-colors inline-flex items-center justify-center ' +
                     // Mobile: compact prototype pills — auto width (w-full is for the desktop grid),
                     // 12.5px text, 7px/18px padding, horizontal scroll row.
-                    'max-md:w-auto max-md:rounded-full max-md:h-auto max-md:py-[7px] max-md:px-[18px] max-md:text-[12.5px] max-md:font-semibold max-md:whitespace-nowrap max-md:flex-shrink-0 ' +
+                    'max-md:w-auto max-md:rounded-full max-md:h-auto max-md:py-[0.4375rem] max-md:px-4.5 max-md:text-12.5 max-md:font-semibold max-md:whitespace-nowrap max-md:flex-shrink-0 ' +
                     (active
                       ? 'bg-accent border-accent text-white'
                       : 'bg-surface border-border text-text-tertiary hover:text-text-primary hover:border-[#3A3F46] max-md:border-white/10 light:max-md:border-black/10')
@@ -169,7 +169,7 @@ export function DevicesTab({
               can never be overridden by a Tailwind responsive class (inline wins).
               grid-cols-1 collapses to 1 col on mobile; md:grid-cols-2 expands on ≥768px. */}
           {filtered.length === 0 ? (
-            <div className="px-3 py-6 text-[14px] text-text-subtle text-center">
+            <div className="px-3 py-6 text-14 text-text-subtle text-center">
               {t('devices.emptyFiltered')}
             </div>
           ) : (
@@ -205,10 +205,6 @@ export function DevicesTab({
         <DeviceDetailMobileView
           asset={mobileDetailAsset}
           onBack={() => setMobileDetailId(null)}
-          onUninstall={(slot, idx) => {
-            setMobileDetailId(null)
-            onUninstall(mobileDetailAsset, slot, idx)
-          }}
           movements={movements}
           parts={parts}
         />

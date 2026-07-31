@@ -62,10 +62,10 @@ function DevicesSkeleton() {
           type="button"
           disabled
           className={
-            'h-7 w-full rounded-md text-[14px] font-medium border inline-flex items-center justify-center cursor-not-allowed ' +
+            'h-7 w-full rounded-md text-14 font-medium border inline-flex items-center justify-center cursor-not-allowed ' +
             // Mobile overrides — compact pill shape matching DevicesTab
             'max-md:w-auto max-md:rounded-full max-md:h-auto max-md:py-[7px] max-md:px-[18px] ' +
-            'max-md:text-[12.5px] max-md:font-semibold max-md:whitespace-nowrap max-md:flex-shrink-0 ' +
+            'max-md:text-12.5 max-md:font-semibold max-md:whitespace-nowrap max-md:flex-shrink-0 ' +
             // First pill = 'all' — active style
             (i === 0
               ? 'bg-accent border-accent text-white opacity-80'
@@ -103,7 +103,7 @@ function DevicesSkeleton() {
               disabled
               placeholder={t('devices.searchPlaceholder')}
               aria-label={t('devices.searchPlaceholder')}
-              className="w-full h-8 pl-7 pr-2.5 rounded-md bg-surface border border-border text-[14.5px] text-text-primary placeholder:text-text-subtle outline-none opacity-60 cursor-not-allowed"
+              className="w-full h-8 pl-7 pr-2.5 rounded-md bg-surface border border-border text-14.5 text-text-primary placeholder:text-text-subtle outline-none opacity-60 cursor-not-allowed"
             />
           </div>
 
@@ -147,10 +147,10 @@ function DevicesSkeleton() {
               <span className="w-12 h-12 rounded-full bg-surface-2 text-text-subtle inline-flex items-center justify-center mb-3">
                 <Icon name="monitor" size={20} aria-hidden="true" />
               </span>
-              <div className="text-[15.5px] font-semibold text-text-secondary">
+              <div className="text-15.5 font-semibold text-text-secondary">
                 {t('device.selectPrompt')}
               </div>
-              <div className="text-[14px] text-text-tertiary mt-1">
+              <div className="text-14 text-text-tertiary mt-1">
                 {t('device.selectHint')}
               </div>
             </div>
@@ -216,7 +216,7 @@ function WarehouseSkeleton() {
                 HistoryPanel line ~203: px-5 py-2.5 border-t bg-bg + label + two chips.
                 The Добавлено/Использовано quantities are async → shimmered. */}
             <div className="px-5 py-2.5 border-t border-border flex items-center gap-3 flex-shrink-0 bg-bg">
-              <span className="text-[13px] uppercase tracking-wider text-text-subtle font-semibold">
+              <span className="text-13 uppercase tracking-wider text-text-subtle font-semibold">
                 {t('warehouse.history')}
               </span>
               <div className="flex items-center gap-1.5 ml-auto">
@@ -261,7 +261,7 @@ function WarehouseSkeleton() {
         {/* REAL «ИСТОРИЯ» metrics strip — HistoryPanel mobile line ~203
             (px-[14px] py-1.5, border-t, bg-bg). Quantities async → shimmered. */}
         <div className="px-[14px] py-1.5 border-t border-border flex items-center gap-3 flex-shrink-0 bg-bg">
-          <span className="text-[10px] font-bold tracking-[1.4px] text-text-secondary uppercase">
+          <span className="text-10 font-bold tracking-[1.4px] text-text-secondary uppercase">
             {t('warehouse.history')}
           </span>
           <div className="flex items-center gap-1.5 ml-auto">
@@ -279,8 +279,8 @@ function WarehouseSkeleton() {
               style={{ minHeight: 48 }}
             >
               <div className="opacity-0 px-[14px] py-[7px]">
-                <div className="text-[13px] font-bold leading-snug mb-[2px]">&nbsp;</div>
-                <div className="text-[11px] leading-snug">&nbsp;</div>
+                <div className="text-13 font-bold leading-snug mb-[2px]">&nbsp;</div>
+                <div className="text-11 leading-snug">&nbsp;</div>
               </div>
               <div className="absolute left-[14px] right-[14px] top-1/2 -translate-y-1/2 border-t border-dashed border-border/40" />
             </div>

@@ -40,8 +40,8 @@ export function TabStrip<T extends string = string>({
         const isActive = active === tab.id
         const sizeClasses =
           size === 'sm'
-            ? 'px-3 py-3 max-md:py-2.5 text-[13px]'
-            : 'px-4 py-3 text-[13.5px]'
+            ? 'px-3 py-3 max-md:py-2.5 text-13'
+            : 'px-4 py-3 text-13.5'
         return (
           <button
             key={tab.id}
@@ -68,7 +68,7 @@ export function TabStrip<T extends string = string>({
             {tab.count !== undefined && (
               <span
                 className={cn(
-                  'text-[12px] font-semibold px-1.5 py-0.5 rounded-md tabular-nums',
+                  'text-12 font-semibold px-1.5 py-0.5 rounded-md tabular-nums',
                   isActive
                     ? 'bg-accent/15 text-accent-light'
                     : 'bg-surface-2 text-text-subtle',

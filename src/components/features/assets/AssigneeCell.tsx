@@ -53,7 +53,7 @@ export const AssigneeCell = memo(function AssigneeCell({
     let subEl: React.ReactNode = null
     if (isTemporaryAssignment(asset)) {
       subEl = (
-        <div className="text-[13px] text-amber-300 light:text-amber-700 font-medium leading-tight mt-0.5">
+        <div className="text-13 text-amber-300 light:text-amber-700 font-medium leading-tight mt-0.5">
           {tempLabel}
         </div>
       )
@@ -66,7 +66,7 @@ export const AssigneeCell = memo(function AssigneeCell({
       const sub = [emp?.position, deptName].filter(Boolean).join(' · ')
       if (sub) {
         subEl = (
-          <div className="text-[13px] text-text-tertiary truncate leading-tight mt-0.5">
+          <div className="text-13 text-text-tertiary truncate leading-tight mt-0.5">
             {sub}
           </div>
         )
@@ -75,7 +75,7 @@ export const AssigneeCell = memo(function AssigneeCell({
 
     return (
       <div className="min-w-0">
-        <div className="text-[15px] font-semibold truncate leading-tight text-text-primary">
+        <div className="text-15 font-semibold truncate leading-tight text-text-primary">
           {name}
         </div>
         {subEl}
@@ -103,10 +103,10 @@ export const AssigneeCell = memo(function AssigneeCell({
           : 'text-amber-300/80 light:text-amber-700/80'
     return (
       <div className="min-w-0">
-        <div className="text-[15px] font-semibold truncate leading-tight text-text-primary">
+        <div className="text-15 font-semibold truncate leading-tight text-text-primary">
           {name}
         </div>
-        <div className={`text-[13px] font-medium leading-tight mt-0.5 truncate ${subCls}`}>
+        <div className={`text-13 font-medium leading-tight mt-0.5 truncate ${subCls}`}>
           {subText}
         </div>
       </div>
@@ -120,10 +120,10 @@ export const AssigneeCell = memo(function AssigneeCell({
       : '—'
     return (
       <div className="min-w-0">
-        <div className="text-[15px] font-semibold text-text-primary truncate leading-tight">
+        <div className="text-15 font-semibold text-text-primary truncate leading-tight">
           {name}
         </div>
-        <div className="text-[13px] text-text-tertiary leading-tight mt-0.5">
+        <div className="text-13 text-text-tertiary leading-tight mt-0.5">
           {deptLabel}
         </div>
       </div>
@@ -137,10 +137,10 @@ export const AssigneeCell = memo(function AssigneeCell({
       : '—'
     return (
       <div className="min-w-0">
-        <div className="text-[15px] font-semibold text-text-primary truncate leading-tight">
+        <div className="text-15 font-semibold text-text-primary truncate leading-tight">
           {name}
         </div>
-        <div className="text-[13px] text-text-tertiary leading-tight mt-0.5">
+        <div className="text-13 text-text-tertiary leading-tight mt-0.5">
           {branchLabel}
         </div>
       </div>
@@ -150,10 +150,10 @@ export const AssigneeCell = memo(function AssigneeCell({
   // ── warehouse / none ────────────────────────────────────────────────────────
   return (
     <div className="min-w-0">
-      <div className="text-[15px] font-semibold text-text-primary leading-tight">
+      <div className="text-15 font-semibold text-text-primary leading-tight">
         {onShelf}
       </div>
-      <div className="text-[13px] text-text-tertiary leading-tight mt-0.5">
+      <div className="text-13 text-text-tertiary leading-tight mt-0.5">
         {onShelfSub}
       </div>
     </div>

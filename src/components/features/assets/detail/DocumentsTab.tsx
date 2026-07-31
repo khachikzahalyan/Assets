@@ -70,16 +70,16 @@ function WarrantyBlock({ purchaseDate, warrantyEndsAt }: WarrantyBlockProps) {
       <div className="flex items-center justify-between gap-2 mb-2">
         <div className="flex items-center gap-1.5">
           <Icon name={status.icon} size={13} className={iconColor} />
-          <span className="text-[13px] font-medium tracking-widest uppercase text-text-tertiary">Гарантия</span>
+          <span className="text-13 font-medium tracking-widest uppercase text-text-tertiary">Гарантия</span>
         </div>
-        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[12.5px] font-medium ${status.chipCls}`}>
+        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-12.5 font-medium ${status.chipCls}`}>
           {status.label}
         </span>
       </div>
       <div className="flex items-baseline gap-1.5 mb-2">
-        <span className="text-[15px] font-semibold text-text-primary">{months} мес.</span>
+        <span className="text-15 font-semibold text-text-primary">{months} мес.</span>
       </div>
-      <div className="text-[13px] text-text-secondary mb-2.5">
+      <div className="text-13 text-text-secondary mb-2.5">
         с {fmtRuDate(purchaseDate)} по {fmtRuDate(warrantyEndsAt)}
       </div>
       <div className="flex items-center gap-2">
@@ -89,12 +89,12 @@ function WarrantyBlock({ purchaseDate, warrantyEndsAt }: WarrantyBlockProps) {
             style={{ width: `${barPct}%` }}
           />
         </div>
-        <span className={`text-[12px] font-medium tabular-nums shrink-0 ${pctColor}`}>
+        <span className={`text-12 font-medium tabular-nums shrink-0 ${pctColor}`}>
           {barPct}%
         </span>
       </div>
       {status.key !== 'expired' && (
-        <div className="text-[12px] text-text-tertiary mt-1 text-right">{remaining}% осталось</div>
+        <div className="text-12 text-text-tertiary mt-1 text-right">{remaining}% осталось</div>
       )}
     </div>
   )
@@ -125,8 +125,8 @@ export function DocumentsTab({ acts, onOpen, purchaseDate, warrantyEndsAt }: Doc
             >
               <Icon name="file-text" size={16} className="text-text-tertiary shrink-0" />
               <div className="flex-1 min-w-0">
-                <p className="text-[14px] text-[#E2E8F0] light:text-slate-800 truncate">{act.name}</p>
-                <p className="text-[12px] text-text-subtle">{fmtRuDate(act.date)}</p>
+                <p className="text-14 text-[#E2E8F0] light:text-slate-800 truncate">{act.name}</p>
+                <p className="text-12 text-text-subtle">{fmtRuDate(act.date)}</p>
               </div>
               <Btn variant="ghost" size="sm" onClick={() => onOpen(act.path)}>
                 {t('detail.docs.open')}
@@ -138,13 +138,13 @@ export function DocumentsTab({ acts, onOpen, purchaseDate, warrantyEndsAt }: Doc
       <div className="mt-4 pt-4 border-t border-border max-md:hidden">
         <button
           disabled
-          className="w-full flex items-center justify-center gap-2 h-10 max-md:h-12 rounded-lg border-2 border-dashed border-border text-text-subtle text-[14px] opacity-60 cursor-not-allowed"
+          className="w-full flex items-center justify-center gap-2 h-10 max-md:h-12 rounded-lg border-2 border-dashed border-border text-text-subtle text-14 opacity-60 cursor-not-allowed"
         >
           <Icon name="upload" size={14} />
           <span>{t('detail.docs.upload')}</span>
           <Chip color="gray" size="sm">{t('detail.docs.soon')}</Chip>
         </button>
-        <p className="mt-2 text-center text-[12px] text-text-subtle">{t('detail.docs.notice')}</p>
+        <p className="mt-2 text-center text-12 text-text-subtle">{t('detail.docs.notice')}</p>
       </div>
     </div>
   )

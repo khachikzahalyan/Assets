@@ -29,7 +29,7 @@ export function RoleRowMobile({
     <RoleIcon role={u.role} size={30} className="shrink-0" />
   ) : (
     <span
-      className="w-[30px] h-[30px] rounded-full inline-flex items-center justify-center flex-shrink-0 bg-surface-2 border border-border text-text-subtle"
+      className="w-[1.875rem] h-[1.875rem] rounded-full inline-flex items-center justify-center flex-shrink-0 bg-surface-2 border border-border text-text-subtle"
       aria-hidden="true"
     >
       <Icon name="user" size={14} />
@@ -38,11 +38,11 @@ export function RoleRowMobile({
 
   const titleNode = (
     <div className="flex items-center gap-1.5 leading-snug min-w-0">
-      <span className="text-[13px] font-bold text-text-primary truncate">
+      <span className="text-13 font-bold text-text-primary truncate">
         {u.displayName || u.email}
       </span>
       {isSelf && (
-        <span className="text-[10px] px-1.5 py-0.5 rounded bg-accent/15 text-accent flex-shrink-0">
+        <span className="text-10 px-1.5 py-0.5 rounded bg-accent/15 text-accent flex-shrink-0">
           {youLabel}
         </span>
       )}
@@ -50,7 +50,7 @@ export function RoleRowMobile({
   )
 
   const sublineNode = (
-    <div className="text-[11.5px] text-text-tertiary truncate leading-snug">{u.email}</div>
+    <div className="text-11.5 text-text-tertiary truncate leading-snug">{u.email}</div>
   )
 
   const right = (

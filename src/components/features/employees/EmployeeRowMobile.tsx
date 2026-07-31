@@ -41,13 +41,13 @@ export const EmployeeRowMobile = memo(function EmployeeRowMobile({
   const iconTile = <EmployeeAvatar size="sm" />
 
   const titleNode = (
-    <div className="text-[13px] font-bold text-text-primary leading-snug truncate mb-[2px]">
+    <div className="text-13 font-bold text-text-primary leading-snug truncate mb-0.5">
       {employee.firstName} {employee.lastName}
     </div>
   )
 
   const sublineNode = sublineText ? (
-    <div className="text-[11px] text-text-tertiary leading-snug truncate">
+    <div className="text-11 text-text-tertiary leading-snug truncate">
       {sublineText}
     </div>
   ) : undefined
@@ -56,18 +56,18 @@ export const EmployeeRowMobile = memo(function EmployeeRowMobile({
   const pillPalette = assetCount === 0 ? CHIP_PALETTE.gray : CHIP_PALETTE.blue
 
   const right = (
-    <div className="flex flex-col items-end gap-[3px] flex-shrink-0">
+    <div className="flex flex-col items-end gap-[0.1875rem] flex-shrink-0">
       <span
         className={[
-          'inline-flex items-center border rounded-[5px] px-[7px] py-[2px]',
-          'text-[10px] font-bold whitespace-nowrap leading-none',
+          'inline-flex items-center border rounded-[5px] px-[0.4375rem] py-0.5',
+          'text-10 font-bold whitespace-nowrap leading-none',
           pillPalette,
         ].join(' ')}
       >
         {assetCount}&nbsp;{t('table.assets')}
       </span>
       {branchName ? (
-        <span className="text-[10px] text-text-subtle whitespace-nowrap max-w-[100px] truncate">
+        <span className="text-10 text-text-subtle whitespace-nowrap max-w-[100px] truncate">
           {branchName}
         </span>
       ) : null}

@@ -136,8 +136,8 @@ export function AssetsFilterBar({
         // Desktop: wrapping flex row with padding
         'flex flex-wrap items-center gap-2 px-5 py-2',
         // Mobile: horizontal scroll strip, even top/bottom padding
-        'max-md:flex-nowrap max-md:overflow-x-auto max-md:gap-[6px]',
-        'max-md:px-[14px] max-md:py-[8px]',
+        'max-md:flex-nowrap max-md:overflow-x-auto max-md:gap-1.5',
+        'max-md:px-3.5 max-md:py-2',
         'no-scrollbar max-md:scroll-fade-x',
       ].join(' ')}
     >
@@ -180,7 +180,7 @@ export function AssetsFilterBar({
         type="button"
         onClick={onToggleTemp}
         className={[
-          'inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-[13px] font-semibold tracking-tight transition-all duration-150 shrink-0 max-md:hidden',
+          'inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-13 font-semibold tracking-tight transition-all duration-150 shrink-0 max-md:hidden',
           showTemp
             ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-500/25 ring-1 ring-emerald-700/15'
             : 'bg-surface text-text-primary border border-border hover:border-border-strong hover:bg-bg',
@@ -196,7 +196,7 @@ export function AssetsFilterBar({
         <span
           aria-hidden="true"
           className={[
-            'tabular-nums text-[13px]',
+            'tabular-nums text-13',
             showTemp ? 'text-emerald-100' : 'text-text-subtle',
           ].join(' ')}
         >
@@ -210,7 +210,7 @@ export function AssetsFilterBar({
           type="button"
           onClick={handleReset}
           className={[
-            'ml-auto inline-flex items-center gap-1 h-8 px-2.5 rounded-lg text-[13px] font-semibold max-md:hidden',
+            'ml-auto inline-flex items-center gap-1 h-8 px-2.5 rounded-lg text-13 font-semibold max-md:hidden',
             'text-text-primary hover:text-text-primary hover:bg-surface-2 transition-colors duration-150',
           ].join(' ')}
         >

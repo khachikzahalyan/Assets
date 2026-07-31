@@ -22,9 +22,9 @@ export function CatalogToolbarHeader({
       <div className="flex items-center justify-between gap-3 px-5 py-3 max-md:px-3">
         <div className="flex items-center gap-2 min-w-0">
           <Icon name={icon} size={16} className="text-text-tertiary flex-shrink-0" />
-          <h1 className="text-[15px] font-semibold text-text-primary">{title}</h1>
+          <h1 className="text-15 font-semibold text-text-primary">{title}</h1>
           {count !== undefined && (
-            <span className="text-[13px] text-text-tertiary tabular-nums">{count}</span>
+            <span className="text-13 text-text-tertiary tabular-nums">{count}</span>
           )}
         </div>
         {canMutate && (

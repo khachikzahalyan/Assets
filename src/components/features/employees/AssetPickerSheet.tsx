@@ -94,10 +94,10 @@ export function AssetPickerSheet({
           <div className="flex items-center gap-2.5 min-w-0">
             <RoleIcon role="employee" size={40} className="shrink-0" />
             <div className="min-w-0">
-              <div className="text-[17px] font-bold text-text-primary tracking-tight truncate">
+              <div className="text-17 font-bold text-text-primary tracking-tight truncate">
                 {t('picker.title')} {empName}
               </div>
-              <div className="text-[14px] text-text-primary mt-0.5 truncate">
+              <div className="text-14 text-text-primary mt-0.5 truncate">
                 {[emp.position, emp.departmentName, emp.branchName]
                   .filter(Boolean)
                   .join(' · ')}
@@ -110,7 +110,7 @@ export function AssetPickerSheet({
               <button
                 type="button"
                 onClick={goToReviewStep}
-                className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full bg-accent/10 text-accent border border-accent/70 text-[13.5px] font-semibold tracking-tight hover:bg-accent/15 transition-colors"
+                className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full bg-accent/10 text-accent border border-accent/70 text-13.5 font-semibold tracking-tight hover:bg-accent/15 transition-colors"
               >
                 <Icon name="shopping-cart" size={12} />
                 {t('picker.cart')} <span className="tabular-nums">{count}</span>
@@ -127,7 +127,7 @@ export function AssetPickerSheet({
           </div>
         </div>
         {/* Breadcrumb */}
-        <div className="mt-3.5 flex items-center gap-1 text-[14px]">
+        <div className="mt-3.5 flex items-center gap-1 text-14">
           {crumbs.map((c, i) => (
             <span key={i} className="inline-flex items-center">
               {i > 0 && (
@@ -184,7 +184,7 @@ export function AssetPickerSheet({
 
       {/* Footer */}
       <div className="px-6 py-3.5 bg-bg/60 border-t border-border flex items-center justify-between gap-2">
-        <div className="text-[13.5px] text-text-primary min-w-0 truncate">
+        <div className="text-13.5 text-text-primary min-w-0 truncate">
           {step === 'items' && count > 0 ? (
             <>
               В корзине:{' '}
@@ -259,10 +259,10 @@ export function AssetPickerSheet({
                 <Icon name="alert-triangle" size={18} />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-[16px] font-bold text-text-primary tracking-tight">
+                <div className="text-16 font-bold text-text-primary tracking-tight">
                   {t('picker.cancelTitle')}
                 </div>
-                <div className="text-[14.5px] text-text-tertiary mt-1 leading-relaxed">
+                <div className="text-14.5 text-text-tertiary mt-1 leading-relaxed">
                   В корзине{' '}
                   <span className="font-semibold text-text-primary tabular-nums">{count}</span>{' '}
                   {count === 1 ? 'актив' : count < 5 ? 'актива' : 'активов'}. Без подтверждения

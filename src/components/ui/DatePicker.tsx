@@ -148,7 +148,7 @@ export function DatePicker({ value, onChange, min, max, disabled = false, placeh
         <button
           type="button"
           onClick={() => setCalMode(m => m === 'days' ? 'months' : m === 'months' ? 'years' : 'days')}
-          className="px-2 py-1 text-[15px] font-semibold text-text-primary hover:bg-surface-2 rounded-md transition-colors flex items-center gap-1"
+          className="px-2 py-1 text-15 font-semibold text-text-primary hover:bg-surface-2 rounded-md transition-colors flex items-center gap-1"
         >
           {calMode === 'days' && <>{RU_MONTHS[viewMonth.getMonth()]} {viewMonth.getFullYear()}</>}
           {calMode === 'months' && <>{viewMonth.getFullYear()}</>}
@@ -184,7 +184,7 @@ export function DatePicker({ value, onChange, min, max, disabled = false, placeh
           <>
             <div className="grid grid-cols-7 gap-0.5 mb-1">
               {RU_WEEKDAYS.map((wd, i) => (
-                <div key={wd} className={`text-center text-[12px] font-semibold uppercase tracking-wide py-1 ${i >= 5 ? 'text-accent/70' : 'text-text-subtle'}`}>{wd}</div>
+                <div key={wd} className={`text-center text-12 font-semibold uppercase tracking-wide py-1 ${i >= 5 ? 'text-accent/70' : 'text-text-subtle'}`}>{wd}</div>
               ))}
             </div>
             <div className="grid grid-cols-7 gap-0.5">
@@ -199,7 +199,7 @@ export function DatePicker({ value, onChange, min, max, disabled = false, placeh
                     type="button"
                     onClick={() => pick(c.date)}
                     disabled={!!dis}
-                    className={`${dayCellSize} text-[14px] rounded-md transition-colors font-medium
+                    className={`${dayCellSize} text-14 rounded-md transition-colors font-medium
                       ${isSel ? 'bg-accent text-white shadow-sm'
                         : dis ? 'text-border-strong cursor-not-allowed'
                         : isOut ? 'text-[#475569] light:text-slate-300 hover:bg-surface-2 hover:text-text-tertiary'
@@ -216,7 +216,7 @@ export function DatePicker({ value, onChange, min, max, disabled = false, placeh
             {RU_MONTHS.map((m, i) => (
               <button key={m} type="button"
                 onClick={() => { setViewMonth(new Date(viewMonth.getFullYear(), i, 1)); setCalMode('days') }}
-                className={`h-10 text-[14px] rounded-md transition-colors font-medium ${i === viewMonth.getMonth() ? 'bg-accent text-white shadow-sm' : 'text-text-primary hover:bg-surface-2'}`}
+                className={`h-10 text-14 rounded-md transition-colors font-medium ${i === viewMonth.getMonth() ? 'bg-accent text-white shadow-sm' : 'text-text-primary hover:bg-surface-2'}`}
               >{m.slice(0, 3)}</button>
             ))}
           </div>
@@ -226,7 +226,7 @@ export function DatePicker({ value, onChange, min, max, disabled = false, placeh
             {years.map(y => (
               <button key={y} type="button"
                 onClick={() => { setViewMonth(new Date(y, viewMonth.getMonth(), 1)); setCalMode('months') }}
-                className={`h-10 text-[14px] rounded-md transition-colors font-medium ${y === viewMonth.getFullYear() ? 'bg-accent text-white shadow-sm' : 'text-text-primary hover:bg-surface-2'}`}
+                className={`h-10 text-14 rounded-md transition-colors font-medium ${y === viewMonth.getFullYear() ? 'bg-accent text-white shadow-sm' : 'text-text-primary hover:bg-surface-2'}`}
               >{y}</button>
             ))}
           </div>
@@ -234,11 +234,11 @@ export function DatePicker({ value, onChange, min, max, disabled = false, placeh
       </div>
 
       <div className="flex items-center justify-between px-3 py-2 border-t border-border bg-bg/40 light:bg-surface-sunken">
-        <button type="button" onClick={handleClear} className="text-[13px] font-semibold text-text-subtle hover:text-text-primary transition-colors px-2 py-1 rounded">Очистить</button>
+        <button type="button" onClick={handleClear} className="text-13 font-semibold text-text-subtle hover:text-text-primary transition-colors px-2 py-1 rounded">Очистить</button>
         {showPlusYear && (
-          <button type="button" onClick={handleOneYear} className="text-[13px] font-semibold text-accent hover:bg-[rgba(249,115,22,0.12)] transition-colors px-2 py-1 rounded">На 1 год</button>
+          <button type="button" onClick={handleOneYear} className="text-13 font-semibold text-accent hover:bg-[rgba(249,115,22,0.12)] transition-colors px-2 py-1 rounded">На 1 год</button>
         )}
-        <button type="button" onClick={handleToday} className="text-[13px] font-semibold text-accent hover:bg-[rgba(249,115,22,0.12)] transition-colors px-2 py-1 rounded">Сегодня</button>
+        <button type="button" onClick={handleToday} className="text-13 font-semibold text-accent hover:bg-[rgba(249,115,22,0.12)] transition-colors px-2 py-1 rounded">Сегодня</button>
       </div>
     </>
   )
@@ -255,8 +255,8 @@ export function DatePicker({ value, onChange, min, max, disabled = false, placeh
         aria-expanded={open}
         aria-label={ariaLabel}
         className={variant === 'chip'
-          ? `w-full h-8 px-2 text-[12px] bg-bg border border-border rounded-lg flex items-center gap-1.5 text-left transition-all duration-150 ${open ? 'border-accent' : 'border-border hover:border-border-strong'} disabled:opacity-50 disabled:cursor-not-allowed`
-          : `w-full px-0 py-2.5 text-[15px] border-b bg-transparent rounded-none flex items-center gap-2 outline-none shadow-none transition-[border-color,box-shadow] duration-200 text-left ${open ? 'border-accent shadow-[0_2px_8px_rgba(217,119,87,0.1)]' : 'border-border hover:border-border-strong'} disabled:opacity-50 disabled:cursor-not-allowed`}
+          ? `w-full h-8 px-2 text-12 bg-bg border border-border rounded-lg flex items-center gap-1.5 text-left transition-all duration-150 ${open ? 'border-accent' : 'border-border hover:border-border-strong'} disabled:opacity-50 disabled:cursor-not-allowed`
+          : `w-full px-0 py-2.5 text-15 border-b bg-transparent rounded-none flex items-center gap-2 outline-none shadow-none transition-[border-color,box-shadow] duration-200 text-left ${open ? 'border-accent shadow-[0_2px_8px_rgba(217,119,87,0.1)]' : 'border-border hover:border-border-strong'} disabled:opacity-50 disabled:cursor-not-allowed`}
       >
         <span className={selected ? 'text-text-primary' : 'text-text-subtle'}>
           {selected ? formatDisplay(selected) : placeholder}

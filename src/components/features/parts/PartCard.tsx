@@ -181,10 +181,10 @@ export const PartCard = memo(function PartCard({
 
         {/* Label + subtitle */}
         <div className="flex-1 min-w-0">
-          <div className="text-[15.5px] font-semibold text-text-primary truncate">
+          <div className="text-15.5 font-semibold text-text-primary truncate">
             {catMeta?.label ?? categoryId}
           </div>
-          <div className="text-[13.5px] text-text-subtle mt-0.5">{subtitle}</div>
+          <div className="text-13.5 text-text-subtle mt-0.5">{subtitle}</div>
         </div>
 
         {/* RAM-like DDR pills — click doesn't propagate to card select */}
@@ -198,7 +198,7 @@ export const PartCard = memo(function PartCard({
                 key={ddr}
                 type="button"
                 onClick={() => setRamDdr(ddr)}
-                className={`px-2.5 h-6 rounded-full text-[13px] font-semibold transition-all border
+                className={`px-2.5 h-6 rounded-full text-13 font-semibold transition-all border
                   ${ramDdr === ddr
                     ? 'bg-accent border-accent text-white shadow-sm shadow-[#FB923C]/40 light:shadow-[#F97316]/20'
                     : 'bg-surface border-border text-text-tertiary hover:border-border-strong hover:text-text-secondary'}`}
@@ -225,7 +225,7 @@ export const PartCard = memo(function PartCard({
                 handler?.()
               }}
               title={t('gpu.addBtn')}
-              className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[13.5px] font-medium text-accent hover:text-accent hover:bg-[#F97316]/10 transition-colors"
+              className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-13.5 font-medium text-accent hover:text-accent hover:bg-[#F97316]/10 transition-colors"
             >
               <Icon name="plus" size={11} />
               {t('gpu.addBtn')}
@@ -244,7 +244,7 @@ export const PartCard = memo(function PartCard({
                   if (singleWorking > 0) onInstall(singleSku)
                 }}
                 title={singleWorking === 0 ? t('warehouse.noStock') : t('actions.install')}
-                className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-[13.5px] font-medium transition-colors
+                className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-13.5 font-medium transition-colors
                   ${singleWorking === 0
                     ? 'text-text-subtle cursor-not-allowed'
                     : 'text-accent hover:text-accent hover:bg-[#F97316]/10'}`}
@@ -277,8 +277,8 @@ export const PartCard = memo(function PartCard({
               className="border-t border-[#2A2F36]/60 bg-[#1B1F24]/70 px-4 py-3 text-center light:bg-surface-sunken light:border-border"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="text-[14px] text-text-tertiary">{t('warehouse.noneAvailable')}</div>
-              <div className="text-[13px] text-text-subtle mt-0.5">{t('warehouse.noneAvailableHint')}</div>
+              <div className="text-14 text-text-tertiary">{t('warehouse.noneAvailable')}</div>
+              <div className="text-13 text-text-subtle mt-0.5">{t('warehouse.noneAvailableHint')}</div>
             </div>
           )
         }
@@ -298,7 +298,7 @@ export const PartCard = memo(function PartCard({
                     key={v.id}
                     className="flex items-center gap-3 pl-[1.05rem] pr-3 py-1.5 hover:bg-bg"
                   >
-                    <span className="font-mono text-[14px] font-semibold text-text-secondary w-16 flex-shrink-0">
+                    <span className="font-mono text-14 font-semibold text-text-secondary w-16 flex-shrink-0">
                       {v.label}
                     </span>
                     <div className="flex-1" />
@@ -312,7 +312,7 @@ export const PartCard = memo(function PartCard({
                         onInstall(sku)
                       }}
                       title={t('actions.install')}
-                      className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[13.5px] font-medium text-accent hover:text-accent hover:bg-surface transition-colors"
+                      className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-13.5 font-medium text-accent hover:text-accent hover:bg-surface transition-colors"
                     >
                       <Icon name="wrench" size={11} />
                       {t('actions.install')}

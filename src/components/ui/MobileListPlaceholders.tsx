@@ -31,12 +31,12 @@ export function MobileListPlaceholders({ count, dataTestId }: MobileListPlacehol
           aria-hidden="true"
           data-testid={dataTestId}
           style={{ flexGrow: 1, flexShrink: 0 }}
-          className="px-[14px] py-[7px] border-l-[3px] border-l-transparent pointer-events-none"
+          className="px-3.5 py-[0.4375rem] border-l-[3px] border-l-transparent pointer-events-none"
         >
           {/* Invisible replica of the card's text column → identical row height */}
           <div className="opacity-0">
-            <div className="text-[13px] font-bold leading-snug mb-[2px]">&nbsp;</div>
-            <div className="text-[11px] leading-snug">&nbsp;</div>
+            <div className="text-13 font-bold leading-snug mb-0.5">&nbsp;</div>
+            <div className="text-11 leading-snug">&nbsp;</div>
           </div>
         </div>
       ))}

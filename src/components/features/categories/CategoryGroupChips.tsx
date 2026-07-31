@@ -42,7 +42,7 @@ export function CategoryGroupChips({
               onClick={() => onSelect(g.id)}
               aria-pressed={isSelected}
               className={[
-                'inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-[13px] font-semibold tracking-tight',
+                'inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-13 font-semibold tracking-tight',
                 'whitespace-nowrap flex-shrink-0',
                 'transition-colors duration-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-border-strong',
                 isSelected ? ACTIVE_CHIP : IDLE_CHIP,
@@ -54,7 +54,7 @@ export function CategoryGroupChips({
                 className={`flex-shrink-0 ${isSelected ? 'text-white' : 'text-text-primary'}`}
               />
               <span>{g.name}</span>
-              <span className={`tabular-nums text-[12px] ${isSelected ? 'text-white/70' : 'text-text-subtle'}`}>
+              <span className={`tabular-nums text-12 ${isSelected ? 'text-white/70' : 'text-text-subtle'}`}>
                 {counts[g.id] ?? 0}
               </span>
             </button>
@@ -93,7 +93,7 @@ export function CategoryGroupChips({
         <button
           type="button"
           onClick={onAdd}
-          className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg border border-dashed border-border text-text-tertiary text-[13px] font-semibold tracking-tight whitespace-nowrap flex-shrink-0 hover:border-border-strong hover:text-text-secondary transition-colors duration-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-border-strong"
+          className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg border border-dashed border-border text-text-tertiary text-13 font-semibold tracking-tight whitespace-nowrap flex-shrink-0 hover:border-border-strong hover:text-text-secondary transition-colors duration-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-border-strong"
         >
           <Icon name="plus" size={13} />
           {t('create')}

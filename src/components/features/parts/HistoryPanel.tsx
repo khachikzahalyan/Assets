@@ -200,8 +200,8 @@ export function HistoryPanel({
   return (
     <div>
       {/* ── Metrics strip ── */}
-      <div className="px-5 py-2.5 max-md:px-[14px] max-md:py-1.5 border-t border-border flex items-center gap-3 flex-shrink-0 bg-bg">
-        <span className="text-[13px] uppercase tracking-wider text-text-subtle font-semibold max-md:text-[10px] max-md:font-bold max-md:tracking-[1.4px] max-md:text-text-secondary">
+      <div className="px-5 py-2.5 max-md:px-3.5 max-md:py-1.5 border-t border-border flex items-center gap-3 flex-shrink-0 bg-bg">
+        <span className="text-13 uppercase tracking-wider text-text-subtle font-semibold max-md:text-10 max-md:font-bold max-md:tracking-[1.4px] max-md:text-text-secondary">
           {t('warehouse.history')}
         </span>
         <div className="flex items-center gap-1.5 ml-auto">
@@ -222,7 +222,7 @@ export function HistoryPanel({
               type="button"
               onClick={() => toggleFilter('receive')}
               aria-pressed={eventFilter === 'receive'}
-              className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[12.5px] font-semibold transition-all cursor-pointer
+              className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-12.5 font-semibold transition-all cursor-pointer
                 ${eventFilter === 'receive'
                   ? 'bg-emerald-500/25 text-emerald-200 ring-2 ring-emerald-400/60 shadow-inner light:text-emerald-700'
                   : `bg-emerald-500/10 text-emerald-300 ring-1 ring-emerald-500/30 hover:bg-emerald-500/20 light:text-emerald-700 ${eventFilter ? 'opacity-60 hover:opacity-100' : ''}`}`}
@@ -236,7 +236,7 @@ export function HistoryPanel({
               type="button"
               onClick={() => toggleFilter('install')}
               aria-pressed={eventFilter === 'install'}
-              className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[12.5px] font-semibold transition-all cursor-pointer
+              className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-12.5 font-semibold transition-all cursor-pointer
                 ${eventFilter === 'install'
                   ? 'bg-violet-500/25 text-violet-200 ring-2 ring-violet-400/60 shadow-inner light:text-violet-700'
                   : `bg-violet-500/10 text-violet-300 ring-1 ring-violet-500/30 hover:bg-violet-500/20 light:text-violet-700 ${eventFilter ? 'opacity-60 hover:opacity-100' : ''}`}`}
@@ -250,7 +250,7 @@ export function HistoryPanel({
               type="button"
               onClick={() => toggleFilter('uninstall')}
               aria-pressed={eventFilter === 'uninstall'}
-              className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[12.5px] font-semibold transition-all cursor-pointer
+              className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-12.5 font-semibold transition-all cursor-pointer
                 ${eventFilter === 'uninstall'
                   ? 'bg-blue-500/25 text-blue-200 ring-2 ring-blue-400/60 shadow-inner light:text-blue-700'
                   : `bg-blue-500/10 text-blue-300 ring-1 ring-blue-500/30 hover:bg-blue-500/20 light:text-blue-700 ${eventFilter ? 'opacity-60 hover:opacity-100' : ''}`}`}
@@ -264,7 +264,7 @@ export function HistoryPanel({
               type="button"
               onClick={() => toggleFilter('move')}
               aria-pressed={eventFilter === 'move'}
-              className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[12.5px] font-semibold transition-all cursor-pointer
+              className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-12.5 font-semibold transition-all cursor-pointer
                 ${eventFilter === 'move'
                   ? 'bg-amber-500/25 text-amber-200 ring-2 ring-amber-400/60 shadow-inner light:text-amber-700'
                   : `bg-amber-500/10 text-amber-300 ring-1 ring-amber-500/30 hover:bg-amber-500/20 light:text-amber-700 ${eventFilter ? 'opacity-60 hover:opacity-100' : ''}`}`}
@@ -277,7 +277,7 @@ export function HistoryPanel({
             <button
               type="button"
               onClick={() => setEventFilter(null)}
-              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[12.5px] font-semibold transition-all cursor-pointer bg-slate-500/15 text-slate-300 ring-1 ring-slate-500/30 hover:bg-slate-500/25 light:text-slate-600"
+              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-12.5 font-semibold transition-all cursor-pointer bg-slate-500/15 text-slate-300 ring-1 ring-slate-500/30 hover:bg-slate-500/25 light:text-slate-600"
             >
               <Icon name="x" size={11} />
               {t('warehouse.filterReset')}
@@ -307,22 +307,22 @@ export function HistoryPanel({
             >
               {isMobile && (
                 /* invisible height-anchor matching MobileListRow two-line layout */
-                <div className="opacity-0 px-[14px] py-[7px]">
-                  <div className="text-[13px] font-bold leading-snug mb-[2px]">&nbsp;</div>
-                  <div className="text-[11px] leading-snug">&nbsp;</div>
+                <div className="opacity-0 px-3.5 py-[0.4375rem]">
+                  <div className="text-13 font-bold leading-snug mb-0.5">&nbsp;</div>
+                  <div className="text-11 leading-snug">&nbsp;</div>
                 </div>
               )}
               <div
                 className={isMobile
-                  ? 'absolute left-[14px] right-[14px] top-1/2 -translate-y-1/2 border-t border-dashed border-border/40'
+                  ? 'absolute left-3.5 right-3.5 top-1/2 -translate-y-1/2 border-t border-dashed border-border/40'
                   : 'absolute left-5 right-5 top-1/2 -translate-y-1/2 border-t border-dashed border-border/40'}
               />
               {/* Compact hint in the first slot, below the dashed rule */}
               {i === 0 && (
                 <div
                   className={[
-                    'absolute bottom-1 text-[11.5px] text-text-tertiary',
-                    isMobile ? 'left-[14px] right-[14px]' : 'left-5 right-5',
+                    'absolute bottom-1 text-11.5 text-text-tertiary',
+                    isMobile ? 'left-3.5 right-3.5' : 'left-5 right-5',
                   ].join(' ')}
                 >
                   {eventFilter
@@ -332,7 +332,7 @@ export function HistoryPanel({
                     <button
                       type="button"
                       onClick={() => setEventFilter(null)}
-                      className="ml-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11.5px] font-semibold cursor-pointer bg-slate-500/15 text-slate-300 ring-1 ring-slate-500/30 hover:bg-slate-500/25"
+                      className="ml-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-11.5 font-semibold cursor-pointer bg-slate-500/15 text-slate-300 ring-1 ring-slate-500/30 hover:bg-slate-500/25"
                     >
                       <Icon name="x" size={9} />
                       {t('warehouse.filterReset')}
@@ -445,7 +445,7 @@ export function HistoryPanel({
                   const assetName = (mv as MovementRuntime).assetName ?? null
                   const subline = assetCode ? (
                     <>
-                      <span className="font-mono text-[13px] uppercase tracking-wider bg-white/5 border border-white/10 rounded px-1.5 py-0.5 text-zinc-300 flex-shrink-0 light:bg-slate-100 light:border-slate-300 light:text-slate-600">
+                      <span className="font-mono text-13 uppercase tracking-wider bg-white/5 border border-white/10 rounded px-1.5 py-0.5 text-zinc-300 flex-shrink-0 light:bg-slate-100 light:border-slate-300 light:text-slate-600">
                         {assetCode}
                       </span>
                       {assetName && (
@@ -472,7 +472,7 @@ export function HistoryPanel({
                           </span>
                         )}
                         <div className="min-w-0 flex-1">
-                          <div className="text-[15.5px] text-text-secondary truncate flex items-center gap-1.5">
+                          <div className="text-15.5 text-text-secondary truncate flex items-center gap-1.5">
                             <span className="truncate">{mainLabel}</span>
                             {mv.serviceReplace && (
                               <Chip color="teal" size="sm">
@@ -480,13 +480,13 @@ export function HistoryPanel({
                               </Chip>
                             )}
                           </div>
-                          <div className="text-[14px] text-text-subtle mt-0.5 leading-tight flex items-center gap-1.5 min-w-0">
+                          <div className="text-14 text-text-subtle mt-0.5 leading-tight flex items-center gap-1.5 min-w-0">
                             {subline}
                           </div>
                         </div>
                       </div>
                       <div className="flex-shrink-0">{actionChip}</div>
-                      <div className="text-[14px] font-medium text-text-tertiary tabular-nums whitespace-nowrap flex-shrink-0 w-[88px] text-right">
+                      <div className="text-14 font-medium text-text-tertiary tabular-nums whitespace-nowrap flex-shrink-0 w-[88px] text-right">
                         {fmtPartsDate(mv.at)}
                       </div>
                     </li>
@@ -505,19 +505,19 @@ export function HistoryPanel({
                   type="button"
                   disabled={safePage === 1}
                   onClick={() => goToPage(Math.max(1, safePage - 1))}
-                  className="h-7 px-3 rounded-md bg-surface border border-border text-[14px] text-text-primary disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="h-7 px-3 rounded-md bg-surface border border-border text-14 text-text-primary disabled:opacity-40 disabled:cursor-not-allowed"
                   aria-label={t('warehouse.pagePrev')}
                 >
                   ← {t('warehouse.pagePrev')}
                 </button>
-                <span className="text-[14px] text-text-tertiary tabular-nums">
+                <span className="text-14 text-text-tertiary tabular-nums">
                   {safePage} / {totalPages}
                 </span>
                 <button
                   type="button"
                   disabled={safePage === totalPages}
                   onClick={() => goToPage(Math.min(totalPages, safePage + 1))}
-                  className="h-7 px-3 rounded-md bg-surface border border-border text-[14px] text-text-primary disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="h-7 px-3 rounded-md bg-surface border border-border text-14 text-text-primary disabled:opacity-40 disabled:cursor-not-allowed"
                   aria-label={t('warehouse.pageNext')}
                 >
                   {t('warehouse.pageNext')} →
@@ -527,7 +527,7 @@ export function HistoryPanel({
               /* Desktop: numbered + ellipsis */
               <div className="border-t border-border flex-shrink-0">
                 <div className="flex items-center justify-between gap-3 px-4 py-2.5">
-                  <div className="text-[13px] text-text-subtle tabular-nums">
+                  <div className="text-13 text-text-subtle tabular-nums">
                     {t('warehouse.pageOf', { page: safePage, total: totalPages })}
                   </div>
                   <div className="flex items-center gap-1">
@@ -544,7 +544,7 @@ export function HistoryPanel({
                       item === '…' ? (
                         <span
                           key={`ellipsis-${idx}`}
-                          className="w-7 h-7 flex items-center justify-center text-[13px] text-text-subtle"
+                          className="w-7 h-7 flex items-center justify-center text-13 text-text-subtle"
                         >
                           …
                         </span>
@@ -554,7 +554,7 @@ export function HistoryPanel({
                           type="button"
                           onClick={() => goToPage(item as number)}
                           aria-current={item === safePage ? 'page' : undefined}
-                          className={`flex items-center justify-center w-7 h-7 rounded-md text-[13.5px] font-semibold transition-colors
+                          className={`flex items-center justify-center w-7 h-7 rounded-md text-13.5 font-semibold transition-colors
                             ${item === safePage
                               ? 'bg-accent text-white'
                               : 'bg-surface border border-border text-text-secondary hover:border-border-strong'}`}

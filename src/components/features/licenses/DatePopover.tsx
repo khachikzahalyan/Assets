@@ -146,8 +146,8 @@ export function DatePopover({
 
   // Touch targets grow inside the mobile sheet; desktop popover stays compact.
   const navBtnSize = isMobile ? 'w-10 h-10' : 'w-7 h-7'
-  const dayCellSize = isMobile ? 'h-10 w-10 text-[14px]' : 'h-7 w-7 text-[13px]'
-  const presetBtnSize = isMobile ? 'h-10 text-[13px]' : 'h-7 text-[12px]'
+  const dayCellSize = isMobile ? 'h-10 w-10 text-14' : 'h-7 w-7 text-13'
+  const presetBtnSize = isMobile ? 'h-10 text-13' : 'h-7 text-12'
 
   const calendarInner = (
     <>
@@ -164,7 +164,7 @@ export function DatePopover({
         >
           <Icon name="chevron-left" size={14} />
         </button>
-        <div className={`${isMobile ? 'text-[14px]' : 'text-[13px]'} font-semibold text-text-primary`}>
+        <div className={`${isMobile ? 'text-14' : 'text-13'} font-semibold text-text-primary`}>
           {RU_MONTHS[month]} {year}
         </div>
         <button
@@ -180,7 +180,7 @@ export function DatePopover({
       {/* Weekday headers */}
       <div className="grid grid-cols-7 gap-0.5 mb-1">
         {RU_WEEKDAYS.map(w => (
-          <div key={w} className="text-[11.5px] font-semibold text-text-tertiary text-center py-1">{w}</div>
+          <div key={w} className="text-11.5 font-semibold text-text-tertiary text-center py-1">{w}</div>
         ))}
       </div>
 
@@ -288,7 +288,7 @@ export function DatePopover({
         aria-label={label ?? t('datePopover.aria')}
         aria-expanded={open}
         className={[
-          'w-full h-9 px-2.5 text-[13.5px] rounded-lg border bg-surface text-left flex items-center justify-between gap-2 transition-colors outline-none',
+          'w-full h-9 px-2.5 text-13.5 rounded-lg border bg-surface text-left flex items-center justify-between gap-2 transition-colors outline-none',
           open
             ? 'border-orange-400 ring-2 ring-accent/30'
             : 'border-border hover:border-border-strong',

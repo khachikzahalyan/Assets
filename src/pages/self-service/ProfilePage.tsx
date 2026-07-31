@@ -74,7 +74,7 @@ export function ProfilePage({ repository, loadRefData }: ProfilePageProps) {
             </span>
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                {/* Title shimmer — text-[18px] font-bold leading-normal ≈ 22px */}
+                {/* Title shimmer — text-18 font-bold leading-normal ≈ 22px */}
                 <div className="h-[22px] w-[140px] rounded anim-skeleton" />
               </div>
             </div>
@@ -151,22 +151,22 @@ export function ProfilePage({ repository, loadRefData }: ProfilePageProps) {
       <SectionCard title={t('detail.profile')} icon="user">
         <dl className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
           <Field label={t('form.firstName')}>
-            <p className="text-[13px] text-text-primary">{employee.firstName || '—'}</p>
+            <p className="text-13 text-text-primary">{employee.firstName || '—'}</p>
           </Field>
           <Field label={t('form.lastName')}>
-            <p className="text-[13px] text-text-primary">{employee.lastName || '—'}</p>
+            <p className="text-13 text-text-primary">{employee.lastName || '—'}</p>
           </Field>
           <Field label={t('form.email')}>
-            <p className="text-[13px] text-text-primary font-mono">{employee.email || '—'}</p>
+            <p className="text-13 text-text-primary font-mono">{employee.email || '—'}</p>
           </Field>
           <Field label={t('form.position')}>
-            <p className="text-[13px] text-text-primary">{employee.position ?? '—'}</p>
+            <p className="text-13 text-text-primary">{employee.position ?? '—'}</p>
           </Field>
           <Field label={t('form.branch')}>
-            <p className="text-[13px] text-text-primary">{branchName}</p>
+            <p className="text-13 text-text-primary">{branchName}</p>
           </Field>
           <Field label={t('form.department')}>
-            <p className="text-[13px] text-text-primary">{deptName}</p>
+            <p className="text-13 text-text-primary">{deptName}</p>
           </Field>
         </dl>
       </SectionCard>

@@ -138,7 +138,7 @@ export function MiniDropdown({ value, onChange, options, placeholder = 'Выбе
         onKeyDown={onTriggerKey}
         aria-haspopup="listbox"
         aria-expanded={open}
-        className={`w-full px-3 py-2 text-[15px] border rounded-lg text-left outline-none transition-[background-color,border-color,box-shadow] duration-150 flex items-center justify-between gap-2 ${triggerCls} ${triggerClassName}`}
+        className={`w-full px-3 py-2 text-15 border rounded-lg text-left outline-none transition-[background-color,border-color,box-shadow] duration-150 flex items-center justify-between gap-2 ${triggerCls} ${triggerClassName}`}
       >
         <span className="flex items-center gap-2 min-w-0">
           {selectedOption?.icon && <span className="inline-flex items-center justify-center w-[20px] h-[20px] shrink-0">{selectedOption.icon}</span>}
@@ -179,7 +179,7 @@ export function MiniDropdown({ value, onChange, options, placeholder = 'Выбе
                 aria-selected={isSelected}
                 onMouseDown={(e) => { e.preventDefault(); onChange(opt.value); closePanel() }}
                 onMouseEnter={() => setActiveIndex(idx)}
-                className={`mx-1 px-2.5 py-1.5 rounded-md text-[15px] cursor-pointer flex items-center justify-between gap-3 transition-colors ${stateCls}`}
+                className={`mx-1 px-2.5 py-1.5 rounded-md text-15 cursor-pointer flex items-center justify-between gap-3 transition-colors ${stateCls}`}
               >
                 <span className="flex items-center gap-2 min-w-0">
                   {opt.icon && <span className="inline-flex items-center justify-center w-[20px] h-[20px] shrink-0">{opt.icon}</span>}

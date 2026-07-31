@@ -17,7 +17,7 @@ export function BranchBars({ branches }: BranchBarsProps) {
         <span className="w-6 h-6 lg:w-7 lg:h-7 rounded-md bg-success/15 text-success inline-flex items-center justify-center flex-shrink-0">
           <Icon name="building" size={14} />
         </span>
-        <h2 className="text-[12px] lg:text-[13px] font-semibold text-text-primary">
+        <h2 className="text-12 lg:text-13 font-semibold text-text-primary">
           {t('branches.title')}
         </h2>
       </header>
@@ -32,10 +32,10 @@ export function BranchBars({ branches }: BranchBarsProps) {
               return (
                 <div key={b.branchId} className="flex flex-col gap-1.5">
                   <div className="flex items-center gap-2">
-                    <span className="flex-1 text-[12.5px] text-text-secondary truncate">
+                    <span className="flex-1 text-12.5 text-text-secondary truncate">
                       {b.name}
                     </span>
-                    <span className="text-[12.5px] font-mono tabular-nums text-text-primary">
+                    <span className="text-12.5 font-mono tabular-nums text-text-primary">
                       {b.count}
                     </span>
                   </div>

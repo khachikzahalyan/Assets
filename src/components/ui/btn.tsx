@@ -25,7 +25,7 @@ export function Btn({
     danger:    'bg-surface border border-rose-800/60 light:border-rose-300 text-[#FDA4AF] light:text-rose-700 hover:bg-rose-950/40 light:hover:bg-rose-50 hover:border-rose-700/60 light:hover:border-rose-400 shadow-sm disabled:opacity-50',
   }
   const sizes = {
-    sm: 'h-7 px-2.5 text-[12px] gap-1',
+    sm: 'h-7 px-2.5 text-12 gap-1',
     md: 'h-9 px-3.5 text-sm gap-1.5',
     lg: 'h-10 px-4 text-sm gap-1.5',
   }

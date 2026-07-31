@@ -49,7 +49,7 @@ function Toast({ msg, onDone }: { msg: string; onDone: () => void }) {
       role="status"
       aria-live="polite"
     >
-      <div className="flex items-center gap-2.5 bg-surface border border-border text-text-primary px-4 py-3 rounded-xl shadow-xl shadow-black/60 light:shadow-slate-300/60 text-[14px] font-medium max-w-xs">
+      <div className="flex items-center gap-2.5 bg-surface border border-border text-text-primary px-4 py-3 rounded-xl shadow-xl shadow-black/60 light:shadow-slate-300/60 text-14 font-medium max-w-xs">
         <span className="w-5 h-5 rounded-full bg-emerald-500 inline-flex items-center justify-center flex-shrink-0">
           <Icon name="check" size={12} className="text-white" />
         </span>
@@ -205,7 +205,7 @@ export function WindowsKeysSection({
       {
         key: 'asset',
         header: t('keys.colAsset'),
-        width: 'minmax(200px,1.5fr)',
+        width: 'minmax(12.5rem,1.5fr)',
         cell: (lic) => {
           const isFree = licenseStatus(lic) === 'free'
           if (isFree) {
@@ -214,14 +214,14 @@ export function WindowsKeysSection({
             const device = lic.name.includes(' — ') ? lic.name.split(' — ')[0]! : lic.name
             return (
               <div className="leading-tight">
-                <div className="text-[13.5px] text-text-primary font-medium">{device}</div>
+                <div className="text-13.5 text-text-primary font-medium">{device}</div>
                 {lic.retiredAt && (
-                  <div className="text-[12px] text-text-tertiary">
+                  <div className="text-12 text-text-tertiary">
                     {t('keys.freedOn', { date: fmtDate(lic.retiredAt, 'ru') })}
                   </div>
                 )}
                 {lic.assignedAt && !lic.retiredAt && (
-                  <div className="text-[12px] text-text-tertiary">
+                  <div className="text-12 text-text-tertiary">
                     {t('keys.freedOn', { date: fmtDate(lic.assignedAt, 'ru') })}
                   </div>
                 )}
@@ -234,9 +234,9 @@ export function WindowsKeysSection({
           const displayInvCode = entry ? entry.invCode : null
           return (
             <div className="leading-tight">
-              <div className="text-[13.5px] text-text-primary font-semibold">{displayName}</div>
+              <div className="text-13.5 text-text-primary font-semibold">{displayName}</div>
               {displayInvCode && (
-                <div className="font-mono text-[12px] text-text-tertiary">{displayInvCode}</div>
+                <div className="font-mono text-12 text-text-tertiary">{displayInvCode}</div>
               )}
             </div>
           )
@@ -245,7 +245,7 @@ export function WindowsKeysSection({
       {
         key: 'status',
         header: t('keys.colStatus'),
-        width: 'minmax(120px,0.8fr)',
+        width: 'minmax(7.5rem,0.8fr)',
         cell: (lic) => {
           const isFree = licenseStatus(lic) === 'free'
           return isFree
@@ -256,9 +256,9 @@ export function WindowsKeysSection({
       {
         key: 'key',
         header: t('keys.colKey'),
-        width: 'minmax(220px,1.4fr)',
+        width: 'minmax(13.75rem,1.4fr)',
         cell: (lic) => (
-          <span className="font-mono text-[13px] text-text-primary tracking-tight">
+          <span className="font-mono text-13 text-text-primary tracking-tight">
             {maskedKeys[lic.id] ?? '—'}
           </span>
         ),
@@ -270,14 +270,14 @@ export function WindowsKeysSection({
         key: 'action',
         header: t('keys.colAction'),
         // Wide enough for «Активировать» + icon in one line (96px clipped it)
-        width: '150px',
+        width: '9.375rem',
         align: 'right',
         cell: (lic) => (
           <button
             type="button"
             onClick={e => { e.stopPropagation(); setActivatingId(lic.id) }}
             data-testid={`activate-btn-${lic.id}`}
-            className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-md text-[12px] font-semibold text-accent-light border border-accent/30 bg-accent/10 hover:bg-accent/20 transition-colors whitespace-nowrap"
+            className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-md text-12 font-semibold text-accent-light border border-accent/30 bg-accent/10 hover:bg-accent/20 transition-colors whitespace-nowrap"
           >
             <Icon name="circle-check" size={12} />
             {t('keys.activate')}
@@ -319,7 +319,7 @@ export function WindowsKeysSection({
         {/* Section header — icon+title removed on BOTH breakpoints (owner request),
             only the filter chips remain. Vertical padding lives on the chip buttons
             (tab etalon) so the active underline sits ON the header's bottom border. */}
-        <header className="flex items-center px-5 border-b border-border max-md:px-[14px]">
+        <header className="flex items-center px-5 border-b border-border max-md:px-3.5">
           <div className="max-md:w-full max-md:overflow-x-auto max-md:no-scrollbar">
             {filterChips}
           </div>
@@ -331,8 +331,8 @@ export function WindowsKeysSection({
             <span className="w-12 h-12 rounded-xl bg-surface-2 text-text-subtle inline-flex items-center justify-center mb-3">
               <Icon name="key-round" size={20} />
             </span>
-            <p className="text-[14.5px] font-semibold text-text-primary mb-1">{t('keys.emptyTitle')}</p>
-            <p className="text-[13px] text-text-tertiary">{t('keys.emptyDesc')}</p>
+            <p className="text-14.5 font-semibold text-text-primary mb-1">{t('keys.emptyTitle')}</p>
+            <p className="text-13 text-text-tertiary">{t('keys.emptyDesc')}</p>
           </div>
         ) : (
           <div className="flex flex-col flex-1 min-h-0">

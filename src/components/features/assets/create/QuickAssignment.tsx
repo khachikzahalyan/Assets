@@ -119,7 +119,7 @@ export function QuickAssignment({
               type="button"
               onClick={() => pick(b.id)}
               aria-pressed={active}
-              className={`group flex flex-col items-center justify-center gap-1.5 py-2.5 px-1.5 rounded-lg border transition-all duration-150 text-[13px] font-semibold tracking-tight
+              className={`group flex flex-col items-center justify-center gap-1.5 py-2.5 px-1.5 rounded-lg border transition-all duration-150 text-13 font-semibold tracking-tight
                 ${active
                   ? `${ACTIVE_CHIP} text-white light:text-accent-dark`
                   : 'bg-surface border-border text-text-primary light:bg-white hover:border-border-strong hover:bg-surface-2'}`}
@@ -167,7 +167,7 @@ export function QuickAssignment({
         />
       )}
       {picked === 'warehouse' && (
-        <div className="bg-bg/60 border border-border/70 rounded-lg px-3.5 py-2 text-[14px] text-text-primary flex items-center gap-2 anim-fade-slide-in">
+        <div className="bg-bg/60 border border-border/70 rounded-lg px-3.5 py-2 text-14 text-text-primary flex items-center gap-2 anim-fade-slide-in">
           <Icon name="landmark" size={13} className="text-emerald-500 shrink-0" />
           <span>{t('qa.onShelf')} · <span className="font-medium">{headBranch?.name ?? warehouseName}</span></span>
         </div>
@@ -175,15 +175,15 @@ export function QuickAssignment({
 
       {showWorkMode && (
         <div>
-          {/* B6: work-mode label font text-[13px] */}
-          <div className="text-[13px] uppercase tracking-[0.06em] font-semibold text-text-tertiary mb-1.5">{t('qa.workMode')}</div>
+          {/* B6: work-mode label font text-13 */}
+          <div className="text-13 uppercase tracking-[0.06em] font-semibold text-text-tertiary mb-1.5">{t('qa.workMode')}</div>
           <div className="inline-flex bg-surface-2/80 rounded-lg border border-border/80 p-1 w-full gap-1">
             <button type="button" onClick={() => setWorkMode('office')} aria-pressed={assignment?.workMode === 'office'}
-              className={`flex-1 px-3 py-1.5 text-[14px] font-semibold rounded-md transition-all duration-150 flex items-center justify-center gap-1.5 ${assignment?.workMode === 'office' ? 'bg-surface text-accent-hover ring-1 ring-accent/40' : 'text-text-primary hover:bg-surface/60'}`}>
+              className={`flex-1 px-3 py-1.5 text-14 font-semibold rounded-md transition-all duration-150 flex items-center justify-center gap-1.5 ${assignment?.workMode === 'office' ? 'bg-surface text-accent-hover ring-1 ring-accent/40' : 'text-text-primary hover:bg-surface/60'}`}>
               <Icon name="building-2" size={12} />{t('qa.office')}
             </button>
             <button type="button" onClick={() => setWorkMode('remote')} aria-pressed={assignment?.workMode === 'remote'}
-              className={`flex-1 px-3 py-1.5 text-[14px] font-semibold rounded-md transition-all duration-150 flex items-center justify-center gap-1.5 ${assignment?.workMode === 'remote' ? 'bg-surface text-sky-300 light:text-sky-700 ring-1 ring-sky-500/30' : 'text-text-primary hover:bg-surface/60'}`}>
+              className={`flex-1 px-3 py-1.5 text-14 font-semibold rounded-md transition-all duration-150 flex items-center justify-center gap-1.5 ${assignment?.workMode === 'remote' ? 'bg-surface text-sky-300 light:text-sky-700 ring-1 ring-sky-500/30' : 'text-text-primary hover:bg-surface/60'}`}>
               <Icon name="house" size={12} />{t('qa.remote')}
             </button>
           </div>

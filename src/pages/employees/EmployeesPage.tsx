@@ -122,7 +122,7 @@ export function EmployeesPage({
           columns={8}
           firstColWide
           lastColAction
-          gridTemplate="minmax(180px,1.6fr) minmax(120px,0.9fr) minmax(140px,1.2fr) minmax(110px,0.85fr) minmax(160px,1.4fr) minmax(80px,0.6fr) minmax(100px,0.9fr) 56px"
+          gridTemplate="minmax(11.25rem,1.6fr) minmax(7.5rem,0.9fr) minmax(8.75rem,1.2fr) minmax(6.875rem,0.85fr) minmax(10rem,1.4fr) minmax(5rem,0.6fr) minmax(6.25rem,0.9fr) 3.5rem"
           headers={[t('table.employee'), t('table.branch'), t('table.position'), t('table.phone'), t('table.gmail'), t('table.assets'), t('table.status'), '']}
         />
     if (error)   return <ErrorState onRetry={reload} />
@@ -153,7 +153,7 @@ export function EmployeesPage({
   const mobileToolbarRows = isMobile ? (
     <>
       {/* Search input + MobileAddButton */}
-      <div className="bg-bg px-[14px] py-[7px] flex items-center gap-[8px]">
+      <div className="bg-bg px-3.5 py-[0.4375rem] flex items-center gap-2">
         <SearchInput
           value={search}
           onChange={handleSearchChange}
@@ -179,7 +179,7 @@ export function EmployeesPage({
             .app-shell-content-flush flex chain stretches the card to the
             BottomNav top. */}
         <ListCard
-          className="max-md:mx-[10px]"
+          className="max-md:mx-2.5"
           toolbar={
             <>
               {mobileToolbarRows}
@@ -207,13 +207,13 @@ export function EmployeesPage({
                       onChange={handleSearchChange}
                       placeholder={t('filter.search')}
                       aria-label={t('filter.search')}
-                      containerClassName="w-[280px]"
+                      containerClassName="w-[17.5rem]"
                     />
                     {canMutate && (
                       <button
                         type="button"
                         onClick={handleNavigateImport}
-                        className="bg-surface border border-border-strong text-text-primary hover:bg-bg h-8 px-3 rounded-lg text-[13px] font-semibold inline-flex items-center gap-1.5 transition-colors duration-150 max-md:hidden"
+                        className="bg-surface border border-border-strong text-text-primary hover:bg-bg h-8 px-3 rounded-lg text-13 font-semibold inline-flex items-center gap-1.5 transition-colors duration-150 max-md:hidden"
                       >
                         <Icon name="file-up" size={13} className="text-sky-300 light:text-sky-700" />
                         <span>{t('toolbar.import', { ns: 'assets' })}</span>

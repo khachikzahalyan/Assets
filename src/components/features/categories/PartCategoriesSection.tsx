@@ -145,7 +145,7 @@ export function PartCategoriesSection({
     {
       key: 'name',
       header: t('parts.col.name'),
-      width: 'minmax(160px,2fr)',
+      width: 'minmax(10rem,2fr)',
       render: (def) => {
         const tint = TINT_BY_TOKEN[def.tintToken] ?? TINT_FALLBACK
         return (
@@ -158,7 +158,7 @@ export function PartCategoriesSection({
             >
               <Icon name={def.icon} size={12} />
             </span>
-            <span className="truncate text-[13px] text-text-primary">{def.name.ru}</span>
+            <span className="truncate text-13 text-text-primary">{def.name.ru}</span>
             {!def.active && (
               <Chip color="gray" size="sm">{t('parts.status.inactive')}</Chip>
             )}
@@ -184,7 +184,7 @@ export function PartCategoriesSection({
       header: t('parts.col.order'),
       width: '60px',
       render: (def) => (
-        <span className={`text-[13px] text-text-tertiary tabular-nums ${!def.active ? 'opacity-40' : ''}`}>
+        <span className={`text-13 text-text-tertiary tabular-nums ${!def.active ? 'opacity-40' : ''}`}>
           {def.order}
         </span>
       ),
@@ -196,7 +196,7 @@ export function PartCategoriesSection({
     const tint = TINT_BY_TOKEN[def.tintToken] ?? TINT_FALLBACK
     return (
       <span
-        className={`w-[28px] h-[28px] rounded-[8px] flex-shrink-0 inline-flex items-center justify-center ${tint.iconBg} ${tint.iconText}`}
+        className={`w-[1.75rem] h-[1.75rem] rounded-[8px] flex-shrink-0 inline-flex items-center justify-center ${tint.iconBg} ${tint.iconText}`}
         aria-hidden="true"
       >
         <Icon name={def.icon} size={14} />
@@ -206,7 +206,7 @@ export function PartCategoriesSection({
 
   // ── Mobile subline: behavior chip only (sort order is admin-internal clutter) ──
   const mobileSubline = useCallback((def: PartCategoryDef) => (
-    <div className="flex items-center gap-1.5 text-[11px] text-text-tertiary truncate leading-snug">
+    <div className="flex items-center gap-1.5 text-11 text-text-tertiary truncate leading-snug">
       <Chip
         color={def.behavior === 'single' ? 'blue' : def.behavior === 'sized' ? 'amber' : 'violet'}
         size="sm"
@@ -224,7 +224,7 @@ export function PartCategoriesSection({
         <TableSkeleton
           rows={PAGE_SIZE}
           columns={4}
-          gridTemplate="minmax(160px,2fr) 1fr 60px 80px"
+          gridTemplate="minmax(10rem,2fr) 1fr 3.75rem 5rem"
           lastColAction
           headers={[t('parts.col.name'), t('parts.col.behavior'), t('parts.col.order'), '']}
         />

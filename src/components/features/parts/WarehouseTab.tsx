@@ -156,7 +156,7 @@ export function WarehouseTab({
 
     return (
       /* CategoryChipStrip moved to PartsTabsHeader row 2 — not rendered here.
-         pb-[68px] removed — bottom clearance comes from .app-shell-content-flush. */
+         pb-[4.25rem] removed — bottom clearance comes from .app-shell-content-flush. */
       <div className="flex flex-col">
         {isAgg ? (
           /* Sized categories: SSD / HDD / M.2 / ОЗУ — per-size rows */

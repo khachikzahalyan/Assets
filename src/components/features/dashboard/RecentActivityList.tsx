@@ -62,10 +62,10 @@ export function RecentActivityList({
                   <Icon name={row.icon} size={13} />
                 </span>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[12.5px] text-text-primary leading-snug truncate">
+                  <div className="text-12.5 text-text-primary leading-snug truncate">
                     {row.label}
                   </div>
-                  <div className="text-[11px] text-text-subtle mt-0.5">
+                  <div className="text-11 text-text-subtle mt-0.5">
                     {formatDdMonYyyy(row.at)}
                   </div>
                 </div>
@@ -98,7 +98,7 @@ export function RecentActivityList({
             <div className="pt-3 text-right">
               <Link
                 to={moreTo}
-                className="text-[11.5px] text-accent hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent"
+                className="text-11.5 text-accent hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent"
               >
                 {t('viewAll')}
               </Link>

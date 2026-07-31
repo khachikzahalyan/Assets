@@ -52,7 +52,7 @@ export function DetailTabs({ active, onChange, showSpecs, showDocs, addedDate }:
         size="md"
         className="min-w-0"
       />
-      <span className="ml-auto flex items-center gap-1.5 text-[12.5px] text-text-subtle max-md:hidden">
+      <span className="ml-auto flex items-center gap-1.5 text-12.5 text-text-subtle max-md:hidden">
         <Icon name="calendar-days" size={13} />
         <span className="text-emerald-400 light:text-emerald-600">{t('detail.added')}</span>
         <span className="font-semibold text-[#E2E8F0] light:text-slate-700">{addedDate ? fmtRuDate(addedDate) : '—'}</span>

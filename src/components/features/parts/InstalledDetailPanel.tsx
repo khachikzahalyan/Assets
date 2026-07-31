@@ -121,8 +121,8 @@ export function InstalledDetailPanel({ asset, onUninstall, movements = [], parts
           <span className="w-12 h-12 rounded-full bg-surface-2 text-text-subtle inline-flex items-center justify-center mb-3">
             <Icon name="monitor" size={20} />
           </span>
-          <div className="text-[15.5px] font-semibold text-text-secondary">{t('device.selectPrompt')}</div>
-          <div className="text-[14px] text-text-tertiary mt-1">{t('device.selectHint')}</div>
+          <div className="text-15.5 font-semibold text-text-secondary">{t('device.selectPrompt')}</div>
+          <div className="text-14 text-text-tertiary mt-1">{t('device.selectHint')}</div>
         </div>
       </div>
     )
@@ -164,10 +164,10 @@ export function InstalledDetailPanel({ asset, onUninstall, movements = [], parts
             <Icon name={headerIcon} size={18} />
           </span>
           <div className="min-w-0">
-            <div className="text-[18px] font-bold text-text-primary truncate leading-tight">{asset.name}</div>
+            <div className="text-18 font-bold text-text-primary truncate leading-tight">{asset.name}</div>
             <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-              <span className="font-mono text-[13.5px] text-text-tertiary">{asset.id}</span>
-              <span className="text-[13.5px] text-text-subtle">{componentCountLabel}</span>
+              <span className="font-mono text-13.5 text-text-tertiary">{asset.id}</span>
+              <span className="text-13.5 text-text-subtle">{componentCountLabel}</span>
             </div>
           </div>
         </div>
@@ -178,7 +178,7 @@ export function InstalledDetailPanel({ asset, onUninstall, movements = [], parts
         <button
           type="button"
           onClick={() => setInnerTab('installed')}
-          className={`h-10 px-4 text-[14.5px] transition-colors cursor-pointer border-b-2 ${
+          className={`h-10 px-4 text-14.5 transition-colors cursor-pointer border-b-2 ${
             innerTab === 'installed'
               ? 'text-accent border-accent font-semibold'
               : 'text-text-tertiary border-transparent hover:text-text-primary hover:border-[#3A3F46] light:hover:border-border-strong'
@@ -186,7 +186,7 @@ export function InstalledDetailPanel({ asset, onUninstall, movements = [], parts
         >
           {t('device.tabInstalled', 'Установлено')}
           <span
-            className={`ml-1.5 px-1.5 rounded text-[12.5px] tabular-nums ${
+            className={`ml-1.5 px-1.5 rounded text-12.5 tabular-nums ${
               innerTab === 'installed'
                 ? 'bg-[#F97316]/15 text-accent'
                 : 'bg-surface-2 text-text-subtle'
@@ -198,7 +198,7 @@ export function InstalledDetailPanel({ asset, onUninstall, movements = [], parts
         <button
           type="button"
           onClick={() => setInnerTab('history')}
-          className={`h-10 px-4 text-[14.5px] transition-colors cursor-pointer border-b-2 ${
+          className={`h-10 px-4 text-14.5 transition-colors cursor-pointer border-b-2 ${
             innerTab === 'history'
               ? 'text-accent border-accent font-semibold'
               : 'text-text-tertiary border-transparent hover:text-text-primary hover:border-[#3A3F46] light:hover:border-border-strong'
@@ -206,7 +206,7 @@ export function InstalledDetailPanel({ asset, onUninstall, movements = [], parts
         >
           {t('device.tabHistory', 'История')}
           <span
-            className={`ml-1.5 px-1.5 rounded text-[12.5px] tabular-nums ${
+            className={`ml-1.5 px-1.5 rounded text-12.5 tabular-nums ${
               innerTab === 'history'
                 ? 'bg-[#F97316]/15 text-accent'
                 : 'bg-surface-2 text-text-subtle'
@@ -245,8 +245,8 @@ function InstalledBody({ rows, onUninstall, t }: InstalledBodyProps) {
           <span className="w-12 h-12 rounded-full bg-surface-2 text-text-subtle inline-flex items-center justify-center mb-3">
             <Icon name="package" size={20} />
           </span>
-          <div className="text-[15px] font-semibold text-text-secondary">{t('device.noPartsTitle')}</div>
-          <div className="text-[14px] text-text-tertiary mt-1">{t('device.noPartsDesc')}</div>
+          <div className="text-15 font-semibold text-text-secondary">{t('device.noPartsTitle')}</div>
+          <div className="text-14 text-text-tertiary mt-1">{t('device.noPartsDesc')}</div>
         </div>
       </div>
     )
@@ -274,7 +274,7 @@ function InstalledBody({ rows, onUninstall, t }: InstalledBodyProps) {
               <Icon name={catIcon} size={15} />
             </span>
             <div className="flex-1 min-w-0">
-              <div className="text-[15px] font-semibold truncate text-text-primary">
+              <div className="text-15 font-semibold truncate text-text-primary">
                 {row.sku.name}
                 {row.sku.variantLabel && (
                   <>
@@ -285,19 +285,14 @@ function InstalledBody({ rows, onUninstall, t }: InstalledBodyProps) {
                   </>
                 )}
               </div>
-              <div className="text-[13px] text-text-subtle mt-0.5">{catLabel}</div>
+              <div className="text-13 text-text-subtle mt-0.5">{catLabel}</div>
             </div>
-            {row.native ? (
-              <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-[12.5px] font-medium text-text-tertiary border border-border bg-surface-2 flex-shrink-0">
-                <Icon name="settings" size={10} />
-                {t('device.nativeLabel', 'Конфиг.')}
-              </span>
-            ) : (
+            {!row.native && (
               <button
                 type="button"
                 onClick={() => onUninstall(row.entry, slotIdx)}
                 title={t('actions.uninstall')}
-                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md text-[13.5px] font-semibold text-sky-300 border border-sky-500/30 bg-sky-500/10 hover:bg-sky-500/15 transition-colors flex-shrink-0 light:text-sky-700 light:border-sky-500/40"
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md text-13.5 font-semibold text-sky-300 border border-sky-500/30 bg-sky-500/10 hover:bg-sky-500/15 transition-colors flex-shrink-0 light:text-sky-700 light:border-sky-500/40"
               >
                 <Icon name="rotate-ccw" size={11} />
                 {t('device.uninstallBtn', 'Снять')}
@@ -322,7 +317,7 @@ function HistoryBody({ movements, parts, t }: HistoryBodyProps) {
   if (movements.length === 0) {
     return (
       <div className="h-full flex items-center justify-center p-6">
-        <div className="text-[14px] text-text-tertiary text-center">
+        <div className="text-14 text-text-tertiary text-center">
           {t('device.historyEmpty', 'На этом устройстве пока нет истории')}
         </div>
       </div>
@@ -402,11 +397,11 @@ function HistoryBody({ movements, parts, t }: HistoryBodyProps) {
               <Icon name={rowVisual?.icon ?? 'package'} size={15} />
             </span>
             <div className="flex-1 min-w-0">
-              <div className="text-[15px] font-semibold truncate text-text-primary">{skuLabel}</div>
-              {catLabel && <div className="text-[13px] text-text-subtle mt-0.5">{catLabel}</div>}
+              <div className="text-15 font-semibold truncate text-text-primary">{skuLabel}</div>
+              {catLabel && <div className="text-13 text-text-subtle mt-0.5">{catLabel}</div>}
             </div>
             <div className="flex-shrink-0">{actionChip}</div>
-            <div className="text-[13px] font-medium text-text-tertiary tabular-nums whitespace-nowrap flex-shrink-0">
+            <div className="text-13 font-medium text-text-tertiary tabular-nums whitespace-nowrap flex-shrink-0">
               {fmtPartsDate(mv.at)}
             </div>
           </li>

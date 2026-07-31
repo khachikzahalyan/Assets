@@ -33,53 +33,53 @@ export function ServerLicenseTable({ rows, renderActions }: ServerLicenseTablePr
       {
         key: 'name',
         header: t('col.name'),
-        width: 'minmax(160px,1.8fr)',
+        width: 'minmax(10rem,1.8fr)',
         cell: (row) => (
-          <span className="text-text-primary font-medium text-[13px]">{row.name}</span>
+          <span className="text-text-primary font-medium text-13">{row.name}</span>
         ),
       },
       {
         key: 'vendor',
         header: t('col.vendor'),
-        width: 'minmax(100px,1fr)',
+        width: 'minmax(6.25rem,1fr)',
         cell: (row) => (
-          <span className="text-[13px] text-text-tertiary">{row.vendor ?? '—'}</span>
+          <span className="text-13 text-text-tertiary">{row.vendor ?? '—'}</span>
         ),
       },
       {
         key: 'type',
         header: t('col.type'),
-        width: 'minmax(100px,1fr)',
+        width: 'minmax(6.25rem,1fr)',
         cell: (row) => (
-          <span className="text-[13px] text-text-tertiary">{row.type}</span>
+          <span className="text-13 text-text-tertiary">{row.type}</span>
         ),
       },
       {
         key: 'environment',
         header: t('col.environment'),
-        width: 'minmax(100px,1fr)',
+        width: 'minmax(6.25rem,1fr)',
         cell: (row) => (
-          <span className="text-[13px] text-text-tertiary">{row.environment ?? '—'}</span>
+          <span className="text-13 text-text-tertiary">{row.environment ?? '—'}</span>
         ),
       },
       {
         key: 'host',
         header: t('col.host'),
-        width: 'minmax(120px,1.2fr)',
+        width: 'minmax(7.5rem,1.2fr)',
         cell: (row) => (
-          <span className="font-mono text-[12px] text-text-tertiary">{row.host ?? '—'}</span>
+          <span className="font-mono text-12 text-text-tertiary">{row.host ?? '—'}</span>
         ),
       },
       {
         key: 'expiry',
         header: t('col.expiry'),
-        width: 'minmax(100px,1fr)',
+        width: 'minmax(6.25rem,1fr)',
         cell: (row) => row.expiresAt ? (
-          <span className="text-[13px] text-text-tertiary">
+          <span className="text-13 text-text-tertiary">
             {formatLicenseDate(row.expiresAt, i18n.language)}
           </span>
         ) : (
-          <span className="text-[13px] text-text-subtle">—</span>
+          <span className="text-13 text-text-subtle">—</span>
         ),
       },
     ]
@@ -87,7 +87,7 @@ export function ServerLicenseTable({ rows, renderActions }: ServerLicenseTablePr
       cols.push({
         key: '__actions',
         header: '',
-        width: '80px',
+        width: '5rem',
         cell: (row) => (
           <div className="flex items-center gap-1 flex-wrap">
             {renderActions(row)}
@@ -105,17 +105,17 @@ export function ServerLicenseTable({ rows, renderActions }: ServerLicenseTablePr
         {rows.map((row) => (
           <div key={row.id} className="py-3 px-1 space-y-1">
             {/* Name */}
-            <div className="text-[14px] font-medium text-text-primary">{row.name}</div>
+            <div className="text-14 font-medium text-text-primary">{row.name}</div>
             {/* Meta row */}
-            <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[12px] text-text-tertiary">
+            <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-12 text-text-tertiary">
               {row.vendor && <span>{row.vendor}</span>}
               <span>{row.type}</span>
               {row.environment && <span className="text-text-subtle">{row.environment}</span>}
             </div>
             {/* Host + expiry */}
-            <div className="flex items-center justify-between gap-2 text-[12px]">
+            <div className="flex items-center justify-between gap-2 text-12">
               {row.host ? (
-                <span className="font-mono text-[11px] text-text-tertiary truncate">{row.host}</span>
+                <span className="font-mono text-11 text-text-tertiary truncate">{row.host}</span>
               ) : (
                 <span />
               )}

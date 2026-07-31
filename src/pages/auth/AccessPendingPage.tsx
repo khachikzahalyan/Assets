@@ -23,22 +23,22 @@ export function AccessPendingPage() {
 
           {/* Copy */}
           <div className="space-y-2">
-            <h1 className="text-[17px] font-bold text-text-primary tracking-tight">
+            <h1 className="text-17 font-bold text-text-primary tracking-tight">
               {t('title')}
             </h1>
-            <p className="text-[13px] text-text-subtle leading-relaxed">
+            <p className="text-13 text-text-subtle leading-relaxed">
               {t('desc')}
             </p>
           </div>
 
           {/* Signed-in as */}
           <div className="px-3.5 py-2.5 bg-bg border border-border rounded-lg text-left">
-            <p className="text-[11px] text-[#475569] light:text-text-secondary mb-0.5">{t('signedInAs')}</p>
-            <p className="text-[13px] font-medium text-text-primary truncate">{user.email}</p>
+            <p className="text-11 text-[#475569] light:text-text-secondary mb-0.5">{t('signedInAs')}</p>
+            <p className="text-13 font-medium text-text-primary truncate">{user.email}</p>
           </div>
 
           {/* Contact note */}
-          <p className="text-[12px] text-[#475569] light:text-text-secondary">{t('contact')}</p>
+          <p className="text-12 text-[#475569] light:text-text-secondary">{t('contact')}</p>
 
           {/* Sign-out */}
           <Btn

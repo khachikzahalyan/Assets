@@ -78,7 +78,7 @@ export function KeyRowMobile({
 
   const iconTile = (
     <span
-      className="w-[28px] h-[28px] rounded-[8px] inline-flex items-center justify-center flex-shrink-0 bg-amber-500/15 text-amber-300 light:text-amber-700"
+      className="w-[1.75rem] h-[1.75rem] rounded-[8px] inline-flex items-center justify-center flex-shrink-0 bg-amber-500/15 text-amber-300 light:text-amber-700"
       aria-hidden="true"
     >
       <Icon name="key-round" size={13} />
@@ -90,7 +90,7 @@ export function KeyRowMobile({
     // string wraps at char boundaries if the viewport is very narrow.
     <div
       className={[
-        'font-mono text-[12.5px] font-bold text-text-primary leading-snug mb-[2px]',
+        'font-mono text-12.5 font-bold text-text-primary leading-snug mb-0.5',
         isFree ? 'break-all' : 'truncate',
       ].join(' ')}
     >
@@ -99,7 +99,7 @@ export function KeyRowMobile({
   )
 
   const sublineNode = (
-    <div className="text-[11px] text-text-tertiary truncate leading-snug">
+    <div className="text-11 text-text-tertiary truncate leading-snug">
       {subline}
     </div>
   )
@@ -124,11 +124,11 @@ export function KeyRowMobile({
       <Icon name="circle-check" size={15} />
     </button>
   ) : (
-    <div className="flex flex-col items-end gap-[6px] flex-shrink-0">
+    <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
       <span
         className={[
-          'inline-flex items-center border rounded-[5px] px-[7px] py-[2px]',
-          'text-[10px] font-bold whitespace-nowrap leading-none',
+          'inline-flex items-center border rounded-[5px] px-[0.4375rem] py-0.5',
+          'text-10 font-bold whitespace-nowrap leading-none',
           pillPalette,
         ].join(' ')}
       >
@@ -137,7 +137,7 @@ export function KeyRowMobile({
       {assetInvCode && (
         // Inventory code is a top-priority identifier — white, larger, bold so
         // it reads clearly against the row (owner request).
-        <span className="font-['JetBrains_Mono',ui-monospace,monospace] text-[12.5px] font-bold text-text-primary whitespace-nowrap">
+        <span className="font-['JetBrains_Mono',ui-monospace,monospace] text-12.5 font-bold text-text-primary whitespace-nowrap">
           {assetInvCode}
         </span>
       )}

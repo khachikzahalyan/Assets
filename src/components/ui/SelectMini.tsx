@@ -120,7 +120,7 @@ export function SelectMini({ id, label, leadingIcon, leadingIconMobile, value, o
 
   const triggerClass = [
     'inline-flex items-center gap-1.5 h-9 pl-2.5 pr-2 rounded-lg border leading-none transition-colors duration-150 cursor-pointer',
-    'max-md:h-[30px] max-md:pl-[10px] max-md:pr-[8px] max-md:text-[12px]',
+    'max-md:h-[var(--ctl-h-sm)] max-md:pl-2.5 max-md:pr-2 max-md:text-12',
     isNonDefault
       ? 'bg-[rgba(249,115,22,0.12)] border-[rgba(249,115,22,0.30)]/80 text-accent-hover'
       : open
@@ -168,7 +168,7 @@ export function SelectMini({ id, label, leadingIcon, leadingIconMobile, value, o
             )}
             <span
               className={[
-                'flex-1 text-[15px] truncate',
+                'flex-1 text-15 truncate',
                 isActive ? 'font-semibold' : '',
               ].join(' ')}
             >
@@ -214,7 +214,7 @@ export function SelectMini({ id, label, leadingIcon, leadingIconMobile, value, o
         )}
         <span
           className={[
-            'text-[14px] leading-none uppercase tracking-[0.07em] font-semibold max-md:text-[12px]',
+            'text-14 leading-none uppercase tracking-[0.07em] font-semibold max-md:text-12',
             isNonDefault ? 'text-accent' : 'text-text-tertiary',
           ].join(' ')}
         >
@@ -222,7 +222,7 @@ export function SelectMini({ id, label, leadingIcon, leadingIconMobile, value, o
         </span>
         <span
           className={[
-            'text-[14px] leading-none font-semibold tracking-tight truncate max-w-[140px] max-md:text-[12px]',
+            'text-14 leading-none font-semibold tracking-tight truncate max-w-[140px] max-md:text-12',
             isNonDefault ? 'text-accent-hover' : 'text-text-secondary',
           ].join(' ')}
         >
@@ -298,7 +298,7 @@ export function SelectMini({ id, label, leadingIcon, leadingIconMobile, value, o
                     )}
                     <span
                       className={[
-                        'flex-1 text-[14.5px] truncate',
+                        'flex-1 text-14.5 truncate',
                         isActive ? 'font-semibold' : '',
                       ].join(' ')}
                     >

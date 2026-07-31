@@ -46,7 +46,7 @@ export const AuditRowMobile = memo(function AuditRowMobile({ log, refData, expan
 
   const iconTile = (
     <span
-      className="w-[28px] h-[28px] rounded-[8px] inline-flex items-center justify-center flex-shrink-0 bg-surface-2 text-text-tertiary"
+      className="w-[1.75rem] h-[1.75rem] rounded-[8px] inline-flex items-center justify-center flex-shrink-0 bg-surface-2 text-text-tertiary"
       aria-hidden="true"
     >
       <Icon name={iconForEntity(log.entityType)} size={14} />
@@ -54,13 +54,13 @@ export const AuditRowMobile = memo(function AuditRowMobile({ log, refData, expan
   )
 
   const titleNode = (
-    <div className="text-[13px] font-bold text-text-primary truncate leading-snug mb-[2px]">
+    <div className="text-13 font-bold text-text-primary truncate leading-snug mb-0.5">
       {resolveActorName(log.actorUid, refData.actors, log.actorName)}
     </div>
   )
 
   const sublineNode = (
-    <div className="text-[11px] text-text-tertiary leading-snug">
+    <div className="text-11 text-text-tertiary leading-snug">
       <div className="truncate">
         {t(`action.${log.action}`, { defaultValue: log.action })}
         {' · '}
@@ -71,12 +71,12 @@ export const AuditRowMobile = memo(function AuditRowMobile({ log, refData, expan
           <span
             role="link"
             onClick={(e) => { e.stopPropagation(); navigate(link) }}
-            className="font-mono text-[11px] text-accent-light underline cursor-pointer"
+            className="font-mono text-11 text-accent-light underline cursor-pointer"
           >
             {log.entityId}
           </span>
         ) : (
-          <span className="font-mono text-[11px] text-text-subtle">{log.entityId}</span>
+          <span className="font-mono text-11 text-text-subtle">{log.entityId}</span>
         )}
       </div>
     </div>
@@ -96,7 +96,7 @@ export const AuditRowMobile = memo(function AuditRowMobile({ log, refData, expan
   )
 
   const footer = isOpen ? (
-    <div className="mt-1 -mx-[14px] -mb-[7px] bg-[#15181C] light:bg-surface-sunken px-3 py-2 border-t border-border">
+    <div className="mt-1 -mx-3.5 -mb-[0.4375rem] bg-[#15181C] light:bg-surface-sunken px-3 py-2 border-t border-border">
       <AuditDiff log={log} />
     </div>
   ) : undefined

@@ -46,7 +46,7 @@ export function BranchesPage({ repository }: BranchesPageProps) {
   const pageRows = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   const columns: CatalogColumn<Branch>[] = [
-    { key: 'name', header: t('col.name'), width: 'minmax(160px,2fr)', render: b => <span className="text-text-primary">{b.name}</span> },
+    { key: 'name', header: t('col.name'), width: 'minmax(10rem,2fr)', render: b => <span className="text-text-primary">{b.name}</span> },
     { key: 'type', header: t('col.type'), render: b => <Chip color={b.type === 'warehouse' ? 'amber' : 'blue'}>{t(`type.${b.type}`)}</Chip> },
     { key: 'city', header: t('col.city'), render: b => <span className="text-text-tertiary">{b.city ?? '—'}</span> },
   ]
@@ -89,7 +89,7 @@ export function BranchesPage({ repository }: BranchesPageProps) {
   function renderTableRegion() {
     if (loading) return isMobile
       ? <CardListSkeleton rows={10} variant="catalog" />
-      : <TableSkeleton rows={PAGE_SIZE} columns={4} gridTemplate="minmax(160px,2fr) 1fr 1fr 80px" lastColAction headers={[t('col.name'), t('col.type'), t('col.city'), '']} />
+      : <TableSkeleton rows={PAGE_SIZE} columns={4} gridTemplate="minmax(10rem,2fr) 1fr 1fr 5rem" lastColAction headers={[t('col.name'), t('col.type'), t('col.city'), '']} />
     if (fetchError && rows.length === 0) return <ErrorState onRetry={reload} />
     if (rows.length === 0) return <EmptyState icon="building" title={t('empty.title')} description={t('empty.desc')} />
     return (
@@ -103,7 +103,7 @@ export function BranchesPage({ repository }: BranchesPageProps) {
         mobileIcon={(b) => (
           <span
             className={[
-              'w-[28px] h-[28px] rounded-[8px] inline-flex items-center justify-center flex-shrink-0',
+              'w-[1.75rem] h-[1.75rem] rounded-[8px] inline-flex items-center justify-center flex-shrink-0',
               b.type === 'warehouse' ? 'bg-amber-500/15 text-amber-300 light:text-amber-700' : 'bg-sky-500/15 text-sky-300 light:text-sky-700',
             ].join(' ')}
             aria-hidden="true"
@@ -112,7 +112,7 @@ export function BranchesPage({ repository }: BranchesPageProps) {
           </span>
         )}
         mobileSubline={(b) => (
-          <div className="text-[11px] text-text-tertiary truncate leading-snug flex items-center gap-1.5">
+          <div className="text-11 text-text-tertiary truncate leading-snug flex items-center gap-1.5">
             <Chip color={b.type === 'warehouse' ? 'amber' : 'blue'}>{t(`type.${b.type}`)}</Chip>
             {b.city && (
               <>
@@ -134,7 +134,7 @@ export function BranchesPage({ repository }: BranchesPageProps) {
             the .app-shell-content-flush flex chain stretches the card to the
             BottomNav top ('branches' is in AppShell FLUSH_ROUTES). */}
         <ListCard
-          className="max-md:mx-[10px]"
+          className="max-md:mx-2.5"
           toolbar={
             <CatalogToolbarHeader
               icon="building"

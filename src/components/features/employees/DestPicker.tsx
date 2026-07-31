@@ -241,7 +241,7 @@ export function DestPicker({
   const emptyState = (
     <div className="flex flex-col items-center py-3 gap-1">
       <Icon name="search-x" size={16} className="text-text-subtle" />
-      <span className="text-[13.5px] text-text-tertiary">{t('dest.notFound')}</span>
+      <span className="text-13.5 text-text-tertiary">{t('dest.notFound')}</span>
     </div>
   )
 
@@ -267,7 +267,7 @@ export function DestPicker({
                   commit({ kind: 'warehouse' })
                 }
               }}
-              className="w-full text-left px-2.5 py-3 md:py-2 rounded-xl text-[14.5px] font-medium text-text-primary hover:bg-bg transition-colors duration-100 flex items-center gap-2.5"
+              className="w-full text-left px-2.5 py-3 md:py-2 rounded-xl text-14.5 font-medium text-text-primary hover:bg-bg transition-colors duration-100 flex items-center gap-2.5"
             >
               <span
                 className={`inline-flex items-center justify-center w-[20px] h-[20px] rounded-[5px] shrink-0 ${opt.iconCls}`}
@@ -305,7 +305,7 @@ export function DestPicker({
                     placeholder={t('dest.search')}
                     aria-label={t('dest.search')}
                     autoFocus={!isMobile}
-                    className="ams-destpicker-search-input flex-1 text-[14px] bg-transparent border-none outline-none placeholder:text-text-subtle text-text-primary min-w-0"
+                    className="ams-destpicker-search-input flex-1 text-14 bg-transparent border-none outline-none placeholder:text-text-subtle text-text-primary min-w-0"
                   />
                 </div>
               </div>
@@ -316,7 +316,7 @@ export function DestPicker({
                       key={e.id}
                       type="button"
                       onClick={() => commit({ kind: 'employee', id: e.id, label: e.name })}
-                      className="w-full text-left px-2.5 py-3 md:py-2 rounded-xl text-[14px] font-medium text-text-primary hover:bg-bg transition-colors duration-100 flex items-center gap-2 truncate"
+                      className="w-full text-left px-2.5 py-3 md:py-2 rounded-xl text-14 font-medium text-text-primary hover:bg-bg transition-colors duration-100 flex items-center gap-2 truncate"
                     >
                       <span
                         className={`inline-flex items-center justify-center w-[18px] h-[18px] rounded-[4px] shrink-0 ${SUB_ICON.employee.iconCls}`}
@@ -334,7 +334,7 @@ export function DestPicker({
                       onClick={() =>
                         commit({ kind: 'department', id: d.id, label: d.name })
                       }
-                      className="w-full text-left px-2.5 py-3 md:py-2 rounded-xl text-[14px] font-medium text-text-primary hover:bg-bg transition-colors duration-100 flex items-center gap-2 truncate"
+                      className="w-full text-left px-2.5 py-3 md:py-2 rounded-xl text-14 font-medium text-text-primary hover:bg-bg transition-colors duration-100 flex items-center gap-2 truncate"
                     >
                       <span
                         className={`inline-flex items-center justify-center w-[18px] h-[18px] rounded-[4px] shrink-0 ${SUB_ICON.department.iconCls}`}
@@ -350,7 +350,7 @@ export function DestPicker({
                       key={b.id}
                       type="button"
                       onClick={() => commit({ kind: 'branch', id: b.id, label: b.name })}
-                      className="w-full text-left px-2.5 py-3 md:py-2 rounded-xl text-[14px] font-medium text-text-primary hover:bg-bg transition-colors duration-100 flex items-center gap-2 truncate"
+                      className="w-full text-left px-2.5 py-3 md:py-2 rounded-xl text-14 font-medium text-text-primary hover:bg-bg transition-colors duration-100 flex items-center gap-2 truncate"
                     >
                       <span
                         className={`inline-flex items-center justify-center w-[18px] h-[18px] rounded-[4px] shrink-0 ${SUB_ICON.branch.iconCls}`}
@@ -379,7 +379,7 @@ export function DestPicker({
                 >
                   <Icon name="arrow-left" size={12} />
                 </button>
-                <span className="text-[12px] uppercase tracking-[0.06em] font-semibold text-text-tertiary">
+                <span className="text-12 uppercase tracking-[0.06em] font-semibold text-text-tertiary">
                   {t('dest.temporary')}
                 </span>
               </div>
@@ -390,14 +390,14 @@ export function DestPicker({
                     type="button"
                     onClick={() => setTempKind(k)}
                     aria-pressed={tempKind === k}
-                    className={`flex-1 h-full text-[13px] font-medium transition-colors ${i > 0 ? 'border-l border-border' : ''}
+                    className={`flex-1 h-full text-13 font-medium transition-colors ${i > 0 ? 'border-l border-border' : ''}
                       ${tempKind === k ? 'bg-rose-500/80 text-white' : 'text-text-tertiary hover:text-text-primary hover:bg-surface-2'}`}
                   >
                     {k === 'audit' ? t('dest.kindAudit') : t('dest.kindIntern')}
                   </button>
                 ))}
               </div>
-              <label htmlFor="dest-return-date" className="block text-[12px] uppercase tracking-[0.06em] font-semibold text-text-tertiary mb-1">
+              <label htmlFor="dest-return-date" className="block text-12 uppercase tracking-[0.06em] font-semibold text-text-tertiary mb-1">
                 {t('dest.returnDate')}
               </label>
               <DatePicker
@@ -421,7 +421,7 @@ export function DestPicker({
                     label: t('dest.tempLabel', { kind: kindLabel, date: short }),
                   })
                 }}
-                className="mt-3 w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-[14px] bg-rose-500/80 text-white hover:bg-rose-500 disabled:opacity-35 disabled:cursor-not-allowed transition-colors"
+                className="mt-3 w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-14 bg-rose-500/80 text-white hover:bg-rose-500 disabled:opacity-35 disabled:cursor-not-allowed transition-colors"
               >
                 <Icon name="check" size={13} />
                 {t('dest.tempConfirm')}
@@ -441,7 +441,7 @@ export function DestPicker({
         type="button"
         aria-label={chipLabel}
         onClick={() => setOpen((v) => !v)}
-        className={`ams-handover-destpicker-trigger inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 text-[14px] font-medium ring-1 transition-colors duration-150 cursor-pointer ${accent.chipCls}`}
+        className={`ams-handover-destpicker-trigger inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 text-14 font-medium ring-1 transition-colors duration-150 cursor-pointer ${accent.chipCls}`}
       >
         <span
           className={`inline-flex items-center justify-center w-[18px] h-[18px] rounded-[4px] shrink-0 ${accent.iconCls}`}

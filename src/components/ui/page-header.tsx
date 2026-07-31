@@ -29,10 +29,10 @@ export function PageHeader({
         )}
         <div className="min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-[18px] font-bold tracking-tight text-text-primary truncate">{title}</h1>
+            <h1 className="text-18 font-bold tracking-tight text-text-primary truncate">{title}</h1>
             {count != null && <Badge tone="slate">{count}</Badge>}
           </div>
-          {description && <p className="mt-0.5 text-[12.5px] text-text-subtle">{description}</p>}
+          {description && <p className="mt-0.5 text-12.5 text-text-subtle">{description}</p>}
         </div>
       </div>
       {actions && <div className="flex items-center gap-2 flex-shrink-0">{actions}</div>}

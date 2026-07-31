@@ -26,8 +26,8 @@ export function PartsReceiveSmallCatCard({
         >
           <Icon name={cat.icon} size={11} />
         </span>
-        <span className="text-[12.5px] font-bold text-text-primary truncate">{cat.label}</span>
-        <span className="ml-auto text-[10px] text-text-subtle tabular-nums flex-shrink-0">
+        <span className="text-12.5 font-bold text-text-primary truncate">{cat.label}</span>
+        <span className="ml-auto text-10 text-text-subtle tabular-nums flex-shrink-0">
           {catParts.length}&nbsp;{t('addModal.positions')}
         </span>
       </div>
@@ -41,8 +41,8 @@ export function PartsReceiveSmallCatCard({
         return (
           <div key={p.id} className="mb-2 last:mb-0">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-[11px] text-text-secondary leading-none">{label}</span>
-              <span className="text-[10px] text-text-subtle tabular-nums">{p.onHand}</span>
+              <span className="text-11 text-text-secondary leading-none">{label}</span>
+              <span className="text-10 text-text-subtle tabular-nums">{p.onHand}</span>
             </div>
             <div
               className={`flex items-center bg-bg border rounded-lg overflow-hidden transition-colors ${
@@ -59,7 +59,7 @@ export function PartsReceiveSmallCatCard({
                 <Icon name="minus" size={12} />
               </button>
               <div
-                className={`flex-1 text-center text-[13px] font-semibold font-mono tabular-nums leading-none select-none ${
+                className={`flex-1 text-center text-13 font-semibold font-mono tabular-nums leading-none select-none ${
                   isActive ? 'text-accent' : 'text-text-secondary'
                 }`}
               >

@@ -52,19 +52,19 @@ export function ConditionWarranty({ value, onChange }: ConditionWarrantyProps) {
     <div className="space-y-3 pt-1">
       <div className="flex items-center justify-between flex-wrap gap-2">
         {/* Section header */}
-        <div className="text-[13px] font-semibold text-text-tertiary tracking-[0.06em] uppercase">{t('condition.title')}</div>
+        <div className="text-13 font-semibold text-text-tertiary tracking-[0.06em] uppercase">{t('condition.title')}</div>
         <div className="inline-flex bg-surface-2/70 rounded-lg p-0.5" role="group" aria-label={t('condition.title')}>
           <button
             type="button"
             onClick={() => setCondition('new')}
             aria-pressed={value.condition === 'new'}
-            className={`px-3.5 py-1 text-[14px] font-semibold rounded-md transition-all duration-150 ${value.condition === 'new' ? 'bg-accent text-white shadow-sm' : 'text-text-primary hover:bg-surface/70'}`}
+            className={`px-3.5 py-1 text-14 font-semibold rounded-md transition-all duration-150 ${value.condition === 'new' ? 'bg-accent text-white shadow-sm' : 'text-text-primary hover:bg-surface/70'}`}
           >{t('condition.new')}</button>
           <button
             type="button"
             onClick={() => setCondition('used')}
             aria-pressed={value.condition === 'used'}
-            className={`px-3.5 py-1 text-[14px] font-semibold rounded-md transition-all duration-150 ${value.condition === 'used' ? 'bg-accent text-white shadow-sm' : 'text-text-primary hover:bg-surface/70'}`}
+            className={`px-3.5 py-1 text-14 font-semibold rounded-md transition-all duration-150 ${value.condition === 'used' ? 'bg-accent text-white shadow-sm' : 'text-text-primary hover:bg-surface/70'}`}
           >{t('condition.used')}</button>
         </div>
       </div>
@@ -82,7 +82,7 @@ export function ConditionWarranty({ value, onChange }: ConditionWarrantyProps) {
               showPlusYear
             />
             {warrantyError && (
-              <p className="mt-1 text-[13px] font-medium text-rose-300 light:text-rose-700 flex items-center gap-1" role="alert">
+              <p className="mt-1 text-13 font-medium text-rose-300 light:text-rose-700 flex items-center gap-1" role="alert">
                 <Icon name="alert-circle" size={13} className="shrink-0" />
                 {warrantyError}
               </p>

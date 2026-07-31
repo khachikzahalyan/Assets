@@ -14,7 +14,7 @@ export function AssetPickerGroupStep({ groupCounts, onSelectGroup }: AssetPicker
   const { t } = useTranslation('employees')
   return (
     <div className="px-6 py-5">
-      <div className="text-[14px] text-text-primary mb-3">{t('picker.intro')}</div>
+      <div className="text-14 text-text-primary mb-3">{t('picker.intro')}</div>
       <div className="grid grid-cols-3 gap-3">
         {ASSET_GROUPS.map((g) => {
           const tone = ASSET_GROUP_TONES[g.tone as GroupToneKey]
@@ -31,14 +31,14 @@ export function AssetPickerGroupStep({ groupCounts, onSelectGroup }: AssetPicker
                 <Icon name={g.icon} size={20} />
               </span>
               <div className="min-w-0">
-                <div className="text-[15.5px] font-bold text-text-primary tracking-tight">
+                <div className="text-15.5 font-bold text-text-primary tracking-tight">
                   {g.id === 'devices'
                     ? t('picker.groupDevices')
                     : g.id === 'network'
                       ? t('picker.groupNetwork')
                       : t('picker.groupFurniture')}
                 </div>
-                <div className="text-[13px] text-text-primary mt-0.5 tabular-nums">
+                <div className="text-13 text-text-primary mt-0.5 tabular-nums">
                   {groupCounts[g.id] ?? 0} {t('picker.inStock')}
                 </div>
               </div>
@@ -65,12 +65,12 @@ export function AssetPickerCategoryStep({
 }: AssetPickerCategoryStepProps) {
   return (
     <div className="px-6 py-5">
-      <div className="text-[14px] text-text-primary mb-3">
+      <div className="text-14 text-text-primary mb-3">
         Подкатегория в группе «
         <span className="text-text-primary font-semibold">{groupLabel}</span>».
       </div>
       {categoriesInGroup.length === 0 ? (
-        <div className="py-10 text-center text-[14.5px] text-text-tertiary">
+        <div className="py-10 text-center text-14.5 text-text-tertiary">
           Подкатегорий нет
         </div>
       ) : (
@@ -86,10 +86,10 @@ export function AssetPickerCategoryStep({
                 <Icon name={c.icon} size={15} />
               </span>
               <div className="flex-1 min-w-0">
-                <div className="text-[15px] font-semibold text-text-primary truncate tracking-tight">
+                <div className="text-15 font-semibold text-text-primary truncate tracking-tight">
                   {c.name}
                 </div>
-                <div className="text-[13px] text-text-primary tabular-nums">
+                <div className="text-13 text-text-primary tabular-nums">
                   {c.count} {c.count === 1 ? 'актив' : 'активов'}
                 </div>
               </div>
@@ -138,7 +138,7 @@ export function AssetPickerItemsStep({
             onChange={(e) => setQuery(e.target.value)}
             placeholder={`Поиск в «${catName}»…`}
             aria-label={`Поиск в «${catName}»`}
-            className="flex-1 text-[14px] bg-transparent border-none outline-none placeholder:text-text-subtle text-text-primary min-w-0"
+            className="flex-1 text-14 bg-transparent border-none outline-none placeholder:text-text-subtle text-text-primary min-w-0"
           />
           {query && (
             <button
@@ -154,7 +154,7 @@ export function AssetPickerItemsStep({
       </div>
       <div className="max-h-[340px] overflow-y-auto border-t border-border">
         {itemsInCategory.length === 0 ? (
-          <div className="px-6 py-12 text-center text-[14.5px] text-text-tertiary">
+          <div className="px-6 py-12 text-center text-14.5 text-text-tertiary">
             {t('picker.notFound')}
           </div>
         ) : (
@@ -183,12 +183,12 @@ export function AssetPickerItemsStep({
                       <Icon name={a.icon} size={13} />
                     </span>
                     <div className="flex-1 min-w-0">
-                      <div className="text-[15px] font-semibold text-text-primary truncate tracking-tight">
+                      <div className="text-15 font-semibold text-text-primary truncate tracking-tight">
                         {a.title}
                       </div>
-                      <div className="text-[13px] text-text-primary truncate">{a.cat}</div>
+                      <div className="text-13 text-text-primary truncate">{a.cat}</div>
                     </div>
-                    <span className="font-mono text-[13.5px] font-medium text-text-primary bg-bg border border-border/80 rounded px-1.5 py-0.5 shrink-0">
+                    <span className="font-mono text-13.5 font-medium text-text-primary bg-bg border border-border/80 rounded px-1.5 py-0.5 shrink-0">
                       {a.invCode}
                     </span>
                   </button>
@@ -225,10 +225,10 @@ export function AssetPickerReviewStep({
           <div className="w-12 h-12 mx-auto rounded-full bg-surface-2 text-text-subtle flex items-center justify-center mb-3">
             <Icon name="shopping-cart" size={20} />
           </div>
-          <div className="text-[15px] font-semibold text-text-primary mb-1">
+          <div className="text-15 font-semibold text-text-primary mb-1">
             {t('picker.empty')}
           </div>
-          <div className="text-[14px] text-text-tertiary mb-4">{t('picker.emptyHint')}</div>
+          <div className="text-14 text-text-tertiary mb-4">{t('picker.emptyHint')}</div>
           <Btn variant="secondary" onClick={goToGroupStep}>
             <Icon name="chevron-left" size={14} /> {t('picker.toSelection')}
           </Btn>
@@ -238,10 +238,10 @@ export function AssetPickerReviewStep({
           {cartByCat.map((grp) => (
             <div key={grp.name}>
               <div className="flex items-center gap-1.5 mb-1.5">
-                <span className="text-[12.5px] font-semibold text-text-tertiary tracking-[0.06em] uppercase">
+                <span className="text-12.5 font-semibold text-text-tertiary tracking-[0.06em] uppercase">
                   {grp.name}
                 </span>
-                <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-surface-2 text-text-tertiary text-[12.5px] font-semibold tabular-nums">
+                <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-surface-2 text-text-tertiary text-12.5 font-semibold tabular-nums">
                   {grp.rows.length}
                 </span>
               </div>
@@ -252,12 +252,12 @@ export function AssetPickerReviewStep({
                       <Icon name={a.icon} size={13} />
                     </span>
                     <div className="flex-1 min-w-0">
-                      <div className="text-[15px] font-semibold text-text-primary truncate tracking-tight">
+                      <div className="text-15 font-semibold text-text-primary truncate tracking-tight">
                         {a.title}
                       </div>
-                      <div className="text-[13px] text-text-tertiary truncate">{a.cat}</div>
+                      <div className="text-13 text-text-tertiary truncate">{a.cat}</div>
                     </div>
-                    <span className="font-mono text-[13.5px] font-medium text-text-primary bg-bg border border-border/80 rounded px-1.5 py-0.5 shrink-0">
+                    <span className="font-mono text-13.5 font-medium text-text-primary bg-bg border border-border/80 rounded px-1.5 py-0.5 shrink-0">
                       {a.invCode}
                     </span>
                     <button

@@ -27,11 +27,11 @@ export function ImportProgress({ event }: ImportProgressProps) {
         <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-accent/10 mb-4">
           <Icon name="loader-2" size={24} className="text-accent animate-spin" />
         </div>
-        <h2 className="text-[16px] font-semibold text-text-primary mb-1">
+        <h2 className="text-16 font-semibold text-text-primary mb-1">
           {t('progress.heading')}
         </h2>
         {event && (
-          <p className="text-[13.5px] text-text-tertiary">
+          <p className="text-13.5 text-text-tertiary">
             {phaseKey[event.phase]} — {event.done} / {event.total}
           </p>
         )}
@@ -71,7 +71,7 @@ export function ImportProgress({ event }: ImportProgressProps) {
               </span>
               <span
                 className={[
-                  'text-[13px] font-medium',
+                  'text-13 font-medium',
                   isActive
                     ? 'text-accent-light'
                     : isDone
@@ -89,7 +89,7 @@ export function ImportProgress({ event }: ImportProgressProps) {
       {/* Progress bar */}
       {event && (
         <div>
-          <div className="flex justify-between text-[12px] text-text-subtle mb-1.5 tabular-nums">
+          <div className="flex justify-between text-12 text-text-subtle mb-1.5 tabular-nums">
             <span>{event.done}</span>
             <span>{pct}%</span>
             <span>{event.total}</span>

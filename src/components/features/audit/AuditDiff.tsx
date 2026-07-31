@@ -18,14 +18,14 @@ export function AuditDiff({ log }: AuditDiffProps) {
   return (
     <div className="bg-bg border border-border rounded-lg p-3 space-y-2">
       {log.comment && (
-        <p className="text-[12px] text-text-tertiary">
+        <p className="text-12 text-text-tertiary">
           <span className="text-text-subtle">{t('diff.comment')}: </span>{log.comment}
         </p>
       )}
       {rows.length === 0 ? (
-        <p className="text-[12px] text-text-subtle">{t('diff.noChanges')}</p>
+        <p className="text-12 text-text-subtle">{t('diff.noChanges')}</p>
       ) : (
-        <table className="w-full text-[12px]">
+        <table className="w-full text-12">
           <thead>
             <tr className="text-text-subtle text-left">
               <th className="font-medium pb-1 pr-3">{t('diff.field')}</th>

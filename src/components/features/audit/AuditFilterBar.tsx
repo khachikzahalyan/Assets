@@ -108,7 +108,7 @@ export function AuditFilterBar({ query, onChange, ref: refData }: AuditFilterBar
         className={[
           'flex items-center gap-2 md:contents',
           /* Mobile: single non-wrapping horizontal scroll strip */
-          'max-md:flex-nowrap max-md:overflow-x-auto max-md:gap-[6px]',
+          'max-md:flex-nowrap max-md:overflow-x-auto max-md:gap-1.5',
           'no-scrollbar scroll-fade-x',
         ].join(' ')}
       >
@@ -139,7 +139,7 @@ export function AuditFilterBar({ query, onChange, ref: refData }: AuditFilterBar
 
         {/* Date pair — atomic: never splits С from По; wraps as one unit */}
         <span className="flex items-center gap-2 flex-shrink-0">
-          <span className="flex items-center gap-1.5 text-[12px] text-text-tertiary flex-shrink-0">
+          <span className="flex items-center gap-1.5 text-12 text-text-tertiary flex-shrink-0">
             {t('filters.from')}
             <div className="w-[128px]">
               <DatePicker
@@ -153,7 +153,7 @@ export function AuditFilterBar({ query, onChange, ref: refData }: AuditFilterBar
               />
             </div>
           </span>
-          <span className="flex items-center gap-1.5 text-[12px] text-text-tertiary flex-shrink-0">
+          <span className="flex items-center gap-1.5 text-12 text-text-tertiary flex-shrink-0">
             {t('filters.to')}
             <div className="w-[128px]">
               <DatePicker
@@ -184,7 +184,7 @@ export function AuditFilterBar({ query, onChange, ref: refData }: AuditFilterBar
               })
             }
             aria-label={t('filters.reset')}
-            className="ml-auto inline-flex items-center gap-1 h-8 px-2.5 rounded-lg text-[13px] font-semibold text-text-primary hover:bg-surface-2 flex-shrink-0"
+            className="ml-auto inline-flex items-center gap-1 h-8 px-2.5 rounded-lg text-13 font-semibold text-text-primary hover:bg-surface-2 flex-shrink-0"
           >
             <Icon name="x" size={12} />
             <span className="max-md:hidden">{t('filters.reset')}</span>

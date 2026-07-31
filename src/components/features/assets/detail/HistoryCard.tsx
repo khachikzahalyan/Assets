@@ -36,20 +36,20 @@ export function HistoryCard({ events, mobileBare = false }: HistoryCardProps) {
       className="lg:h-full lg:flex lg:flex-col lg:min-h-0"
       bodyClassName="lg:flex-1 lg:min-h-0 lg:flex lg:flex-col"
       action={
-        <span className="text-[13px] font-medium text-text-tertiary tabular-nums">
+        <span className="text-13 font-medium text-text-tertiary tabular-nums">
           {countLabel}
         </span>
       }
     >
       {mobileBare ? (
         /* Single line: «Создан … · добавил Вы» (left) + record count (right) */
-        <div className="flex items-center justify-between gap-2 mb-3 pb-2.5 border-b border-border text-[12.5px] text-text-secondary">
+        <div className="flex items-center justify-between gap-2 mb-3 pb-2.5 border-b border-border text-12.5 text-text-secondary">
           <span className="min-w-0 truncate">{createdLine}</span>
           <span className="shrink-0 text-text-tertiary tabular-nums">{countLabel}</span>
         </div>
       ) : (
         createdEv && (
-          <div className="mb-3 pb-2.5 border-b border-border text-[12.5px] text-text-secondary lg:shrink-0">
+          <div className="mb-3 pb-2.5 border-b border-border text-12.5 text-text-secondary lg:shrink-0">
             {createdLine}
           </div>
         )
@@ -62,7 +62,7 @@ export function HistoryCard({ events, mobileBare = false }: HistoryCardProps) {
           ))}
         </ol>
       ) : (
-        <p className="text-[13px] text-text-subtle italic">
+        <p className="text-13 text-text-subtle italic">
           {createdEv ? t('detail.history.noOther') : t('detail.history.noRecords')}
         </p>
       )}

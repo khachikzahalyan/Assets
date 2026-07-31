@@ -83,7 +83,7 @@ export function AddSubscriptionModal({
             <span className="w-8 h-8 rounded-md bg-surface-2 text-accent inline-flex items-center justify-center">
               <Icon name="key-round" size={16} />
             </span>
-            <h2 id={ADD_SUB_TITLE_ID} className="text-[15px] font-bold text-text-primary tracking-tight">{t('add.title')}</h2>
+            <h2 id={ADD_SUB_TITLE_ID} className="text-15 font-bold text-text-primary tracking-tight">{t('add.title')}</h2>
           </div>
           <IconBtn icon="x" onClick={onClose} size="sm" title={t('add.cancel')} {...(submitting ? { disabled: true } : {})} />
         </header>
@@ -98,7 +98,7 @@ export function AddSubscriptionModal({
               onChange={e => setName(e.target.value)}
               placeholder={t('add.namePlaceholder')}
               autoFocus
-              className="w-full h-9 px-3 text-[13.5px] bg-surface border border-border rounded-lg placeholder:text-text-subtle focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/15 transition-all"
+              className="w-full h-9 px-3 text-13.5 bg-surface border border-border rounded-lg placeholder:text-text-subtle focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/15 transition-all"
             />
           </Field>
 
@@ -109,7 +109,7 @@ export function AddSubscriptionModal({
               value={vendorEmail}
               onChange={e => setVendorEmail(e.target.value)}
               placeholder="it-admin@example.com"
-              className="w-full h-9 px-3 text-[13.5px] bg-surface border border-border rounded-lg placeholder:text-text-subtle focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/15 transition-all"
+              className="w-full h-9 px-3 text-13.5 bg-surface border border-border rounded-lg placeholder:text-text-subtle focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/15 transition-all"
             />
           </Field>
 
@@ -122,7 +122,7 @@ export function AddSubscriptionModal({
                 value={seatsTotal}
                 onChange={e => setSeatsTotal(e.target.value)}
                 placeholder="10"
-                className="w-full h-9 px-3 text-[13.5px] bg-surface border border-border rounded-lg placeholder:text-text-subtle focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/15 transition-all"
+                className="w-full h-9 px-3 text-13.5 bg-surface border border-border rounded-lg placeholder:text-text-subtle focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/15 transition-all"
               />
             </Field>
 
@@ -157,7 +157,7 @@ export function AddSubscriptionModal({
           </Field>
 
           {submitError && (
-            <p role="alert" className="text-[12px] text-[#FDA4AF] light:text-rose-700">{submitError}</p>
+            <p role="alert" className="text-12 text-[#FDA4AF] light:text-rose-700">{submitError}</p>
           )}
         </div>
 

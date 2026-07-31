@@ -32,7 +32,7 @@ function SkuPlaceholderDesktop() {
 
 /**
  * Mobile empty-stock placeholder: dashed slots matching WarehouseSkuRowMobile height.
- * Mobile rows rendered by MobileListRow have ~py-[7px] + two text lines ≈ 48px.
+ * Mobile rows rendered by MobileListRow have ~py-[0.4375rem] + two text lines ≈ 48px.
  * Empty card only — no hint text (empty state stays quiet).
  */
 function SkuPlaceholderMobile() {
@@ -42,15 +42,15 @@ function SkuPlaceholderMobile() {
         <div
           key={i}
           aria-hidden="true"
-          className="relative px-[14px] border-b border-border last:border-b-0"
+          className="relative px-3.5 border-b border-border last:border-b-0"
           style={{ minHeight: 48 }}
         >
           {/* invisible height-anchor matching MobileListRow two-line layout */}
-          <div className="opacity-0 py-[7px]">
-            <div className="text-[13px] font-bold leading-snug mb-[2px]">&nbsp;</div>
-            <div className="text-[11px] leading-snug">&nbsp;</div>
+          <div className="opacity-0 py-[0.4375rem]">
+            <div className="text-13 font-bold leading-snug mb-0.5">&nbsp;</div>
+            <div className="text-11 leading-snug">&nbsp;</div>
           </div>
-          <div className="absolute left-[14px] right-[14px] top-1/2 -translate-y-1/2 border-t border-dashed border-border/40" />
+          <div className="absolute left-3.5 right-3.5 top-1/2 -translate-y-1/2 border-t border-dashed border-border/40" />
         </div>
       ))}
     </div>
@@ -109,11 +109,11 @@ export function WarehouseSkuList({
           {isMobile
             ? <SkuPlaceholderMobile />
             : <SkuPlaceholderDesktop />}
-          <div className="px-5 pb-3 max-md:px-[14px]">
+          <div className="px-5 pb-3 max-md:px-3.5">
             <button
               type="button"
               onClick={onAddGpu}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13.5px] font-semibold text-accent border border-[#F97316]/30 bg-[#F97316]/10 hover:bg-[#F97316]/15 transition-colors light:border-[#F97316]/40"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-13.5 font-semibold text-accent border border-[#F97316]/30 bg-[#F97316]/10 hover:bg-[#F97316]/15 transition-colors light:border-[#F97316]/40"
             >
               <Icon name="plus" size={12} />
               {t('gpu.addBtn')}
@@ -163,7 +163,7 @@ export function WarehouseSkuList({
             <Icon name={icon} size={14} />
           </span>
           <div className="flex-1 min-w-0">
-            <div className="text-[15px] font-semibold text-text-primary truncate leading-tight">
+            <div className="text-15 font-semibold text-text-primary truncate leading-tight">
               {catMeta?.label ?? selectedCatId}
             </div>
           </div>
@@ -214,7 +214,7 @@ export function WarehouseSkuList({
               <Icon name={icon} size={14} />
             </span>
             <div className="flex-1 min-w-0">
-              <div className="text-[15px] font-semibold text-text-primary truncate leading-tight">
+              <div className="text-15 font-semibold text-text-primary truncate leading-tight">
                 {sku.name}
                 {sku.variantLabel && (
                   <span className="text-text-tertiary font-normal"> · {sku.variantLabel}</span>

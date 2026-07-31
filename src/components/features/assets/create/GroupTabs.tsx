@@ -40,8 +40,8 @@ export function GroupTabs({ categoryGroups, categories, selected, onSelect }: Gr
                 : 'bg-surface border-border text-text-primary hover:border-border-strong hover:bg-surface-2'}`}
           >
             <Icon name={g.lucideIcon} size={15} className={active ? 'text-accent' : 'text-text-subtle'} />
-            <span className="text-[15px] font-medium tracking-tight truncate max-md:truncate-none text-text-primary">{g.name}</span>
-            <span className={`text-[14px] tabular-nums font-semibold shrink-0${active ? ' text-text-primary' : ' text-text-subtle'}`}>{count}</span>
+            <span className="text-15 font-medium tracking-tight truncate max-md:truncate-none text-text-primary">{g.name}</span>
+            <span className={`text-14 tabular-nums font-semibold shrink-0${active ? ' text-text-primary' : ' text-text-subtle'}`}>{count}</span>
           </button>
         )
       })}

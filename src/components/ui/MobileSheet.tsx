@@ -70,7 +70,7 @@ export function MobileSheet({ open, onClose, title, height, children }: MobileSh
 
         {title && (
           <div className="px-4 pb-3 border-b border-border">
-            <span className="text-[15px] font-semibold text-text-primary">{title}</span>
+            <span className="text-15 font-semibold text-text-primary">{title}</span>
           </div>
         )}
 

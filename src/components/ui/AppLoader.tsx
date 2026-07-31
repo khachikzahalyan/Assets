@@ -32,7 +32,7 @@ export function AppLoader({ fullScreen = false }: AppLoaderProps) {
       {/* AMS brand mark — breathing opacity pulse, matches Sidebar brand square */}
       <span
         aria-hidden="true"
-        className="anim-logo-pulse w-16 h-16 rounded-2xl bg-gradient-to-br from-accent to-accent-dark text-white inline-flex items-center justify-center font-extrabold tracking-tight text-[20px] shadow-lg shadow-accent/25 select-none"
+        className="anim-logo-pulse w-16 h-16 rounded-2xl bg-gradient-to-br from-accent to-accent-dark text-white inline-flex items-center justify-center font-extrabold tracking-tight text-20 shadow-lg shadow-accent/25 select-none"
       >
         AMS
       </span>

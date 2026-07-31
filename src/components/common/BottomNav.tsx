@@ -56,7 +56,7 @@ export function BottomNav({ currentRoute, onNavigate }: BottomNavProps) {
             <Icon name={item.icon} size={20} />
             <span
               className={[
-                'text-[10px] leading-tight whitespace-nowrap',
+                'text-10 leading-tight whitespace-nowrap',
                 active ? 'font-bold' : 'font-medium',
               ].join(' ')}
             >

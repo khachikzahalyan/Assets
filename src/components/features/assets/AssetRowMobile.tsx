@@ -67,7 +67,7 @@ export const MobileCard = memo(function MobileCard({
   const iconTile = (
     <span
       className={[
-        'w-[28px] h-[28px] rounded-[8px] inline-flex items-center justify-center flex-shrink-0',
+        'w-[1.75rem] h-[1.75rem] rounded-[8px] inline-flex items-center justify-center flex-shrink-0',
         !catColor ? 'bg-white/[0.04] light:bg-black/[0.05] text-white/40 light:text-black/30' : '',
       ].join(' ')}
       {...(catColor ? { style: { backgroundColor: catColor.bg, color: catColor.icon } } : {})}
@@ -77,8 +77,8 @@ export const MobileCard = memo(function MobileCard({
   )
 
   const titleNode = (
-    <div className="flex items-center gap-1 min-w-0 mb-[2px]">
-      <span className="text-[13px] font-bold text-text-primary leading-snug truncate">
+    <div className="flex items-center gap-1 min-w-0 mb-0.5">
+      <span className="text-13 font-bold text-text-primary leading-snug truncate">
         {title}
       </span>
       {/* Icon-only remote chip — same cyan palette as the desktop «УДАЛЁННЫЙ» badge */}
@@ -96,7 +96,7 @@ export const MobileCard = memo(function MobileCard({
   const sublineNode = (
     <div
       className={[
-        'text-[11px] leading-snug truncate',
+        'text-11 leading-snug truncate',
         isAuditOrIntern ? 'text-amber-300 light:text-amber-700' : 'text-text-tertiary',
       ].join(' ')}
     >
@@ -106,19 +106,19 @@ export const MobileCard = memo(function MobileCard({
 
   const right = (
     <div className="flex flex-col items-end gap-1 flex-shrink-0">
-      {/* Bespoke status pill — sized to prototype spec (10px/700, rounded-[5px], px-[7px]).
+      {/* Bespoke status pill — sized to prototype spec (10px/700, rounded-[5px], px-[0.4375rem]).
           Uses CHIP_PALETTE classes for bg/text/border so colours stay in sync with Chip. */}
       <span
         className={[
-          'inline-flex items-center border rounded-[5px] px-[7px] py-[2px]',
-          'text-[10px] font-bold whitespace-nowrap leading-none',
+          'inline-flex items-center border rounded-[5px] px-[0.4375rem] py-0.5',
+          'text-10 font-bold whitespace-nowrap leading-none',
           pillPalette,
         ].join(' ')}
       >
         {'● '}{displayStatus.name}
       </span>
       {/* Inventory code — plain monospace, no accent border/box */}
-      <span className="font-['JetBrains_Mono',ui-monospace,monospace] text-[10px] text-text-subtle whitespace-nowrap">
+      <span className="font-['JetBrains_Mono',ui-monospace,monospace] text-10 text-text-subtle whitespace-nowrap">
         {a.invCode}
       </span>
     </div>

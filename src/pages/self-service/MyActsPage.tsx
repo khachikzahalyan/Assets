@@ -87,7 +87,7 @@ export function MyActsPage({ repository }: MyActsPageProps) {
       <PageHeader icon="file-text" title={t('self.myActs')} className="max-md:hidden" />
 
       {actionError && (
-        <p role="alert" className="text-[12px] text-[#FDA4AF] light:text-rose-700 px-1">{actionError}</p>
+        <p role="alert" className="text-12 text-[#FDA4AF] light:text-rose-700 px-1">{actionError}</p>
       )}
 
       <SectionCard title={t('self.myActs')} icon="file-text">
@@ -97,7 +97,7 @@ export function MyActsPage({ repository }: MyActsPageProps) {
           <ul className="space-y-2">
             {acts.map(a => (
               <li key={a.id} className="flex items-center gap-3 min-h-[44px]">
-                <span className="text-[12px] text-text-tertiary font-mono">{a.assetId}</span>
+                <span className="text-12 text-text-tertiary font-mono">{a.assetId}</span>
                 <Btn
                   variant="ghost"
                   size="sm"

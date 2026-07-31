@@ -33,9 +33,9 @@ export function SubscriptionCard({ sub, employees, onUpdateAssignees }: Subscrip
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="text-[15px] font-bold text-text-primary tracking-tight truncate">{sub.name}</h3>
+            <h3 className="text-15 font-bold text-text-primary tracking-tight truncate">{sub.name}</h3>
             {expiringSoon && (
-              <span className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11.5px] font-semibold border bg-amber-500/15 text-amber-300 light:text-amber-700 border-amber-500/25 light:border-amber-200 flex-shrink-0">
+              <span className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-11.5 font-semibold border bg-amber-500/15 text-amber-300 light:text-amber-700 border-amber-500/25 light:border-amber-200 flex-shrink-0">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                   <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
                   <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
@@ -45,7 +45,7 @@ export function SubscriptionCard({ sub, employees, onUpdateAssignees }: Subscrip
             )}
           </div>
           {sub.vendorEmail && (
-            <div className="mt-0.5 flex items-center gap-1.5 text-[13px] text-text-tertiary truncate">
+            <div className="mt-0.5 flex items-center gap-1.5 text-13 text-text-tertiary truncate">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#64748B" strokeWidth="1.75" aria-hidden="true">
                 <rect x="2" y="4" width="20" height="16" rx="2"/>
                 <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
@@ -73,18 +73,18 @@ export function SubscriptionCard({ sub, employees, onUpdateAssignees }: Subscrip
       {/* Dates */}
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <div className="text-[11px] uppercase tracking-[0.06em] font-semibold text-text-subtle mb-0.5">
+          <div className="text-11 uppercase tracking-[0.06em] font-semibold text-text-subtle mb-0.5">
             {t('subs.purchaseDate')}
           </div>
-          <div className="text-[13.5px] text-text-secondary font-mono">
+          <div className="text-13.5 text-text-secondary font-mono">
             {sub.purchaseDate ? fmtDate(sub.purchaseDate, i18n.language) : '—'}
           </div>
         </div>
         <div>
-          <div className="text-[11px] uppercase tracking-[0.06em] font-semibold text-text-subtle mb-0.5">
+          <div className="text-11 uppercase tracking-[0.06em] font-semibold text-text-subtle mb-0.5">
             {t('subs.expiryDate')}
           </div>
-          <div className={`text-[13.5px] font-mono ${expiringSoon ? 'text-amber-300 light:text-amber-700 font-semibold' : 'text-text-secondary'}`}>
+          <div className={`text-13.5 font-mono ${expiringSoon ? 'text-amber-300 light:text-amber-700 font-semibold' : 'text-text-secondary'}`}>
             {sub.expiryDate ? fmtDate(sub.expiryDate, i18n.language) : '—'}
           </div>
         </div>
@@ -92,22 +92,22 @@ export function SubscriptionCard({ sub, employees, onUpdateAssignees }: Subscrip
 
       {/* Employees row */}
       <div className="flex items-center justify-between gap-3 pt-1 border-t border-border">
-        <span className="text-[11.5px] uppercase tracking-[0.06em] font-semibold text-text-subtle">
+        <span className="text-11.5 uppercase tracking-[0.06em] font-semibold text-text-subtle">
           {t('subs.employees')}
         </span>
         <div className="flex items-center gap-2">
           {seatsUsed > 0 ? (
-            <span className="text-[13px] font-semibold text-text-primary">
+            <span className="text-13 font-semibold text-text-primary">
               {pluralEmp(seatsUsed)}
             </span>
           ) : (
-            <span className="text-[12.5px] text-text-subtle italic">{t('subs.notAssigned')}</span>
+            <span className="text-12.5 text-text-subtle italic">{t('subs.notAssigned')}</span>
           )}
           <button
             type="button"
             onClick={() => setManageOpen(true)}
             data-testid={`manage-btn-${sub.id}`}
-            className="inline-flex items-center gap-1 text-[12px] font-medium text-text-tertiary hover:text-text-primary transition-colors"
+            className="inline-flex items-center gap-1 text-12 font-medium text-text-tertiary hover:text-text-primary transition-colors"
           >
             {t('subs.details')}
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">

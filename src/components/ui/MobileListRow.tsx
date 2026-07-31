@@ -67,7 +67,7 @@ export function MobileListRow({
     // (flexGrow fill contract), content stays vertically centered
     // instead of sticking to the top of the taller row.
     'flex flex-col justify-center',
-    'px-[14px] py-[9px] box-border',
+    'px-3.5 py-[0.5625rem] box-border',
     'border-b border-border border-l-[3px]',
     accentClass,
     'bg-surface last:border-b-0',
@@ -91,7 +91,7 @@ export function MobileListRow({
       className={outerClass}
       {...(dataTestId !== undefined ? { 'data-testid': dataTestId } : {})}
     >
-      <div className="flex items-center gap-[9px]">
+      <div className="flex items-center gap-[0.5625rem]">
         {iconTile}
         <div className="flex-1 min-w-0">
           {title}

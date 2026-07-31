@@ -32,10 +32,10 @@ export function RestoreConfirmModal({
           <Icon name="rotate-ccw" size={18} />
         </div>
         <div className="flex-1">
-          <div className="text-[17px] font-bold text-text-primary tracking-tight">
+          <div className="text-17 font-bold text-text-primary tracking-tight">
             {t('restore.title')}
           </div>
-          <div className="text-[14.5px] text-text-primary mt-1 leading-relaxed">
+          <div className="text-14.5 text-text-primary mt-1 leading-relaxed">
             {t('restore.bodyPre') && (
               <>{t('restore.bodyPre')} </>
             )}

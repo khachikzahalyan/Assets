@@ -75,28 +75,28 @@ export const DeviceGridCard = memo(function DeviceGridCard({ asset, selected, ha
         type="button"
         aria-pressed={selected}
         onClick={() => onSelect(asset.id)}
-        className={`${cardBg} border rounded-xl p-[14px] cursor-pointer transition-colors w-full text-left flex items-center gap-2.5 ${selected ? 'border-accent' : 'border-border'}`}
+        className={`${cardBg} border rounded-xl p-3.5 cursor-pointer transition-colors w-full text-left flex items-center gap-2.5 ${selected ? 'border-accent' : 'border-border'}`}
       >
         <span
-          className="w-[34px] h-[34px] rounded-[9px] inline-flex items-center justify-center flex-shrink-0"
+          className="w-[2.125rem] h-[2.125rem] rounded-[9px] inline-flex items-center justify-center flex-shrink-0"
           style={catColor ? { backgroundColor: catColor.bg, color: catColor.icon } : undefined}
         >
           <Icon name={iconName} size={15} />
         </span>
         <div className="flex-1 min-w-0">
           <div
-            className="text-[14px] font-bold text-text-primary leading-tight truncate"
+            className="text-14 font-bold text-text-primary leading-tight truncate"
             title={asset.name}
           >
             {asset.name}
           </div>
-          <div className="text-[11.5px] text-text-tertiary font-mono tracking-[0.2px] mt-[2px] truncate">
+          <div className="text-11.5 text-text-tertiary font-mono tracking-[0.2px] mt-0.5 truncate">
             {asset.id}&nbsp;·&nbsp;{catLabel}
           </div>
         </div>
         {/* Right cluster: comp-count chip + service icon (icon-only, no text) */}
         <div className="flex items-center gap-1.5 flex-shrink-0">
-          <span className={`inline-flex items-center gap-1 px-[7px] py-[2px] rounded-[6px] text-[10px] font-semibold border leading-none whitespace-nowrap ${chipTone}`}>
+          <span className={`inline-flex items-center gap-1 px-[0.4375rem] py-0.5 rounded-[6px] text-10 font-semibold border leading-none whitespace-nowrap ${chipTone}`}>
             <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${dotColor}`} />
             {totalComponents}&nbsp;{t('devices.compShort', 'комп.')}
           </span>
@@ -135,11 +135,11 @@ export const DeviceGridCard = memo(function DeviceGridCard({ asset, selected, ha
         {/* status dot + component counter */}
         <div className="flex items-center gap-1 pt-0.5 flex-shrink-0">
           <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${dotColor}`} />
-          <span className="text-[13px] text-text-subtle tabular-nums whitespace-nowrap">
+          <span className="text-13 text-text-subtle tabular-nums whitespace-nowrap">
             {totalComponents}&nbsp;{t('devices.compShort', 'комп.')}
           </span>
           {isService && (
-            <span className="ml-1 inline-flex items-center gap-0.5 text-[10px] font-medium bg-sky-500/10 text-sky-300 border border-sky-500/30 rounded px-1 py-0.5 flex-shrink-0 light:text-sky-700">
+            <span className="ml-1 inline-flex items-center gap-0.5 text-10 font-medium bg-sky-500/10 text-sky-300 border border-sky-500/30 rounded px-1 py-0.5 flex-shrink-0 light:text-sky-700">
               <Icon name="wrench" size={8} />
               {t('device.service')}
             </span>
@@ -149,12 +149,12 @@ export const DeviceGridCard = memo(function DeviceGridCard({ asset, selected, ha
       {/* name + subtitle */}
       <div className="mt-2 min-w-0">
         <div
-          className="text-[15px] font-medium text-text-primary leading-tight truncate"
+          className="text-15 font-medium text-text-primary leading-tight truncate"
           title={asset.name}
         >
           {asset.name}
         </div>
-        <div className="text-[13px] text-text-subtle mt-0.5 truncate">
+        <div className="text-13 text-text-subtle mt-0.5 truncate">
           {asset.id}&nbsp;·&nbsp;{catLabel}
         </div>
       </div>

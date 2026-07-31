@@ -118,7 +118,7 @@ function ChangeRoleDialog({ target, isSelf, onClose, onChanged, repo, actor }: C
       >
         <div className="max-md:block hidden mx-auto h-1 w-9 rounded-full bg-white/20 light:bg-black/10 mb-3 -mt-3" />
         <header className="flex items-center justify-between gap-3">
-          <h2 id="change-role-title" className="text-[15px] font-bold text-text-primary">{t('dialog.title')}</h2>
+          <h2 id="change-role-title" className="text-15 font-bold text-text-primary">{t('dialog.title')}</h2>
           <button type="button" aria-label={t('actions.close', { ns: 'common' })} onClick={onClose}
             className="text-text-subtle hover:text-text-primary transition-colors">
             <Icon name="x" size={16} />
@@ -132,21 +132,21 @@ function ChangeRoleDialog({ target, isSelf, onClose, onChanged, repo, actor }: C
           {target.role ? (
             <RoleIcon role={target.role} size={30} className="shrink-0" />
           ) : (
-            <span className="w-[30px] h-[30px] rounded-full inline-flex items-center justify-center flex-shrink-0 bg-surface-2 border border-border text-text-subtle">
+            <span className="w-[1.875rem] h-[1.875rem] rounded-full inline-flex items-center justify-center flex-shrink-0 bg-surface-2 border border-border text-text-subtle">
               <Icon name="user" size={14} />
             </span>
           )}
           <div className="min-w-0">
-            <p className="text-[13px] font-medium text-text-primary truncate">{target.displayName || target.email}</p>
-            <p className="text-[11.5px] text-text-subtle truncate">{target.email}</p>
+            <p className="text-13 font-medium text-text-primary truncate">{target.displayName || target.email}</p>
+            <p className="text-11.5 text-text-subtle truncate">{target.email}</p>
           </div>
-          {isSelf && <span className="ml-auto text-[11px] text-accent">{t('you')}</span>}
+          {isSelf && <span className="ml-auto text-11 text-accent">{t('you')}</span>}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="change-role-select"
-              className="block mb-1 text-[11px] uppercase tracking-[0.06em] font-semibold text-text-subtle">
+              className="block mb-1 text-11 uppercase tracking-[0.06em] font-semibold text-text-subtle">
               {t('dialog.role')}
             </label>
             <Select id="change-role-select" value={selectedRole}
@@ -156,7 +156,7 @@ function ChangeRoleDialog({ target, isSelf, onClose, onChanged, repo, actor }: C
 
           {!isInvited && selectedRole === 'employee' && (
             <div className="space-y-3">
-              <p className="text-[11px] uppercase tracking-[0.06em] font-semibold text-text-subtle">{t('dialog.employeeMode')}</p>
+              <p className="text-11 uppercase tracking-[0.06em] font-semibold text-text-subtle">{t('dialog.employeeMode')}</p>
               <div className="flex gap-2">
                 <button type="button" onClick={() => setEmpMode('link')}
                   className={`flex-1 h-9 rounded-lg border text-sm font-medium transition-colors ${
@@ -179,14 +179,14 @@ function ChangeRoleDialog({ target, isSelf, onClose, onChanged, repo, actor }: C
                   <Field label={t('dialog.lastName')} required>
                     <Input id="change-last-name" value={lastName} onChange={setLastName} placeholder={t('dialog.lastName')} />
                   </Field>
-                  {emailMissing && <p role="alert" className="text-[12px] text-amber-400 light:text-amber-700">{t('dialog.emailRequired')}</p>}
+                  {emailMissing && <p role="alert" className="text-12 text-amber-400 light:text-amber-700">{t('dialog.emailRequired')}</p>}
                 </div>
               )}
             </div>
           )}
 
-          <p className="text-[12px] text-text-tertiary">{t('dialog.confirm')}</p>
-          {error && <p role="alert" className="text-[12.5px] text-rose-400 light:text-rose-700">{error}</p>}
+          <p className="text-12 text-text-tertiary">{t('dialog.confirm')}</p>
+          {error && <p role="alert" className="text-12.5 text-rose-400 light:text-rose-700">{error}</p>}
 
           <div className="flex items-center justify-end gap-2 pt-1">
             <Btn type="button" variant="secondary" onClick={onClose} disabled={submitting}>{t('dialog.cancel')}</Btn>
@@ -284,7 +284,7 @@ export function RolesPage({ repository }: RolesPageProps) {
 
   function roleLabel(r: Role | null): string { return r ? tNav(`roles.${r}`) : t('role.none') }
 
-  const gridTemplate = 'minmax(180px,2fr) minmax(140px,1.5fr) minmax(120px,1.3fr) minmax(100px,1fr) 160px'
+  const gridTemplate = 'minmax(11.25rem,2fr) minmax(8.75rem,1.5fr) minmax(7.5rem,1.3fr) minmax(6.25rem,1fr) 10rem'
 
   function renderBody() {
     // Loading: search/filters render as-is (local/static); only the body shimmers
@@ -325,7 +325,7 @@ export function RolesPage({ repository }: RolesPageProps) {
       {
         key: 'user',
         header: t('col.user'),
-        width: 'minmax(180px,2fr)',
+        width: 'minmax(11.25rem,2fr)',
         cell: (u) => {
           const isSelf = u.id === user.id
           return (
@@ -338,8 +338,8 @@ export function RolesPage({ repository }: RolesPageProps) {
                   <Icon name="user" size={13} />
                 </span>
               )}
-              <span className="text-[13px] font-medium text-text-primary truncate max-w-[160px]">{u.displayName || u.email}</span>
-              {isSelf && <span className="text-[10.5px] px-1.5 py-0.5 rounded bg-accent/15 text-accent flex-shrink-0">{t('you')}</span>}
+              <span className="text-13 font-medium text-text-primary truncate max-w-[160px]">{u.displayName || u.email}</span>
+              {isSelf && <span className="text-10.5 px-1.5 py-0.5 rounded bg-accent/15 text-accent flex-shrink-0">{t('you')}</span>}
             </span>
           )
         },
@@ -347,23 +347,23 @@ export function RolesPage({ repository }: RolesPageProps) {
       {
         key: 'email',
         header: t('col.email'),
-        width: 'minmax(140px,1.5fr)',
-        cell: (u) => <span className="text-[13px] text-text-tertiary">{u.email}</span>,
+        width: 'minmax(8.75rem,1.5fr)',
+        cell: (u) => <span className="text-13 text-text-tertiary">{u.email}</span>,
       },
       {
         key: 'role',
         header: t('col.role'),
-        width: 'minmax(120px,1.3fr)',
+        width: 'minmax(7.5rem,1.3fr)',
         cell: (u) => (
-          <span className="text-[13px] text-text-primary">{roleLabel(u.role)}</span>
+          <span className="text-13 text-text-primary">{roleLabel(u.role)}</span>
         ),
       },
       {
         key: 'status',
         header: t('col.status'),
-        width: 'minmax(100px,1fr)',
+        width: 'minmax(6.25rem,1fr)',
         cell: (u) => (
-          <span className="inline-flex items-center gap-1.5 text-[13px] text-text-tertiary">
+          <span className="inline-flex items-center gap-1.5 text-13 text-text-tertiary">
             <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: STATUS_DOT[u.status] ?? '#64748B' }} />
             {t(`status.${u.status}`)}
           </span>
@@ -405,7 +405,7 @@ export function RolesPage({ repository }: RolesPageProps) {
             on mobile; 10px side gutters; the .app-shell-content-flush flex chain
             stretches the card to the BottomNav top ('roles' is in AppShell FLUSH_ROUTES). */}
         <ListCard
-          className="max-md:mx-[10px]"
+          className="max-md:mx-2.5"
           toolbar={
             /* Zone 1: search + filters — static content rendered immediately,
                no shimmer (owner rule: only async data shimmers). */
@@ -414,7 +414,7 @@ export function RolesPage({ repository }: RolesPageProps) {
                   takes the full first line (min-w-full forces the wrap), and the two
                   chips share the second line 50/50 — a balanced, aligned pair instead
                   of the lopsided search+role / status-alone wrap. */}
-              <div className="flex items-center gap-2 flex-wrap px-5 py-3 max-md:px-3 max-md:py-2.5 max-md:gap-[6px]">
+              <div className="flex items-center gap-2 flex-wrap px-5 py-3 max-md:px-3 max-md:py-2.5 max-md:gap-1.5">
                 <SearchInput
                   id="roles-search"
                   value={search}
@@ -423,7 +423,7 @@ export function RolesPage({ repository }: RolesPageProps) {
                   aria-label={t('search')}
                   containerClassName="flex-1 min-w-[180px] max-md:min-w-full"
                 />
-                <div className="flex items-center gap-2 max-md:w-full max-md:gap-[6px]">
+                <div className="flex items-center gap-2 max-md:w-full max-md:gap-1.5">
                   <SelectMini
                     id="roles-role-filter"
                     label={t('filter.role')}

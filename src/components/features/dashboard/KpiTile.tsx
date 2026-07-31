@@ -25,12 +25,12 @@ export function KpiTile({ icon, label, value, to, sub }: KpiTileProps) {
             <Icon name={icon} size={16} />
           </span>
           <div>
-            <div className="text-[12px] text-text-subtle">{label}</div>
-            <div className="text-[22px] font-bold text-text-primary tabular-nums">
+            <div className="text-12 text-text-subtle">{label}</div>
+            <div className="text-22 font-bold text-text-primary tabular-nums">
               {value}
             </div>
             {sub != null && (
-              <div className="text-[11px] text-text-subtle mt-0.5">{sub}</div>
+              <div className="text-11 text-text-subtle mt-0.5">{sub}</div>
             )}
           </div>
         </div>

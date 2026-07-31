@@ -16,7 +16,7 @@ export interface LicensesPaginationProps {
  *
  * Intentional unification vs the previous standalone implementation:
  *   • GAINS max-md:border-t border-border (was missing)
- *   • GAINS safe-area inset bottom padding (was plain pb-[4px])
+ *   • GAINS safe-area inset bottom padding (was plain pb-1)
  *   • Desktop text/button size raised to 14px to match PaginationBar etalon
  */
 export function LicensesPagination({ page, pageSize, total, onPage }: LicensesPaginationProps) {

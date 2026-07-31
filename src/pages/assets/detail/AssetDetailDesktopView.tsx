@@ -97,7 +97,7 @@ export function AssetDetailDesktopView({
       <div className="lg:h-full lg:flex lg:flex-col lg:min-h-0">
       {/* Action error banner */}
       {actionError && (
-        <p role="alert" className="mb-3 text-[12px] text-rose-300 light:text-rose-700 px-1">{actionError}</p>
+        <p role="alert" className="mb-3 text-12 text-rose-300 light:text-rose-700 px-1">{actionError}</p>
       )}
 
       {/*
@@ -121,14 +121,14 @@ export function AssetDetailDesktopView({
        *   location → repair naturally — no order classes needed.
        */}
       {/* Grid: on lg: fills remaining height (flex-1) and stretches columns to row height */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 lg:gap-x-5 gap-y-[10px] max-md:gap-y-3 items-start lg:items-stretch lg:flex-1 lg:min-h-0">
+      <div className="grid grid-cols-1 lg:grid-cols-3 lg:gap-x-5 gap-y-2.5 max-md:gap-y-3 items-start lg:items-stretch lg:flex-1 lg:min-h-0">
 
         {/* ---------------------------------------------------------------- */}
         {/* LEFT COLUMN — hero block + tabs (lg:col-span-2)                 */}
-        {/* space-y-[10px] keeps the 10px hero↔tabs gap on all breakpoints  */}
+        {/* space-y-2.5 keeps the 10px hero↔tabs gap on all breakpoints  */}
         {/* ---------------------------------------------------------------- */}
         {/* Left column: flex-col so hero stays fixed and tab area fills remaining height */}
-        <div className="lg:col-span-2 space-y-[10px] lg:flex lg:flex-col lg:min-h-0">
+        <div className="lg:col-span-2 space-y-2.5 lg:flex lg:flex-col lg:min-h-0">
 
           {/* Hero block — hugs its own content (~108px). The print action now
               lives inside the hero cluster (no bottom bar), so we no longer
@@ -184,7 +184,7 @@ export function AssetDetailDesktopView({
                       onOpenParts={() => navigate(`/parts?tab=devices&assetId=${asset.id}`)}
                     />
                   ) : (
-                    <p className="text-[13px] text-text-subtle italic">{t('detail.specs.empty')}</p>
+                    <p className="text-13 text-text-subtle italic">{t('detail.specs.empty')}</p>
                   )}
                 </div>
               )}

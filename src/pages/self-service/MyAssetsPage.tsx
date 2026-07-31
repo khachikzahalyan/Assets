@@ -154,9 +154,9 @@ export function MyAssetsPage({ repository }: MyAssetsPageProps) {
                   key={a.id}
                   className="rounded-md border border-border bg-bg px-3 py-2"
                 >
-                  <div className="flex items-center gap-3 min-h-[28px]">
-                    <span className="font-mono text-[12px] text-text-tertiary min-w-[80px]">{a.invCode}</span>
-                    <span className="flex-1 text-[13px] text-text-primary">
+                  <div className="flex items-center gap-3 min-h-[var(--ctl-h-xs)]">
+                    <span className="font-mono text-12 text-text-tertiary min-w-[80px]">{a.invCode}</span>
+                    <span className="flex-1 text-13 text-text-primary">
                       {[a.brand, a.model].filter(Boolean).join(' ') || category?.name || '—'}
                     </span>
                     {status && (
@@ -171,7 +171,7 @@ export function MyAssetsPage({ repository }: MyAssetsPageProps) {
                         type="button"
                         onClick={() => void handleConfirm(a.id)}
                         disabled={isBusy}
-                        className="inline-flex items-center gap-1.5 h-8 max-md:h-11 px-3 rounded-lg text-[13px] font-semibold text-accent light:text-accent bg-accent/10 border border-accent/30 hover:bg-accent/15 hover:border-accent/50 transition-colors disabled:opacity-60 disabled:pointer-events-none"
+                        className="inline-flex items-center gap-1.5 h-8 max-md:h-11 px-3 rounded-lg text-13 font-semibold text-accent light:text-accent bg-accent/10 border border-accent/30 hover:bg-accent/15 hover:border-accent/50 transition-colors disabled:opacity-60 disabled:pointer-events-none"
                       >
                         <span aria-hidden="true">✓</span>
                         {t('self.confirmReceipt')}

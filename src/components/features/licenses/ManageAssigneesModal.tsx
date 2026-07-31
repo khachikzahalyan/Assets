@@ -106,8 +106,8 @@ export function ManageAssigneesModal({
               <Icon name="users" size={15} />
             </span>
             <div className="min-w-0">
-              <div id={MANAGE_TITLE_ID} className="text-[15px] font-bold text-text-primary tracking-tight truncate">{subName}</div>
-              <div className="text-[12px] text-text-subtle mt-0.5">
+              <div id={MANAGE_TITLE_ID} className="text-15 font-bold text-text-primary tracking-tight truncate">{subName}</div>
+              <div className="text-12 text-text-subtle mt-0.5">
                 {t('manage.subtitle', { count: assigned.length, total: seatsTotal })}
               </div>
             </div>
@@ -126,7 +126,7 @@ export function ManageAssigneesModal({
               onChange={e => setSearch(e.target.value)}
               placeholder={t('manage.searchPlaceholder')}
               aria-label={t('manage.searchPlaceholder')}
-              className="w-full h-9 pl-7 pr-3 text-[13.5px] rounded-lg bg-bg border border-border text-text-primary placeholder:text-text-subtle focus:outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/15 transition-all"
+              className="w-full h-9 pl-7 pr-3 text-13.5 rounded-lg bg-bg border border-border text-text-primary placeholder:text-text-subtle focus:outline-none focus:border-accent/50 focus:ring-2 focus:ring-accent/15 transition-all"
             />
           </div>
         </div>
@@ -149,13 +149,13 @@ export function ManageAssigneesModal({
               >
                 <RoleIcon role="employee" size={32} className="flex-shrink-0 opacity-50 grayscale" />
                 <div className="flex-1 min-w-0">
-                  <div className="text-[13.5px] font-semibold text-text-secondary truncate">{name}</div>
+                  <div className="text-13.5 font-semibold text-text-secondary truncate">{name}</div>
                   {employee && (
-                    <div className="text-[12px] text-text-subtle font-mono truncate">{employee.email}</div>
+                    <div className="text-12 text-text-subtle font-mono truncate">{employee.email}</div>
                   )}
                 </div>
                 {employee && (
-                  <span className="text-[10.5px] font-bold px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-300 light:text-rose-700 border border-rose-500/30 flex-shrink-0">
+                  <span className="text-10.5 font-bold px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-300 light:text-rose-700 border border-rose-500/30 flex-shrink-0">
                     {t('manage.terminatedBadge')}
                   </span>
                 )}
@@ -165,7 +165,7 @@ export function ManageAssigneesModal({
           })}
 
           {filtered.length === 0 ? (
-            <div className="px-4 py-8 text-center text-[13.5px] text-text-subtle">
+            <div className="px-4 py-8 text-center text-13.5 text-text-subtle">
               {t('manage.notFound')}
             </div>
           ) : (
@@ -184,11 +184,11 @@ export function ManageAssigneesModal({
                 >
                   <RoleIcon role="employee" size={32} className="flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <div className="text-[13.5px] font-semibold text-text-primary truncate">{fullName}</div>
-                    <div className="text-[12px] text-text-subtle font-mono truncate">{e.email}</div>
+                    <div className="text-13.5 font-semibold text-text-primary truncate">{fullName}</div>
+                    <div className="text-12 text-text-subtle font-mono truncate">{e.email}</div>
                   </div>
                   {e.position && (
-                    <div className="text-[12px] text-text-subtle flex-shrink-0 hidden sm:block max-w-[130px] truncate text-right">
+                    <div className="text-12 text-text-subtle flex-shrink-0 hidden sm:block max-w-[130px] truncate text-right">
                       {e.position}
                     </div>
                   )}
@@ -201,11 +201,11 @@ export function ManageAssigneesModal({
 
         {/* Footer */}
         <footer className="px-4 py-3 border-t border-border flex items-center justify-between gap-3 flex-shrink-0">
-          <span className="text-[12.5px] text-text-subtle">{t('manage.assignedSuffix', { phrase: pluralEmp(assigned.length) })}</span>
+          <span className="text-12.5 text-text-subtle">{t('manage.assignedSuffix', { phrase: pluralEmp(assigned.length) })}</span>
           <button
             type="button"
             onClick={onClose}
-            className="h-9 px-5 rounded-lg bg-gradient-to-b from-accent-light to-accent text-white text-[13.5px] font-semibold shadow-sm shadow-accent/20 light:shadow-[#F97316]/20 hover:shadow-md hover:shadow-accent/30 light:hover:shadow-[#F97316]/20 transition-all"
+            className="h-9 px-5 rounded-lg bg-gradient-to-b from-accent-light to-accent text-white text-13.5 font-semibold shadow-sm shadow-accent/20 light:shadow-[#F97316]/20 hover:shadow-md hover:shadow-accent/30 light:hover:shadow-[#F97316]/20 transition-all"
           >
             {t('manage.done')}
           </button>

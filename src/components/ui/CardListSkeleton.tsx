@@ -61,7 +61,7 @@ export function CardListSkeleton({ rows = 10, variant = 'asset' }: CardListSkele
   // Mirrors EmployeeRowMobile → MobileListRow (EmployeeRowMobile.tsx):
   //   outer:  px-[14px] py-[9px] border-b border-border border-l-[3px] border-l-transparent bg-surface
   //   inner flex: items-center gap-[9px]
-  //   avatar: w-[28px] h-[28px] rounded-full (RoleIcon SVG is visually circular)
+  //   avatar: w-[1.75rem] h-[1.75rem] rounded-full (RoleIcon SVG is visually circular)
   //   middle flex-1: 13px title mb-[2px] + 11px subline (position·dept)
   //   right:  flex-col items-end gap-[3px] → pill h-[18px] w-[54px] rounded-[5px] + branch h-[10px] w-[64px]
     return (
@@ -79,7 +79,7 @@ export function CardListSkeleton({ rows = 10, variant = 'asset' }: CardListSkele
             style={FILL_ROW_STYLE}
           >
             {/* Avatar tile — RoleIcon renders as a circular SVG; rounded-full matches the visual shape */}
-            <div className="w-[28px] h-[28px] rounded-full anim-skeleton flex-shrink-0" />
+            <div className="w-[1.75rem] h-[1.75rem] rounded-full anim-skeleton flex-shrink-0" />
             {/* Middle: 2-line block (title + subline) */}
             <div className="flex-1 min-w-0">
               <div className="h-[13px] w-[52%] rounded anim-skeleton mb-[2px]" />
@@ -100,7 +100,7 @@ export function CardListSkeleton({ rows = 10, variant = 'asset' }: CardListSkele
   // Mirrors AuditRowMobile → MobileListRow (AuditRowMobile.tsx):
   //   outer:  px-[14px] py-[9px] border-b border-border border-l-[3px] border-l-transparent bg-surface
   //   inner flex: items-center gap-[9px]
-  //   icon:   w-[28px] h-[28px] rounded-[8px]
+  //   icon:   w-[1.75rem] h-[1.75rem] rounded-[8px]
   //   middle flex-1: 13px actor title mb-[2px] + 2-line subline:
   //     line1 h-[11px] (action · timestamp) + mt-0.5 line2 h-[11px] w-[88px] (entity-id monospace)
   //   right:  flex items-center gap-1.5 → chip h-[18px] w-[72px] rounded-md + chevron 13×13
@@ -119,7 +119,7 @@ export function CardListSkeleton({ rows = 10, variant = 'asset' }: CardListSkele
             style={FILL_ROW_STYLE}
           >
             {/* Icon tile */}
-            <div className="w-[28px] h-[28px] rounded-[8px] anim-skeleton flex-shrink-0" />
+            <div className="w-[1.75rem] h-[1.75rem] rounded-[8px] anim-skeleton flex-shrink-0" />
             {/* Middle: actor title + 2-line subline (action·ts + entity-id) */}
             <div className="flex-1 min-w-0">
               <div className="h-[13px] w-[55%] rounded anim-skeleton mb-[2px]" />
@@ -141,7 +141,7 @@ export function CardListSkeleton({ rows = 10, variant = 'asset' }: CardListSkele
   // Mirrors CatalogTable mobile rows → MobileListRow (CatalogTable.tsx lines ~99-168):
   //   outer:  px-[14px] py-[9px] border-b border-border border-l-[3px] border-l-transparent bg-surface
   //   inner flex: items-center gap-[9px]
-  //   icon:   w-[28px] h-[28px] rounded-[8px]
+  //   icon:   w-[1.75rem] h-[1.75rem] rounded-[8px]
   //   middle flex-1: 13px title mb-[2px] + 11px subline
   //   right:  flex items-center gap-1 → two IconBtn stubs at max-md:!w-11 max-md:!h-11 rounded-lg
     return (
@@ -159,7 +159,7 @@ export function CardListSkeleton({ rows = 10, variant = 'asset' }: CardListSkele
             style={FILL_ROW_STYLE}
           >
             {/* Icon tile */}
-            <div className="w-[28px] h-[28px] rounded-[8px] anim-skeleton flex-shrink-0" />
+            <div className="w-[1.75rem] h-[1.75rem] rounded-[8px] anim-skeleton flex-shrink-0" />
             {/* Middle: primary title + secondary subline */}
             <div className="flex-1 min-w-0">
               <div className="h-[13px] w-[55%] rounded anim-skeleton mb-[2px]" />
@@ -180,7 +180,7 @@ export function CardListSkeleton({ rows = 10, variant = 'asset' }: CardListSkele
   // Mirrors KeyRowMobile → MobileListRow (KeyRowMobile.tsx):
   //   outer:  px-[14px] py-[9px] border-b border-border border-l-[3px] border-l-transparent bg-surface
   //   inner flex: items-center gap-[9px]
-  //   icon:   w-[28px] h-[28px] rounded-[8px]
+  //   icon:   w-[1.75rem] h-[1.75rem] rounded-[8px]
   //   middle flex-1: mono 13px title mb-[2px] + 11px subline
   //   right:  flex-col items-end gap-1 → status pill h-[18px] w-[64px] rounded-[5px] + invcode h-[10px] w-[56px]
     return (
@@ -197,7 +197,7 @@ export function CardListSkeleton({ rows = 10, variant = 'asset' }: CardListSkele
             className={FILL_ROW_CLASS}
             style={FILL_ROW_STYLE}
           >
-            <div className="w-[28px] h-[28px] rounded-[8px] anim-skeleton flex-shrink-0" />
+            <div className="w-[1.75rem] h-[1.75rem] rounded-[8px] anim-skeleton flex-shrink-0" />
             <div className="flex-1 min-w-0">
               <div className="h-[13px] w-[55%] rounded anim-skeleton mb-[2px]" />
               <div className="h-[11px] w-[40%] rounded anim-skeleton" />
@@ -215,7 +215,7 @@ export function CardListSkeleton({ rows = 10, variant = 'asset' }: CardListSkele
   if (variant === 'part-device') {
   // Mirrors DeviceGridCard isMobile=true (DeviceGridCard.tsx):
   //   outer:  p-[14px] rounded-xl border border-border flex items-center gap-2.5 w-full
-  //   icon:   w-[34px] h-[34px] rounded-[9px]
+  //   icon:   w-[2.125rem] h-[2.125rem] rounded-[9px]
   //   middle flex-1: title 14px bold + subline 11.5px mono mt-[2px]
   //   right cluster: flex items-center gap-1.5 →
   //     • comp-count dot-chip h-[18px] w-[64px] rounded-[6px] (always)
@@ -238,7 +238,7 @@ export function CardListSkeleton({ rows = 10, variant = 'asset' }: CardListSkele
             className="p-[14px] rounded-xl border border-border flex items-center gap-2.5"
           >
             {/* Category icon tile — 34×34 rounded-[9px] */}
-            <div className="w-[34px] h-[34px] rounded-[9px] anim-skeleton flex-shrink-0" />
+            <div className="w-[2.125rem] h-[2.125rem] rounded-[9px] anim-skeleton flex-shrink-0" />
             {/* Middle: bold title + mono subline */}
             <div className="flex-1 min-w-0">
               <div className="h-[14px] w-[55%] rounded anim-skeleton" />
@@ -309,7 +309,7 @@ export function CardListSkeleton({ rows = 10, variant = 'asset' }: CardListSkele
   // Mirrors RoleRowMobile → MobileListRow (RoleRowMobile.tsx):
   //   outer:  px-[14px] py-[9px] border-b border-border border-l-[3px] border-l-transparent bg-surface
   //   inner flex: items-center gap-[9px]
-  //   icon:   w-[30px] h-[30px] rounded-full (role badge avatar)
+  //   icon:   w-[1.875rem] h-[1.875rem] rounded-full (role badge avatar)
   //   middle flex-1: title 13px bold mb-[2px] + email h-[11px] (compact 2-line row)
   //   right:  Btn sm → h-7 w-[72px] rounded-lg
     return (
@@ -326,7 +326,7 @@ export function CardListSkeleton({ rows = 10, variant = 'asset' }: CardListSkele
             className={FILL_ROW_CLASS}
             style={FILL_ROW_STYLE}
           >
-            <div className="w-[30px] h-[30px] rounded-full anim-skeleton flex-shrink-0" />
+            <div className="w-[1.875rem] h-[1.875rem] rounded-full anim-skeleton flex-shrink-0" />
             <div className="flex-1 min-w-0">
               <div className="h-[13px] w-[52%] rounded anim-skeleton mb-[3px]" />
               <div className="h-[11px] w-[65%] rounded anim-skeleton" />
@@ -342,7 +342,7 @@ export function CardListSkeleton({ rows = 10, variant = 'asset' }: CardListSkele
   // Mirrors AssetRowMobile → MobileListRow (AssetRowMobile.tsx):
   //   outer:  px-[14px] py-[9px] border-b border-border border-l-[3px] border-l-transparent bg-surface
   //   inner flex: items-center gap-[9px]
-  //   icon:   w-[28px] h-[28px] rounded-[8px]
+  //   icon:   w-[1.75rem] h-[1.75rem] rounded-[8px]
   //   middle flex-1: 13px title mb-[2px] + 11px subline
   //   right:  flex-col items-end gap-1 → status pill h-[18px] w-[54px] rounded-[5px] + invcode h-[10px] w-[64px]
   return (
@@ -359,8 +359,8 @@ export function CardListSkeleton({ rows = 10, variant = 'asset' }: CardListSkele
           className={FILL_ROW_CLASS}
           style={FILL_ROW_STYLE}
         >
-          {/* Icon tile shimmer: w-[28px] h-[28px] rounded-[8px] */}
-          <div className="w-[28px] h-[28px] rounded-[8px] anim-skeleton flex-shrink-0" />
+          {/* Icon tile shimmer: w-[1.75rem] h-[1.75rem] rounded-[8px] */}
+          <div className="w-[1.75rem] h-[1.75rem] rounded-[8px] anim-skeleton flex-shrink-0" />
           {/* Middle: title (13px/bold, mb-[2px]) + subline (11px) */}
           <div className="flex-1 min-w-0">
             <div className="h-[13px] w-[55%] rounded anim-skeleton mb-[2px]" />

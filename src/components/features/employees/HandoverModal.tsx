@@ -91,7 +91,7 @@ function StepIndicator({ step, t }: { step: 'receive' | 'route'; t: TFunction<'e
           }`}
         />
       </div>
-      <span className="text-[13.5px] font-medium text-text-primary tabular-nums">
+      <span className="text-13.5 font-medium text-text-primary tabular-nums">
         {step === 'receive' ? t('handover.step1') : t('handover.step2')}
       </span>
     </div>
@@ -127,7 +127,7 @@ function ProgressBlock({
       {/* Row 1: counter + bulk toggle + breakdown */}
       <div className="ams-handover-progress-row1 flex items-center gap-3 flex-wrap">
         <span
-          className={`ams-handover-progress-counter text-[14px] font-semibold tabular-nums ${
+          className={`ams-handover-progress-counter text-14 font-semibold tabular-nums ${
             step === 'route' || allDone ? 'text-emerald-300 light:text-emerald-700' : 'text-text-primary'
           }`}
         >
@@ -137,7 +137,7 @@ function ProgressBlock({
           <button
             type="button"
             onClick={onToggleAll}
-            className="ams-handover-toggle-all inline-flex items-center gap-1 text-[13.5px] font-semibold text-accent hover:text-accent hover:underline underline-offset-4 decoration-accent-light/60 transition-colors duration-100"
+            className="ams-handover-toggle-all inline-flex items-center gap-1 text-13.5 font-semibold text-accent hover:text-accent hover:underline underline-offset-4 decoration-accent-light/60 transition-colors duration-100"
           >
             <Icon name={checkedCount < total ? 'check-check' : 'square'} size={11} />
             <span className="ams-handover-toggle-all-label">
@@ -146,13 +146,13 @@ function ProgressBlock({
           </button>
         )}
         {redirectedCount > 0 && (
-          <span className="ams-handover-progress-breakdown text-[13px] text-text-tertiary tabular-nums">
+          <span className="ams-handover-progress-breakdown text-13 text-text-tertiary tabular-nums">
             · → {t('dest.warehouse')}: {warehouseCount} · Перенаправлено: {redirectedCount}
           </span>
         )}
       </div>
       {/* Row 2: segmented progress bar */}
-      <div className="ams-handover-progress-bar flex gap-[3px] rounded-full overflow-hidden ring-1 ring-emerald-500/30 shadow-sm shadow-emerald-500/10 w-full">
+      <div className="ams-handover-progress-bar flex gap-[0.1875rem] rounded-full overflow-hidden ring-1 ring-emerald-500/30 shadow-sm shadow-emerald-500/10 w-full">
         {rows.map((r) => (
           <div
             key={r.id}
@@ -169,7 +169,7 @@ function ProgressBlock({
       </div>
       {/* Row 3: keyboard hint — only in step 1; not actionable on touch */}
       {step === 'receive' && (
-        <span className="ams-handover-progress-kbhint text-[12.5px] text-text-subtle font-mono leading-none max-md:hidden">
+        <span className="ams-handover-progress-kbhint text-12.5 text-text-subtle font-mono leading-none max-md:hidden">
           {t('handover.kbHint')}
         </span>
       )}
@@ -281,15 +281,15 @@ export function HandoverModal({
           <RoleIcon role="employee" size={40} className="shrink-0" />
           {/* Title block */}
           <div className="flex-1 min-w-0">
-            <div className="text-[17px] font-bold text-text-primary tracking-tight leading-tight">
+            <div className="text-17 font-bold text-text-primary tracking-tight leading-tight">
               {t('handover.title')}
             </div>
-            <div className="text-[15.5px] font-semibold text-text-primary leading-snug truncate">
+            <div className="text-15.5 font-semibold text-text-primary leading-snug truncate">
               {empName} · {total} активов ·{' '}
               {step === 'receive' ? 'отметьте полученные' : 'выберите назначение'}
             </div>
             {(emp.position || emp.departmentName) && (
-              <div className="text-[13.5px] text-text-secondary leading-snug truncate">
+              <div className="text-13.5 text-text-secondary leading-snug truncate">
                 {[emp.position, emp.departmentName].filter(Boolean).join(' · ')}
               </div>
             )}
@@ -313,7 +313,7 @@ export function HandoverModal({
         {step === 'route' && (
           <div className="px-6 pt-3 pb-0 flex items-center gap-1.5 shrink-0">
             <Icon name="info" size={11} className="text-text-subtle shrink-0" />
-            <span className="text-[13.5px] text-text-primary">{t('handover.destInfo')}</span>
+            <span className="text-13.5 text-text-primary">{t('handover.destInfo')}</span>
           </div>
         )}
 
@@ -368,17 +368,17 @@ export function HandoverModal({
                 {/* Title + meta */}
                 <div className="flex-1 min-w-0 pr-2">
                   <div
-                    className={`text-[15px] font-medium truncate transition-colors duration-150 ${
+                    className={`text-15 font-medium truncate transition-colors duration-150 ${
                       row.received ? 'text-emerald-300 light:text-emerald-700' : 'text-text-primary'
                     }`}
                   >
                     {row.title}
                   </div>
                   <div className="ams-handover-meta flex items-center gap-2 mt-0.5 flex-wrap">
-                    <span className="ams-handover-inv inline-flex items-center px-1.5 h-4.5 rounded bg-surface-2 text-text-tertiary font-mono text-[13px] tabular-nums">
+                    <span className="ams-handover-inv inline-flex items-center px-1.5 h-4.5 rounded bg-surface-2 text-text-tertiary font-mono text-13 tabular-nums">
                       {row.invCode}
                     </span>
-                    <span className="ams-handover-sn text-[13px] text-text-secondary">
+                    <span className="ams-handover-sn text-13 text-text-secondary">
                       SN: {row.sn}
                     </span>
                   </div>
@@ -406,14 +406,14 @@ export function HandoverModal({
 
                 {/* Title + meta */}
                 <div className="flex-1 min-w-0 pr-2">
-                  <div className="text-[15px] font-medium truncate text-emerald-300 light:text-emerald-700">
+                  <div className="text-15 font-medium truncate text-emerald-300 light:text-emerald-700">
                     {row.title}
                   </div>
                   <div className="ams-handover-meta flex items-center gap-2 mt-0.5 flex-wrap">
-                    <span className="ams-handover-inv inline-flex items-center px-1.5 h-4.5 rounded bg-surface-2 text-text-tertiary font-mono text-[13px] tabular-nums">
+                    <span className="ams-handover-inv inline-flex items-center px-1.5 h-4.5 rounded bg-surface-2 text-text-tertiary font-mono text-13 tabular-nums">
                       {row.invCode}
                     </span>
-                    <span className="ams-handover-sn text-[13px] text-text-secondary">
+                    <span className="ams-handover-sn text-13 text-text-secondary">
                       SN: {row.sn}
                     </span>
                   </div>
@@ -487,7 +487,7 @@ export function HandoverModal({
             {step === 'receive' ? (
               <>
                 {!allDone && (
-                  <span className="ams-handover-remaining-hint text-[13.5px] text-text-tertiary select-none whitespace-nowrap">
+                  <span className="ams-handover-remaining-hint text-13.5 text-text-tertiary select-none whitespace-nowrap">
                     ← {t('handover.remaining')} {remaining}
                   </span>
                 )}

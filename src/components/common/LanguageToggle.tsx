@@ -33,7 +33,7 @@ export function LanguageToggle() {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="ams-lang-toggle-btn inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg border border-border bg-surface hover:border-border-strong text-[12px] font-semibold text-text-secondary transition-colors"
+        className="ams-lang-toggle-btn inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg border border-border bg-surface hover:border-border-strong text-12 font-semibold text-text-secondary transition-colors"
         title={t('lang.title')}
         aria-label={t('lang.title')}
       >
@@ -55,9 +55,9 @@ export function LanguageToggle() {
                 onClick={() => { void i18n.changeLanguage(l.id); setOpen(false) }}
                 className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-left transition-colors ${isActive ? 'bg-accent text-white' : 'hover:bg-surface text-text-secondary'}`}
               >
-                <span className="text-[12.5px] font-semibold">{l.label}</span>
+                <span className="text-12.5 font-semibold">{l.label}</span>
                 <span className="flex items-center gap-1.5">
-                  <span className={`text-[10.5px] font-mono ${isActive ? 'text-white/80' : 'text-text-subtle'}`}>{l.short}</span>
+                  <span className={`text-10.5 font-mono ${isActive ? 'text-white/80' : 'text-text-subtle'}`}>{l.short}</span>
                   {isActive && <Icon name="check" size={13} className="text-white" />}
                 </span>
               </button>

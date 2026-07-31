@@ -195,18 +195,18 @@ export function SearchPalette({ open, onClose, onPick }: SearchPaletteProps) {
             placeholder={t('search.placeholder')}
             className="flex-1 h-full bg-transparent outline-none text-sm text-text-primary placeholder:text-text-subtle"
           />
-          <kbd className="px-1.5 py-0.5 text-[10px] font-semibold rounded border border-border bg-surface-2 text-text-tertiary">ESC</kbd>
+          <kbd className="px-1.5 py-0.5 text-10 font-semibold rounded border border-border bg-surface-2 text-text-tertiary">ESC</kbd>
         </div>
 
         {/* Results — max-height uses dvh-aware value; on mobile flex-1 so sheet controls height */}
         <div className="max-h-[360px] overflow-y-auto py-1.5 max-md:max-h-none max-md:flex-1 max-md:min-h-0">
           {isLoading && (
-            <div className="px-4 py-6 text-center text-[12.5px] text-text-subtle">
+            <div className="px-4 py-6 text-center text-12.5 text-text-subtle">
               {t('search.loading')}
             </div>
           )}
           {!isLoading && filtered.length === 0 && (
-            <div className="px-4 py-6 text-center text-[12.5px] text-text-subtle">
+            <div className="px-4 py-6 text-center text-12.5 text-text-subtle">
               {t('search.empty')}
             </div>
           )}
@@ -221,9 +221,9 @@ export function SearchPalette({ open, onClose, onPick }: SearchPaletteProps) {
                 <Icon name={r.icon} size={14} />
               </span>
               <div className="flex-1 min-w-0">
-                <div className="text-[12.5px] font-semibold text-text-primary truncate">{r.label}</div>
+                <div className="text-12.5 font-semibold text-text-primary truncate">{r.label}</div>
                 {r.hint && (
-                  <div className="text-[10.5px] text-text-subtle truncate">{r.hint}</div>
+                  <div className="text-10.5 text-text-subtle truncate">{r.hint}</div>
                 )}
               </div>
               <Chip color="gray" size="sm">{kindLabel(r.type)}</Chip>
@@ -232,7 +232,7 @@ export function SearchPalette({ open, onClose, onPick }: SearchPaletteProps) {
         </div>
 
         {/* Footer hint — hidden on mobile/touch (keyboard shortcuts irrelevant) */}
-        <div className="max-md:hidden flex items-center justify-between px-4 py-2 border-t border-border bg-surface-2/60 text-[10.5px] text-text-subtle">
+        <div className="max-md:hidden flex items-center justify-between px-4 py-2 border-t border-border bg-surface-2/60 text-10.5 text-text-subtle">
           <span>{t('search.hint')}</span>
           <span className="flex items-center gap-2">
             <kbd className="px-1.5 py-0.5 font-semibold rounded border border-border bg-surface">↑↓</kbd>

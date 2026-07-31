@@ -85,13 +85,13 @@ export function ServiceRecordModal({ open, onClose, asset, onConfirm }: ServiceR
       {/* Header */}
       <div className="px-5 py-4 border-b border-border flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h2 className="text-[17px] font-bold text-text-primary leading-tight flex items-center gap-2">
+          <h2 className="text-17 font-bold text-text-primary leading-tight flex items-center gap-2">
             <span className="w-7 h-7 rounded-md bg-cyan-500/15 text-cyan-300 inline-flex items-center justify-center flex-shrink-0 light:text-cyan-700">
               <Icon name="clipboard-list" size={13} />
             </span>
             {t('serviceModal.title')}
           </h2>
-          <div className="text-[13.5px] text-text-tertiary mt-1 truncate">
+          <div className="text-13.5 text-text-tertiary mt-1 truncate">
             <span className="font-mono text-text-secondary">{asset.id}</span>
             <span className="mx-1.5 text-text-subtle">·</span>
             <span>{asset.name}</span>
@@ -118,7 +118,7 @@ export function ServiceRecordModal({ open, onClose, asset, onConfirm }: ServiceR
             ))}
           </select>
 
-          <label className="block text-[13px] uppercase tracking-[0.06em] font-semibold text-text-subtle mb-2">
+          <label className="block text-13 uppercase tracking-[0.06em] font-semibold text-text-subtle mb-2">
             {t('serviceModal.labelKind')}
           </label>
           {/* Chip buttons for visual kind selection */}
@@ -131,7 +131,7 @@ export function ServiceRecordModal({ open, onClose, asset, onConfirm }: ServiceR
                   type="button"
                   onClick={() => setKindId(k.id)}
                   className={
-                    'h-7 px-2.5 rounded-md text-[14px] font-medium border transition-colors ' +
+                    'h-7 px-2.5 rounded-md text-14 font-medium border transition-colors ' +
                     (active
                       ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-200 light:text-cyan-700 light:border-cyan-500/60'
                       : 'bg-[#0F1216] border-border text-text-tertiary hover:text-text-primary hover:border-[#3A3F46] light:bg-surface light:hover:border-border-strong')
@@ -146,7 +146,7 @@ export function ServiceRecordModal({ open, onClose, asset, onConfirm }: ServiceR
 
         {/* Actor selector — second combobox in DOM */}
         <div>
-          <label htmlFor="service-actor" className="block text-[13px] uppercase tracking-[0.06em] font-semibold text-text-subtle mb-1.5">
+          <label htmlFor="service-actor" className="block text-13 uppercase tracking-[0.06em] font-semibold text-text-subtle mb-1.5">
             Исполнитель
           </label>
           <Select
@@ -159,7 +159,7 @@ export function ServiceRecordModal({ open, onClose, asset, onConfirm }: ServiceR
 
         {/* Note textarea */}
         <div>
-          <label htmlFor="service-note" className="block text-[13px] uppercase tracking-[0.06em] font-semibold text-text-subtle mb-1.5">
+          <label htmlFor="service-note" className="block text-13 uppercase tracking-[0.06em] font-semibold text-text-subtle mb-1.5">
             {t('serviceModal.labelNote')}
           </label>
           {/* TODO: create a <Textarea /> primitive in src/components/ui — no design-system
@@ -170,13 +170,13 @@ export function ServiceRecordModal({ open, onClose, asset, onConfirm }: ServiceR
             onChange={e => setNote(e.target.value)}
             rows={3}
             placeholder="Например: продул вентиляторы, заменил термопасту"
-            className="w-full p-2.5 rounded-md bg-[#0F1216] border border-border text-[14.5px] text-text-primary placeholder:text-text-subtle focus:outline-none focus:border-accent resize-none leading-snug light:bg-surface-sunken"
+            className="w-full p-2.5 rounded-md bg-[#0F1216] border border-border text-14.5 text-text-primary placeholder:text-text-subtle focus:outline-none focus:border-accent resize-none leading-snug light:bg-surface-sunken"
           />
         </div>
       </div>
 
       {error && (
-        <div className="mx-5 mt-3 text-[12.5px] text-rose-400 bg-rose-950/30 border border-rose-800/40 rounded-lg px-3 py-2 light:bg-rose-50 light:border-rose-200 light:text-rose-700" role="alert">
+        <div className="mx-5 mt-3 text-12.5 text-rose-400 bg-rose-950/30 border border-rose-800/40 rounded-lg px-3 py-2 light:bg-rose-50 light:border-rose-200 light:text-rose-700" role="alert">
           {error}
         </div>
       )}

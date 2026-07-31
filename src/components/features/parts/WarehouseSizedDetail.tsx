@@ -20,7 +20,7 @@ function SizedPlaceholder() {
         >
           {/* invisible height-anchor matching real per-size row */}
           <div className="opacity-0 flex items-center justify-between px-3.5 py-3.5">
-            <span className="text-[13.5px] font-medium">&nbsp;</span>
+            <span className="text-13.5 font-medium">&nbsp;</span>
           </div>
           <div className="absolute left-3.5 right-3.5 top-1/2 -translate-y-1/2 border-t border-dashed border-border/40" />
         </div>
@@ -83,10 +83,10 @@ export function WarehouseSizedDetail({ categoryId, skus, stockMap, onInstall }: 
           <Icon name={icon} size={16} />
         </span>
         <div className="flex-1 min-w-0">
-          <div className="text-[15px] font-bold text-text-primary leading-tight">{catMeta?.label ?? categoryId}</div>
-          <div className="text-[11.5px] text-text-secondary">{sizeLabel}</div>
+          <div className="text-15 font-bold text-text-primary leading-tight">{catMeta?.label ?? categoryId}</div>
+          <div className="text-11.5 text-text-secondary">{sizeLabel}</div>
         </div>
-        <span className={`text-[11px] font-bold rounded-full px-2.5 py-1 flex-shrink-0
+        <span className={`text-11 font-bold rounded-full px-2.5 py-1 flex-shrink-0
           ${totalOnHand > 0
             ? 'bg-emerald-500/10 border border-emerald-500/28 text-emerald-400 light:text-emerald-700'
             : 'bg-surface-2 border border-border text-text-subtle'}`}>
@@ -108,7 +108,7 @@ export function WarehouseSizedDetail({ categoryId, skus, stockMap, onInstall }: 
                   key={ddr}
                   type="button"
                   onClick={() => setRamDdr(ddr)}
-                  className={`px-2.5 h-5 rounded text-[10px] font-semibold transition-all
+                  className={`px-2.5 h-5 rounded text-10 font-semibold transition-all
                     ${ramDdr === ddr
                       ? 'bg-accent text-white'
                       : 'bg-surface text-text-tertiary border border-border hover:border-border-strong'}`}
@@ -121,7 +121,7 @@ export function WarehouseSizedDetail({ categoryId, skus, stockMap, onInstall }: 
 
           {/* Per-size rows — all in stock (filtered above, no 0шт branch needed) */}
           {visibleSkus.length === 0 ? (
-            <div className="px-3.5 py-6 text-[13px] text-text-subtle text-center">
+            <div className="px-3.5 py-6 text-13 text-text-subtle text-center">
               {t('warehouse.noStock')}
             </div>
           ) : (
@@ -136,15 +136,15 @@ export function WarehouseSizedDetail({ categoryId, skus, stockMap, onInstall }: 
                     key={sku.id}
                     className={`flex items-center justify-between px-3.5 py-3.5${!isLast ? ' border-b border-border/50' : ''}`}
                   >
-                    <span className="text-[13.5px] font-medium text-text-primary">
+                    <span className="text-13.5 font-medium text-text-primary">
                       {sizeCellLabel}
                     </span>
                     <div className="flex items-center gap-3 flex-shrink-0">
-                      <span className="text-[13px] font-semibold text-text-primary">{onHand} шт</span>
+                      <span className="text-13 font-semibold text-text-primary">{onHand} шт</span>
                       <button
                         type="button"
                         onClick={() => onInstall(sku)}
-                        className="inline-flex items-center gap-1 text-accent text-[12px] font-semibold"
+                        className="inline-flex items-center gap-1 text-accent text-12 font-semibold"
                       >
                         <Icon name="wrench" size={11} />
                         {t('actions.install', 'Установить')}

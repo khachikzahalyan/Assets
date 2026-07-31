@@ -91,7 +91,7 @@ export function LicensePicker({
             ${licenseMode === 'manual' ? 'bg-accent text-white' : 'bg-surface-2 text-text-tertiary'}`}>
             <Icon name="key-round" size={14} />
           </div>
-          <div className="flex-1 min-w-0 text-[14px] font-medium leading-tight truncate text-text-primary">
+          <div className="flex-1 min-w-0 text-14 font-medium leading-tight truncate text-text-primary">
             {t('osLicense.manual')}
           </div>
         </button>
@@ -111,7 +111,7 @@ export function LicensePicker({
               ${licenseMode === 'oem_digital' ? 'bg-accent text-white' : 'bg-surface-2 text-text-tertiary'}`}>
               <Icon name="cpu" size={14} />
             </div>
-            <div className="flex-1 min-w-0 text-[14px] font-medium leading-tight truncate text-text-primary">
+            <div className="flex-1 min-w-0 text-14 font-medium leading-tight truncate text-text-primary">
               {t('osLicense.digital')}
             </div>
           </button>

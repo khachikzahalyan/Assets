@@ -151,7 +151,7 @@ export function DataTable<T>({
               key={col.key}
               role="columnheader"
               className={[
-                'text-[12px] uppercase tracking-[0.09em] font-semibold text-text-tertiary',
+                'text-12 uppercase tracking-[0.09em] font-semibold text-text-tertiary',
                 idx > 0 ? 'px-3' : '',
                 col.align === 'right'  ? 'text-right'  : '',
                 col.align === 'center' ? 'text-center' : '',

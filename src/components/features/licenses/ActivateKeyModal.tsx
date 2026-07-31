@@ -109,7 +109,7 @@ export function ActivateKeyModal({
             <span className="w-8 h-8 rounded-md bg-surface-2 text-accent inline-flex items-center justify-center">
               <Icon name="circle-check" size={16} />
             </span>
-            <h2 id={ACTIVATE_TITLE_ID} className="text-[15px] font-bold text-text-primary tracking-tight">{t('activate.title')}</h2>
+            <h2 id={ACTIVATE_TITLE_ID} className="text-15 font-bold text-text-primary tracking-tight">{t('activate.title')}</h2>
           </div>
           <IconBtn icon="x" onClick={onClose} size="sm" title={t('activate.cancel')} />
         </header>
@@ -121,11 +121,11 @@ export function ActivateKeyModal({
               <MsLogo size={22} />
             </span>
             <div className="min-w-0">
-              <div className="text-[10.5px] uppercase tracking-[0.08em] font-semibold text-text-subtle mb-0.5">
+              <div className="text-10.5 uppercase tracking-[0.08em] font-semibold text-text-subtle mb-0.5">
                 {t('activate.keyLabel')}
               </div>
-              <div className="font-mono text-[13.5px] text-text-primary tracking-tight truncate">{maskedKey}</div>
-              <div className="text-[12px] text-text-tertiary mt-0.5">{version}</div>
+              <div className="font-mono text-13.5 text-text-primary tracking-tight truncate">{maskedKey}</div>
+              <div className="text-12 text-text-tertiary mt-0.5">{version}</div>
             </div>
           </div>
 
@@ -139,7 +139,7 @@ export function ActivateKeyModal({
                 onChange={e => setSearch(e.target.value)}
                 placeholder={t('activate.searchPlaceholder')}
                 aria-label={t('activate.searchPlaceholder')}
-                className="w-full h-9 pl-7 pr-2 text-[13.5px] rounded-lg bg-bg border border-border text-text-primary placeholder:text-text-subtle focus:outline-none focus:border-accent/50"
+                className="w-full h-9 pl-7 pr-2 text-13.5 rounded-lg bg-bg border border-border text-text-primary placeholder:text-text-subtle focus:outline-none focus:border-accent/50"
               />
             </div>
 
@@ -150,7 +150,7 @@ export function ActivateKeyModal({
               aria-label={t('activate.assetListLabel')}
             >
               {filtered.length === 0 ? (
-                <div className="px-3 py-6 text-center text-[13.5px] text-text-subtle">
+                <div className="px-3 py-6 text-center text-13.5 text-text-subtle">
                   {t('activate.noAssets')}
                 </div>
               ) : (
@@ -174,8 +174,8 @@ export function ActivateKeyModal({
                         {sel && <Icon name="check" size={11} className="text-white" />}
                       </span>
                       <div className="min-w-0 flex-1 leading-tight">
-                        <div className="text-[13.5px] text-text-primary font-medium truncate">{a.assetName}</div>
-                        <div className="font-mono text-[11.5px] text-text-tertiary truncate">
+                        <div className="text-13.5 text-text-primary font-medium truncate">{a.assetName}</div>
+                        <div className="font-mono text-11.5 text-text-tertiary truncate">
                           {a.invCode}{a.catName ? ` · ${a.catName}` : ''}
                         </div>
                       </div>
@@ -193,21 +193,21 @@ export function ActivateKeyModal({
               className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3.5 py-3 flex-shrink-0"
               data-testid="activate-old-key-note"
             >
-              <div className="text-[10.5px] uppercase tracking-[0.08em] font-semibold text-amber-300/90 light:text-amber-700 mb-1">
+              <div className="text-10.5 uppercase tracking-[0.08em] font-semibold text-amber-300/90 light:text-amber-700 mb-1">
                 {t('activate.oldKeyLabel')}
               </div>
               <div className="flex items-baseline gap-2 min-w-0">
-                <span className="font-mono text-[13px] text-text-primary tracking-tight flex-shrink-0">
+                <span className="font-mono text-13 text-text-primary tracking-tight flex-shrink-0">
                   {selected.currentKey.maskedKey}
                 </span>
-                <span className="text-[12px] text-text-tertiary truncate">{selected.assetName}</span>
+                <span className="text-12 text-text-tertiary truncate">{selected.assetName}</span>
               </div>
-              <p className="text-[12px] text-text-tertiary mt-1">{t('activate.oldKeyNote')}</p>
+              <p className="text-12 text-text-tertiary mt-1">{t('activate.oldKeyNote')}</p>
             </div>
           )}
 
           {submitError && (
-            <p role="alert" className="text-[12px] text-[#FDA4AF] light:text-rose-700">{submitError}</p>
+            <p role="alert" className="text-12 text-[#FDA4AF] light:text-rose-700">{submitError}</p>
           )}
         </div>
 

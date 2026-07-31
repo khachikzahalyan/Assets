@@ -23,8 +23,8 @@ export interface AssetsToolbarProps {
  *
  * Desktop (≥768px): single flex row: [tabs | search | import | export | create]
  * Mobile (<768px): two stacked rows:
- *   Row 1 — tab strip (bg-surface-2, border-b)  — full-bleed, px-[14px]
- *   Row 2 — search input + square add button     — bg-bg, px-[14px] py-[7px]
+ *   Row 1 — tab strip (bg-surface-2, border-b)  — full-bleed, px-3.5
+ *   Row 2 — search input + square add button     — bg-bg, px-3.5 py-[0.4375rem]
  *
  * Import/Export buttons remain hidden on mobile (max-md:hidden, unchanged).
  */
@@ -101,7 +101,7 @@ export function AssetsToolbar({
       {/* ── Row 1: Group tabs ──────────────────────────────────────────────────
           Desktop: bare flex item (no extra bg/border).
           Mobile:  full-bleed bg-surface-2 strip with bottom border.               */}
-      <div className="max-md:bg-surface-2 max-md:border-b max-md:border-border max-md:px-[14px] max-md:w-full">
+      <div className="max-md:bg-surface-2 max-md:border-b max-md:border-border max-md:px-3.5 max-md:w-full">
         <GroupTabs
           tabs={groupTabs}
           selected={activeGroup}
@@ -116,8 +116,8 @@ export function AssetsToolbar({
       <div
         className={[
           'flex items-center gap-2 flex-1 ml-auto justify-end',
-          'max-md:ml-0 max-md:flex-none max-md:w-full max-md:gap-[8px]',
-          'max-md:bg-bg max-md:px-[14px] max-md:py-[7px]',
+          'max-md:ml-0 max-md:flex-none max-md:w-full max-md:gap-2',
+          'max-md:bg-bg max-md:px-3.5 max-md:py-[0.4375rem]',
         ].join(' ')}
       >
         {/* Search input — shared SearchInput (this toolbar is the style etalon) */}
@@ -136,7 +136,7 @@ export function AssetsToolbar({
             type="button"
             onClick={onNavigateImport}
             aria-label={t('toolbar.import')}
-            className="bg-surface border border-border-strong text-text-primary hover:bg-bg h-8 px-3 rounded-lg text-[13px] font-semibold inline-flex items-center gap-1.5 transition-colors duration-150 max-md:hidden"
+            className="bg-surface border border-border-strong text-text-primary hover:bg-bg h-8 px-3 rounded-lg text-13 font-semibold inline-flex items-center gap-1.5 transition-colors duration-150 max-md:hidden"
           >
             <Icon name="file-up" size={13} className="text-sky-300 light:text-sky-700" />
             <span>{t('toolbar.import')}</span>
@@ -150,7 +150,7 @@ export function AssetsToolbar({
           onClick={onExport}
           title={t('export.xlsx')}
           aria-label={t('export.xlsx')}
-          className="bg-surface border border-border-strong text-text-primary hover:bg-bg h-8 px-3 rounded-lg text-[13px] font-semibold inline-flex items-center gap-1.5 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed max-md:hidden"
+          className="bg-surface border border-border-strong text-text-primary hover:bg-bg h-8 px-3 rounded-lg text-13 font-semibold inline-flex items-center gap-1.5 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed max-md:hidden"
         >
           <Icon name="file-spreadsheet" size={13} className="text-emerald-300 light:text-emerald-700" />
           <span>{t('export.xlsx')}</span>

@@ -29,7 +29,7 @@ export function FormPanel() {
 
   return (
     <div
-      className="w-full lg:w-[44%] relative flex lg:items-center lg:justify-center lg:px-16 lg:py-[60px] max-lg:flex-1 max-lg:flex-col max-lg:px-6 max-lg:pt-7 max-lg:pb-5 max-lg:min-h-0 max-lg:overflow-y-auto"
+      className="w-full lg:w-[44%] relative flex lg:items-center lg:justify-center lg:px-16 lg:py-[3.75rem] max-lg:flex-1 max-lg:flex-col max-lg:px-6 max-lg:pt-7 max-lg:pb-5 max-lg:min-h-0 max-lg:overflow-y-auto"
     >
 
       {/* Logo — desktop only: position:absolute top-left, out of flex flow */}
@@ -64,16 +64,16 @@ export function FormPanel() {
         </span>
       </div>
 
-      {/* Form content — full-width column on mobile; max-400px centered on desktop */}
+      {/* Form content — full-width column on mobile; max-25rem centered on desktop */}
       <div
-        className="w-full lg:max-w-[400px] max-lg:flex-1 max-lg:flex max-lg:flex-col"
+        className="w-full lg:max-w-[25rem] max-lg:flex-1 max-lg:flex max-lg:flex-col"
         style={{ animation: 'fadeInUp .6s ease .1s both' }}
       >
 
         {/* Title block */}
-        <div className="lg:mb-[40px] max-lg:mb-5">
+        <div className="lg:mb-10 max-lg:mb-5">
           <h1
-            className="max-lg:text-[22px] lg:text-[28px] text-white light:text-text-primary"
+            className="max-lg:text-22 lg:text-display-sm text-white light:text-text-primary"
             style={{
               fontWeight: 700,
               letterSpacing: '-.5px',
@@ -84,7 +84,7 @@ export function FormPanel() {
             {t('page.title')}
           </h1>
           <p
-            className="max-lg:text-[13px] lg:text-[14px] text-[#6b7280] light:text-text-secondary"
+            className="max-lg:text-13 lg:text-14 text-[#6b7280] light:text-text-secondary"
             style={{ lineHeight: 1.5 }}
           >
             {t('page.subtitle')}
@@ -102,7 +102,7 @@ export function FormPanel() {
         {linkChecking && (
           <div className="flex items-center gap-2 py-2 mb-4">
             <Icon name="loader-circle" size={16} className="animate-spin text-accent" />
-            <span className="text-[12.5px] text-white/40 light:text-text-tertiary">
+            <span className="text-12.5 text-white/40 light:text-text-tertiary">
               {t('loading')}
             </span>
           </div>
@@ -112,7 +112,7 @@ export function FormPanel() {
         <section aria-labelledby="employee-section-lbl" className="lg:mb-7 max-lg:mb-5">
           <p
             id="employee-section-lbl"
-            className="max-lg:text-[9px] lg:text-[10px] max-lg:mb-[10px] lg:mb-3 max-lg:text-[#3a4055] lg:text-[#4a5065] light:text-text-tertiary"
+            className="max-lg:text-9 lg:text-10 max-lg:mb-2.5 lg:mb-3 max-lg:text-[#3a4055] lg:text-[#4a5065] light:text-text-tertiary"
             style={{
               fontWeight: 600,
               letterSpacing: '1.2px',
@@ -130,16 +130,16 @@ export function FormPanel() {
               >
                 <Icon name="mail-check" size={20} className="text-emerald-400 light:text-emerald-700" />
               </span>
-              <p className="text-[14.5px] font-semibold text-white light:text-text-primary">
+              <p className="text-14.5 font-semibold text-white light:text-text-primary">
                 {t('employee.successTitle')}
               </p>
-              <p className="text-[12.5px] max-w-xs text-white/40 light:text-text-tertiary">
+              <p className="text-12.5 max-w-xs text-white/40 light:text-text-tertiary">
                 {t('employee.successDesc', { email: email.trim() })}
               </p>
               <button
                 type="button"
                 onClick={() => { setLinkSent(false); setEmail(''); setLinkError(null) }}
-                className="mt-1 text-[12px] underline underline-offset-2 transition-opacity hover:opacity-70 text-white/35 light:text-text-subtle"
+                className="mt-1 text-12 underline underline-offset-2 transition-opacity hover:opacity-70 text-white/35 light:text-text-subtle"
                 style={{ background: 'none', border: 'none', cursor: 'pointer' }}
               >
                 {t('employee.tryAnother')}
@@ -161,9 +161,9 @@ export function FormPanel() {
                   onChange={(e) => { setEmail(e.target.value); setEmailError(null) }}
                   placeholder={t('employee.emailPlaceholder')}
                   disabled={linkBusy}
-                  className="w-full placeholder:text-[#4a5065] light:placeholder:text-text-subtle outline-none block border text-[#e5e7eb] light:text-text-primary text-[14px] px-4
-                    lg:bg-[#131620] lg:border-[#2e3347] lg:rounded-[10px] lg:py-[13px]
-                    max-lg:bg-[#13151f] max-lg:border-[#252940] max-lg:rounded-[12px] max-lg:py-[14px]
+                  className="w-full placeholder:text-[#4a5065] light:placeholder:text-text-subtle outline-none block border text-[#e5e7eb] light:text-text-primary text-14 px-4
+                    lg:bg-[#131620] lg:border-[#2e3347] lg:rounded-[10px] lg:py-[0.8125rem]
+                    max-lg:bg-[#13151f] max-lg:border-[#252940] max-lg:rounded-[12px] max-lg:py-3.5
                     light:lg:bg-surface light:lg:border-border-strong
                     light:max-lg:bg-surface light:max-lg:border-border-strong"
                   style={{
@@ -181,7 +181,7 @@ export function FormPanel() {
                   }}
                 />
                 {emailError && (
-                  <p role="alert" className="mt-1.5 text-[11.5px] text-[#FDA4AF] light:text-rose-700">
+                  <p role="alert" className="mt-1.5 text-11.5 text-[#FDA4AF] light:text-rose-700">
                     {emailError}
                   </p>
                 )}
@@ -191,9 +191,9 @@ export function FormPanel() {
                 type="button"
                 onClick={() => { void handleSendLink() }}
                 disabled={linkBusy}
-                className="w-full flex items-center justify-center gap-2 bg-accent text-white text-[14px] font-semibold disabled:opacity-60 transition-colors duration-150 cursor-pointer border-0 px-5
-                  max-lg:rounded-[12px] max-lg:py-[14px] max-lg:hover:bg-accent-hover
-                  lg:rounded-[10px] lg:py-[13px] lg:hover:bg-accent-hover"
+                className="w-full flex items-center justify-center gap-2 bg-accent text-white text-14 font-semibold disabled:opacity-60 transition-colors duration-150 cursor-pointer border-0 px-5
+                  max-lg:rounded-[12px] max-lg:py-3.5 max-lg:hover:bg-accent-hover
+                  lg:rounded-[10px] lg:py-[0.8125rem] lg:hover:bg-accent-hover"
                 style={{ letterSpacing: '.2px' }}
               >
                 {linkBusy && (
@@ -212,7 +212,7 @@ export function FormPanel() {
         >
           <div className="flex-1 h-px lg:bg-[#22263a] max-lg:bg-[#1e2235] light:bg-border" />
           <span
-            className="max-lg:text-[11px] lg:text-[12px] max-lg:text-[#2e3450] lg:text-[#3a3f55] light:text-text-subtle"
+            className="max-lg:text-11 lg:text-12 max-lg:text-[#2e3450] lg:text-[#3a3f55] light:text-text-subtle"
           >
             {t('divider')}
           </span>
@@ -223,7 +223,7 @@ export function FormPanel() {
         <section aria-labelledby="admin-section-lbl">
           <p
             id="admin-section-lbl"
-            className="max-lg:text-[9px] lg:text-[10px] max-lg:mb-[10px] lg:mb-3 max-lg:text-[#3a4055] lg:text-[#4a5065] light:text-text-tertiary"
+            className="max-lg:text-9 lg:text-10 max-lg:mb-2.5 lg:mb-3 max-lg:text-[#3a4055] lg:text-[#4a5065] light:text-text-tertiary"
             style={{
               fontWeight: 600,
               letterSpacing: '1.2px',
@@ -243,9 +243,9 @@ export function FormPanel() {
             type="button"
             onClick={() => { void handleGoogle() }}
             disabled={googleBusy}
-            className="w-full flex items-center justify-center gap-[10px] text-[#e5e7eb] light:text-text-primary text-[14px] font-medium disabled:opacity-50 transition-colors duration-150 cursor-pointer border px-5
-              lg:bg-[#1e2130] lg:border-[#2e3347] lg:rounded-[10px] lg:py-[13px] lg:hover:bg-[#2a2d38] lg:hover:border-[#4a5065]
-              max-lg:bg-[#1a1e2e] max-lg:border-[#252940] max-lg:rounded-[12px] max-lg:py-[14px] max-lg:hover:bg-[#22263a]
+            className="w-full flex items-center justify-center gap-2.5 text-[#e5e7eb] light:text-text-primary text-14 font-medium disabled:opacity-50 transition-colors duration-150 cursor-pointer border px-5
+              lg:bg-[#1e2130] lg:border-[#2e3347] lg:rounded-[10px] lg:py-[0.8125rem] lg:hover:bg-[#2a2d38] lg:hover:border-[#4a5065]
+              max-lg:bg-[#1a1e2e] max-lg:border-[#252940] max-lg:rounded-[12px] max-lg:py-3.5 max-lg:hover:bg-[#22263a]
               light:bg-surface light:border-border-strong light:hover:bg-surface-2 light:hover:border-border"
           >
             {googleBusy ? (
@@ -264,7 +264,7 @@ export function FormPanel() {
 
         {/* Footer note — mt-auto pushes it to bottom of column on mobile */}
         <p
-          className="text-center max-lg:mt-auto max-lg:pt-3 max-lg:text-[11px] max-lg:text-[#2a3048] lg:mt-[36px] lg:text-[12px] lg:text-[#3a4055] light:text-text-subtle"
+          className="text-center max-lg:mt-auto max-lg:pt-3 max-lg:text-11 max-lg:text-[#2a3048] lg:mt-9 lg:text-12 lg:text-[#3a4055] light:text-text-subtle"
           style={{ lineHeight: 1.6 }}
         >
           {footerLines[0]}

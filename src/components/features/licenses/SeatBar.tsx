@@ -16,10 +16,10 @@ export function SeatBar({ used, total }: SeatBarProps) {
   return (
     <div>
       <div className="flex items-center justify-between mb-1.5">
-        <span className="text-[11.5px] uppercase tracking-[0.06em] font-semibold text-text-tertiary">
+        <span className="text-11.5 uppercase tracking-[0.06em] font-semibold text-text-tertiary">
           {t('subs.seats')}
         </span>
-        <span className="text-[13px] font-semibold text-text-primary">
+        <span className="text-13 font-semibold text-text-primary">
           {used} <span className="text-text-subtle">/ {total}</span>
         </span>
       </div>

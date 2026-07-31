@@ -74,10 +74,10 @@ export function AssignmentCardMobile({
             <Icon name="warehouse" size={16} />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-[13.5px] font-bold text-text-primary leading-tight">
+            <p className="text-13.5 font-bold text-text-primary leading-tight">
               {t('detail.assignment.warehouse')}
             </p>
-            <p className="text-[11px] text-text-tertiary">{t('assignee.warehouse')}</p>
+            <p className="text-11 text-text-tertiary">{t('assignee.warehouse')}</p>
           </div>
         </div>
       )
@@ -94,8 +94,8 @@ export function AssignmentCardMobile({
         <div className={`${baseCard} ${innerPad}`}>
           <RoleIcon role="employee" size={36} className="flex-shrink-0" />
           <div className="min-w-0 flex-1">
-            <p className="text-[13.5px] font-bold text-text-primary truncate leading-tight">{empName}</p>
-            {subline && <p className="text-[11px] text-text-tertiary truncate">{subline}</p>}
+            <p className="text-13.5 font-bold text-text-primary truncate leading-tight">{empName}</p>
+            {subline && <p className="text-11 text-text-tertiary truncate">{subline}</p>}
           </div>
           <span className="w-[7px] h-[7px] rounded-full bg-emerald-400 shrink-0" aria-hidden="true" />
         </div>
@@ -110,8 +110,8 @@ export function AssignmentCardMobile({
             <Icon name="layout-list" size={16} />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-[13.5px] font-bold text-text-primary truncate leading-tight">{dept?.name ?? '—'}</p>
-            <p className="text-[11px] text-text-tertiary">{t('detail.location.dept')}</p>
+            <p className="text-13.5 font-bold text-text-primary truncate leading-tight">{dept?.name ?? '—'}</p>
+            <p className="text-11 text-text-tertiary">{t('detail.location.dept')}</p>
           </div>
         </div>
       )
@@ -125,8 +125,8 @@ export function AssignmentCardMobile({
             <Icon name="git-branch" size={16} />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-[13.5px] font-bold text-text-primary truncate leading-tight">{br?.name ?? '—'}</p>
-            <p className="text-[11px] text-text-tertiary">{t('detail.location.branch')}</p>
+            <p className="text-13.5 font-bold text-text-primary truncate leading-tight">{br?.name ?? '—'}</p>
+            <p className="text-11 text-text-tertiary">{t('detail.location.branch')}</p>
           </div>
         </div>
       )
@@ -142,11 +142,11 @@ export function AssignmentCardMobile({
             <Icon name="timer" size={16} />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-[13.5px] font-bold text-text-primary leading-tight truncate">
+            <p className="text-13.5 font-bold text-text-primary leading-tight truncate">
               {t('assignee.temp')} — {kindLabel}
             </p>
             {ass.expiresAt && (
-              <p className="text-[11px] text-rose-300 light:text-rose-700 inline-flex items-center gap-1">
+              <p className="text-11 text-rose-300 light:text-rose-700 inline-flex items-center gap-1">
                 <Icon name="clock" size={10} />
                 {ass.expiresAt}
               </p>
@@ -168,19 +168,19 @@ export function AssignmentCardMobile({
           <Icon name="user-check" size={13} className="text-sky-300 light:text-sky-700" />
         </div>
         {/* leading-none — centers the caps-only label against the icon box (same fix as SectionCard) */}
-        <span className="text-[10px] font-bold uppercase tracking-[1.4px] leading-none text-text-secondary">
+        <span className="text-10 font-bold uppercase tracking-[1.4px] leading-none text-text-secondary">
           {t('detail.assignment.title')}
         </span>
       </div>
 
       {/* Current assignee — padded row with border-b */}
-      <div className="px-4 py-[11px] border-b border-border/50">
+      <div className="px-4 py-[0.6875rem] border-b border-border/50">
         {renderAssignee()}
       </div>
 
       {/* Transfer picker — always visible when canAssign; key resets on commit */}
       {canAssign && (
-        <div className="px-4 py-[13px]">
+        <div className="px-4 py-[0.8125rem]">
           <TransferPanel
             key={transferKey}
             asset={asset}

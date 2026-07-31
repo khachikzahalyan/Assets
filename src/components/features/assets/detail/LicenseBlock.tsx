@@ -124,17 +124,17 @@ function RetailKeyArea({ licenseId }: { licenseId: string }) {
         <div aria-hidden="true" className="h-[16px] w-[256px] max-w-full rounded anim-skeleton" />
       )}
       {revealedKey !== null && (
-        <p className="text-[13.5px] font-mono text-text-secondary tracking-wider truncate select-all flex-1 min-w-0">{revealedKey}</p>
+        <p className="text-13.5 font-mono text-text-secondary tracking-wider truncate select-all flex-1 min-w-0">{revealedKey}</p>
       )}
       {hasKey === false && revealedKey === null && (
-        <p className="text-[13px] text-text-subtle italic">{t('detail.license.keyAbsent')}</p>
+        <p className="text-13 text-text-subtle italic">{t('detail.license.keyAbsent')}</p>
       )}
       {hasKey === true && (
         <button
           type="button"
           onClick={handleCopy}
           aria-label={copied ? t('detail.license.copied') : t('detail.license.copy')}
-          className={`flex-shrink-0 inline-flex items-center gap-1.5 h-7 px-2.5 rounded-lg text-[12px] font-medium border transition-colors ${
+          className={`flex-shrink-0 inline-flex items-center gap-1.5 h-7 px-2.5 rounded-lg text-12 font-medium border transition-colors ${
             copied
               ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400 light:text-emerald-700'
               : 'bg-surface-2 border-border text-text-tertiary hover:text-text-primary hover:border-border-strong'
@@ -251,7 +251,7 @@ export function LicenseBlock({
         <div className="flex flex-col gap-2">
           {rows.map(r => (
             <div key={r.id} className="flex items-center gap-2.5">
-              <div className="w-[30px] h-[30px] rounded-lg bg-white flex items-center justify-center shrink-0">
+              <div className="w-[1.875rem] h-[1.875rem] rounded-lg bg-white flex items-center justify-center shrink-0">
                 <svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true">
                   <rect x="1"  y="1"  width="10" height="10" fill="#F25022"/>
                   <rect x="13" y="1"  width="10" height="10" fill="#7FBA00"/>
@@ -259,13 +259,13 @@ export function LicenseBlock({
                   <rect x="13" y="13" width="10" height="10" fill="#FFB900"/>
                 </svg>
               </div>
-              <span className="text-[13px] font-bold text-text-primary flex-1 truncate">{r.name}</span>
+              <span className="text-13 font-bold text-text-primary flex-1 truncate">{r.name}</span>
               {r.oem ? (
-                <span className="shrink-0 bg-amber-500/10 border border-amber-500/30 text-amber-300 light:text-amber-700 text-[10px] font-bold rounded-md px-2 py-0.5">
+                <span className="shrink-0 bg-amber-500/10 border border-amber-500/30 text-amber-300 light:text-amber-700 text-10 font-bold rounded-md px-2 py-0.5">
                   {t('detail.license.oem')}
                 </span>
               ) : (
-                <span className="shrink-0 bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 light:text-emerald-700 text-[10px] font-bold rounded-md px-2 py-0.5">
+                <span className="shrink-0 bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 light:text-emerald-700 text-10 font-bold rounded-md px-2 py-0.5">
                   {t('licenses:assignment.unassigned')}
                 </span>
               )}
@@ -283,8 +283,8 @@ export function LicenseBlock({
     return (
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2.5">
-          {/* White MS-logo box — 30px */}
-          <div className="w-[30px] h-[30px] rounded-lg bg-white flex items-center justify-center shrink-0">
+          {/* White MS-logo box — 1.875rem */}
+          <div className="w-[1.875rem] h-[1.875rem] rounded-lg bg-white flex items-center justify-center shrink-0">
             <svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true">
               <rect x="1"  y="1"  width="10" height="10" fill="#F25022"/>
               <rect x="13" y="1"  width="10" height="10" fill="#7FBA00"/>
@@ -292,13 +292,13 @@ export function LicenseBlock({
               <rect x="13" y="13" width="10" height="10" fill="#FFB900"/>
             </svg>
           </div>
-          <span className="text-[13px] font-bold text-text-primary flex-1 truncate">{licName}</span>
+          <span className="text-13 font-bold text-text-primary flex-1 truncate">{licName}</span>
           {isOemCompact ? (
-            <span className="shrink-0 bg-amber-500/10 border border-amber-500/30 text-amber-300 light:text-amber-700 text-[10px] font-bold rounded-md px-2 py-0.5">
+            <span className="shrink-0 bg-amber-500/10 border border-amber-500/30 text-amber-300 light:text-amber-700 text-10 font-bold rounded-md px-2 py-0.5">
               {t('detail.license.oem')}
             </span>
           ) : (
-            <span className="shrink-0 bg-blue-500/10 border border-blue-500/30 text-blue-300 light:text-blue-700 text-[10px] font-bold rounded-md px-2 py-0.5">
+            <span className="shrink-0 bg-blue-500/10 border border-blue-500/30 text-blue-300 light:text-blue-700 text-10 font-bold rounded-md px-2 py-0.5">
               {t('detail.license.retail')}
             </span>
           )}
@@ -308,22 +308,22 @@ export function LicenseBlock({
             compact single-row view used to hide them entirely (desktop parity).
             OEM keys are never revealed; non-copy roles see nothing. */}
         {!isOemCompact && lic && canCopyCompact && (
-          <div className="flex items-center gap-2 min-w-0 pl-[40px]">
+          <div className="flex items-center gap-2 min-w-0 pl-10">
             {hasKey === null && revealedKey === null && (
               <div aria-hidden="true" className="h-[15px] flex-1 min-w-0 rounded anim-skeleton" />
             )}
             {revealedKey !== null && (
-              <p className="text-[13px] font-mono text-text-secondary tracking-wider truncate select-all flex-1 min-w-0">{revealedKey}</p>
+              <p className="text-13 font-mono text-text-secondary tracking-wider truncate select-all flex-1 min-w-0">{revealedKey}</p>
             )}
             {hasKey === false && revealedKey === null && (
-              <p className="text-[12.5px] text-text-subtle italic flex-1 min-w-0">{t('detail.license.keyAbsent')}</p>
+              <p className="text-12.5 text-text-subtle italic flex-1 min-w-0">{t('detail.license.keyAbsent')}</p>
             )}
             {hasKey === true && (
               <button
                 type="button"
                 onClick={handleCopy}
                 aria-label={copied ? t('detail.license.copied') : t('detail.license.copy')}
-                className={`flex-shrink-0 inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-[12px] font-medium border transition-colors ${
+                className={`flex-shrink-0 inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-12 font-medium border transition-colors ${
                   copied
                     ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400 light:text-emerald-700'
                     : 'bg-surface-2 border-border text-text-tertiary hover:text-text-primary hover:border-border-strong'
@@ -353,7 +353,7 @@ export function LicenseBlock({
             {/* OEM: single centered line (name + OEM chip), no key sub-line.
                 Retail: name + chip on top, key line below. */}
             <div className={`flex items-center gap-2 ${isOem ? '' : 'mb-1'}`}>
-              <span className="text-[15.5px] font-semibold text-text-primary truncate leading-tight">{lic.name}</span>
+              <span className="text-15.5 font-semibold text-text-primary truncate leading-tight">{lic.name}</span>
               {isOem
                 ? <Chip color="indigo">{t('detail.license.oem')}</Chip>
                 : <Chip color="blue">{t('detail.license.retail')}</Chip>
@@ -363,7 +363,7 @@ export function LicenseBlock({
               // STATE 1: Retail → key line
               <div>
                 {copyError && (
-                  <p className="mt-0.5 text-[11px] text-rose-300 light:text-rose-700">{t('detail.license.copyFailed')}</p>
+                  <p className="mt-0.5 text-11 text-rose-300 light:text-rose-700">{t('detail.license.copyFailed')}</p>
                 )}
                 {/* Probing the key — shimmer bar matched to the real key width
                     (≈29 mono chars · tracking-wider) and the key line's height, so
@@ -372,10 +372,10 @@ export function LicenseBlock({
                   <div aria-hidden="true" className="mt-0.5 h-[16px] w-[256px] max-w-full rounded anim-skeleton" />
                 )}
                 {!copyError && revealedKey !== null && (
-                  <p className="mt-0.5 text-[13.5px] font-mono text-text-secondary tracking-wider truncate select-all">{revealedKey}</p>
+                  <p className="mt-0.5 text-13.5 font-mono text-text-secondary tracking-wider truncate select-all">{revealedKey}</p>
                 )}
                 {!copyError && hasKey === false && revealedKey === null && (
-                  <p className="mt-0.5 text-[13px] text-text-subtle italic">{t('detail.license.keyAbsent')}</p>
+                  <p className="mt-0.5 text-13 text-text-subtle italic">{t('detail.license.keyAbsent')}</p>
                 )}
               </div>
             )}
@@ -392,7 +392,7 @@ export function LicenseBlock({
               type="button"
               onClick={handleCopy}
               aria-label={copied ? t('detail.license.copied') : t('detail.license.copy')}
-              className={`flex-shrink-0 inline-flex items-center gap-1.5 h-8 max-md:h-11 px-3 rounded-lg text-[12.5px] font-medium border transition-colors ${
+              className={`flex-shrink-0 inline-flex items-center gap-1.5 h-8 max-md:h-11 px-3 rounded-lg text-12.5 font-medium border transition-colors ${
                 copied
                   ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400 light:text-emerald-700'
                   : 'bg-surface-2 border-border text-text-tertiary hover:text-text-primary hover:border-border-strong'
@@ -420,7 +420,7 @@ export function LicenseBlock({
             <MsLogo />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-0.5">
-                <span className="text-[15.5px] font-semibold text-text-primary truncate leading-tight">
+                <span className="text-15.5 font-semibold text-text-primary truncate leading-tight">
                   {freed.name}
                 </span>
                 <Chip color="blue">{t('detail.license.retail')}</Chip>
@@ -428,7 +428,7 @@ export function LicenseBlock({
               </div>
               {/* The actual Windows key — full info regardless of asset status (owner rule) */}
               <RetailKeyArea licenseId={freed.id} />
-              <p className="text-[12px] text-text-subtle italic mt-0.5">
+              <p className="text-12 text-text-subtle italic mt-0.5">
                 {t('detail.license.freedByWriteOff')}
               </p>
             </div>
@@ -439,12 +439,12 @@ export function LicenseBlock({
             <MsLogo />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-0.5">
-                <span className="text-[15.5px] font-semibold text-text-primary truncate leading-tight">
+                <span className="text-15.5 font-semibold text-text-primary truncate leading-tight">
                   {retired.name}
                 </span>
                 <Chip color="indigo">{t('detail.license.oem')}</Chip>
               </div>
-              <p className="text-[12px] text-text-subtle italic">
+              <p className="text-12 text-text-subtle italic">
                 {t('detail.license.retiredWithAsset')}
               </p>
             </div>
@@ -465,7 +465,7 @@ export function LicenseBlock({
         <MsLogo />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-[15.5px] font-semibold text-text-primary truncate leading-tight">Windows</span>
+            <span className="text-15.5 font-semibold text-text-primary truncate leading-tight">Windows</span>
             <Chip color="indigo">{t('detail.license.oem')}</Chip>
           </div>
         </div>

@@ -44,8 +44,8 @@ export function AssignmentCard({
             <Icon name="warehouse" size={16} />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-[16px] text-text-primary">{t('detail.assignment.warehouse')}</p>
-            <p className="text-[12px] text-text-tertiary">{t('assignee.warehouse')}</p>
+            <p className="text-16 text-text-primary">{t('detail.assignment.warehouse')}</p>
+            <p className="text-12 text-text-tertiary">{t('assignee.warehouse')}</p>
           </div>
         </div>
       )
@@ -62,8 +62,8 @@ export function AssignmentCard({
         <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-surface-2 ring-1 ring-border">
           <RoleIcon role="employee" size={36} className="flex-shrink-0" />
           <div className="min-w-0 flex-1">
-            <p className="text-[15px] text-text-primary truncate">{empName}</p>
-            {subline && <p className="text-[12px] text-text-tertiary truncate">{subline}</p>}
+            <p className="text-15 text-text-primary truncate">{empName}</p>
+            {subline && <p className="text-12 text-text-tertiary truncate">{subline}</p>}
           </div>
           <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" title={t('detail.assignment.active')} />
         </div>
@@ -78,8 +78,8 @@ export function AssignmentCard({
             <Icon name="layout-list" size={16} />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-[15px] text-text-primary truncate">{dept?.name ?? '—'}</p>
-            <p className="text-[12px] text-text-tertiary">{t('detail.location.dept')}</p>
+            <p className="text-15 text-text-primary truncate">{dept?.name ?? '—'}</p>
+            <p className="text-12 text-text-tertiary">{t('detail.location.dept')}</p>
           </div>
         </div>
       )
@@ -93,8 +93,8 @@ export function AssignmentCard({
             <Icon name="git-branch" size={16} />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-[15px] text-text-primary truncate">{br?.name ?? '—'}</p>
-            <p className="text-[12px] text-text-tertiary">{t('detail.location.branch')}</p>
+            <p className="text-15 text-text-primary truncate">{br?.name ?? '—'}</p>
+            <p className="text-12 text-text-tertiary">{t('detail.location.branch')}</p>
           </div>
         </div>
       )
@@ -110,11 +110,11 @@ export function AssignmentCard({
             <Icon name="timer" size={16} />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-[15px] text-text-primary truncate">
+            <p className="text-15 text-text-primary truncate">
               {t('assignee.temp')} — {kindLabel}
             </p>
             {ass.expiresAt && (
-              <p className="text-[12px] text-rose-300 light:text-rose-700 font-medium inline-flex items-center gap-1">
+              <p className="text-12 text-rose-300 light:text-rose-700 font-medium inline-flex items-center gap-1">
                 <Icon name="clock" size={10} />
                 {ass.expiresAt}
               </p>

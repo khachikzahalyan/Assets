@@ -166,7 +166,7 @@ export function CategoryPicker({ categories, value, onChange, categoryGroupId, d
   }
 
   const triggerClass = [
-    'w-full px-0 py-2.5 text-[15px] border-b bg-transparent rounded-none flex items-center gap-2 outline-none shadow-none transition-[border-color,box-shadow] duration-200 text-left',
+    'w-full px-0 py-2.5 text-15 border-b bg-transparent rounded-none flex items-center gap-2 outline-none shadow-none transition-[border-color,box-shadow] duration-200 text-left',
     disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
     open
       ? 'border-accent shadow-[0_2px_8px_rgba(217,119,87,0.1)]'
@@ -194,7 +194,7 @@ export function CategoryPicker({ categories, value, onChange, categoryGroupId, d
             onChange={e => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={t('placeholders.categorySearch')}
-            className="w-full h-8 pl-7 pr-2 text-[16px] bg-transparent text-text-primary placeholder:text-text-subtle focus:outline-none"
+            className="w-full h-8 pl-7 pr-2 text-16 bg-transparent text-text-primary placeholder:text-text-subtle focus:outline-none"
           />
         </div>
       </div>
@@ -202,7 +202,7 @@ export function CategoryPicker({ categories, value, onChange, categoryGroupId, d
       {/* Option list */}
       <div ref={listRef} className="max-h-72 overflow-y-auto py-1" role="listbox">
         {filtered.length === 0 ? (
-          <div className="px-3 py-6 text-center text-[14px] text-text-primary">
+          <div className="px-3 py-6 text-center text-14 text-text-primary">
             {t('placeholders.noResults')}
           </div>
         ) : (
@@ -219,7 +219,7 @@ export function CategoryPicker({ categories, value, onChange, categoryGroupId, d
                 onMouseEnter={() => setActiveIdx(idx)}
                 onClick={() => selectCategory(c.id)}
                 className={[
-                  'w-full flex items-center gap-2 px-3 py-2 text-[16px] text-left transition-colors',
+                  'w-full flex items-center gap-2 px-3 py-2 text-16 text-left transition-colors',
                   isActive
                     ? 'bg-accent text-white'
                     : 'text-text-primary hover:bg-surface-2',
@@ -246,17 +246,17 @@ export function CategoryPicker({ categories, value, onChange, categoryGroupId, d
       </div>
 
       {/* Footer: kbd hints + count — hidden on mobile sheet */}
-      <div className="px-3 py-1.5 border-t border-border text-[12px] text-text-subtle flex items-center gap-3 bg-bg/50">
+      <div className="px-3 py-1.5 border-t border-border text-12 text-text-subtle flex items-center gap-3 bg-bg/50">
         <span className="hidden md:flex items-center gap-1">
-          <kbd className="px-1 py-0.5 bg-surface border border-border rounded text-[11px] font-mono text-text-primary">↑↓</kbd>
+          <kbd className="px-1 py-0.5 bg-surface border border-border rounded text-11 font-mono text-text-primary">↑↓</kbd>
           {' '}навигация
         </span>
         <span className="hidden md:flex items-center gap-1">
-          <kbd className="px-1 py-0.5 bg-surface border border-border rounded text-[11px] font-mono text-text-primary">Enter</kbd>
+          <kbd className="px-1 py-0.5 bg-surface border border-border rounded text-11 font-mono text-text-primary">Enter</kbd>
           {' '}выбрать
         </span>
         <span className="hidden md:flex items-center gap-1">
-          <kbd className="px-1 py-0.5 bg-surface border border-border rounded text-[11px] font-mono text-text-primary">Esc</kbd>
+          <kbd className="px-1 py-0.5 bg-surface border border-border rounded text-11 font-mono text-text-primary">Esc</kbd>
           {' '}закрыть
         </span>
         <span className="ml-auto tabular-nums">{filtered.length} / {groupCategories.length}</span>

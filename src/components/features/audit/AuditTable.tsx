@@ -64,9 +64,9 @@ export function AuditTable({ rows, ref: refData, minRows, mobileMinRows }: Audit
     {
       key: 'time',
       header: t('col.time'),
-      width: 'minmax(130px,1fr)',
+      width: 'minmax(8.125rem,1fr)',
       cell: (log) => (
-        <span className="font-mono text-[12px] text-text-tertiary whitespace-nowrap">
+        <span className="font-mono text-12 text-text-tertiary whitespace-nowrap">
           {formatAuditTs(log.at, i18n.language)}
         </span>
       ),
@@ -74,9 +74,9 @@ export function AuditTable({ rows, ref: refData, minRows, mobileMinRows }: Audit
     {
       key: 'actor',
       header: t('col.actor'),
-      width: 'minmax(120px,1.5fr)',
+      width: 'minmax(7.5rem,1.5fr)',
       cell: (log) => (
-        <span className="text-[12.5px] text-text-primary">
+        <span className="text-12.5 text-text-primary">
           {resolveActorName(log.actorUid, refData.actors, log.actorName)}
         </span>
       ),
@@ -84,9 +84,9 @@ export function AuditTable({ rows, ref: refData, minRows, mobileMinRows }: Audit
     {
       key: 'role',
       header: t('col.role'),
-      width: 'minmax(100px,1fr)',
+      width: 'minmax(6.25rem,1fr)',
       cell: (log) => (
-        <span className="text-[12.5px] text-text-tertiary">
+        <span className="text-12.5 text-text-tertiary">
           {t(`role.${log.actorRole}`, { defaultValue: log.actorRole })}
         </span>
       ),
@@ -94,7 +94,7 @@ export function AuditTable({ rows, ref: refData, minRows, mobileMinRows }: Audit
     {
       key: 'entity',
       header: t('col.entity'),
-      width: 'minmax(90px,1fr)',
+      width: 'minmax(5.625rem,1fr)',
       cell: (log) => (
         <Chip>
           {t(`entity.${log.entityType}`, { defaultValue: log.entityType })}
@@ -104,9 +104,9 @@ export function AuditTable({ rows, ref: refData, minRows, mobileMinRows }: Audit
     {
       key: 'action',
       header: t('col.action'),
-      width: 'minmax(90px,1fr)',
+      width: 'minmax(5.625rem,1fr)',
       cell: (log) => (
-        <span className="text-[12.5px] text-text-tertiary">
+        <span className="text-12.5 text-text-tertiary">
           {t(`action.${log.action}`, { defaultValue: log.action })}
         </span>
       ),
@@ -114,7 +114,7 @@ export function AuditTable({ rows, ref: refData, minRows, mobileMinRows }: Audit
     {
       key: 'entityId',
       header: t('col.entityId'),
-      width: 'minmax(120px,1.2fr)',
+      width: 'minmax(7.5rem,1.2fr)',
       cell: (log) => {
         const link = entityLink(log)
         if (link != null) {
@@ -122,14 +122,14 @@ export function AuditTable({ rows, ref: refData, minRows, mobileMinRows }: Audit
             <button
               type="button"
               onClick={e => { e.stopPropagation(); navigate(link) }}
-              className="font-mono text-[12px] text-accent-light hover:underline"
+              className="font-mono text-12 text-accent-light hover:underline"
             >
               {log.entityId}
             </button>
           )
         }
         return (
-          <span className="font-mono text-[12px] text-text-subtle">{log.entityId}</span>
+          <span className="font-mono text-12 text-text-subtle">{log.entityId}</span>
         )
       },
     },

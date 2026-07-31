@@ -25,7 +25,7 @@ export function PreviewTable({ sheet, rows }: PreviewTableProps) {
 
   if (rows.length === 0) {
     return (
-      <div className="py-10 text-center text-[13.5px] text-text-tertiary">
+      <div className="py-10 text-center text-13.5 text-text-tertiary">
         {t('preview.noRows')}
       </div>
     )
@@ -33,7 +33,7 @@ export function PreviewTable({ sheet, rows }: PreviewTableProps) {
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-[13px] border-collapse">
+      <table className="w-full text-13 border-collapse">
         <thead>
           <tr className="border-b border-border">
             <th className="text-left py-2 px-3 text-text-tertiary font-medium w-12">{t('preview.cols.row')}</th>
@@ -73,7 +73,7 @@ export function PreviewTable({ sheet, rows }: PreviewTableProps) {
                         ? `${(row as EmployeePlanRow).input!.firstName} ${(row as EmployeePlanRow).input!.lastName}`
                         : '—'}
                     </td>
-                    <td className="py-2 px-3 text-text-secondary font-mono text-[12px]">
+                    <td className="py-2 px-3 text-text-secondary font-mono text-12">
                       {(row as EmployeePlanRow).input?.email ?? '—'}
                     </td>
                     <td className="py-2 px-3 text-text-secondary">
@@ -90,7 +90,7 @@ export function PreviewTable({ sheet, rows }: PreviewTableProps) {
                         ? `${(row as AssetPlanRow).input!.brand ?? ''} ${(row as AssetPlanRow).input!.model ?? ''}`.trim() || '—'
                         : '—'}
                     </td>
-                    <td className="py-2 px-3 text-text-secondary font-mono text-[12px]">
+                    <td className="py-2 px-3 text-text-secondary font-mono text-12">
                       {(row as AssetPlanRow).invCode ? (
                         <span className="inline-flex items-center gap-1">
                           {(row as AssetPlanRow).invCode}
@@ -109,7 +109,7 @@ export function PreviewTable({ sheet, rows }: PreviewTableProps) {
                   {isError ? (
                     <div className="space-y-0.5">
                       {issueTexts.map((msg, i) => (
-                        <div key={i} className="text-rose-400 light:text-rose-700 text-[12px]">{msg}</div>
+                        <div key={i} className="text-rose-400 light:text-rose-700 text-12">{msg}</div>
                       ))}
                     </div>
                   ) : (

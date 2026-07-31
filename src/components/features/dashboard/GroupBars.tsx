@@ -28,11 +28,11 @@ export function GroupBars({ byGroup }: GroupBarsProps) {
           <span className="w-6 h-6 lg:w-7 lg:h-7 rounded-md bg-accent/15 text-accent inline-flex items-center justify-center flex-shrink-0">
             <Icon name="tags" size={14} />
           </span>
-          <h2 className="text-[12px] lg:text-[13px] font-semibold text-text-primary">
+          <h2 className="text-12 lg:text-13 font-semibold text-text-primary">
             {t('groups.title')}
           </h2>
         </div>
-        <span className="text-[11px] text-text-subtle">
+        <span className="text-11 text-text-subtle">
           {t('groups.categoryCaption', { count: ASSET_GROUPS.length })}
         </span>
       </header>
@@ -56,10 +56,10 @@ export function GroupBars({ byGroup }: GroupBarsProps) {
                 >
                   <Icon name={cfg.icon} size={11} />
                 </span>
-                <span className="flex-1 text-[12.5px] text-text-secondary truncate">
+                <span className="flex-1 text-12.5 text-text-secondary truncate">
                   {t(`groups.${group}`)}
                 </span>
-                <span className="text-[12.5px] font-mono tabular-nums text-text-primary ml-1">
+                <span className="text-12.5 font-mono tabular-nums text-text-primary ml-1">
                   {count}
                 </span>
               </div>

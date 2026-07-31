@@ -104,7 +104,7 @@ export function EmployeeMultiSelect({
             onChange={e => setSearch(e.target.value)}
             placeholder={t('multiselect.searchPlaceholder')}
             aria-label={t('multiselect.searchAria')}
-            className="w-full h-9 pl-7 pr-2 text-[13.5px] bg-transparent text-text-primary placeholder:text-text-subtle focus:outline-none"
+            className="w-full h-9 pl-7 pr-2 text-13.5 bg-transparent text-text-primary placeholder:text-text-subtle focus:outline-none"
           />
         </div>
       </div>
@@ -112,7 +112,7 @@ export function EmployeeMultiSelect({
       {/* Employee list */}
       <div className={isMobile ? 'overflow-y-auto max-h-[45vh] py-1' : 'overflow-y-auto flex-1 py-1'}>
         {filtered.length === 0 ? (
-          <div className="px-3 py-6 text-center text-[13px] text-text-subtle">{t('manage.notFound')}</div>
+          <div className="px-3 py-6 text-center text-13 text-text-subtle">{t('manage.notFound')}</div>
         ) : filtered.map(e => {
           const isSel = selected.includes(e.id)
           const fullName = `${e.firstName} ${e.lastName}`.trim()
@@ -127,11 +127,11 @@ export function EmployeeMultiSelect({
                 isSel ? 'bg-accent/10 hover:bg-accent/15' : 'hover:bg-surface-2'
               }`}
             >
-              <span className={`text-[13.5px] flex-1 min-w-0 truncate ${isSel ? 'text-text-primary font-medium' : 'text-text-primary'}`}>
+              <span className={`text-13.5 flex-1 min-w-0 truncate ${isSel ? 'text-text-primary font-medium' : 'text-text-primary'}`}>
                 {fullName}
               </span>
               {e.position && (
-                <span className={`text-[12px] flex-shrink-0 ml-2 ${isSel ? 'text-accent-light' : 'text-text-subtle'}`}>
+                <span className={`text-12 flex-shrink-0 ml-2 ${isSel ? 'text-accent-light' : 'text-text-subtle'}`}>
                   {e.position}
                 </span>
               )}
@@ -146,7 +146,7 @@ export function EmployeeMultiSelect({
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className={`w-full ${isMobile ? 'h-11' : 'h-8'} rounded-lg bg-accent hover:bg-accent-hover text-white text-[13px] font-semibold transition-colors`}
+          className={`w-full ${isMobile ? 'h-11' : 'h-8'} rounded-lg bg-accent hover:bg-accent-hover text-white text-13 font-semibold transition-colors`}
         >
           {t('multiselect.done')}{selected.length > 0 ? ` (${selected.length})` : ''}
         </button>
@@ -192,7 +192,7 @@ export function EmployeeMultiSelect({
         aria-haspopup="listbox"
         aria-label={t('multiselect.placeholder')}
         className={[
-          'w-full h-9 px-2.5 text-[13.5px] rounded-lg border bg-surface text-left flex items-center justify-between gap-2 transition-colors outline-none',
+          'w-full h-9 px-2.5 text-13.5 rounded-lg border bg-surface text-left flex items-center justify-between gap-2 transition-colors outline-none',
           open
             ? 'border-orange-400 ring-2 ring-accent/30'
             : 'border-border hover:border-border-strong',
@@ -216,11 +216,11 @@ export function EmployeeMultiSelect({
               )
             })}
             {overflow > 0 && (
-              <span className="w-6 h-6 rounded-full bg-surface-2 text-text-tertiary text-[10px] font-bold inline-flex items-center justify-center flex-shrink-0 ring-1 ring-surface -ml-1.5">
+              <span className="w-6 h-6 rounded-full bg-surface-2 text-text-tertiary text-10 font-bold inline-flex items-center justify-center flex-shrink-0 ring-1 ring-surface -ml-1.5">
                 +{overflow}
               </span>
             )}
-            <span className="ml-1.5 text-[12.5px] text-text-tertiary flex-shrink-0">{t('multiselect.selectedCount', { count: selected.length })}</span>
+            <span className="ml-1.5 text-12.5 text-text-tertiary flex-shrink-0">{t('multiselect.selectedCount', { count: selected.length })}</span>
           </span>
         )}
         <Icon

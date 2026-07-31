@@ -58,10 +58,10 @@ export function Pagination({
 
   // Button base classes — mobile overrides size and rounding
   const btnBase =
-    'w-8 h-8 rounded-md text-[14px] font-semibold tabular-nums inline-flex items-center justify-center transition-colors duration-100' +
-    ' max-md:w-[28px] max-md:h-[28px] max-md:rounded-[7px]'
+    'w-8 h-8 rounded-md text-14 font-semibold tabular-nums inline-flex items-center justify-center transition-colors duration-100' +
+    ' max-md:w-[var(--ctl-h-xs)] max-md:h-[var(--ctl-h-xs)] max-md:rounded-[7px]'
   const btnActive =
-    'bg-accent text-white shadow-sm shadow-accent/25 max-md:text-[12px] max-md:font-bold'
+    'bg-accent text-white shadow-sm shadow-accent/25 max-md:text-12 max-md:font-bold'
   const btnIdle = 'text-text-primary hover:bg-surface-2'
   const btnNav = `${btnBase} ${btnIdle} disabled:opacity-30 disabled:cursor-not-allowed max-md:border max-md:border-border`
 
@@ -74,20 +74,20 @@ export function Pagination({
         // Mobile: compact bar, border-t, safe-area bottom padding
         'max-md:bg-surface',
         'max-md:border-t max-md:border-border',
-        'max-md:px-[14px] max-md:pt-[4px] max-md:pb-[calc(4px+env(safe-area-inset-bottom,0px))]',
-        'max-md:gap-[6px]',
+        'max-md:px-3.5 max-md:pt-1 max-md:pb-[calc(4px+env(safe-area-inset-bottom,0px))]',
+        'max-md:gap-1.5',
       ].join(' ')}
     >
       {/* Left: range text — rendered by caller (may use Trans for bold numbers) */}
       <span
         aria-hidden="true"
-        className="text-[14px] text-text-tertiary tabular-nums max-md:text-[11.5px] max-md:whitespace-nowrap max-md:shrink-0"
+        className="text-14 text-text-tertiary tabular-nums max-md:text-11.5 max-md:whitespace-nowrap max-md:shrink-0"
       >
         {info}
       </span>
 
       {/* Right: page buttons — ALWAYS visible on mobile (prev+next show disabled at 1 page) */}
-      <div className="flex items-center gap-1 max-md:gap-[2px] max-md:shrink-0">
+      <div className="flex items-center gap-1 max-md:gap-0.5 max-md:shrink-0">
         {/* Prev */}
         <button
           type="button"
@@ -113,7 +113,7 @@ export function Pagination({
             {start > 2 && (
               <span
                 aria-hidden="true"
-                className="px-1 text-text-subtle text-[14px] max-md:hidden"
+                className="px-1 text-text-subtle text-14 max-md:hidden"
               >
                 …
               </span>
@@ -148,7 +148,7 @@ export function Pagination({
             {end < totalPages - 1 && (
               <span
                 aria-hidden="true"
-                className="px-1 text-text-subtle text-[14px] max-md:hidden"
+                className="px-1 text-text-subtle text-14 max-md:hidden"
               >
                 …
               </span>

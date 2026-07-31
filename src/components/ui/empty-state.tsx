@@ -17,8 +17,8 @@ export function EmptyState({ icon = 'inbox', title, description, action }: Empty
       <span className="w-14 h-14 rounded-2xl bg-surface-2 text-text-subtle inline-flex items-center justify-center mb-4">
         <Icon name={icon} size={24} />
       </span>
-      <h3 className="text-[14px] font-semibold text-text-primary mb-1">{resolvedTitle}</h3>
-      {description && <p className="max-w-sm text-[12.5px] text-text-subtle mb-4">{description}</p>}
+      <h3 className="text-14 font-semibold text-text-primary mb-1">{resolvedTitle}</h3>
+      {description && <p className="max-w-sm text-12.5 text-text-subtle mb-4">{description}</p>}
       {action}
     </div>
   )

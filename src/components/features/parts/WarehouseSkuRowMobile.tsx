@@ -35,7 +35,7 @@ export const WarehouseSkuRowMobile = memo(function WarehouseSkuRowMobile({
 }: WarehouseSkuRowMobileProps) {
   const iconTile = (
     <span
-      className={`w-[28px] h-[28px] rounded-[8px] inline-flex items-center justify-center flex-shrink-0 ${tint.iconBg} ${tint.iconText}`}
+      className={`w-[1.75rem] h-[1.75rem] rounded-[8px] inline-flex items-center justify-center flex-shrink-0 ${tint.iconBg} ${tint.iconText}`}
       aria-hidden="true"
     >
       <Icon name={icon} size={13} />
@@ -43,7 +43,7 @@ export const WarehouseSkuRowMobile = memo(function WarehouseSkuRowMobile({
   )
 
   const titleNode = (
-    <div className="text-[13px] font-bold text-text-primary truncate leading-snug">
+    <div className="text-13 font-bold text-text-primary truncate leading-snug">
       {name}
       {variantLabel && (
         <span className="text-text-tertiary font-normal"> · {variantLabel}</span>
@@ -55,8 +55,8 @@ export const WarehouseSkuRowMobile = memo(function WarehouseSkuRowMobile({
     <div className="flex items-center gap-1.5 flex-shrink-0">
       <span
         className={[
-          'inline-flex items-center border rounded-[5px] px-[7px] py-[2px]',
-          'text-[10px] font-bold whitespace-nowrap leading-none',
+          'inline-flex items-center border rounded-[5px] px-[0.4375rem] py-0.5',
+          'text-10 font-bold whitespace-nowrap leading-none',
           CHIP_PALETTE.green,
         ].join(' ')}
       >
@@ -65,8 +65,8 @@ export const WarehouseSkuRowMobile = memo(function WarehouseSkuRowMobile({
       {broken > 0 && (
         <span
           className={[
-            'inline-flex items-center border rounded-[5px] px-[7px] py-[2px]',
-            'text-[10px] font-bold whitespace-nowrap leading-none',
+            'inline-flex items-center border rounded-[5px] px-[0.4375rem] py-0.5',
+            'text-10 font-bold whitespace-nowrap leading-none',
             CHIP_PALETTE.red,
           ].join(' ')}
         >

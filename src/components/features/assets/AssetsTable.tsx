@@ -210,7 +210,7 @@ export function AssetsTable({
       {
         key: 'asset',
         header: t('cols.asset'),
-        width: 'minmax(240px,2.4fr)',
+        width: 'minmax(15rem,2.4fr)',
         cellClassName: 'flex items-center gap-2.5 min-w-0',
         cell: (a) => {
           const cat          = categoryMap.get(a.categoryId)
@@ -231,17 +231,17 @@ export function AssetsTable({
               </span>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5 min-w-0">
-                  <span className="text-[15.5px] font-semibold text-text-primary truncate leading-tight">
+                  <span className="text-15.5 font-semibold text-text-primary truncate leading-tight">
                     {title}
                   </span>
                   {isRemote && (
-                    <span className="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-semibold uppercase tracking-wide bg-cyan-500/15 text-cyan-300 light:text-cyan-700 border border-cyan-500/30">
+                    <span className="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-11 font-semibold uppercase tracking-wide bg-cyan-500/15 text-cyan-300 light:text-cyan-700 border border-cyan-500/30">
                       <Icon name="house" size={10} />
                       {t('badges.remote')}
                     </span>
                   )}
                 </div>
-                <div className="text-[13.5px] text-text-tertiary truncate leading-tight mt-0.5">
+                <div className="text-13.5 text-text-tertiary truncate leading-tight mt-0.5">
                   {sub}
                 </div>
               </div>
@@ -252,7 +252,7 @@ export function AssetsTable({
       {
         key: 'branch',
         header: t('cols.branch'),
-        width: 'minmax(130px,1fr)',
+        width: 'minmax(8.125rem,1fr)',
         cellClassName: 'flex items-center gap-1.5 min-w-0',
         cell: (a) => {
           const isMainBranch = a.branchId === HEAD_OFFICE_BRANCH_ID
@@ -261,7 +261,7 @@ export function AssetsTable({
               <span className="shrink-0 inline-flex" style={{ color: isMainBranch ? '#10B981' : '#38BDF8' }}>
                 <Icon name={isMainBranch ? 'landmark' : 'building'} size={12} />
               </span>
-              <span className="text-[14.5px] text-text-secondary truncate">
+              <span className="text-14.5 text-text-secondary truncate">
                 {branchMap.get(a.branchId) ?? '—'}
               </span>
             </>
@@ -271,9 +271,9 @@ export function AssetsTable({
       {
         key: 'code',
         header: t('cols.code'),
-        width: 'minmax(100px,0.85fr)',
+        width: 'minmax(6.25rem,0.85fr)',
         cell: (a) => (
-          <span className="inline-block max-w-full truncate font-mono text-[14px] font-semibold text-text-secondary bg-bg border border-border rounded-md px-1.5 py-0.5">
+          <span className="inline-block max-w-full truncate font-mono text-14 font-semibold text-text-secondary bg-bg border border-border rounded-md px-1.5 py-0.5">
             {a.invCode}
           </span>
         ),
@@ -281,7 +281,7 @@ export function AssetsTable({
       {
         key: 'assignee',
         header: t('cols.assignee'),
-        width: 'minmax(150px,1.2fr)',
+        width: 'minmax(9.375rem,1.2fr)',
         cellClassName: 'min-w-0',
         cell: (a) => (
           <AssigneeCell
@@ -302,7 +302,7 @@ export function AssetsTable({
       {
         key: 'status',
         header: t('cols.status'),
-        width: 'minmax(110px,1fr)',
+        width: 'minmax(6.875rem,1fr)',
         cell: (a) => {
           const displayStatus = deriveDisplayStatus(a, refData.statuses)
           const statusColor: ChipColor =

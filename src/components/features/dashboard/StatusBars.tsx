@@ -31,11 +31,11 @@ export function StatusBars({ byStatus, statuses, total }: StatusBarsProps) {
           <span className="w-6 h-6 lg:w-7 lg:h-7 rounded-md bg-info/15 text-info inline-flex items-center justify-center flex-shrink-0">
             <Icon name="circle-dot" size={14} />
           </span>
-          <h2 className="text-[12px] lg:text-[13px] font-semibold text-text-primary">
+          <h2 className="text-12 lg:text-13 font-semibold text-text-primary">
             {t('status.title')}
           </h2>
         </div>
-        <span className="text-[11px] text-text-subtle tabular-nums">
+        <span className="text-11 text-text-subtle tabular-nums">
           {t('status.totalCaption', { count: total })}
         </span>
       </header>
@@ -55,10 +55,10 @@ export function StatusBars({ byStatus, statuses, total }: StatusBarsProps) {
                   className={cn('w-1.5 h-1.5 rounded-full flex-shrink-0', cfg.dot)}
                   aria-hidden="true"
                 />
-                <span className="flex-1 text-[12.5px] text-text-secondary truncate">
+                <span className="flex-1 text-12.5 text-text-secondary truncate">
                   {status?.name ?? id}
                 </span>
-                <span className="text-[12.5px] font-mono tabular-nums text-text-primary ml-1">
+                <span className="text-12.5 font-mono tabular-nums text-text-primary ml-1">
                   {count}
                 </span>
               </div>

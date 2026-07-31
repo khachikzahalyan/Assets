@@ -282,8 +282,8 @@ export function AssetDetailSkeleton({ hasSpecs }: AssetDetailSkeletonProps = {})
                       <div className="flex items-center gap-2.5">
                         {/* Icon box — SectionCard w-7 h-7 rounded-md */}
                         <div className="w-7 h-7 rounded-md anim-skeleton flex-shrink-0" />
-                        {/* Real static title — text-[13px] font-bold uppercase tracking-[0.04em] */}
-                        <span className="text-[13px] font-bold uppercase tracking-[0.04em] text-text-primary">
+                        {/* Real static title — text-13 font-bold uppercase tracking-[0.04em] */}
+                        <span className="text-13 font-bold uppercase tracking-[0.04em] text-text-primary">
                           {t('detail.specs.title')}
                         </span>
                       </div>
@@ -323,14 +323,14 @@ export function AssetDetailSkeleton({ hasSpecs }: AssetDetailSkeletonProps = {})
                           so per P2 they render REAL (zero shift); the button is inert
                           (no onClick). Classes copied verbatim from TechSpecsCard ~183-200. */}
                       <div className="mt-5 pt-3 border-t border-dashed border-border flex items-center justify-between gap-3 flex-wrap">
-                        <span className="inline-flex items-center gap-1.5 text-[13px] text-text-tertiary">
+                        <span className="inline-flex items-center gap-1.5 text-13 text-text-tertiary">
                           <Icon name="info" size={12} className="text-text-subtle" />
                           {t('detail.parts.note')}
                         </span>
                         <button
                           type="button"
                           tabIndex={-1}
-                          className="inline-flex items-center justify-center gap-1.5 h-8 px-3.5 rounded-xl text-[14px] font-semibold text-accent-light bg-accent/10 ring-1 ring-inset ring-accent/30 hover:bg-accent/20 transition-colors"
+                          className="inline-flex items-center justify-center gap-1.5 h-8 px-3.5 rounded-xl text-14 font-semibold text-accent-light bg-accent/10 ring-1 ring-inset ring-accent/30 hover:bg-accent/20 transition-colors"
                         >
                           {t('detail.parts.openParts')}
                           <Icon name="arrow-right" size={13} />
@@ -351,7 +351,7 @@ export function AssetDetailSkeleton({ hasSpecs }: AssetDetailSkeletonProps = {})
                     <header className="flex items-center justify-between px-5 py-3.5 border-b border-border lg:flex-shrink-0">
                       <div className="flex items-center gap-2.5">
                         <div className="w-7 h-7 rounded-md anim-skeleton flex-shrink-0" />
-                        <span className="text-[13px] font-bold uppercase tracking-[0.04em] text-text-primary">
+                        <span className="text-13 font-bold uppercase tracking-[0.04em] text-text-primary">
                           {t('detail.history.title')}
                         </span>
                       </div>

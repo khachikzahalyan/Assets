@@ -61,7 +61,6 @@ function buildNativeRows(asset: PartsAsset): NativeRow[] {
 export interface DeviceDetailMobileViewProps {
   asset: PartsAsset
   onBack: () => void
-  onUninstall: (slot: UpgradeSlot, idx: number) => void
   movements: PartMovement[]
   parts: Part[]
 }
@@ -75,7 +74,7 @@ type InnerTab = 'installed' | 'history'
  * Desktop is NOT rendered (component is only mounted when isMobile=true in DevicesTab).
  */
 export function DeviceDetailMobileView({
-  asset, onBack, onUninstall, movements, parts,
+  asset, onBack, movements, parts,
 }: DeviceDetailMobileViewProps) {
   const { t } = useTranslation('parts')
   const [innerTab, setInnerTab] = useState<InnerTab>('installed')
@@ -108,11 +107,11 @@ export function DeviceDetailMobileView({
             <Icon name={iconName} size={20} />
           </span>
           <div className="min-w-0">
-            <div className="text-[17px] font-bold text-text-primary leading-tight tracking-[-0.3px]">{asset.name}</div>
+            <div className="text-17 font-bold text-text-primary leading-tight tracking-[-0.3px]">{asset.name}</div>
             <div className="flex items-center gap-1.5 mt-1">
-              <span className="text-[12px] text-text-tertiary font-mono">{asset.id}</span>
-              <span className="text-text-subtle text-[12px]">·</span>
-              <span className="text-[12px] text-text-subtle">{componentCountLabel}</span>
+              <span className="text-12 text-text-tertiary font-mono">{asset.id}</span>
+              <span className="text-text-subtle text-12">·</span>
+              <span className="text-12 text-text-subtle">{componentCountLabel}</span>
             </div>
           </div>
         </div>
@@ -127,11 +126,11 @@ export function DeviceDetailMobileView({
               key={tab.id}
               type="button"
               onClick={() => setInnerTab(tab.id)}
-              className={`relative flex items-center gap-1.5 pb-2 mr-4 text-[13px] font-semibold transition-colors
+              className={`relative flex items-center gap-1.5 pb-2 mr-4 text-13 font-semibold transition-colors
                 ${innerTab === tab.id ? 'text-text-primary' : 'text-text-subtle'}`}
             >
               {tab.label}
-              <span className={`px-1.5 rounded text-[10px] font-bold tabular-nums
+              <span className={`px-1.5 rounded text-10 font-bold tabular-nums
                 ${innerTab === tab.id ? 'bg-accent text-white' : 'bg-surface text-text-subtle'}`}>
                 {tab.count}
               </span>
@@ -147,7 +146,7 @@ export function DeviceDetailMobileView({
       <div className="flex-1 min-h-0 overflow-y-auto">
         {innerTab === 'installed' ? (
           rows.length === 0 ? (
-            <div className="h-full flex items-center justify-center p-8 text-[14px] text-text-tertiary text-center">
+            <div className="h-full flex items-center justify-center p-8 text-14 text-text-tertiary text-center">
               {t('device.noPartsTitle')}
             </div>
           ) : (
@@ -157,23 +156,15 @@ export function DeviceDetailMobileView({
                 const catLabel = PART_CAT_BY_ID[row.category]?.label ?? row.category
                 return (
                   <li key={row.id} className="flex items-center gap-3 px-3.5 py-3.5">
-                    <span className={`w-[34px] h-[34px] rounded-[9px] ${tint.iconBg} ${tint.iconText} inline-flex items-center justify-center flex-shrink-0`}>
+                    <span className={`w-[2.125rem] h-[2.125rem] rounded-[9px] ${tint.iconBg} ${tint.iconText} inline-flex items-center justify-center flex-shrink-0`}>
                       <Icon name={catIcon} size={14} />
                     </span>
                     <div className="flex-1 min-w-0">
-                      <div className="text-[13.5px] font-semibold text-text-primary leading-tight">
+                      <div className="text-13.5 font-semibold text-text-primary leading-tight">
                         {row.name}{row.variantLabel ? ` · ${row.variantLabel}` : ''}
                       </div>
-                      <div className="text-[11.5px] text-text-secondary mt-0.5">{catLabel}</div>
+                      <div className="text-11.5 text-text-secondary mt-0.5">{catLabel}</div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => onUninstall(row.entry, row.slotIdx)}
-                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-surface border border-border text-text-tertiary text-[11px] font-semibold flex-shrink-0"
-                    >
-                      <Icon name="settings" size={10} />
-                      {t('device.nativeLabel', 'Конфиг.')}
-                    </button>
                   </li>
                 )
               })}
@@ -181,7 +172,7 @@ export function DeviceDetailMobileView({
           )
         ) : (
           sortedHistory.length === 0 ? (
-            <div className="h-full flex items-center justify-center p-8 text-[14px] text-text-tertiary text-center">
+            <div className="h-full flex items-center justify-center p-8 text-14 text-text-tertiary text-center">
               {t('device.historyEmpty')}
             </div>
           ) : (
@@ -209,15 +200,15 @@ export function DeviceDetailMobileView({
                 return (
                   <li key={mv.id || i} className="flex items-center gap-3 px-3.5 py-3">
                     <span className={`w-[7px] h-[7px] rounded-full flex-shrink-0 ${dotColor}`} />
-                    <span className={`w-[34px] h-[34px] rounded-[9px] flex-shrink-0 inline-flex items-center justify-center
+                    <span className={`w-[2.125rem] h-[2.125rem] rounded-[9px] flex-shrink-0 inline-flex items-center justify-center
                       ${rowVisual ? `${rowVisual.tint.iconBg} ${rowVisual.tint.iconText}` : 'bg-surface-2 text-text-tertiary'}`}>
                       <Icon name={rowVisual?.icon ?? 'package'} size={14} />
                     </span>
                     <div className="flex-1 min-w-0">
-                      <div className="text-[13.5px] font-semibold text-text-primary truncate">{skuLabel}</div>
-                      <div className="text-[11.5px] text-text-secondary mt-0.5">{actionLabel}</div>
+                      <div className="text-13.5 font-semibold text-text-primary truncate">{skuLabel}</div>
+                      <div className="text-11.5 text-text-secondary mt-0.5">{actionLabel}</div>
                     </div>
-                    <span className="text-[10.5px] font-mono text-text-subtle flex-shrink-0">{fmtPartsDate(mv.at)}</span>
+                    <span className="text-10.5 font-mono text-text-subtle flex-shrink-0">{fmtPartsDate(mv.at)}</span>
                   </li>
                 )
               })}

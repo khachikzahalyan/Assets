@@ -48,10 +48,10 @@ export function WarehouseMobileDetail({
           <span className={`w-9 h-9 rounded-[10px] ${tint.iconBg} ${tint.iconText} inline-flex items-center justify-center flex-shrink-0`}>
             <Icon name={icon} size={16} />
           </span>
-          <span className="text-[16px] font-bold text-text-primary">{title}</span>
+          <span className="text-16 font-bold text-text-primary">{title}</span>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          <span className={`text-[11px] font-bold rounded-full px-2.5 py-1 flex-shrink-0
+          <span className={`text-11 font-bold rounded-full px-2.5 py-1 flex-shrink-0
             ${totalOnHand > 0
               ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 light:text-emerald-700'
               : 'bg-surface-2 border border-border text-text-subtle'}`}>
@@ -64,7 +64,7 @@ export function WarehouseMobileDetail({
               className="inline-flex items-center gap-1 bg-accent/10 border border-accent/30 rounded-full px-2.5 py-1"
             >
               <Icon name="wrench" size={10} className="text-accent" />
-              <span className="text-[11px] font-semibold text-accent">{t('actions.install', 'Установить')}</span>
+              <span className="text-11 font-semibold text-accent">{t('actions.install', 'Установить')}</span>
             </button>
           )}
         </div>

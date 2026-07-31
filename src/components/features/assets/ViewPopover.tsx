@@ -143,7 +143,7 @@ export function ViewPopover({
             <div className="flex-1 min-w-0">
               <div
                 className={[
-                  'text-[14.5px] truncate',
+                  'text-14.5 truncate',
                   active ? 'font-semibold' : 'font-medium',
                 ].join(' ')}
               >
@@ -151,7 +151,7 @@ export function ViewPopover({
               </div>
               <div
                 className={[
-                  'text-[12.5px] truncate',
+                  'text-12.5 truncate',
                   active ? 'text-white/80' : 'text-text-tertiary',
                 ].join(' ')}
               >
@@ -191,7 +191,7 @@ export function ViewPopover({
         />
         <span
           className={[
-            'text-[13px] uppercase tracking-[0.07em] font-semibold',
+            'text-13 uppercase tracking-[0.07em] font-semibold',
             !isDefault ? 'text-accent' : 'text-text-tertiary',
           ].join(' ')}
         >
@@ -199,7 +199,7 @@ export function ViewPopover({
         </span>
         <span
           className={[
-            'text-[14px] font-semibold tracking-tight',
+            'text-14 font-semibold tracking-tight',
             !isDefault ? 'text-accent-hover' : 'text-text-secondary',
           ].join(' ')}
         >
@@ -246,10 +246,10 @@ export function ViewPopover({
             {/* Header */}
             <div className="px-3.5 pt-3 pb-2 border-b border-border flex items-center justify-between">
               <div>
-                <div className="text-[12px] uppercase tracking-[0.08em] font-semibold text-text-primary">
+                <div className="text-12 uppercase tracking-[0.08em] font-semibold text-text-primary">
                   {title}
                 </div>
-                <div className="text-[14px] text-text-secondary mt-0.5">
+                <div className="text-14 text-text-secondary mt-0.5">
                   {subtitle}
                 </div>
               </div>

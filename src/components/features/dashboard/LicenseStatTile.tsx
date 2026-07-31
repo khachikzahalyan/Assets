@@ -26,10 +26,10 @@ export function LicenseStatTile({ stats }: LicenseStatTileProps) {
       <div className="flex flex-col gap-4">
         {/* Big total — aggregate count only, never a license key */}
         <div>
-          <div className="text-[12px] text-text-subtle">
+          <div className="text-12 text-text-subtle">
             {t('license.total')}
           </div>
-          <div className="text-[28px] font-bold text-text-primary tabular-nums leading-tight">
+          <div className="text-display-sm font-bold text-text-primary tabular-nums leading-tight">
             {stats.total}
           </div>
         </div>
@@ -38,10 +38,10 @@ export function LicenseStatTile({ stats }: LicenseStatTileProps) {
         <div className="grid grid-cols-3 gap-2">
           {subStats.map(({ labelKey, value, color }) => (
             <div key={labelKey} className="flex flex-col gap-0.5">
-              <span className="text-[20px] font-bold tabular-nums" style={{ color }}>
+              <span className="text-20 font-bold tabular-nums" style={{ color }}>
                 {value}
               </span>
-              <span className="text-[11px] text-text-subtle">
+              <span className="text-11 text-text-subtle">
                 {t(labelKey)}
               </span>
             </div>

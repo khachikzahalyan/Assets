@@ -41,11 +41,11 @@ export function SpecsPanel({ specs, onChange, isServer, hasGpu }: SpecsPanelProp
 
   return (
     <div className="space-y-4">
-      {/* B4: section header text-[13px] */}
-      <div className="text-[13px] font-semibold text-text-tertiary tracking-[0.06em] uppercase">Характеристики</div>
+      {/* B4: section header text-13 */}
+      <div className="text-13 font-semibold text-text-tertiary tracking-[0.06em] uppercase">Характеристики</div>
       <div className="grid grid-cols-[8rem_1fr] max-md:grid-cols-1 gap-x-4 gap-y-5 max-md:gap-y-4 items-start">
-        {/* B4: spec row labels text-[16px]; B4: CPU placeholder from t() */}
-        <label htmlFor="asset-spec-cpu" className="text-[16px] font-medium text-text-tertiary pt-2 max-md:pt-0 max-md:text-[13px] max-md:font-semibold max-md:text-text-tertiary max-md:tracking-[0.06em] max-md:uppercase max-md:pb-0">Процессор</label>
+        {/* B4: spec row labels text-16; B4: CPU placeholder from t() */}
+        <label htmlFor="asset-spec-cpu" className="text-16 font-medium text-text-tertiary pt-2 max-md:pt-0 max-md:text-13 max-md:font-semibold max-md:text-text-tertiary max-md:tracking-[0.06em] max-md:uppercase max-md:pb-0">Процессор</label>
         <SpecCombobox
           id="asset-spec-cpu"
           value={specs.cpu || ''}
@@ -55,7 +55,7 @@ export function SpecsPanel({ specs, onChange, isServer, hasGpu }: SpecsPanelProp
         />
 
         {hasGpu && (
-          <label htmlFor="asset-spec-gpu" className="text-[16px] font-medium text-text-tertiary pt-2 max-md:pt-0 max-md:text-[13px] max-md:font-semibold max-md:tracking-[0.06em] max-md:uppercase max-md:pb-0">Видеокарта</label>
+          <label htmlFor="asset-spec-gpu" className="text-16 font-medium text-text-tertiary pt-2 max-md:pt-0 max-md:text-13 max-md:font-semibold max-md:tracking-[0.06em] max-md:uppercase max-md:pb-0">Видеокарта</label>
         )}
         {hasGpu && (
           /* Underline style — matches SpecCombobox for visual consistency */
@@ -66,16 +66,16 @@ export function SpecsPanel({ specs, onChange, isServer, hasGpu }: SpecsPanelProp
               value={specs.gpu || ''}
               onChange={e => set({ gpu: e.target.value })}
               placeholder="Встроенная"
-              className="flex-1 min-w-0 px-0 py-2.5 text-[15px] bg-transparent text-text-primary outline-none placeholder:text-text-subtle"
+              className="flex-1 min-w-0 px-0 py-2.5 text-15 bg-transparent text-text-primary outline-none placeholder:text-text-subtle"
             />
           </div>
         )}
 
         {/* B5: RAM label + count badge when > 1 slot */}
-        <span id="asset-spec-ram-label" className="text-[16px] font-medium text-text-tertiary pt-2 max-md:pt-0 max-md:text-[13px] max-md:font-semibold max-md:tracking-[0.06em] max-md:uppercase flex flex-wrap items-center gap-1.5">
+        <span id="asset-spec-ram-label" className="text-16 font-medium text-text-tertiary pt-2 max-md:pt-0 max-md:text-13 max-md:font-semibold max-md:tracking-[0.06em] max-md:uppercase flex flex-wrap items-center gap-1.5">
           ОЗУ
           {ramSlotCount > 1 && (
-            <span className="inline-flex items-center whitespace-nowrap px-1.5 py-0.5 rounded-md bg-accent/10 border border-accent/30 text-accent text-[11px] font-semibold tabular-nums">
+            <span className="inline-flex items-center whitespace-nowrap px-1.5 py-0.5 rounded-md bg-accent/10 border border-accent/30 text-accent text-11 font-semibold tabular-nums">
               {ramSlotCount} {pluralModule(ramSlotCount)}
             </span>
           )}
@@ -85,10 +85,10 @@ export function SpecsPanel({ specs, onChange, isServer, hasGpu }: SpecsPanelProp
         </div>
 
         {/* B5: Storage label + count badge when > 1 slot */}
-        <span id="asset-spec-ssd-label" className="text-[16px] font-medium text-text-tertiary pt-2 max-md:pt-0 max-md:text-[13px] max-md:font-semibold max-md:tracking-[0.06em] max-md:uppercase flex flex-wrap items-center gap-1.5">
+        <span id="asset-spec-ssd-label" className="text-16 font-medium text-text-tertiary pt-2 max-md:pt-0 max-md:text-13 max-md:font-semibold max-md:tracking-[0.06em] max-md:uppercase flex flex-wrap items-center gap-1.5">
           Накопитель
           {storageSlotCount > 1 && (
-            <span className="inline-flex items-center whitespace-nowrap px-1.5 py-0.5 rounded-md bg-accent/10 border border-accent/30 text-accent text-[11px] font-semibold tabular-nums">
+            <span className="inline-flex items-center whitespace-nowrap px-1.5 py-0.5 rounded-md bg-accent/10 border border-accent/30 text-accent text-11 font-semibold tabular-nums">
               {storageSlotCount} {pluralDisk(storageSlotCount)}
             </span>
           )}

@@ -26,12 +26,12 @@ export function StorageSlots({ value, onChange }: StorageSlotsProps) {
 
   return (
     <div className="space-y-2">
-      {rows.length === 0 && <div className="text-[14px] text-text-subtle italic py-1">Накопители не добавлены</div>}
+      {rows.length === 0 && <div className="text-14 text-text-subtle italic py-1">Накопители не добавлены</div>}
       {rows.map((r, idx) => (
         // Type column 6.5rem — fits «NVMe»/«HDD» plus MiniDropdown chrome without truncation
         <div key={r._id} className="grid grid-cols-[6.5rem_1.5rem_1fr_2rem] gap-x-2 items-center anim-fade-slide-in">
           <MiniDropdown value={r.type} onChange={v => editRow(r._id, { type: v })} options={typeOptions} placeholder="Тип" ariaLabel={`Тип накопителя ${idx + 1}`} />
-          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-surface-2 text-text-tertiary text-[13px] font-semibold ring-1 ring-border" aria-hidden="true">{idx + 1}</span>
+          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-surface-2 text-text-tertiary text-13 font-semibold ring-1 ring-border" aria-hidden="true">{idx + 1}</span>
           <MiniDropdown value={r.size} onChange={v => editRow(r._id, { size: v })} options={sizeOptions} placeholder="Размер" ariaLabel={`Размер накопителя ${idx + 1}`} />
           <button
             type="button"
@@ -46,7 +46,7 @@ export function StorageSlots({ value, onChange }: StorageSlotsProps) {
         type="button"
         onClick={addRow}
         disabled={hasEmptyRow}
-        className="inline-flex items-center gap-1.5 text-[14px] font-medium text-accent hover:text-accent-hover hover:bg-[rgba(249,115,22,0.12)] px-2 py-1 rounded-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        className="inline-flex items-center gap-1.5 text-14 font-medium text-accent hover:text-accent-hover hover:bg-[rgba(249,115,22,0.12)] px-2 py-1 rounded-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
       ><Icon name="plus" size={13} />Добавить</button>
     </div>
   )

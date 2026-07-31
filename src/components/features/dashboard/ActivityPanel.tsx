@@ -36,7 +36,7 @@ export function ActivityPanel({ rows }: ActivityPanelProps) {
         <span className="w-6 h-6 lg:w-7 lg:h-7 rounded-md bg-success/15 text-success inline-flex items-center justify-center flex-shrink-0">
           <Icon name="arrow-right-left" size={14} />
         </span>
-        <h2 className="text-[12px] lg:text-[13px] font-semibold text-text-primary">
+        <h2 className="text-12 lg:text-13 font-semibold text-text-primary">
           {t('recentActivity')}
         </h2>
       </header>
@@ -63,16 +63,16 @@ export function ActivityPanel({ rows }: ActivityPanelProps) {
                     {/* Role-based avatar — 30px */}
                     <RoleIcon role="employee" size={30} className="flex-shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <div className="text-[12.5px] text-text-primary leading-snug">
+                      <div className="text-12.5 text-text-primary leading-snug">
                         {t(`activity.${row.action}`)}
                       </div>
                       {subtitle && (
-                        <div className="text-[11px] text-text-subtle mt-0.5 truncate">
+                        <div className="text-11 text-text-subtle mt-0.5 truncate">
                           {subtitle}
                         </div>
                       )}
                     </div>
-                    <span className="text-[10.5px] text-text-subtle tabular-nums flex-shrink-0 ml-1">
+                    <span className="text-10.5 text-text-subtle tabular-nums flex-shrink-0 ml-1">
                       {relativeTime(row.at, t)}
                     </span>
                   </div>
@@ -97,7 +97,7 @@ export function ActivityPanel({ rows }: ActivityPanelProps) {
             {/* Mobile: full-width outlined button */}
             <Link
               to="/assets"
-              className="lg:hidden mt-3 block text-center py-2 rounded-lg border border-border/60 text-[12px] text-text-secondary hover:border-border hover:text-text-primary transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent"
+              className="lg:hidden mt-3 block text-center py-2 rounded-lg border border-border/60 text-12 text-text-secondary hover:border-border hover:text-text-primary transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent"
             >
               {t('viewAll')}
             </Link>
@@ -106,7 +106,7 @@ export function ActivityPanel({ rows }: ActivityPanelProps) {
             <div className="hidden lg:block pt-3 text-right">
               <Link
                 to="/assets"
-                className="text-[11.5px] text-accent hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent"
+                className="text-11.5 text-accent hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent"
               >
                 {t('viewAll')}
               </Link>

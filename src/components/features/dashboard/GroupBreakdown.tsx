@@ -23,10 +23,10 @@ export function GroupBreakdown({ byGroup }: GroupBreakdownProps) {
           return (
             <div key={group} className="flex flex-col gap-1">
               <div className="flex items-center justify-between">
-                <span className="text-[12.5px] text-text-tertiary">
+                <span className="text-12.5 text-text-tertiary">
                   {t(`groups.${group}`)}
                 </span>
-                <span className="text-[12.5px] font-semibold text-text-primary tabular-nums">
+                <span className="text-12.5 font-semibold text-text-primary tabular-nums">
                   {count}
                 </span>
               </div>

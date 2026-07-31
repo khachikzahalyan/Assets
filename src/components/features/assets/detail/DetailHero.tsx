@@ -55,19 +55,19 @@ export function DetailHero({
             <Icon name={category?.lucideIcon ?? 'package'} size={20} className="md:hidden" />
           </div>
           <div className="flex-1 min-w-0">
-            <h1 className="text-[18px] max-md:text-[15px] font-bold text-text-primary leading-snug mb-1.5 max-md:mb-1 truncate">
+            <h1 className="text-18 max-md:text-15 font-bold text-text-primary leading-snug mb-1.5 max-md:mb-1 truncate">
               {assetTitle(asset, category?.name, category?.group)}
             </h1>
             <div className="flex flex-wrap items-center gap-2 max-md:gap-1.5">
               {/* Neutral mono chip, white text (priority identifier), no # — owner request */}
-              <span className="inline-flex items-center font-mono text-[13px] max-md:text-[11px] font-bold bg-surface-2 text-text-primary ring-1 ring-border px-2 py-0.5 rounded-md">
+              <span className="inline-flex items-center font-mono text-13 max-md:text-11 font-bold bg-surface-2 text-text-primary ring-1 ring-border px-2 py-0.5 rounded-md">
                 {asset.invCode}
               </span>
               {category && <Chip color="blue">{category.name}</Chip>}
               {asset.serial && (
-                <span className="inline-flex items-center gap-1.5 text-text-tertiary max-md:text-[12px]">
-                  <span className="uppercase tracking-wide text-[12px] max-md:text-[10px] text-text-subtle">SN</span>
-                  <span className="font-mono text-[#E2E8F0] light:text-slate-700 break-all max-md:text-[11px]">{asset.serial}</span>
+                <span className="inline-flex items-center gap-1.5 text-text-tertiary max-md:text-12">
+                  <span className="uppercase tracking-wide text-12 max-md:text-10 text-text-subtle">SN</span>
+                  <span className="font-mono text-[#E2E8F0] light:text-slate-700 break-all max-md:text-11">{asset.serial}</span>
                 </span>
               )}
             </div>
@@ -77,7 +77,7 @@ export function DetailHero({
               Flows after title on mobile (flex-wrap), stays inline on desktop. */}
           <div className="shrink-0 flex gap-2 items-center max-md:w-full max-md:mt-0.5">
             <span
-              className={`inline-flex items-center gap-1.5 h-8 max-md:h-11 px-2.5 rounded-lg text-[13px] font-semibold border ${
+              className={`inline-flex items-center gap-1.5 h-8 max-md:h-11 px-2.5 rounded-lg text-13 font-semibold border ${
                 CHIP_PALETTE[STATUS_CHIP_COLOR[statusRow.id] ?? 'gray']
               }`}
             >
@@ -88,7 +88,7 @@ export function DetailHero({
               <button
                 type="button"
                 onClick={onPrint}
-                className="inline-flex items-center gap-1.5 h-8 max-md:h-11 px-2.5 rounded-lg text-[13px] font-semibold text-accent light:text-accent bg-accent/10 border border-accent/30 hover:bg-accent/15 hover:border-accent/50 transition-colors"
+                className="inline-flex items-center gap-1.5 h-8 max-md:h-11 px-2.5 rounded-lg text-13 font-semibold text-accent light:text-accent bg-accent/10 border border-accent/30 hover:bg-accent/15 hover:border-accent/50 transition-colors"
               >
                 <Icon name="barcode" size={14} />
                 {t('label.print')}
@@ -98,7 +98,7 @@ export function DetailHero({
               <button
                 type="button"
                 onClick={onWriteOff}
-                className="inline-flex items-center gap-1.5 h-8 max-md:h-11 px-2.5 rounded-lg text-[13px] font-semibold text-rose-300 light:text-rose-700 bg-rose-500/10 light:bg-rose-50 border border-rose-500/30 light:border-rose-200 hover:bg-rose-500/15 hover:border-rose-500/50 transition-colors max-md:ml-auto"
+                className="inline-flex items-center gap-1.5 h-8 max-md:h-11 px-2.5 rounded-lg text-13 font-semibold text-rose-300 light:text-rose-700 bg-rose-500/10 light:bg-rose-50 border border-rose-500/30 light:border-rose-200 hover:bg-rose-500/15 hover:border-rose-500/50 transition-colors max-md:ml-auto"
               >
                 <Icon name="archive-x" size={13} />
                 {t('detail.hero.writeOff')}

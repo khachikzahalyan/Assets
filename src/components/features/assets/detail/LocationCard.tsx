@@ -24,14 +24,14 @@ export function LocationCard({ asset, refData }: LocationCardProps) {
             <div className="flex items-center gap-2">
               <Icon name="building-2" size={14} className="text-emerald-500" />
               {branch
-                ? <span className="text-[14px] text-[#E2E8F0] light:text-slate-800">{branch.name}</span>
-                : <span className="text-[14px] text-text-subtle">—</span>
+                ? <span className="text-14 text-[#E2E8F0] light:text-slate-800">{branch.name}</span>
+                : <span className="text-14 text-text-subtle">—</span>
               }
             </div>
             {dept && (
               <div className="flex items-center gap-2">
                 <Icon name="users" size={14} className="text-blue-400 light:text-blue-600" />
-                <span className="text-[14px] text-text-tertiary">
+                <span className="text-14 text-text-tertiary">
                   {t('detail.location.dept')}:{' '}
                   <span className="text-[#E2E8F0] light:text-slate-800">{dept.name}</span>
                 </span>
@@ -45,25 +45,25 @@ export function LocationCard({ asset, refData }: LocationCardProps) {
           One flat card of label–value rows split by a soft divider. */}
       <div className="md:hidden bg-surface border border-border rounded-xl divide-y divide-border/50">
         <div className="flex items-center justify-between gap-3 px-3 py-2.5 min-w-0">
-          <span className="inline-flex items-center gap-2.5 text-[12px] text-text-tertiary shrink-0">
+          <span className="inline-flex items-center gap-2.5 text-12 text-text-tertiary shrink-0">
             <span className="w-[26px] h-[26px] rounded-md bg-emerald-500/10 flex items-center justify-center">
               <Icon name="building-2" size={13} className="text-emerald-300 light:text-emerald-600" />
             </span>
             {t('detail.location.branch')}
           </span>
-          <span className={`text-[13.5px] truncate ${branch ? 'font-semibold text-text-primary' : 'text-text-subtle'}`}>
+          <span className={`text-13.5 truncate ${branch ? 'font-semibold text-text-primary' : 'text-text-subtle'}`}>
             {branch?.name ?? '—'}
           </span>
         </div>
         {dept && (
           <div className="flex items-center justify-between gap-3 px-3 py-2.5 min-w-0">
-            <span className="inline-flex items-center gap-2.5 text-[12px] text-text-tertiary shrink-0">
+            <span className="inline-flex items-center gap-2.5 text-12 text-text-tertiary shrink-0">
               <span className="w-[26px] h-[26px] rounded-md bg-emerald-500/10 flex items-center justify-center">
                 <Icon name="users" size={13} className="text-emerald-300 light:text-emerald-600" />
               </span>
               {t('detail.location.dept')}
             </span>
-            <span className="text-[13.5px] font-semibold text-text-primary truncate">{dept.name}</span>
+            <span className="text-13.5 font-semibold text-text-primary truncate">{dept.name}</span>
           </div>
         )}
       </div>

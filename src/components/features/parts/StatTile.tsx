@@ -39,7 +39,7 @@ export const StatTile = memo(function StatTile({ tone, icon, label, value, unit 
   const mobileTone = MOBILE_TONE_STYLE[tone] ?? ''
   return (
     <div
-      className={`relative bg-surface border border-border rounded-xl px-3.5 py-2.5 flex items-center gap-3 min-w-0 max-md:rounded-2xl max-md:p-[14px] max-md:gap-3 ${mobileTone}`}
+      className={`relative bg-surface border border-border rounded-xl px-3.5 py-2.5 flex items-center gap-3 min-w-0 max-md:rounded-2xl max-md:p-3.5 max-md:gap-3 ${mobileTone}`}
     >
       {/* Icon badge: 32px desktop → 40px mobile, radius 8px → 10px */}
       <span
@@ -48,15 +48,15 @@ export const StatTile = memo(function StatTile({ tone, icon, label, value, unit 
         <Icon name={icon} size={15} />
       </span>
       <div className="flex-1 min-w-0">
-        <div className="text-[12px] uppercase tracking-[0.08em] text-text-subtle font-semibold leading-none truncate">
+        <div className="text-12 uppercase tracking-[0.08em] text-text-subtle font-semibold leading-none truncate">
           {label}
         </div>
         {loading === true ? (
           <div className="h-[20px] w-[42%] rounded anim-skeleton mt-1 max-md:h-[22px]" />
         ) : (
-          <div className={`mt-1 text-[20px] font-bold tabular-nums ${t.value} leading-none whitespace-nowrap max-md:text-[22px]`}>
+          <div className={`mt-1 text-20 font-bold tabular-nums ${t.value} leading-none whitespace-nowrap max-md:text-22`}>
             {value}
-            <span className="ml-1 text-[13px] font-medium text-text-subtle">{unit}</span>
+            <span className="ml-1 text-13 font-medium text-text-subtle">{unit}</span>
           </div>
         )}
       </div>

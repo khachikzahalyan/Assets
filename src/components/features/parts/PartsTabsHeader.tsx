@@ -70,7 +70,7 @@ export function PartsTabsHeader({
   return (
     <>
       {/* ── Tab strip ─────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between border-b border-border max-md:bg-surface-2 max-md:px-[6px]">
+      <div className="flex items-center justify-between border-b border-border max-md:bg-surface-2 max-md:px-1.5">
         <TabStrip<ActiveTab>
           tabs={tabItems}
           active={activeTab}
@@ -94,7 +94,7 @@ export function PartsTabsHeader({
         <MobileAddButton
           onClick={onAdd}
           ariaLabel={t('actions.add')}
-          className="md:hidden mr-[8px]"
+          className="md:hidden mr-2"
         />
       </div>
 
@@ -104,7 +104,7 @@ export function PartsTabsHeader({
        * Devices tab: search input flex-1
        * (the «+» add button lives on the tab strip above, per prototype)
        */}
-      <div className="md:hidden flex items-center gap-[8px] bg-bg px-[14px] py-[7px]">
+      <div className="md:hidden flex items-center gap-2 bg-bg px-3.5 py-[0.4375rem]">
         {activeTab === 'warehouse' ? (
           <CategoryChipStrip
             skusByCategory={skusByCategory}

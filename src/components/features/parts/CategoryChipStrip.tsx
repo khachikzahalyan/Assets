@@ -83,8 +83,8 @@ export function CategoryChipStrip({
       ref={stripRef}
       className={
         bare
-          ? 'flex gap-[7px] overflow-x-auto flex-1 min-w-0'
-          : 'flex gap-[7px] overflow-x-auto py-3 px-3.5 border-b border-border'
+          ? 'flex gap-[0.4375rem] overflow-x-auto flex-1 min-w-0'
+          : 'flex gap-[0.4375rem] overflow-x-auto py-3 px-3.5 border-b border-border'
       }
       style={{ scrollbarWidth: 'none' }}
       role="tablist"
@@ -116,7 +116,7 @@ export function CategoryChipStrip({
             onClick={() => handleClick(cat.id)}
             className={`
               inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg whitespace-nowrap
-              flex-shrink-0 text-[13px] font-semibold tracking-tight transition-colors duration-100
+              flex-shrink-0 text-13 font-semibold tracking-tight transition-colors duration-100
               focus:outline-none focus-visible:ring-2 focus-visible:ring-border-strong
               ${isSelected
                 ? 'bg-accent text-white'
@@ -129,7 +129,7 @@ export function CategoryChipStrip({
               className={isSelected ? 'text-white' : 'text-text-primary'}
             />
             <span>{cat.label}</span>
-            <span className={`tabular-nums text-[12px] ${isSelected ? 'text-white/70' : 'text-text-subtle'}`}>
+            <span className={`tabular-nums text-12 ${isSelected ? 'text-white/70' : 'text-text-subtle'}`}>
               {total}
             </span>
           </button>

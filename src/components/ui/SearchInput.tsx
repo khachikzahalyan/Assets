@@ -27,7 +27,7 @@ export function SearchInput({
       <span
         className={[
           'absolute top-1/2 -translate-y-1/2 text-text-subtle pointer-events-none',
-          'left-2.5 max-md:left-[10px]',
+          'left-2.5 max-md:left-2.5',
         ].join(' ')}
       >
         <Icon name="search" size={13} />
@@ -39,13 +39,13 @@ export function SearchInput({
         onChange={e => onChange(e.target.value)}
         className={[
           // Desktop (assets etalon)
-          'w-full h-8 pl-8 pr-3 text-[13.5px] bg-surface border border-border rounded-lg',
+          'w-full h-8 pl-8 pr-3 text-13.5 bg-surface border border-border rounded-lg',
           'text-text-primary placeholder:text-text-subtle',
           'focus:outline-none focus:border-accent-light focus:ring-2 focus:ring-accent-light/15',
           'transition-all duration-150',
           // Mobile overrides (assets etalon) — height matches the 36px MobileAddButton it pairs with
-          'max-md:h-[36px] max-md:rounded-[9px] max-md:py-0 max-md:pl-[30px] max-md:pr-[12px]',
-          'max-md:text-[11.5px] max-md:caret-accent',
+          'max-md:h-[var(--ctl-h-md)] max-md:rounded-[9px] max-md:py-0 max-md:pl-[1.875rem] max-md:pr-3',
+          'max-md:text-11.5 max-md:caret-accent',
           className,
         ].join(' ')}
         {...rest}

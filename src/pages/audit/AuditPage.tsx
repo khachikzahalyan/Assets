@@ -38,7 +38,7 @@ export function AuditPage({ repository }: AuditPageProps) {
     useAuditLogs(repo, query)
 
   function renderBody() {
-    if (loading) return isMobile ? <CardListSkeleton rows={10} variant="audit" /> : <TableSkeleton rows={10} columns={7} firstColIcon gridTemplate="36px minmax(130px,1fr) minmax(120px,1.5fr) minmax(100px,1fr) minmax(90px,1fr) minmax(90px,1fr) minmax(120px,1.2fr)" headers={['', t('col.time'), t('col.actor'), t('col.role'), t('col.entity'), t('col.action'), t('col.entityId')]} />
+    if (loading) return isMobile ? <CardListSkeleton rows={10} variant="audit" /> : <TableSkeleton rows={10} columns={7} firstColIcon gridTemplate="2.25rem minmax(8.125rem,1fr) minmax(7.5rem,1.5fr) minmax(6.25rem,1fr) minmax(5.625rem,1fr) minmax(5.625rem,1fr) minmax(7.5rem,1.2fr)" headers={['', t('col.time'), t('col.actor'), t('col.role'), t('col.entity'), t('col.action'), t('col.entityId')]} />
     // Any error with zero rows renders the ErrorState — NOT gated on `!ref`:
     // ref data loads without composite indexes, so a failed page query (e.g.
     // failed-precondition on a missing index) would otherwise be masked as an
@@ -65,7 +65,7 @@ export function AuditPage({ repository }: AuditPageProps) {
           the .app-shell-content-flush flex chain stretches the card to the
           BottomNav top ('audit' is in AppShell FLUSH_ROUTES). */}
       <ListCard
-        className="max-md:mx-[10px]"
+        className="max-md:mx-2.5"
         toolbar={
           <>
             <div className="px-5 py-3 max-md:px-3 max-md:py-2.5">

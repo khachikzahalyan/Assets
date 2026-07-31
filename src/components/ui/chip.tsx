@@ -52,8 +52,8 @@ export function Chip({ color = 'gray', dot = false, size = 'md', children }: Chi
   const palette = CHIP_PALETTE
   const dotColor = CHIP_DOT
   const sizing = size === 'sm'
-    ? 'px-1.5 py-0.5 text-[10.5px] tracking-tight'
-    : 'px-2 py-0.5 text-[13px] tracking-wide'
+    ? 'px-1.5 py-0.5 text-10.5 tracking-tight'
+    : 'px-2 py-0.5 text-13 tracking-wide'
   return (
     <span className={`inline-flex items-center gap-1 rounded-md ${sizing} font-semibold border ${palette[color] ?? palette.gray}`}>
       {dot && <span className={`w-1.5 h-1.5 rounded-full ${dotColor[color] ?? dotColor.gray}`} />}

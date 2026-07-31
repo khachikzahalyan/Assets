@@ -84,11 +84,11 @@ export function WriteOffModal({ asset, busy, onClose, onConfirm }: WriteOffModal
           <div className="min-w-0 flex-1">
             <h2
               id="writeoff-modal-title"
-              className="text-[17px] font-extrabold text-text-primary tracking-tight leading-tight"
+              className="text-17 font-extrabold text-text-primary tracking-tight leading-tight"
             >
               {t('detail.writeOff.title')}
             </h2>
-            <p className="mt-1 text-[14.5px] text-text-primary leading-snug">
+            <p className="mt-1 text-14.5 text-text-primary leading-snug">
               <span className="font-semibold text-text-primary">{title}</span>
               <span className="mx-1.5 text-text-subtle">·</span>
               <span className="font-mono text-text-primary">{asset.invCode}</span>
@@ -109,7 +109,7 @@ export function WriteOffModal({ asset, busy, onClose, onConfirm }: WriteOffModal
           <div>
             <label
               htmlFor="writeoff-reason"
-              className="block text-[13px] font-bold text-text-primary uppercase tracking-[0.04em] mb-2"
+              className="block text-13 font-bold text-text-primary uppercase tracking-[0.04em] mb-2"
             >
               {t('detail.writeOff.reasonLabel')}
             </label>
@@ -119,7 +119,7 @@ export function WriteOffModal({ asset, busy, onClose, onConfirm }: WriteOffModal
               onChange={e => setReason(e.target.value)}
               rows={3}
               placeholder={t('detail.writeOff.reasonPlaceholder')}
-              className="w-full px-3 py-2 text-[15px] bg-surface border border-border-strong rounded-lg focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 placeholder:text-text-subtle resize-none text-text-primary transition-all"
+              className="w-full px-3 py-2 text-15 bg-surface border border-border-strong rounded-lg focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 placeholder:text-text-subtle resize-none text-text-primary transition-all"
             />
           </div>
 

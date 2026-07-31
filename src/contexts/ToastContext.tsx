@@ -46,7 +46,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             }>
               <Icon name={tt.variant === 'error' ? 'alert-circle' : 'check'} size={14} />
             </div>
-            <div className="text-[15px] text-text-primary font-semibold tracking-tight">{tt.text}</div>
+            <div className="text-15 text-text-primary font-semibold tracking-tight">{tt.text}</div>
           </div>
         ))}
       </div>

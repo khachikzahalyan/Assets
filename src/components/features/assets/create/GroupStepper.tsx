@@ -72,7 +72,7 @@ export function GroupStepper({ requiresSerial, quantity, setQuantity, rows, setR
   return (
     <div className="rounded-xl ring-1 ring-border/70 bg-bg/60 p-3.5 space-y-2.5 anim-fade-slide-in">
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <div className="text-[14px] font-semibold text-text-primary flex items-center gap-1.5 tracking-tight">
+        <div className="text-14 font-semibold text-text-primary flex items-center gap-1.5 tracking-tight">
           <Icon name="copy-plus" size={13} className="text-text-subtle" />Партия активов
         </div>
         {/* B8: indigo instead of orange */}
@@ -84,7 +84,7 @@ export function GroupStepper({ requiresSerial, quantity, setQuantity, rows, setR
           <Input type="number" value={String(quantity)} onChange={onQuantityChange} className="tabular-nums" />
         </Field>
         <div className="col-span-2 max-md:col-span-1">
-          <div className="text-[13px] text-text-primary mb-1.5 flex items-center justify-between">
+          <div className="text-13 text-text-primary mb-1.5 flex items-center justify-between">
             <span>Прогресс</span><span className="tabular-nums font-medium">{progress}%</span>
           </div>
           <div className="h-1.5 bg-border rounded-full overflow-hidden">
@@ -97,12 +97,12 @@ export function GroupStepper({ requiresSerial, quantity, setQuantity, rows, setR
         <div className="space-y-1.5">
           {rows.map((r, i) => (
             <div key={r.invCode} className="flex items-center gap-2 bg-surface ring-1 ring-border/70 rounded-lg px-2.5 py-1.5">
-              <span className="w-5 h-5 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 light:text-emerald-700 text-[12px] font-bold flex items-center justify-center tabular-nums shrink-0">{i + 1}</span>
-              <span className="font-mono text-[14px] text-text-primary tracking-tight truncate" title={r.invCode}>{r.invCode}</span>
+              <span className="w-5 h-5 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 light:text-emerald-700 text-12 font-bold flex items-center justify-center tabular-nums shrink-0">{i + 1}</span>
+              <span className="font-mono text-14 text-text-primary tracking-tight truncate" title={r.invCode}>{r.invCode}</span>
               {requiresSerial && (
                 <>
                   <span className="text-text-subtle shrink-0">·</span>
-                  <span className="font-mono text-[13.5px] text-text-primary tracking-tight truncate" title={r.serial}>{r.serial || '—'}</span>
+                  <span className="font-mono text-13.5 text-text-primary tracking-tight truncate" title={r.serial}>{r.serial || '—'}</span>
                 </>
               )}
               <div className="ml-auto flex items-center gap-0.5 shrink-0">
@@ -117,12 +117,12 @@ export function GroupStepper({ requiresSerial, quantity, setQuantity, rows, setR
       {allDone ? (
         <div className="bg-emerald-500/10 ring-1 ring-emerald-500/30 rounded-lg px-3 py-2.5 flex items-center gap-2">
           <Icon name="circle-check" size={14} className="text-emerald-300 light:text-emerald-700 shrink-0" />
-          <span className="text-[14px] font-medium text-emerald-300 light:text-emerald-700">Все {total} {pluralAssets(total)} добавлены — нажмите «Создать»</span>
+          <span className="text-14 font-medium text-emerald-300 light:text-emerald-700">Все {total} {pluralAssets(total)} добавлены — нажмите «Создать»</span>
         </div>
       ) : (
         <div key={done} className="bg-surface ring-1 ring-border/70 rounded-lg p-2.5 space-y-2">
-          <div className="flex items-center gap-2 text-[14px] font-semibold text-text-primary tracking-tight">
-            <span className="w-5 h-5 rounded bg-accent/[0.12] border border-accent/50 text-accent-hover text-[12px] font-bold flex items-center justify-center tabular-nums shrink-0">{done + 1}</span>Текущая запись
+          <div className="flex items-center gap-2 text-14 font-semibold text-text-primary tracking-tight">
+            <span className="w-5 h-5 rounded bg-accent/[0.12] border border-accent/50 text-accent-hover text-12 font-bold flex items-center justify-center tabular-nums shrink-0">{done + 1}</span>Текущая запись
           </div>
           <div className={`grid gap-2 ${requiresSerial ? 'grid-cols-2 max-md:grid-cols-1' : 'grid-cols-1'}`}>
             <Field label="Инвентарный код" required {...(invDup ? { hint: 'Этот код уже добавлен в партию' } : {})}>

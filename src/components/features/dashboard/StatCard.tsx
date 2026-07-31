@@ -112,7 +112,7 @@ export function StatCard({
     // Hover-border only when the card actually navigates
     to && cls.hoverBorder,
     // Padding: denser on mobile
-    'p-3 lg:p-[18px]',
+    'p-3 lg:p-4.5',
   )
 
   const inner = (
@@ -143,10 +143,10 @@ export function StatCard({
             </span>
             <div className="min-w-0">
               {/* ~28px on mobile, 32px on desktop */}
-              <div className="text-[28px] lg:text-[32px] font-bold leading-none tracking-tight tabular-nums text-text-primary">
+              <div className="text-display-sm lg:text-[2rem] font-bold leading-none tracking-tight tabular-nums text-text-primary">
                 {value ?? '—'}
               </div>
-              <div className={cn('text-[11px] lg:text-[11.5px] mt-0.5 leading-tight truncate', cls.label)}>
+              <div className={cn('text-11 lg:text-11.5 mt-0.5 leading-tight truncate', cls.label)}>
                 {label}
               </div>
             </div>
@@ -159,13 +159,13 @@ export function StatCard({
                 <div key={i} className="text-center">
                   <div
                     className={cn(
-                      'text-[17px] font-mono font-bold leading-none tabular-nums',
+                      'text-17 font-mono font-bold leading-none tabular-nums',
                       s.tone === 'success' ? 'text-success' : 'text-info',
                     )}
                   >
                     {s.value ?? '—'}
                   </div>
-                  <div className="text-[9.5px] text-text-subtle mt-0.5 leading-none">
+                  <div className="text-10 text-text-subtle mt-0.5 leading-none">
                     {s.label}
                   </div>
                 </div>
@@ -192,13 +192,13 @@ export function StatCard({
           <div className="min-w-0">
             <div
               className={cn(
-                'text-[28px] lg:text-[32px] font-bold leading-none tracking-tight tabular-nums',
+                'text-display-sm lg:text-[2rem] font-bold leading-none tracking-tight tabular-nums',
                 cls.number,
               )}
             >
               {value ?? '—'}
             </div>
-            <div className={cn('text-[11px] lg:text-[11.5px] mt-0.5 leading-tight truncate', cls.label)}>
+            <div className={cn('text-11 lg:text-11.5 mt-0.5 leading-tight truncate', cls.label)}>
               {label}
             </div>
           </div>
