@@ -69,7 +69,7 @@ export function DepartmentsPage({ repository, employeeRepository }: DepartmentsP
   const pageRows = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   const columns: CatalogColumn<Department>[] = [
-    { key: 'name', header: t('col.name'), width: 'minmax(160px,2fr)', render: d => <span className="text-text-primary">{d.name}</span> },
+    { key: 'name', header: t('col.name'), width: 'minmax(10rem,2fr)', render: d => <span className="text-text-primary">{d.name}</span> },
     {
       key: 'employees',
       header: t('col.employees'),
@@ -78,7 +78,7 @@ export function DepartmentsPage({ repository, employeeRepository }: DepartmentsP
         <button
           type="button"
           onClick={e => { e.stopPropagation(); setViewing(d) }}
-          className="inline-flex items-center gap-1.5 h-7 px-2 -ml-2 rounded-md text-[13px] text-text-tertiary tabular-nums hover:text-text-primary hover:bg-surface-2 transition-colors duration-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-border-strong"
+          className="inline-flex items-center gap-1.5 h-7 px-2 -ml-2 rounded-md text-13 text-text-tertiary tabular-nums hover:text-text-primary hover:bg-surface-2 transition-colors duration-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-border-strong"
           aria-label={`${t('col.employees')} — ${d.name}`}
         >
           <Icon name="users" size={13} className="flex-shrink-0" />
@@ -132,11 +132,11 @@ export function DepartmentsPage({ repository, employeeRepository }: DepartmentsP
     if (loading) return isMobile
       ? <CardListSkeleton rows={10} variant="catalog" />
       : canMutate
-        // super_admin: name + employees + 80px action track (mirrors CatalogTable's
+        // super_admin: name + employees + 5rem action track (mirrors CatalogTable's
         // appended __actions column when canMutate). Employees track is the default '1fr'.
-        ? <TableSkeleton rows={PAGE_SIZE} columns={3} gridTemplate="minmax(160px,2fr) 1fr 80px" lastColAction headers={[t('col.name'), t('col.employees'), '']} />
-        // asset_admin: view-only — CatalogTable drops the action column, so no 80px track.
-        : <TableSkeleton rows={PAGE_SIZE} columns={2} gridTemplate="minmax(160px,2fr) 1fr" headers={[t('col.name'), t('col.employees')]} />
+        ? <TableSkeleton rows={PAGE_SIZE} columns={3} gridTemplate="minmax(10rem,2fr) 1fr 5rem" lastColAction headers={[t('col.name'), t('col.employees'), '']} />
+        // asset_admin: view-only — CatalogTable drops the action column, so no 5rem track.
+        : <TableSkeleton rows={PAGE_SIZE} columns={2} gridTemplate="minmax(10rem,2fr) 1fr" headers={[t('col.name'), t('col.employees')]} />
     if (fetchError && rows.length === 0) return <ErrorState onRetry={reload} />
     if (rows.length === 0) return <EmptyState icon="network" title={t('empty.title')} description={t('empty.desc')} />
     return (
@@ -146,7 +146,7 @@ export function DepartmentsPage({ repository, employeeRepository }: DepartmentsP
         onDelete={askDelete}
         minRows={PAGE_SIZE}
         mobileIcon={() => (
-          <span className="w-[28px] h-[28px] rounded-[8px] inline-flex items-center justify-center flex-shrink-0 bg-sky-500/15 text-sky-300 light:text-sky-700" aria-hidden="true">
+          <span className="w-[1.75rem] h-[1.75rem] rounded-[8px] inline-flex items-center justify-center flex-shrink-0 bg-sky-500/15 text-sky-300 light:text-sky-700" aria-hidden="true">
             <Icon name="network" size={14} />
           </span>
         )}
@@ -162,7 +162,7 @@ export function DepartmentsPage({ repository, employeeRepository }: DepartmentsP
             the .app-shell-content-flush flex chain stretches the card to the
             BottomNav top ('departments' is in AppShell FLUSH_ROUTES). */}
         <ListCard
-          className="max-md:mx-[10px]"
+          className="max-md:mx-2.5"
           toolbar={
             <CatalogToolbarHeader
               icon="network"
@@ -217,10 +217,10 @@ export function DepartmentsPage({ repository, employeeRepository }: DepartmentsP
                 <span className="w-7 h-7 rounded-md bg-sky-500/15 text-sky-300 inline-flex items-center justify-center flex-shrink-0 light:text-sky-700">
                   <Icon name="network" size={14} />
                 </span>
-                <h2 id="dept-roster-title" className="text-[15px] font-bold text-text-primary truncate">
+                <h2 id="dept-roster-title" className="text-15 font-bold text-text-primary truncate">
                   {viewing.name}
                 </h2>
-                <span className="text-[12px] text-text-subtle tabular-nums flex-shrink-0">
+                <span className="text-12 text-text-subtle tabular-nums flex-shrink-0">
                   {viewingEmployees.length}
                 </span>
               </div>
@@ -236,21 +236,21 @@ export function DepartmentsPage({ repository, employeeRepository }: DepartmentsP
 
             <div className="px-2 pb-4 max-h-[60vh] overflow-y-auto">
               {viewingEmployees.length === 0 ? (
-                <p className="px-3 py-8 text-center text-[13px] text-text-tertiary">
+                <p className="px-3 py-8 text-center text-13 text-text-tertiary">
                   {t('employeesDialog.empty')}
                 </p>
               ) : (
                 viewingEmployees.map(e => (
                   <div key={e.id} className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-2 transition-colors">
-                    <span className="w-[28px] h-[28px] rounded-[8px] inline-flex items-center justify-center flex-shrink-0 bg-surface-2 text-text-subtle" aria-hidden="true">
+                    <span className="w-[1.75rem] h-[1.75rem] rounded-[8px] inline-flex items-center justify-center flex-shrink-0 bg-surface-2 text-text-subtle" aria-hidden="true">
                       <Icon name="user" size={13} />
                     </span>
                     <div className="min-w-0 flex-1">
-                      <div className="text-[13px] font-semibold text-text-primary truncate leading-snug">
+                      <div className="text-13 font-semibold text-text-primary truncate leading-snug">
                         {e.firstName} {e.lastName}
                       </div>
                       {e.position && (
-                        <div className="text-[11.5px] text-text-tertiary truncate leading-snug">{e.position}</div>
+                        <div className="text-11.5 text-text-tertiary truncate leading-snug">{e.position}</div>
                       )}
                     </div>
                   </div>

@@ -46,7 +46,7 @@ export interface CatalogTableProps<T extends { id: string }> {
 
 const FALLBACK_TILE = (
   <span
-    className="w-[28px] h-[28px] rounded-[8px] inline-flex items-center justify-center flex-shrink-0 bg-surface-2 text-text-tertiary"
+    className="w-[1.75rem] h-[1.75rem] rounded-[8px] inline-flex items-center justify-center flex-shrink-0 bg-surface-2 text-text-tertiary"
     aria-hidden="true"
   >
     <Icon name="box" size={14} />
@@ -78,7 +78,7 @@ export function CatalogTable<T extends { id: string }>(props: CatalogTableProps<
       cols.push({
         key: '__actions',
         header: '',
-        width: '80px',
+        width: '5rem',
         align: 'right',
         cell: (row) => (
           <div className="flex items-center gap-1 justify-end">
@@ -106,7 +106,7 @@ export function CatalogTable<T extends { id: string }>(props: CatalogTableProps<
           const canDel = canDeleteRow ? canDeleteRow(row) : true
           const iconTile = mobileIcon ? mobileIcon(row) : FALLBACK_TILE
           const titleNode = (
-            <div className="text-[13px] font-bold text-text-primary truncate leading-snug mb-[2px]">
+            <div className="text-13 font-bold text-text-primary truncate leading-snug mb-0.5">
               {primaryCol ? primaryCol.render(row) : null}
             </div>
           )
@@ -116,7 +116,7 @@ export function CatalogTable<T extends { id: string }>(props: CatalogTableProps<
             ? mobileSubline(row)
             : restCols.length > 0
               ? (
-                <div className="text-[11px] text-text-tertiary truncate leading-snug flex items-center gap-1.5">
+                <div className="text-11 text-text-tertiary truncate leading-snug flex items-center gap-1.5">
                   {restCols.map((c, idx) => (
                     <span key={c.key} className="inline-flex items-center gap-1.5">
                       {idx > 0 && <span aria-hidden="true">·</span>}

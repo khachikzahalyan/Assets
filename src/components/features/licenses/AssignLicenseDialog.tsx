@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Btn, Field, Input, Select, DIALOG_BACKDROP, MODAL_SHEET } from '@/components/ui'
+import { Btn, Field, Input, Select, DIALOG_BACKDROP, MODAL_SHEET, MODAL_W_SM } from '@/components/ui'
 import type { AssignWorkstationLicenseInput } from '@/domain/license'
 
 type AssignScope = 'employee' | 'device'
@@ -64,17 +64,17 @@ export function AssignLicenseDialog({ open, submitting, submitError, onSubmit, o
       onClick={onCancel}
     >
       <div
-        className={`w-[400px] max-md:w-full max-md:rounded-b-none max-md:rounded-t-[18px] max-md:max-h-[85vh] max-md:overflow-y-auto rounded-lg border border-border bg-surface p-5 mx-4 max-md:mx-0 ${MODAL_SHEET}`}
+        className={`${MODAL_W_SM} max-md:rounded-b-none max-md:rounded-t-[18px] max-md:max-h-[85vh] max-md:overflow-y-auto rounded-lg border border-border bg-surface p-5 mx-4 max-md:mx-0 ${MODAL_SHEET}`}
         onClick={e => e.stopPropagation()}
       >
         <div className="max-md:block hidden mx-auto h-1 w-9 rounded-full bg-white/20 light:bg-black/10 mb-3" />
-        <h3 className="text-[15px] font-semibold text-text-primary mb-4">
+        <h3 className="text-15 font-semibold text-text-primary mb-4">
           {t('assignDialog.title')}
         </h3>
 
         <div className="space-y-3">
           {submitError && (
-            <p role="alert" className="text-[12px] text-[#FDA4AF] light:text-rose-700 px-1">{submitError}</p>
+            <p role="alert" className="text-12 text-[#FDA4AF] light:text-rose-700 px-1">{submitError}</p>
           )}
 
           {/* Scope */}
@@ -103,7 +103,7 @@ export function AssignLicenseDialog({ open, submitting, submitError, onSubmit, o
                 />
               </Field>
               {employeeError && (
-                <p role="alert" className="mt-1 text-[12px] text-[#FDA4AF] light:text-rose-700">{employeeError}</p>
+                <p role="alert" className="mt-1 text-12 text-[#FDA4AF] light:text-rose-700">{employeeError}</p>
               )}
             </div>
           )}
@@ -121,7 +121,7 @@ export function AssignLicenseDialog({ open, submitting, submitError, onSubmit, o
                 />
               </Field>
               {deviceError && (
-                <p role="alert" className="mt-1 text-[12px] text-[#FDA4AF] light:text-rose-700">{deviceError}</p>
+                <p role="alert" className="mt-1 text-12 text-[#FDA4AF] light:text-rose-700">{deviceError}</p>
               )}
             </div>
           )}

@@ -40,7 +40,7 @@ function MobileDivider() {
   return (
     <div
       aria-hidden="true"
-      className="lg:hidden h-2 bg-bg border-y border-border/30 -mx-[14px] md:-mx-6 my-0"
+      className="lg:hidden h-2 bg-bg border-y border-border/30 -mx-3.5 md:-mx-6 my-0"
     />
   )
 }
@@ -48,7 +48,7 @@ function MobileDivider() {
 /** Tiny uppercase section title — visible on <lg only. */
 function MobileSectionTitle({ label }: { label: string }) {
   return (
-    <div className="lg:hidden pb-1 pt-4 text-[9.5px] font-bold tracking-[1.4px] uppercase text-text-subtle">
+    <div className="lg:hidden pb-1 pt-4 text-10 font-bold tracking-[1.4px] uppercase text-text-subtle">
       {label}
     </div>
   )
@@ -313,12 +313,12 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
       max-lg:gap-2
     ">
       {error && (
-        <p role="alert" className="text-[12px] text-error mr-auto max-lg:hidden">{error}</p>
+        <p role="alert" className="text-12 text-error mr-auto max-lg:hidden">{error}</p>
       )}
       <button
         type="button"
         onClick={onCancel}
-        className="inline-flex items-center justify-center gap-1.5 px-4 py-2 max-lg:flex-1 max-lg:py-2.5 max-lg:px-3 max-lg:min-h-[44px] text-[15px] max-lg:text-[14px] font-medium text-text-primary bg-surface-2 border border-border rounded-xl transition-all duration-150"
+        className="inline-flex items-center justify-center gap-1.5 px-4 py-2 max-lg:flex-1 max-lg:py-2.5 max-lg:px-3 max-lg:min-h-[44px] text-15 max-lg:text-14 font-medium text-text-primary bg-surface-2 border border-border rounded-xl transition-all duration-150"
       >
         <Icon name="x" size={14} />
         {t('form.cancel')}
@@ -327,7 +327,7 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
         type="button"
         disabled={!canSave}
         onClick={handleSave}
-        className="inline-flex items-center justify-center gap-1.5 px-5 py-2 max-lg:flex-1 max-lg:py-2.5 max-lg:px-3 max-lg:min-h-[44px] text-[15px] max-lg:text-[14px] font-semibold text-white bg-gradient-to-r from-accent to-accent-light rounded-xl shadow-[0_4px_16px_rgba(217,119,87,0.24)] light:shadow-[0_4px_16px_rgba(217,119,87,0.12)] hover:shadow-[0_6px_24px_rgba(217,119,87,0.32)] light:hover:shadow-[0_6px_24px_rgba(217,119,87,0.16)] hover:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+        className="inline-flex items-center justify-center gap-1.5 px-5 py-2 max-lg:flex-1 max-lg:py-2.5 max-lg:px-3 max-lg:min-h-[44px] text-15 max-lg:text-14 font-semibold text-white bg-gradient-to-r from-accent to-accent-light rounded-xl shadow-[0_4px_16px_rgba(217,119,87,0.24)] light:shadow-[0_4px_16px_rgba(217,119,87,0.12)] hover:shadow-[0_6px_24px_rgba(217,119,87,0.32)] light:hover:shadow-[0_6px_24px_rgba(217,119,87,0.16)] hover:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
       >
         <Icon name="save" size={14} />
         {isGroup
@@ -338,12 +338,12 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
   )
 
   return (
-    <div className="bg-surface rounded-2xl ring-1 ring-border/50 overflow-hidden w-full max-w-[1600px] mx-auto">
+    <div className="bg-surface rounded-2xl ring-1 ring-border/50 overflow-hidden w-full max-w-[100rem] mx-auto">
       {/* B1: In-card header row with AMS pill+title on left, toggle+X on right */}
       <div className="flex items-center justify-between max-md:px-3 max-md:pt-2.5 max-md:pb-2.5 px-5 py-3 border-b border-border/60 gap-2 overflow-hidden">
         <div className="flex items-center gap-2 min-w-0 flex-1">
           <div className="min-w-0">
-            <h2 className="text-[15px] font-semibold text-text-primary leading-tight truncate">
+            <h2 className="text-15 font-semibold text-text-primary leading-tight truncate">
               {isGroup ? t('form.createTitleGroup') : t('form.createTitle')}
             </h2>
           </div>
@@ -359,7 +359,7 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
                   type="button"
                   aria-pressed={active}
                   onClick={() => handleSubMode(m)}
-                  className={`max-md:w-7 max-md:h-7 max-md:px-0 max-md:justify-center px-3 py-1.5 text-[14px] font-semibold rounded-lg transition-all duration-150 flex items-center gap-1.5
+                  className={`max-md:w-7 max-md:h-7 max-md:px-0 max-md:justify-center px-3 py-1.5 text-14 font-semibold rounded-lg transition-all duration-150 flex items-center gap-1.5
                     ${active ? 'bg-surface text-accent-hover shadow-sm ring-1 ring-accent/40' : 'text-text-primary hover:text-text-primary'}`}
                 >
                   <Icon name={m === 'single' ? 'file-plus-2' : 'copy-plus'} size={12} />
@@ -385,7 +385,7 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
       {/* MOBILE: bottom padding clears the fixed action bar pinned to the bottom */}
       <div className="grid grid-cols-1 lg:grid-cols-2 max-lg:pb-28">
         {/* LEFT column — borderless section matching prototype .ams-sec-asset */}
-        <section className="max-md:px-[14px] px-6 py-5 lg:border-r lg:border-border/80 max-w-full overflow-x-hidden">
+        <section className="max-md:px-3.5 px-6 py-5 lg:border-r lg:border-border/80 max-w-full overflow-x-hidden">
           <div className="space-y-4">
             <GroupTabs categoryGroups={refData.categoryGroups} categories={refData.categories} selected={categoryGroupId} onSelect={handleGroupTab} />
 
@@ -455,7 +455,7 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
                   <>
                     <MobileDivider />
                     <div className="space-y-3">
-                      <div className="text-[13px] font-semibold text-text-tertiary tracking-[0.06em] uppercase">{t('osLicense.title')}</div>
+                      <div className="text-13 font-semibold text-text-tertiary tracking-[0.06em] uppercase">{t('osLicense.title')}</div>
                       <LicensePicker
                         value={{ licenseMode, rawKey: oemRawKey, pickId: oemPickId }}
                         onChange={v => {
@@ -479,7 +479,7 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
         <div className="max-w-full overflow-x-hidden">
           {caps?.hasSpecs && (
             /* Specs section — borderless, no title (SpecsPanel renders its own header) */
-            <section className="max-md:px-[14px] px-6 py-5">
+            <section className="max-md:px-3.5 px-6 py-5">
               {/* Mobile: divider before Характеристики (right col stacks below left col) */}
               <MobileDivider />
               <SpecsPanel specs={specs} onChange={setSpecs} isServer={caps.isServer} hasGpu={caps.hasGpu} />
@@ -487,14 +487,14 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
           )}
 
           {/* Quick Assignment section — borderless titled section */}
-          <section className={`max-md:px-[14px] px-6 py-5${caps?.hasSpecs ? ' border-t border-border/80' : ''}`}>
+          <section className={`max-md:px-3.5 px-6 py-5${caps?.hasSpecs ? ' border-t border-border/80' : ''}`}>
             {/* Mobile: divider before QA when no specs section is above */}
             {!caps?.hasSpecs && <MobileDivider />}
-            <div className="text-[13px] font-semibold text-text-tertiary tracking-[0.06em] uppercase mb-4">
+            <div className="text-13 font-semibold text-text-tertiary tracking-[0.06em] uppercase mb-4">
               {t('qa.title')}
             </div>
             {isGroup ? (
-              <div className="bg-bg/60 border border-border/70 rounded-lg px-3.5 py-2.5 text-[14px] text-text-primary flex items-center gap-2">
+              <div className="bg-bg/60 border border-border/70 rounded-lg px-3.5 py-2.5 text-14 text-text-primary flex items-center gap-2">
                 <Icon name="lock" size={13} className="text-text-subtle shrink-0" />
                 <span>{t('groupMode.batchHint')}</span>
               </div>

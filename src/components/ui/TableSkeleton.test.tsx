@@ -83,7 +83,7 @@ describe('TableSkeleton', () => {
   })
 
   it('lastColAction: last cell in each body row contains no .anim-skeleton element', () => {
-    const ASSETS_GRID = 'minmax(240px,2.4fr) minmax(130px,1fr) minmax(100px,0.85fr) minmax(150px,1.2fr) minmax(110px,1fr) minmax(100px,0.9fr) 56px'
+    const ASSETS_GRID = 'minmax(15rem,2.4fr) minmax(8.125rem,1fr) minmax(6.25rem,0.85fr) minmax(9.375rem,1.2fr) minmax(6.875rem,1fr) minmax(6.25rem,0.9fr) 3.5rem'
     const { container } = render(
       <TableSkeleton
         rows={3}
@@ -105,7 +105,7 @@ describe('TableSkeleton', () => {
   })
 
   it('lastColAction: each body row still has the correct total cell count (7)', () => {
-    const ASSETS_GRID = 'minmax(240px,2.4fr) minmax(130px,1fr) minmax(100px,0.85fr) minmax(150px,1.2fr) minmax(110px,1fr) minmax(100px,0.9fr) 56px'
+    const ASSETS_GRID = 'minmax(15rem,2.4fr) minmax(8.125rem,1fr) minmax(6.25rem,0.85fr) minmax(9.375rem,1.2fr) minmax(6.875rem,1fr) minmax(6.25rem,0.9fr) 3.5rem'
     const { container } = render(
       <TableSkeleton
         rows={2}
@@ -122,7 +122,7 @@ describe('TableSkeleton', () => {
   })
 
   it('gridTemplate prop is applied to the header element inline style', () => {
-    const ASSETS_GRID = 'minmax(240px,2.4fr) minmax(130px,1fr) minmax(100px,0.85fr) minmax(150px,1.2fr) minmax(110px,1fr) minmax(100px,0.9fr) 56px'
+    const ASSETS_GRID = 'minmax(15rem,2.4fr) minmax(8.125rem,1fr) minmax(6.25rem,0.85fr) minmax(9.375rem,1.2fr) minmax(6.875rem,1fr) minmax(6.25rem,0.9fr) 3.5rem'
     const { container } = render(
       <TableSkeleton
         rows={1}
@@ -141,7 +141,7 @@ describe('TableSkeleton', () => {
   it('gridTemplate prop is applied to EVERY body row inline style (matches the header)', () => {
     // Guards against header/body track drift — the body grid MUST equal the
     // passed gridTemplate so cells align under their headers with zero shift.
-    const ASSETS_GRID = 'minmax(240px,2.4fr) minmax(130px,1fr) minmax(100px,0.85fr) minmax(150px,1.2fr) minmax(110px,1fr) minmax(100px,0.9fr) 56px'
+    const ASSETS_GRID = 'minmax(15rem,2.4fr) minmax(8.125rem,1fr) minmax(6.25rem,0.85fr) minmax(9.375rem,1.2fr) minmax(6.875rem,1fr) minmax(6.25rem,0.9fr) 3.5rem'
     render(
       <TableSkeleton
         rows={4}

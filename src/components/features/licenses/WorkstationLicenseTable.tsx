@@ -33,37 +33,37 @@ export function WorkstationLicenseTable({ rows, renderActions }: WorkstationLice
       {
         key: 'name',
         header: t('col.name'),
-        width: 'minmax(140px,1.6fr)',
+        width: 'minmax(8.75rem,1.6fr)',
         cell: (row) => (
-          <span className="text-[13px] text-text-primary font-medium">{row.name}</span>
+          <span className="text-13 text-text-primary font-medium">{row.name}</span>
         ),
       },
       {
         key: 'vendor',
         header: t('col.vendor'),
-        width: 'minmax(100px,1fr)',
+        width: 'minmax(6.25rem,1fr)',
         cell: (row) => (
-          <span className="text-[13px] text-text-tertiary">{row.vendor ?? '—'}</span>
+          <span className="text-13 text-text-tertiary">{row.vendor ?? '—'}</span>
         ),
       },
       {
         key: 'type',
         header: t('col.type'),
-        width: 'minmax(100px,1fr)',
+        width: 'minmax(6.25rem,1fr)',
         cell: (row) => (
-          <span className="text-[13px] text-text-tertiary">{row.type}</span>
+          <span className="text-13 text-text-tertiary">{row.type}</span>
         ),
       },
       {
         key: 'assignment',
         header: t('col.assignment'),
-        width: 'minmax(120px,1.2fr)',
+        width: 'minmax(7.5rem,1.2fr)',
         cell: (row) => <AssignmentCell license={row} />,
       },
       {
         key: 'status',
         header: t('col.status'),
-        width: 'minmax(90px,0.9fr)',
+        width: 'minmax(5.625rem,0.9fr)',
         cell: (row) => (
           <Chip color={row.lifecycleStatus === 'active' ? 'green' : 'gray'} dot>
             {t(`status.${row.lifecycleStatus}`)}
@@ -73,13 +73,13 @@ export function WorkstationLicenseTable({ rows, renderActions }: WorkstationLice
       {
         key: 'expiry',
         header: t('col.expiry'),
-        width: 'minmax(100px,1fr)',
+        width: 'minmax(6.25rem,1fr)',
         cell: (row) => row.expiresAt ? (
-          <span className="text-[13px] text-text-tertiary">
+          <span className="text-13 text-text-tertiary">
             {formatLicenseDate(row.expiresAt, i18n.language)}
           </span>
         ) : (
-          <span className="text-[13px] text-text-subtle">—</span>
+          <span className="text-13 text-text-subtle">—</span>
         ),
       },
     ]
@@ -87,7 +87,7 @@ export function WorkstationLicenseTable({ rows, renderActions }: WorkstationLice
       cols.push({
         key: '__actions',
         header: '',
-        width: '80px',
+        width: '5rem',
         cell: (row) => (
           <div className="flex items-center gap-1 flex-wrap">
             {renderActions(row)}
@@ -106,13 +106,13 @@ export function WorkstationLicenseTable({ rows, renderActions }: WorkstationLice
           <div key={row.id} className="py-3 px-1 space-y-1.5">
             {/* Name + status */}
             <div className="flex items-start justify-between gap-2">
-              <span className="text-[14px] font-medium text-text-primary leading-snug">{row.name}</span>
+              <span className="text-14 font-medium text-text-primary leading-snug">{row.name}</span>
               <Chip color={row.lifecycleStatus === 'active' ? 'green' : 'gray'} dot>
                 {t(`status.${row.lifecycleStatus}`)}
               </Chip>
             </div>
             {/* Vendor + type */}
-            <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[12px] text-text-tertiary">
+            <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-12 text-text-tertiary">
               {row.vendor && <span>{row.vendor}</span>}
               <span>{row.type}</span>
               {row.expiresAt && (
@@ -160,10 +160,10 @@ function AssignmentCell({ license }: { license: WorkstationLicense }) {
     return (
       <div className="flex items-center gap-1.5">
         <Icon name="user" size={12} className="text-text-subtle" />
-        <span className="text-[13px] text-text-tertiary">
+        <span className="text-13 text-text-tertiary">
           {t('assignment.employee')}
           {license.assignedToEmployeeId ? (
-            <span className="text-text-subtle ml-1 text-[12px]">
+            <span className="text-text-subtle ml-1 text-12">
               #{license.assignedToEmployeeId}
             </span>
           ) : null}
@@ -176,10 +176,10 @@ function AssignmentCell({ license }: { license: WorkstationLicense }) {
   return (
     <div className="flex items-center gap-1.5">
       <Icon name="monitor" size={12} className="text-text-subtle" />
-      <span className="text-[13px] text-text-tertiary">
+      <span className="text-13 text-text-tertiary">
         {t('assignment.device')}
         {license.assignedToAssetId ? (
-          <span className="text-text-subtle ml-1 text-[12px]">
+          <span className="text-text-subtle ml-1 text-12">
             #{license.assignedToAssetId}
           </span>
         ) : null}

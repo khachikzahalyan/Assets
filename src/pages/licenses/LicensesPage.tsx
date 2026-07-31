@@ -333,7 +333,7 @@ export function LicensesPage({
     /* Mobile: viewport-locked column (topbar 52 + content pt 10 + pb 74 = 136,
        the PartsReceiveMobileForm constant) — the tab chrome stays pinned and
        ONLY the tab body scrolls. Deterministic, unlike body-relative sticky. */
-    <div className="flex flex-col h-full min-h-0 space-y-5 max-md:space-y-3 max-md:mx-[10px] max-md:flex-none max-md:h-[calc(100dvh-136px)] max-md:overflow-hidden">
+    <div className="flex flex-col h-full min-h-0 space-y-5 max-md:space-y-3 max-md:mx-2.5 max-md:flex-none max-md:h-[calc(100dvh-136px)] max-md:overflow-hidden">
       {/* Tab strip + search + add button — one line, no page title.
           Mobile: assets-etalon header — card chrome, surface-2 tab strip, then a
           search+«+» row; on the keys tab the chrome fuses with the card below. */}
@@ -341,7 +341,7 @@ export function LicensesPage({
         <div className={`max-md:bg-surface max-md:border max-md:border-border max-md:rounded-t-xl max-md:overflow-hidden ${
           activeTab === 'keys' ? 'max-md:border-b-0' : 'max-md:rounded-b-xl'
         }`}>
-        <div className="flex items-center justify-between gap-3 max-md:bg-surface-2 max-md:border-b max-md:border-border max-md:px-[6px]">
+        <div className="flex items-center justify-between gap-3 max-md:bg-surface-2 max-md:border-b max-md:border-border max-md:px-1.5">
           {/* Tab buttons — scrollable on mobile */}
           <TabStrip<ActiveTab>
             tabs={tabItems}
@@ -362,7 +362,7 @@ export function LicensesPage({
                 onChange={setKeySearch}
                 placeholder={t('keys.searchPlaceholder')}
                 aria-label={t('keys.searchPlaceholder')}
-                containerClassName="hidden md:block w-[280px]"
+                containerClassName="hidden md:block w-[17.5rem]"
               />
             )}
             {/* Desktop: full-label button */}
@@ -384,7 +384,7 @@ export function LicensesPage({
                 onClick={() => { setAddError(null); setAddOpen(true) }}
                 aria-label={t('actions.addLicense')}
                 data-testid="add-subscription-btn-mobile"
-                className="md:hidden w-[36px] h-[36px] min-w-[36px] flex-shrink-0 rounded-[9px] bg-accent text-white inline-flex items-center justify-center shadow-[0_2px_10px] shadow-accent/35 transition-colors duration-150 hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+                className="md:hidden w-[var(--ctl-h-md)] h-[var(--ctl-h-md)] min-w-[var(--ctl-h-md)] flex-shrink-0 rounded-[9px] bg-accent text-white inline-flex items-center justify-center shadow-[0_2px_10px] shadow-accent/35 transition-colors duration-150 hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
               >
                 <Icon name="plus" size={15} />
               </button>
@@ -395,7 +395,7 @@ export function LicensesPage({
         {/* Keys-tab search + «+» — mobile only, assets-etalon row: shared SearchInput
             (36px height, matches the square «+» button) + 36px square button */}
         {activeTab === 'keys' && (
-          <div className="md:hidden flex items-center gap-[8px] bg-bg px-[14px] py-[7px]">
+          <div className="md:hidden flex items-center gap-2 bg-bg px-3.5 py-[0.4375rem]">
             <SearchInput
               value={keySearch}
               onChange={setKeySearch}
@@ -409,7 +409,7 @@ export function LicensesPage({
               onClick={() => { setAddError(null); setAddOpen(true) }}
               aria-label={t('actions.addLicense')}
               data-testid="add-subscription-btn-mobile"
-              className="w-[36px] h-[36px] min-w-[36px] flex-shrink-0 rounded-[9px] bg-accent text-white inline-flex items-center justify-center shadow-[0_2px_10px] shadow-accent/35 transition-colors duration-150 hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+              className="w-[var(--ctl-h-md)] h-[var(--ctl-h-md)] min-w-[var(--ctl-h-md)] flex-shrink-0 rounded-[9px] bg-accent text-white inline-flex items-center justify-center shadow-[0_2px_10px] shadow-accent/35 transition-colors duration-150 hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
             >
               <Icon name="plus" size={15} />
             </button>
@@ -445,7 +445,7 @@ export function LicensesPage({
               aria-hidden="true"
             >
               {/* Header — identical geometry to WindowsKeysSection: real filter TabStrip */}
-              <header className="flex items-center px-5 border-b border-border max-md:px-[14px]">
+              <header className="flex items-center px-5 border-b border-border max-md:px-3.5">
                 <div className="max-md:w-full max-md:overflow-x-auto max-md:no-scrollbar">
                   <TabStrip<'in_use' | 'free'>
                     tabs={[
@@ -471,7 +471,7 @@ export function LicensesPage({
                     /* flex-1 min-h-0 gives TableSkeleton (height:100%) the remaining
                        card height so its flex rows stretch like the real DataTable */
                     <div className="flex-1 min-h-0">
-                      <TableSkeleton rows={10} columns={3} gridTemplate="minmax(200px,1.5fr) minmax(120px,0.8fr) minmax(220px,1.4fr)" headers={[t('keys.colAsset'), t('keys.colStatus'), t('keys.colKey')]} />
+                      <TableSkeleton rows={10} columns={3} gridTemplate="minmax(12.5rem,1.5fr) minmax(7.5rem,0.8fr) minmax(13.75rem,1.4fr)" headers={[t('keys.colAsset'), t('keys.colStatus'), t('keys.colKey')]} />
                     </div>
                   )}
 
@@ -562,7 +562,7 @@ function AssigneeErrorToast({ msg, onDone }: { msg: string; onDone: () => void }
       role="alert"
       aria-live="assertive"
     >
-      <div className="flex items-center gap-2.5 bg-surface border border-rose-500/30 light:border-rose-200 text-text-primary px-4 py-3 rounded-xl shadow-xl shadow-black/60 light:shadow-slate-300/60 text-[14px] font-medium max-w-xs">
+      <div className="flex items-center gap-2.5 bg-surface border border-rose-500/30 light:border-rose-200 text-text-primary px-4 py-3 rounded-xl shadow-xl shadow-black/60 light:shadow-slate-300/60 text-14 font-medium max-w-xs">
         <span className="w-5 h-5 rounded-full bg-rose-500 inline-flex items-center justify-center flex-shrink-0">
           <Icon name="triangle-alert" size={12} className="text-white" />
         </span>

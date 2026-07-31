@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import ReactDOM from 'react-dom'
 import { useTranslation } from 'react-i18next'
-import { Btn, Field, Input, DIALOG_BACKDROP, MODAL_SHEET } from '@/components/ui'
+import { Btn, Field, Input, DIALOG_BACKDROP, MODAL_SHEET, MODAL_W_LG } from '@/components/ui'
 import type { Category } from '@/domain/category'
 
 export interface CategoryFormValues {
@@ -40,17 +40,17 @@ export function CategoryFormDialog(p: CategoryFormDialogProps) {
   return ReactDOM.createPortal(
     <div className={DIALOG_BACKDROP} onClick={p.onCancel}>
       <div
-        className={`w-[480px] rounded-lg border border-border bg-surface p-5 mx-4 max-md:mx-0 ${MODAL_SHEET}`}
+        className={`${MODAL_W_LG} rounded-lg border border-border bg-surface p-5 mx-4 max-md:mx-0 ${MODAL_SHEET}`}
         onClick={e => e.stopPropagation()}
       >
         <div className="max-md:block hidden mx-auto h-1 w-9 rounded-full bg-white/20 mb-3 light:bg-black/10" />
-        <h3 className="text-[15px] font-semibold text-text-primary mb-4">
+        <h3 className="text-15 font-semibold text-text-primary mb-4">
           {p.initial ? t('form.editTitle') : t('form.createTitle')}
         </h3>
 
         <div className="space-y-3">
           {p.submitError && (
-            <p role="alert" className="text-[12px] text-error px-1">{p.submitError}</p>
+            <p role="alert" className="text-12 text-error px-1">{p.submitError}</p>
           )}
           <Field label={t('form.name')} required>
             <Input value={name} onChange={setName} autoFocus invalid={nameInvalid} />
@@ -65,7 +65,7 @@ export function CategoryFormDialog(p: CategoryFormDialogProps) {
             />
             <label
               htmlFor="cat-has-specs"
-              className="text-[13px] text-text-tertiary cursor-pointer select-none"
+              className="text-13 text-text-tertiary cursor-pointer select-none"
             >
               {t('form.hasSpecs')}
             </label>

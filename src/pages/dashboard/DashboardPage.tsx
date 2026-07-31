@@ -9,6 +9,7 @@ import {
   LicensePanel,
   ActivityPanel,
   AuditTable,
+  AUDIT_GRID,
 } from '@/components/features/dashboard'
 import { useDashboard } from '@/hooks'
 import type { DashboardRepository } from '@/domain/dashboard'
@@ -16,6 +17,21 @@ import { ASSET_STATUS } from '@/domain/asset'
 import { getSharedDashboardRepository } from '@/infra/repositories'
 import { canAccess } from '@/config/access'
 import { cn } from '@/lib/utils'
+
+// ── Dashboard grid templates ───────────────────────────────────────────────────
+// ROW 1 (KPI cards): Tailwind arbitrary class lg:grid-cols-[repeat(auto-fit,minmax(12rem,1fr))].
+//   Useful content width on 1366px ≈ 1366 - 260 (sidebar) - 38 (padding) ≈ 1068px ≈ 66.75rem.
+//   At minmax(12rem, 1fr): floor(66.75 / 12) = 5 columns → fits all 5 cards on 1366
+//   without horizontal scroll. On 1920+: content ≈ 100rem → still 5 columns (auto-fit fills).
+//   Mobile (< lg) keeps explicit 2-col so col-span-2 on the featured card works.
+
+// ROW 2 (2 panels): auto-fit minmax(20rem, 1fr) — 2 cols on lg+, collapses on mobile.
+//   At ~1068px content: floor(1068/320) = 3 potential, but 2 items → 2 cols.
+const PANEL_GRID_2 = 'repeat(auto-fit, minmax(20rem, 1fr))'
+
+// ROW 3 (3 panels): auto-fit minmax(17rem, 1fr) — exactly 3 cols at 1366, fills on 1920+.
+//   At ~1068px content: floor(1068/272) = 3 cols → exactly 3 on 1366. Collapses on mobile.
+const PANEL_GRID_3 = 'repeat(auto-fit, minmax(17rem, 1fr))'
 
 export interface DashboardPageProps {
   repo?: DashboardRepository
@@ -32,13 +48,13 @@ export function DashboardPage({ repo }: DashboardPageProps) {
   if (loading) {
     return (
       <div className="space-y-5" aria-busy="true">
-        {/* ROW 1: 5 KPI card shimmers — 2-col on mobile, 5-col on desktop */}
-        <div className="grid grid-cols-2 gap-2 lg:grid-cols-5 lg:gap-3">
+        {/* ROW 1: 5 KPI card shimmers — 2-col on mobile, auto-fit (KPI_GRID) on lg+ */}
+        <div className="grid grid-cols-2 gap-2 lg:gap-3 lg:[grid-template-columns:repeat(auto-fit,minmax(12rem,1fr))]">
           {Array.from({ length: 5 }).map((_, i) => (
             <div
               key={i}
               className={cn(
-                'bg-surface border border-border rounded-xl p-3 lg:p-[18px]',
+                'bg-surface border border-border rounded-xl p-3 lg:p-4.5',
                 i === 0 && 'col-span-2 lg:col-span-1',
               )}
             >
@@ -48,7 +64,7 @@ export function DashboardPage({ repo }: DashboardPageProps) {
                   <div className="flex items-center gap-2.5">
                     <div className="w-8 h-8 rounded-[9px] anim-skeleton flex-shrink-0" />
                     <div>
-                      <div className="h-[28px] w-[80px] rounded anim-skeleton" />
+                      <div className="h-[1.75rem] w-[80px] rounded anim-skeleton" />
                       <div className="h-[11px] w-[60px] rounded anim-skeleton mt-0.5" />
                     </div>
                   </div>
@@ -64,7 +80,7 @@ export function DashboardPage({ repo }: DashboardPageProps) {
               ) : (
                 <div className="lg:hidden flex flex-col gap-2">
                   <div className="w-8 h-8 rounded-[9px] anim-skeleton" />
-                  <div className="h-[28px] w-[55%] rounded anim-skeleton" />
+                  <div className="h-[1.75rem] w-[55%] rounded anim-skeleton" />
                   <div className="h-[11px] w-[70%] rounded anim-skeleton mt-0.5" />
                 </div>
               )}
@@ -78,8 +94,8 @@ export function DashboardPage({ repo }: DashboardPageProps) {
           ))}
         </div>
 
-        {/* ROW 2: 2 panel shimmers — real headers, shimmer content */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* ROW 2: 2 panel shimmers — real headers, shimmer content; auto-fit PANEL_GRID_2 */}
+        <div className="grid gap-4" style={{ gridTemplateColumns: PANEL_GRID_2 }}>
           {[
             { icon: 'circle-dot', iconCls: 'bg-info/15 text-info', title: t('status.title') },
             { icon: 'tags',       iconCls: 'bg-accent/15 text-accent', title: t('groups.title') },
@@ -89,7 +105,7 @@ export function DashboardPage({ repo }: DashboardPageProps) {
                 <span className={`w-6 h-6 lg:w-7 lg:h-7 rounded-md inline-flex items-center justify-center flex-shrink-0 ${p.iconCls}`}>
                   <Icon name={p.icon} size={13} />
                 </span>
-                <span className="text-[12px] lg:text-[13px] font-semibold text-text-primary">{p.title}</span>
+                <span className="text-12 lg:text-13 font-semibold text-text-primary">{p.title}</span>
               </div>
               <div className="p-4 lg:p-5 flex flex-col gap-3.5">
                 {Array.from({ length: 4 }).map((__, j) => (
@@ -103,8 +119,8 @@ export function DashboardPage({ repo }: DashboardPageProps) {
           ))}
         </div>
 
-        {/* ROW 3: 3 panel shimmers — real headers, shimmer content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* ROW 3: 3 panel shimmers — real headers, shimmer content; auto-fit PANEL_GRID_3 */}
+        <div className="grid gap-4" style={{ gridTemplateColumns: PANEL_GRID_3 }}>
           {[
             { icon: 'building',         iconCls: 'bg-success/15 text-success',           title: t('branches.title') },
             { icon: 'key-round',        iconCls: 'bg-violet-500/15 text-violet-300 light:text-violet-700',      title: t('license.title') },
@@ -115,7 +131,7 @@ export function DashboardPage({ repo }: DashboardPageProps) {
                 <span className={`w-6 h-6 lg:w-7 lg:h-7 rounded-md inline-flex items-center justify-center flex-shrink-0 ${p.iconCls}`}>
                   <Icon name={p.icon} size={13} />
                 </span>
-                <span className="text-[12px] lg:text-[13px] font-semibold text-text-primary">{p.title}</span>
+                <span className="text-12 lg:text-13 font-semibold text-text-primary">{p.title}</span>
               </div>
               <div className="p-4 lg:p-5 space-y-3">
                 {Array.from({ length: 3 }).map((__, j) => (
@@ -128,8 +144,8 @@ export function DashboardPage({ repo }: DashboardPageProps) {
 
         {/* ROW 4: Audit table shimmer — mirrors AuditTable (dashboard/AuditTable.tsx).
             P2: panel header (icon + title + «viewAll» link) is local chrome — renders real.
-            P1: desktop sub-header row (4-col labels) mirrors AuditTable line ~91;
-                body rows use the same grid-cols-[160px_1fr_180px_72px] as real rows. */}
+            P1: desktop sub-header row (4-col labels) mirrors AuditTable header (AUDIT_GRID);
+                body rows use the same AUDIT_GRID as real rows. */}
         <div className="bg-surface border border-border rounded-xl overflow-hidden">
           {/* Panel header — local chrome: icon, title, and «viewAll» link render real */}
           <div className="flex items-center justify-between px-5 py-3.5 border-b border-border">
@@ -137,18 +153,18 @@ export function DashboardPage({ repo }: DashboardPageProps) {
               <span className="w-6 h-6 lg:w-7 lg:h-7 rounded-md inline-flex items-center justify-center flex-shrink-0 bg-surface-2 text-text-tertiary">
                 <Icon name="history" size={13} />
               </span>
-              <span className="text-[12px] lg:text-[13px] font-semibold text-text-primary">{t('recentAudit')}</span>
+              <span className="text-12 lg:text-13 font-semibold text-text-primary">{t('recentAudit')}</span>
             </div>
             {/* «viewAll» link is local chrome (known translation string) — renders real, not shimmered */}
-            <span className="text-[11.5px] text-accent pointer-events-none opacity-50">
+            <span className="text-11.5 text-accent pointer-events-none opacity-50">
               {t('viewAll')}
             </span>
           </div>
 
-          {/* Desktop column sub-header — mirrors AuditTable line ~91: hidden lg:grid grid-cols-[160px_1fr_180px_72px] */}
-          <div className="hidden lg:grid grid-cols-[160px_1fr_180px_72px] gap-4 px-5 py-2 border-b border-border/50">
+          {/* Desktop column sub-header — mirrors AuditTable header; columns defined by AUDIT_GRID */}
+          <div className="hidden lg:grid gap-4 px-5 py-2 border-b border-border/50" style={{ gridTemplateColumns: AUDIT_GRID }}>
             {(['audit.col.action', 'audit.col.description', 'audit.col.user', 'audit.col.time'] as const).map(key => (
-              <span key={key} className="text-[10.5px] font-semibold uppercase tracking-wider text-text-subtle">
+              <span key={key} className="text-10.5 font-semibold uppercase tracking-wider text-text-subtle">
                 {t(key)}
               </span>
             ))}
@@ -158,8 +174,8 @@ export function DashboardPage({ repo }: DashboardPageProps) {
           <div className="divide-y divide-border/50">
             {Array.from({ length: 5 }).map((_, i) => (
               <div key={i} className="px-5 py-3">
-                {/* Desktop: mirror AuditTable grid-cols-[160px_1fr_180px_72px] */}
-                <div className="hidden lg:grid grid-cols-[160px_1fr_180px_72px] gap-4 items-center">
+                {/* Desktop: mirrors AuditTable row grid; columns defined by AUDIT_GRID */}
+                <div className="hidden lg:grid gap-4 items-center" style={{ gridTemplateColumns: AUDIT_GRID }}>
                   <div className="h-5 w-[100px] rounded-md anim-skeleton flex-shrink-0" />
                   <div className="h-3 flex-1 rounded anim-skeleton" />
                   <div className="h-3 w-[120px] rounded anim-skeleton flex-shrink-0" />
@@ -198,8 +214,8 @@ export function DashboardPage({ repo }: DashboardPageProps) {
         </div>
       )}
 
-      {/* ROW 1 — 5 KPI stat cards: 2-col grid on mobile, 5-col on desktop */}
-      <div className="grid grid-cols-2 gap-2 lg:grid-cols-5 lg:gap-3">
+      {/* ROW 1 — 5 KPI stat cards: 2-col on mobile, auto-fit KPI_GRID on lg+ */}
+      <div className="grid grid-cols-2 gap-2 lg:gap-3 lg:[grid-template-columns:repeat(auto-fit,minmax(12rem,1fr))]">
         {assets && (
           <StatCard
             icon="package"
@@ -261,9 +277,9 @@ export function DashboardPage({ repo }: DashboardPageProps) {
         )}
       </div>
 
-      {/* ROW 2 — Status breakdown + Group breakdown */}
+      {/* ROW 2 — Status breakdown + Group breakdown; auto-fit PANEL_GRID_2 */}
       {assets && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid gap-4" style={{ gridTemplateColumns: PANEL_GRID_2 }}>
           <StatusBars
             byStatus={assets.byStatus}
             total={assets.total}
@@ -273,8 +289,8 @@ export function DashboardPage({ repo }: DashboardPageProps) {
         </div>
       )}
 
-      {/* ROW 3 — Branches + Licenses + Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      {/* ROW 3 — Branches + Licenses + Activity; auto-fit PANEL_GRID_3 */}
+      <div className="grid gap-4" style={{ gridTemplateColumns: PANEL_GRID_3 }}>
         {assets && <BranchBars branches={assets.topBranches} />}
         {data.workstationLicenses && (
           <LicensePanel

@@ -9,16 +9,16 @@ import { formatLocalPhone } from './employeeFormat'
 import type { Employee } from '@/domain/employee'
 import type { RefRow } from '@/domain/asset'
 
-// Grid column widths — must match the original GRID_COLS exactly for visual parity
+// Grid column widths — must match the EmployeesPage skeleton exactly (track-for-track)
 const COL_WIDTHS = [
-  'minmax(180px,1.6fr)', // Employee
-  'minmax(120px,0.9fr)', // Branch
-  'minmax(140px,1.2fr)', // Position / Dept
-  'minmax(110px,0.85fr)', // Phone
-  'minmax(160px,1.4fr)', // Gmail
-  'minmax(80px,0.6fr)',  // Assets
-  'minmax(100px,0.9fr)', // Status
-  '56px',                // Chevron / Actions
+  'minmax(11.25rem,1.6fr)', // Employee
+  'minmax(7.5rem,0.9fr)',   // Branch
+  'minmax(8.75rem,1.2fr)',  // Position / Dept
+  'minmax(6.875rem,0.85fr)', // Phone
+  'minmax(10rem,1.4fr)',    // Gmail
+  'minmax(5rem,0.6fr)',     // Assets
+  'minmax(6.25rem,0.9fr)',  // Status
+  '3.5rem',                 // Chevron / Actions
 ] as const
 
 export interface EmployeesTableProps {
@@ -69,7 +69,7 @@ export function EmployeesTable({
       cell: (emp) => (
         <div className="flex items-center gap-2.5 overflow-hidden min-w-0 w-full">
           <EmployeeAvatar size="sm" />
-          <span className="text-[15px] font-semibold text-text-primary truncate leading-tight">
+          <span className="text-15 font-semibold text-text-primary truncate leading-tight">
             {emp.firstName} {emp.lastName}
           </span>
         </div>
@@ -90,7 +90,7 @@ export function EmployeesTable({
             >
               <Icon name={isHeadOffice ? 'landmark' : 'building'} size={12} />
             </span>
-            <span className="text-[14.5px] text-text-secondary truncate">
+            <span className="text-14.5 text-text-secondary truncate">
               {branchName || <span className="text-text-subtle">—</span>}
             </span>
           </div>
@@ -106,10 +106,10 @@ export function EmployeesTable({
         const deptName = emp.departmentId ? (deptMap.get(emp.departmentId) ?? '') : ''
         return (
           <div className="min-w-0 w-full">
-            <div className="text-[14.5px] font-medium text-text-primary truncate whitespace-nowrap leading-tight">
+            <div className="text-14.5 font-medium text-text-primary truncate whitespace-nowrap leading-tight">
               {emp.position || <span className="text-text-subtle">—</span>}
             </div>
-            <div className="text-[13px] text-text-tertiary truncate whitespace-nowrap leading-tight mt-0.5">
+            <div className="text-13 text-text-tertiary truncate whitespace-nowrap leading-tight mt-0.5">
               {deptName || <span className="text-text-subtle">—</span>}
             </div>
           </div>
@@ -122,11 +122,11 @@ export function EmployeesTable({
       width: COL_WIDTHS[3],
       cellClassName: 'overflow-hidden min-w-0',
       cell: (emp) => emp.phone ? (
-        <span className="text-[14px] text-text-secondary font-mono tabular-nums whitespace-nowrap truncate">
+        <span className="text-14 text-text-secondary font-mono tabular-nums whitespace-nowrap truncate">
           {formatLocalPhone(emp.phone)}
         </span>
       ) : (
-        <span className="text-[14px] text-text-subtle" aria-label={t('table.phone')}>—</span>
+        <span className="text-14 text-text-subtle" aria-label={t('table.phone')}>—</span>
       ),
     },
     {
@@ -135,11 +135,11 @@ export function EmployeesTable({
       width: COL_WIDTHS[4],
       cellClassName: 'overflow-hidden min-w-0',
       cell: (emp) => emp.email ? (
-        <span className="text-[14px] text-text-tertiary truncate inline-block max-w-full">
+        <span className="text-14 text-text-tertiary truncate inline-block max-w-full">
           {emp.email}
         </span>
       ) : (
-        <span className="text-[14px] text-text-subtle">—</span>
+        <span className="text-14 text-text-subtle">—</span>
       ),
     },
     {
@@ -151,7 +151,7 @@ export function EmployeesTable({
         const assetCount = assetCounts[emp.id] ?? 0
         return (
           <span
-            className={`inline-flex items-center gap-1.5 font-mono text-[14px] font-medium px-1.5 py-0.5 rounded border ${
+            className={`inline-flex items-center gap-1.5 font-mono text-14 font-medium px-1.5 py-0.5 rounded border ${
               assetCount === 0
                 ? 'text-text-subtle bg-bg border-border'
                 : 'text-text-secondary bg-bg border-border/70'

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import ReactDOM from 'react-dom'
 import { useTranslation } from 'react-i18next'
-import { Btn, Field, Input, DIALOG_BACKDROP, MODAL_SHEET } from '@/components/ui'
+import { Btn, Field, Input, DIALOG_BACKDROP, MODAL_SHEET, MODAL_W_MD } from '@/components/ui'
 import type { Department } from '@/domain/department'
 
 export interface DepartmentFormValues { name: string }
@@ -30,18 +30,18 @@ export function DepartmentFormDialog(p: DepartmentFormDialogProps) {
 
   return ReactDOM.createPortal(
     <div className={DIALOG_BACKDROP} onClick={p.onCancel}>
-      <div className={`w-[440px] max-md:w-full max-md:rounded-b-none max-md:rounded-t-[18px] max-md:max-h-[85vh] max-md:overflow-y-auto rounded-lg border border-border bg-surface p-5 mx-4 max-md:mx-0 ${MODAL_SHEET}`} onClick={e => e.stopPropagation()}>
+      <div className={`${MODAL_W_MD} max-md:rounded-b-none max-md:rounded-t-[18px] max-md:max-h-[85vh] max-md:overflow-y-auto rounded-lg border border-border bg-surface p-5 mx-4 max-md:mx-0 ${MODAL_SHEET}`} onClick={e => e.stopPropagation()}>
         <div className="max-md:block hidden mx-auto h-1 w-9 rounded-full bg-white/20 mb-3 light:bg-black/10" />
-        <h3 className="text-[15px] font-semibold text-text-primary mb-4">
+        <h3 className="text-15 font-semibold text-text-primary mb-4">
           {p.initial ? t('form.editTitle') : t('form.createTitle')}
         </h3>
         <div className="space-y-3">
-          {p.submitError && <p role="alert" className="text-[12px] text-[#FDA4AF] light:text-rose-700 px-1">{p.submitError}</p>}
+          {p.submitError && <p role="alert" className="text-12 text-[#FDA4AF] light:text-rose-700 px-1">{p.submitError}</p>}
           <div>
             <Field label={t('form.name')} required>
               <Input value={name} onChange={setName} autoFocus />
             </Field>
-            {nameError && <p className="mt-1 text-[12px] text-[#FDA4AF] light:text-rose-700">{nameError}</p>}
+            {nameError && <p className="mt-1 text-12 text-[#FDA4AF] light:text-rose-700">{nameError}</p>}
           </div>
         </div>
         <div className="flex justify-end gap-2 mt-5">

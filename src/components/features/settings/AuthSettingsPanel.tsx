@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import type { TFunction } from 'i18next'
 import { useAuth } from '@/contexts/AuthContext'
 import {
-  SectionCard, Btn, Icon, Field, Input, ErrorState, DIALOG_BACKDROP, MODAL_SHEET,
+  SectionCard, Btn, Icon, Field, Input, ErrorState, DIALOG_BACKDROP, MODAL_SHEET, MODAL_W_MD,
 } from '@/components/ui'
 import {
   normalizeDomain, isValidDomain,
@@ -48,7 +48,7 @@ function DialogShell({ onBackdropClick, children, labelledBy }: DialogShellProps
       aria-labelledby={labelledBy}
     >
       <div
-        className={`w-[440px] max-w-[90vw] rounded-lg border border-border bg-surface p-5 mx-4 max-md:mx-0 ${MODAL_SHEET}`}
+        className={`${MODAL_W_MD} rounded-lg border border-border bg-surface p-5 mx-4 max-md:mx-0 ${MODAL_SHEET}`}
         onClick={e => e.stopPropagation()}
       >
         <div className="max-md:block hidden mx-auto h-1 w-9 rounded-full bg-white/20 light:bg-black/10 mb-3" />
@@ -72,10 +72,10 @@ interface StandardConfirmProps {
 function StandardConfirmDialog({ working, saving, onConfirm, onCancel, t }: StandardConfirmProps) {
   return (
     <DialogShell onBackdropClick={onCancel} labelledBy="settings-confirm-title">
-      <h3 id="settings-confirm-title" className="text-[15px] font-semibold text-text-primary mb-2">
+      <h3 id="settings-confirm-title" className="text-15 font-semibold text-text-primary mb-2">
         {t('confirm.title')}
       </h3>
-      <p className="text-[13px] text-text-tertiary mb-4">
+      <p className="text-13 text-text-tertiary mb-4">
         {t('confirm.body', { list: working.join(', ') })}
       </p>
       <div className="flex justify-end gap-2">
@@ -115,11 +115,11 @@ function DangerConfirmDialog({ saving, onConfirm, onCancel, t }: DangerConfirmPr
     <DialogShell onBackdropClick={onCancel} labelledBy="settings-danger-title">
       <div className="flex items-center gap-2 mb-3">
         <Icon name="triangle-alert" size={16} className="text-[#FDBA74] light:text-amber-700 flex-shrink-0" />
-        <h3 id="settings-danger-title" className="text-[15px] font-semibold text-[#FDBA74] light:text-amber-700">
+        <h3 id="settings-danger-title" className="text-15 font-semibold text-[#FDBA74] light:text-amber-700">
           {t('dangerConfirm.title')}
         </h3>
       </div>
-      <p className="text-[13px] text-text-tertiary mb-4">
+      <p className="text-13 text-text-tertiary mb-4">
         {t('dangerConfirm.body')}
       </p>
       <Field label={t('dangerConfirm.tokenLabel')}>
@@ -165,10 +165,10 @@ interface SeedConfirmProps {
 function SeedConfirmDialog({ working, saving, onConfirm, onCancel, t }: SeedConfirmProps) {
   return (
     <DialogShell onBackdropClick={onCancel} labelledBy="seed-confirm-title">
-      <h3 id="seed-confirm-title" className="text-[15px] font-semibold text-text-primary mb-2">
+      <h3 id="seed-confirm-title" className="text-15 font-semibold text-text-primary mb-2">
         {t('seedAdmins.confirmTitle')}
       </h3>
-      <p className="text-[13px] text-text-tertiary mb-4">
+      <p className="text-13 text-text-tertiary mb-4">
         {working.length > 0
           ? t('seedAdmins.confirmBody', { list: working.join(', ') })
           : t('seedAdmins.empty')}
@@ -371,7 +371,7 @@ export function AuthSettingsPanel({ repository }: AuthSettingsPanelProps) {
         {/* ── DOMAIN LIST SECTION ────────────────────────────────────────── */}
         <div className="space-y-5">
           {/* subtitle — always real (local i18n, not async) */}
-          <p className="text-[13px] text-text-subtle">{t('auth.subtitle')}</p>
+          <p className="text-13 text-text-subtle">{t('auth.subtitle')}</p>
 
           {/* fail-closed banner — only when loaded and list is empty */}
           {!loading && workingDomains.length === 0 && (
@@ -380,7 +380,7 @@ export function AuthSettingsPanel({ repository }: AuthSettingsPanelProps) {
               className="flex items-start gap-2.5 px-4 py-3 rounded-lg border border-orange-900/60 light:border-orange-300 bg-accent/8 light:bg-orange-50"
             >
               <Icon name="triangle-alert" size={15} className="text-[#FDBA74] light:text-amber-700 flex-shrink-0 mt-0.5" />
-              <p className="text-[13px] text-[#FDBA74] light:text-amber-700">{t('failClosed.banner')}</p>
+              <p className="text-13 text-[#FDBA74] light:text-amber-700">{t('failClosed.banner')}</p>
             </div>
           )}
 
@@ -388,7 +388,7 @@ export function AuthSettingsPanel({ repository }: AuthSettingsPanelProps) {
           {loading ? (
             <div className="space-y-1.5" aria-hidden="true">
               {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="flex items-center justify-between px-3 py-2 rounded-lg border border-border bg-bg min-h-[36px]">
+                <div key={i} className="flex items-center justify-between px-3 py-2 rounded-lg border border-border bg-bg min-h-[var(--ctl-h-md)]">
                   <div className="h-[13px] rounded anim-skeleton" style={{ width: `${40 + i * 12}%` }} />
                   <div className="w-6 h-6 max-md:w-8 max-md:h-8 rounded anim-skeleton flex-shrink-0" />
                 </div>
@@ -401,7 +401,7 @@ export function AuthSettingsPanel({ repository }: AuthSettingsPanelProps) {
                   key={domain}
                   className="flex items-center justify-between px-3 py-2 rounded-lg border border-border bg-bg"
                 >
-                  <span className="font-mono text-[13px] text-text-primary">{domain}</span>
+                  <span className="font-mono text-13 text-text-primary">{domain}</span>
                   <button
                     type="button"
                     aria-label={t('auth.removeAria', { domain })}
@@ -414,7 +414,7 @@ export function AuthSettingsPanel({ repository }: AuthSettingsPanelProps) {
               ))}
             </ul>
           ) : (
-            <p className="text-[13px] text-text-subtle italic">{t('auth.empty')}</p>
+            <p className="text-13 text-text-subtle italic">{t('auth.empty')}</p>
           )}
 
           {/* add row — always real; inputs disabled while loading */}
@@ -435,16 +435,16 @@ export function AuthSettingsPanel({ repository }: AuthSettingsPanelProps) {
               </div>
             </Field>
             {!loading && addDomainError && (
-              <p role="alert" className="text-[12px] text-[#FDA4AF] light:text-rose-700">{addDomainError}</p>
+              <p role="alert" className="text-12 text-[#FDA4AF] light:text-rose-700">{addDomainError}</p>
             )}
           </div>
 
           {/* domain save feedback */}
           {saveDomainError && (
-            <p role="alert" className="text-[12px] text-[#FDA4AF] light:text-rose-700">{saveDomainError}</p>
+            <p role="alert" className="text-12 text-[#FDA4AF] light:text-rose-700">{saveDomainError}</p>
           )}
           {saveDomainSuccess && !domainDirty && (
-            <p className="text-[12px] text-emerald-400 light:text-emerald-700">{t('saved')}</p>
+            <p className="text-12 text-emerald-400 light:text-emerald-700">{t('saved')}</p>
           )}
 
           <div className="flex justify-end pt-2 border-t border-border">
@@ -462,17 +462,17 @@ export function AuthSettingsPanel({ repository }: AuthSettingsPanelProps) {
         {/* ── SEED ADMINS SECTION ────────────────────────────────────────── */}
         <div className="space-y-5 pt-2 border-t border-border">
           <div>
-            <h3 className="text-[13px] font-semibold text-text-primary mb-1">
+            <h3 className="text-13 font-semibold text-text-primary mb-1">
               {t('seedAdmins.title')}
             </h3>
-            <p className="text-[13px] text-text-subtle">{t('seedAdmins.subtitle')}</p>
+            <p className="text-13 text-text-subtle">{t('seedAdmins.subtitle')}</p>
           </div>
 
           {/* seed email list */}
           {loading ? (
             <div className="space-y-1.5" aria-hidden="true">
               {Array.from({ length: 2 }).map((_, i) => (
-                <div key={i} className="flex items-center justify-between px-3 py-2 rounded-lg border border-border bg-bg min-h-[36px]">
+                <div key={i} className="flex items-center justify-between px-3 py-2 rounded-lg border border-border bg-bg min-h-[var(--ctl-h-md)]">
                   <div className="h-[13px] rounded anim-skeleton" style={{ width: `${50 + i * 15}%` }} />
                   <div className="w-6 h-6 max-md:w-8 max-md:h-8 rounded anim-skeleton flex-shrink-0" />
                 </div>
@@ -485,7 +485,7 @@ export function AuthSettingsPanel({ repository }: AuthSettingsPanelProps) {
                   key={email}
                   className="flex items-center justify-between px-3 py-2 rounded-lg border border-border bg-bg"
                 >
-                  <span className="font-mono text-[13px] text-text-primary">{email}</span>
+                  <span className="font-mono text-13 text-text-primary">{email}</span>
                   <button
                     type="button"
                     aria-label={t('seedAdmins.removeAria', { email })}
@@ -498,7 +498,7 @@ export function AuthSettingsPanel({ repository }: AuthSettingsPanelProps) {
               ))}
             </ul>
           ) : (
-            <p className="text-[13px] text-text-subtle italic">{t('seedAdmins.empty')}</p>
+            <p className="text-13 text-text-subtle italic">{t('seedAdmins.empty')}</p>
           )}
 
           {/* add seed email row */}
@@ -519,16 +519,16 @@ export function AuthSettingsPanel({ repository }: AuthSettingsPanelProps) {
               </div>
             </Field>
             {!loading && addSeedError && (
-              <p role="alert" className="text-[12px] text-[#FDA4AF] light:text-rose-700">{addSeedError}</p>
+              <p role="alert" className="text-12 text-[#FDA4AF] light:text-rose-700">{addSeedError}</p>
             )}
           </div>
 
           {/* seed save feedback */}
           {saveSeedError && (
-            <p role="alert" className="text-[12px] text-[#FDA4AF] light:text-rose-700">{saveSeedError}</p>
+            <p role="alert" className="text-12 text-[#FDA4AF] light:text-rose-700">{saveSeedError}</p>
           )}
           {saveSeedSuccess && !seedDirty && (
-            <p className="text-[12px] text-emerald-400 light:text-emerald-700">{t('seedAdmins.saved')}</p>
+            <p className="text-12 text-emerald-400 light:text-emerald-700">{t('seedAdmins.saved')}</p>
           )}
 
           <div className="flex justify-end pt-2 border-t border-border">

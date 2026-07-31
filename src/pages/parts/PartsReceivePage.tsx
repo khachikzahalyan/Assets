@@ -144,7 +144,7 @@ export function PartsReceivePage({ repository }: PartsReceivePageProps = {}) {
           <span className={`w-7 h-7 rounded-lg ${tint.iconBg} ${tint.iconText} inline-flex items-center justify-center flex-shrink-0`}>
             <Icon name={cat.icon} size={13} />
           </span>
-          <h2 className="text-[14.5px] font-bold text-text-primary">{cat.label}</h2>
+          <h2 className="text-14.5 font-bold text-text-primary">{cat.label}</h2>
           {/* DDR filter pills for ram-like categories */}
           {isRam && (
             <div className="flex items-center gap-1">
@@ -153,7 +153,7 @@ export function PartsReceivePage({ repository }: PartsReceivePageProps = {}) {
                   key={ddr}
                   type="button"
                   onClick={() => setRamDdr(ddr)}
-                  className={`px-2.5 h-6 rounded-full text-[13px] font-semibold transition-all border
+                  className={`px-2.5 h-6 rounded-full text-13 font-semibold transition-all border
                     ${ramDdr === ddr
                       ? 'bg-accent border-accent text-white shadow-sm shadow-[#FB923C]/40 light:shadow-[#F97316]/20'
                       : 'bg-surface border-border text-text-tertiary hover:border-border-strong hover:text-text-secondary'}`}
@@ -164,13 +164,13 @@ export function PartsReceivePage({ repository }: PartsReceivePageProps = {}) {
             </div>
           )}
           <div className="flex-1 h-px bg-border" />
-          <span className="text-[13px] text-text-subtle tabular-nums">{visibleParts.length} {t('addModal.positions')}</span>
+          <span className="text-13 text-text-subtle tabular-nums">{visibleParts.length} {t('addModal.positions')}</span>
         </div>
 
         {/* SKU card grid — full page width, same card size as modal */}
         <div
           className="grid gap-2"
-          style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))' }}
+          style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(10rem, 1fr))' }}
         >
           {visibleParts.map(p => {
             const qtyRaw = qtys[p.id]
@@ -189,7 +189,7 @@ export function PartsReceivePage({ repository }: PartsReceivePageProps = {}) {
               >
                 {/* Top row: size label + onHand chip */}
                 <div className="flex items-center justify-between gap-2 mb-1.5 min-w-0">
-                  <span className="font-mono text-[14px] font-semibold text-text-primary truncate">{sizeLabel}</span>
+                  <span className="font-mono text-14 font-semibold text-text-primary truncate">{sizeLabel}</span>
                   <span className="flex-shrink-0" title={`${t('addModal.inStock')}: ${p.onHand}`}>
                     <Chip color="gray" size="sm">{p.onHand}</Chip>
                   </span>
@@ -212,7 +212,7 @@ export function PartsReceivePage({ repository }: PartsReceivePageProps = {}) {
                     onChange={e => setQtys(q => ({ ...q, [p.id]: e.target.value.replace(/[^\d]/g, '') }))}
                     aria-label={`${p.name} ${t('addModal.qty')}`}
                     placeholder="0"
-                    className={`flex-1 h-7 px-1 text-center text-[15px] font-semibold rounded-md tabular-nums min-w-0 focus:outline-none transition-colors
+                    className={`flex-1 h-7 px-1 text-center text-15 font-semibold rounded-md tabular-nums min-w-0 focus:outline-none transition-colors
                       ${isActive
                         ? 'bg-[#F97316]/10 border border-accent text-accent focus:border-accent'
                         : 'bg-bg border border-border text-text-secondary focus:border-accent'}`}
@@ -315,7 +315,7 @@ export function PartsReceivePage({ repository }: PartsReceivePageProps = {}) {
         <button
           type="button"
           onClick={handleCancel}
-          className="inline-flex items-center gap-1.5 text-[13.5px] font-medium text-text-tertiary hover:text-text-primary transition-colors"
+          className="inline-flex items-center gap-1.5 text-13.5 font-medium text-text-tertiary hover:text-text-primary transition-colors"
         >
           <Icon name="arrow-left" size={15} />
           {t('actions.back')}
@@ -337,7 +337,7 @@ export function PartsReceivePage({ repository }: PartsReceivePageProps = {}) {
                   <div className="h-[12px] w-[64px] rounded anim-skeleton" />
                 </div>
                 {/* SKU card grid — mirrors real: p-2, top row label + chip, stepper */}
-                <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))' }}>
+                <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(10rem, 1fr))' }}>
                   {Array.from({ length: 4 }).map((__, c) => (
                     <div key={c} className="bg-surface border border-border rounded-lg p-2">
                       {/* top row: mono label + chip footprint */}
@@ -360,7 +360,7 @@ export function PartsReceivePage({ repository }: PartsReceivePageProps = {}) {
           {/* Error banner for submit failures */}
           {submitError && (
             <div
-              className="flex items-center gap-2.5 bg-rose-950/30 light:bg-rose-50 border border-rose-800/40 light:border-rose-200 text-rose-400 light:text-rose-700 px-4 py-3 rounded-xl text-[13.5px]"
+              className="flex items-center gap-2.5 bg-rose-950/30 light:bg-rose-50 border border-rose-800/40 light:border-rose-200 text-rose-400 light:text-rose-700 px-4 py-3 rounded-xl text-13.5"
               role="alert"
             >
               <Icon name="triangle-alert" size={14} className="flex-shrink-0" />
@@ -380,8 +380,8 @@ export function PartsReceivePage({ repository }: PartsReceivePageProps = {}) {
           <div className="rounded-xl bg-surface-2 px-4 py-3 space-y-3">
             {visibleCats.length === 0 ? (
               <div className="py-12 text-center">
-                <p className="text-[15px] font-semibold text-text-primary mb-1">{t('warehouse.emptyTitle')}</p>
-                <p className="text-[13.5px] text-text-tertiary">{t('warehouse.emptyDesc')}</p>
+                <p className="text-15 font-semibold text-text-primary mb-1">{t('warehouse.emptyTitle')}</p>
+                <p className="text-13.5 text-text-tertiary">{t('warehouse.emptyDesc')}</p>
               </div>
             ) : (
               buildSectionElements()
@@ -392,7 +392,7 @@ export function PartsReceivePage({ repository }: PartsReceivePageProps = {}) {
 
       {/* Footer: summary + actions — shared real chrome; Confirm naturally disabled when !canSubmit */}
       <div className="flex-shrink-0 flex items-center justify-between gap-4 border-t border-border pt-3 pb-1 mt-3 max-md:flex-col max-md:items-stretch max-md:gap-2">
-        <div className="text-[14.5px] text-text-tertiary min-w-0 truncate max-md:text-[13.5px]">
+        <div className="text-14.5 text-text-tertiary min-w-0 truncate max-md:text-13.5">
           {itemsCount > 0 ? (
             <>
               {t('addModal.summaryLabel')}{' '}
@@ -410,7 +410,7 @@ export function PartsReceivePage({ repository }: PartsReceivePageProps = {}) {
             type="button"
             onClick={handleCancel}
             disabled={submitting}
-            className="h-9 px-3.5 text-[13.5px] font-medium rounded-lg text-text-primary hover:bg-surface-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="h-9 px-3.5 text-13.5 font-medium rounded-lg text-text-primary hover:bg-surface-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {t('addModal.cancel')}
           </button>
@@ -418,7 +418,7 @@ export function PartsReceivePage({ repository }: PartsReceivePageProps = {}) {
             type="button"
             onClick={() => { void handleSubmit() }}
             disabled={!canSubmit || submitting}
-            className="h-9 px-3.5 text-[13.5px] font-medium rounded-lg bg-gradient-to-b from-accent-light to-accent text-white shadow-sm shadow-[#F97316]/20 hover:shadow-md hover:shadow-[#F97316]/30 ring-1 ring-[#F97316]/10 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5 transition-all"
+            className="h-9 px-3.5 text-13.5 font-medium rounded-lg bg-gradient-to-b from-accent-light to-accent text-white shadow-sm shadow-[#F97316]/20 hover:shadow-md hover:shadow-[#F97316]/30 ring-1 ring-[#F97316]/10 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5 transition-all"
           >
             {submitting ? (
               <><Icon name="loader-2" size={14} className="animate-spin" />{t('addModal.saving')}</>

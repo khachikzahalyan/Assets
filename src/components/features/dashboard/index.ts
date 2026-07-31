@@ -36,5 +36,5 @@ export type { LicensePanelProps } from './LicensePanel'
 export { ActivityPanel } from './ActivityPanel'
 export type { ActivityPanelProps } from './ActivityPanel'
 
-export { AuditTable } from './AuditTable'
+export { AuditTable, AUDIT_GRID } from './AuditTable'
 export type { AuditTableProps } from './AuditTable'

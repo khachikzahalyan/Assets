@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Btn, Field, Input, Select, DIALOG_BACKDROP, MODAL_SHEET } from '@/components/ui'
+import { Btn, Field, Input, Select, DIALOG_BACKDROP, MODAL_SHEET, MODAL_W_LG } from '@/components/ui'
 import { maskLicenseKey } from '@/lib/audit/maskSecrets'
 import type {
   CreateWorkstationLicenseInput,
@@ -126,15 +126,15 @@ export function LicenseFormDialog({ open, kind, submitting, submitError, onSubmi
       onClick={onCancel}
     >
       <div
-        className={`w-[480px] max-md:w-full max-md:rounded-b-none max-md:rounded-t-[18px] max-h-[90vh] max-md:max-h-[85vh] overflow-y-auto rounded-lg border border-border bg-surface p-5 mx-4 max-md:mx-0 ${MODAL_SHEET}`}
+        className={`${MODAL_W_LG} max-md:rounded-b-none max-md:rounded-t-[18px] max-h-[90vh] max-md:max-h-[85vh] overflow-y-auto rounded-lg border border-border bg-surface p-5 mx-4 max-md:mx-0 ${MODAL_SHEET}`}
         onClick={e => e.stopPropagation()}
       >
         <div className="max-md:block hidden mx-auto h-1 w-9 rounded-full bg-white/20 light:bg-black/10 mb-3" />
-        <h3 className="text-[15px] font-semibold text-text-primary mb-4">{title}</h3>
+        <h3 className="text-15 font-semibold text-text-primary mb-4">{title}</h3>
 
         <div className="space-y-3">
           {submitError && (
-            <p role="alert" className="text-[12px] text-[#FDA4AF] light:text-rose-700 px-1">{submitError}</p>
+            <p role="alert" className="text-12 text-[#FDA4AF] light:text-rose-700 px-1">{submitError}</p>
           )}
 
           {/* Name */}
@@ -148,7 +148,7 @@ export function LicenseFormDialog({ open, kind, submitting, submitError, onSubmi
               />
             </Field>
             {nameError && (
-              <p role="alert" className="mt-1 text-[12px] text-[#FDA4AF] light:text-rose-700">{nameError}</p>
+              <p role="alert" className="mt-1 text-12 text-[#FDA4AF] light:text-rose-700">{nameError}</p>
             )}
           </div>
 
@@ -188,7 +188,7 @@ export function LicenseFormDialog({ open, kind, submitting, submitError, onSubmi
                 onChange={e => setIsReusable(e.target.checked)}
                 className="w-4 h-4 rounded border-border accent-accent"
               />
-              <span className="text-[13px] text-text-tertiary">{t('form.isReusable')}</span>
+              <span className="text-13 text-text-tertiary">{t('form.isReusable')}</span>
             </label>
           )}
 
@@ -215,7 +215,7 @@ export function LicenseFormDialog({ open, kind, submitting, submitError, onSubmi
               <Input id="lic-raw-key" value={rawKey} onChange={setRawKey} mono />
             </Field>
             {maskedPreview && (
-              <p className="mt-1 text-[11px] text-text-subtle font-mono">
+              <p className="mt-1 text-11 text-text-subtle font-mono">
                 {t('form.keyMaskedPreview', { masked: maskedPreview })}
               </p>
             )}

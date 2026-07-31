@@ -101,7 +101,7 @@ export function TableSkeleton({
               {headers ? (
                 /* Real caption — same typography as DataTable / AssetsTable headers */
                 caption !== '' && (
-                  <span className="text-[12px] uppercase tracking-[0.09em] font-semibold text-text-tertiary">
+                  <span className="text-12 uppercase tracking-[0.09em] font-semibold text-text-tertiary">
                     {caption}
                   </span>
                 )

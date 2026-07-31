@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import ReactDOM from 'react-dom'
 import { useTranslation } from 'react-i18next'
-import { Btn, Field, Input, Select, Chip, DIALOG_BACKDROP, MODAL_SHEET } from '@/components/ui'
+import { Btn, Field, Input, Select, Chip, DIALOG_BACKDROP, MODAL_SHEET, MODAL_W_XL } from '@/components/ui'
 import type { PartCategoryDef, PartCategoryBehavior } from '@/domain/part/partCategory-types'
 import { PART_CATEGORY_BEHAVIORS } from '@/domain/part/partCategory-types'
 import { TINT_BY_TOKEN, TINT_FALLBACK } from '@/components/features/parts/partsTokens'
@@ -133,17 +133,17 @@ export function PartCategoryFormDialog(p: PartCategoryFormDialogProps) {
   return ReactDOM.createPortal(
     <div className={DIALOG_BACKDROP} onClick={p.onCancel}>
       <div
-        className={`w-[520px] rounded-lg border border-border bg-surface p-5 mx-4 max-md:mx-0 ${MODAL_SHEET}`}
+        className={`${MODAL_W_XL} rounded-lg border border-border bg-surface p-5 mx-4 max-md:mx-0 ${MODAL_SHEET}`}
         onClick={e => e.stopPropagation()}
       >
         <div className="max-md:block hidden mx-auto h-1 w-9 rounded-full bg-white/20 mb-3 light:bg-black/10" />
-        <h3 className="text-[15px] font-semibold text-text-primary mb-4">
+        <h3 className="text-15 font-semibold text-text-primary mb-4">
           {isEdit ? t('parts.form.editTitle') : t('parts.form.createTitle')}
         </h3>
 
         <div className="space-y-3">
           {p.submitError && (
-            <p role="alert" className="text-[12px] text-error px-1">{p.submitError}</p>
+            <p role="alert" className="text-12 text-error px-1">{p.submitError}</p>
           )}
 
           {/* Multi-lang name inputs (Tier-2 field) */}
@@ -181,19 +181,19 @@ export function PartCategoryFormDialog(p: PartCategoryFormDialogProps) {
                 onChange={handleBehaviorChange}
                 options={behaviorOptions}
               />
-              <p className="mt-1 text-[11px] text-text-subtle">
+              <p className="mt-1 text-11 text-text-subtle">
                 {t(`parts.behavior.${behavior}Desc`)}
               </p>
             </Field>
           ) : (
             <div>
-              <span className="block mb-1 text-[11px] uppercase tracking-[0.06em] font-semibold text-text-subtle">
+              <span className="block mb-1 text-11 uppercase tracking-[0.06em] font-semibold text-text-subtle">
                 {t('parts.col.behavior')}
               </span>
               <Chip color="gray">
                 {t(`parts.behavior.${p.initial!.behavior}`)}
               </Chip>
-              <p className="mt-1 text-[11px] text-text-subtle">
+              <p className="mt-1 text-11 text-text-subtle">
                 {t(`parts.behavior.${p.initial!.behavior}Desc`)}
               </p>
             </div>
@@ -211,7 +211,7 @@ export function PartCategoryFormDialog(p: PartCategoryFormDialogProps) {
             </Field>
           ) : (
             <div>
-              <span className="block mb-1 text-[11px] uppercase tracking-[0.06em] font-semibold text-text-subtle">
+              <span className="block mb-1 text-11 uppercase tracking-[0.06em] font-semibold text-text-subtle">
                 {t('parts.slotKind.label')}
               </span>
               <Chip color="gray">

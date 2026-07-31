@@ -43,3 +43,17 @@ export const MODAL_BACKDROP_ABS =
  * 3 usages: RecentActivityList (×2), ActivateKeyModal.
  */
 export const LIST_ROW_SEPARATOR = 'border-b border-border last:border-b-0'
+
+/**
+ * Modal panel width tokens — pair with MODAL_SHEET and layout/border classes.
+ * Use: cn(MODAL_W_MD, 'rounded-lg border border-border bg-surface p-5 mx-4 max-md:mx-0', MODAL_SHEET)
+ *
+ * MODAL_W_SM  — 2 usages: ConfirmDeleteDialog, AssignLicenseDialog
+ * MODAL_W_MD  — 3 usages: DepartmentFormDialog, AuthSettingsPanel (DialogShell), BranchFormDialog
+ * MODAL_W_LG  — 3 usages: CategoryGroupFormDialog, CategoryFormDialog, LicenseFormDialog
+ * MODAL_W_XL  — 1 usage:  PartCategoryFormDialog (included for symmetry with the full size set)
+ */
+export const MODAL_W_SM = 'w-full max-w-[var(--modal-w-sm)]'
+export const MODAL_W_MD = 'w-full max-w-[var(--modal-w-md)]'
+export const MODAL_W_LG = 'w-full max-w-[var(--modal-w-lg)]'
+export const MODAL_W_XL = 'w-full max-w-[var(--modal-w-xl)]'

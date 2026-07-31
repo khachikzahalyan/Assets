@@ -5,6 +5,11 @@ import { Icon } from '@/components/ui/icon'
 import { RoleIcon } from '@/components/ui/RoleIcon'
 import { cn } from '@/lib/utils'
 
+// ── Shared grid template — consumed by AuditTable AND the DashboardPage skeleton.
+// Columns: action badge (10rem) | description (1fr) | actor (11.25rem) | time (4.5rem)
+// Pixel equivalents: 160px → 10rem, 180px → 11.25rem, 72px → 4.5rem
+export const AUDIT_GRID = '10rem 1fr 11.25rem 4.5rem'
+
 // ── Badge colours ─────────────────────────────────────────────────────────────
 
 type BadgeTone = 'green' | 'blue' | 'violet' | 'red' | 'neutral'
@@ -75,24 +80,24 @@ export function AuditTable({ rows }: AuditTableProps) {
           <span className="w-6 h-6 lg:w-7 lg:h-7 rounded-md bg-surface-2 text-text-tertiary inline-flex items-center justify-center flex-shrink-0">
             <Icon name="history" size={14} />
           </span>
-          <h2 className="text-[12px] lg:text-[13px] font-semibold text-text-primary">
+          <h2 className="text-12 lg:text-13 font-semibold text-text-primary">
             {t('recentAudit')}
           </h2>
         </div>
         <Link
           to="/audit"
-          className="text-[11.5px] text-accent hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent"
+          className="text-11.5 text-accent hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent"
         >
           {t('viewAll')}
         </Link>
       </header>
 
-      {/* Desktop column headers — hidden below lg */}
-      <div className="hidden lg:grid grid-cols-[160px_1fr_180px_72px] gap-4 px-5 py-2 border-b border-border/50">
+      {/* Desktop column headers — hidden below lg; columns defined by AUDIT_GRID */}
+      <div className="hidden lg:grid gap-4 px-5 py-2 border-b border-border/50" style={{ gridTemplateColumns: AUDIT_GRID }}>
         {COL_KEYS.map(key => (
           <span
             key={key}
-            className="text-[10.5px] font-semibold uppercase tracking-wider text-text-subtle"
+            className="text-10.5 font-semibold uppercase tracking-wider text-text-subtle"
           >
             {t(key)}
           </span>
@@ -102,7 +107,7 @@ export function AuditTable({ rows }: AuditTableProps) {
       {/* Rows */}
       <div className="divide-y divide-border/50">
         {rows.length === 0 ? (
-          <div className="px-5 py-8 text-center text-[12px] text-text-subtle">{t('noAudit')}</div>
+          <div className="px-5 py-8 text-center text-12 text-text-subtle">{t('noAudit')}</div>
         ) : (
           rows.map(row => {
             const tone = actionTone(row.action)
@@ -110,26 +115,26 @@ export function AuditTable({ rows }: AuditTableProps) {
 
             return (
               <div key={row.id} className="px-5 py-3">
-                {/* Desktop: 4-col grid (≥lg) */}
-                <div className="hidden lg:grid grid-cols-[160px_1fr_180px_72px] gap-4 items-center">
+                {/* Desktop: 4-col grid (≥lg); columns defined by AUDIT_GRID */}
+                <div className="hidden lg:grid gap-4 items-center" style={{ gridTemplateColumns: AUDIT_GRID }}>
                   <span
                     className={cn(
-                      'inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium w-fit max-w-full truncate',
+                      'inline-flex items-center rounded-md px-2 py-0.5 text-11 font-medium w-fit max-w-full truncate',
                       badgeCls,
                     )}
                   >
                     {t(`auditAction.${row.action}`, { defaultValue: row.action })}
                   </span>
-                  <span className="text-[12.5px] text-text-secondary truncate">
+                  <span className="text-12.5 text-text-secondary truncate">
                     {row.targetLabel}
                   </span>
                   <div className="flex items-center gap-2 min-w-0">
                     <RoleIcon role="employee" size={24} className="flex-shrink-0" />
-                    <span className="text-[12px] text-text-secondary truncate">
+                    <span className="text-12 text-text-secondary truncate">
                       {row.actorName}
                     </span>
                   </div>
-                  <span className="text-[11.5px] font-mono text-text-subtle text-right">
+                  <span className="text-11.5 font-mono text-text-subtle text-right">
                     {formatShortTime(row.at)}
                   </span>
                 </div>
@@ -139,17 +144,17 @@ export function AuditTable({ rows }: AuditTableProps) {
                   <div className="flex items-center justify-between gap-2">
                     <span
                       className={cn(
-                        'inline-flex items-center rounded-md px-2 py-0.5 text-[10.5px] font-medium truncate',
+                        'inline-flex items-center rounded-md px-2 py-0.5 text-10.5 font-medium truncate',
                         badgeCls,
                       )}
                     >
                       {t(`auditAction.${row.action}`, { defaultValue: row.action })}
                     </span>
-                    <span className="text-[10.5px] font-mono text-text-subtle flex-shrink-0">
+                    <span className="text-10.5 font-mono text-text-subtle flex-shrink-0">
                       {formatShortTime(row.at)}
                     </span>
                   </div>
-                  <div className="text-[12.5px] text-text-secondary truncate">
+                  <div className="text-12.5 text-text-secondary truncate">
                     {row.targetLabel}
                   </div>
                 </div>

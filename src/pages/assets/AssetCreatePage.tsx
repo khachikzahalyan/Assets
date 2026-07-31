@@ -168,18 +168,18 @@ export function AssetCreatePage({ repository, licenseRepository, onCreated, onPe
     // Category grid and form fields are async-driven → shimmer bars.
     return (
       <div className="space-y-5">
-        <div className="bg-surface rounded-2xl ring-1 ring-border/50 overflow-hidden w-full max-w-[1600px] mx-auto">
+        <div className="bg-surface rounded-2xl ring-1 ring-border/50 overflow-hidden w-full max-w-[100rem] mx-auto">
           {/* In-card header — static chrome rendered real */}
           <div className="flex items-center justify-between max-md:px-3 max-md:pt-2.5 max-md:pb-2.5 px-5 py-3 border-b border-border/60 gap-2 overflow-hidden">
             <div className="flex items-center gap-2 min-w-0 flex-1">
-              <span className="inline-flex items-center bg-[#F97316]/15 text-accent text-[11px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-md ring-1 ring-[#F97316]/30 shrink-0">
+              <span className="inline-flex items-center bg-[#F97316]/15 text-accent text-11 font-bold tracking-widest uppercase px-2 py-0.5 rounded-md ring-1 ring-[#F97316]/30 shrink-0">
                 AMS
               </span>
               <div className="min-w-0">
-                <h2 className="text-[15px] font-semibold text-text-primary leading-tight truncate">
+                <h2 className="text-15 font-semibold text-text-primary leading-tight truncate">
                   {t('form.createTitle')}
                 </h2>
-                <p className="text-[13px] text-text-subtle mt-0.5 truncate">
+                <p className="text-13 text-text-subtle mt-0.5 truncate">
                   {t('form.subtitleCat', { cat: '—' })}
                 </p>
               </div>
@@ -204,7 +204,7 @@ export function AssetCreatePage({ repository, licenseRepository, onCreated, onPe
           {/* Grid body — shimmer both columns */}
           <div className="grid grid-cols-1 lg:grid-cols-2 max-lg:pb-28">
             {/* Left column: group tabs + category picker */}
-            <section className="max-md:px-[14px] px-6 py-5 lg:border-r lg:border-border/80">
+            <section className="max-md:px-3.5 px-6 py-5 lg:border-r lg:border-border/80">
               <div className="space-y-4">
                 {/* GroupTabs shimmer */}
                 <div className="flex gap-1.5">
@@ -221,7 +221,7 @@ export function AssetCreatePage({ repository, licenseRepository, onCreated, onPe
               </div>
             </section>
             {/* Right column: form fields */}
-            <section className="max-md:px-[14px] px-6 py-5">
+            <section className="max-md:px-3.5 px-6 py-5">
               <div className="space-y-4">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <div key={i} className="h-9 rounded-lg anim-skeleton" />
@@ -246,7 +246,7 @@ export function AssetCreatePage({ repository, licenseRepository, onCreated, onPe
   return (
     <div className="space-y-5">
       {oemKeyWarning && (
-        <p role="alert" className="text-[12px] text-amber-300 light:text-amber-700 px-1">{oemKeyWarning}</p>
+        <p role="alert" className="text-12 text-amber-300 light:text-amber-700 px-1">{oemKeyWarning}</p>
       )}
       <AssetCreateForm
         referenceData={refData}

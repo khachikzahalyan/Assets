@@ -209,7 +209,7 @@ export function CategoriesPage({ repository, categoryGroupRepository, partCatego
       ? <CardListSkeleton rows={10} variant="catalog" />
       // Name track is '2fr' (not minmax) — the real column defines width: '2fr',
       // which DataTable joins verbatim into gridTemplateColumns.
-      : <TableSkeleton rows={PAGE_SIZE} columns={3} gridTemplate="2fr 1fr 80px" lastColAction headers={[t('col.name'), t('col.specs'), '']} />
+      : <TableSkeleton rows={PAGE_SIZE} columns={3} gridTemplate="2fr 1fr 5rem" lastColAction headers={[t('col.name'), t('col.specs'), '']} />
     if ((fetchError || pageError) && !data) return <ErrorState onRetry={reload} />
     if (!selectedGroupId || filtered.length === 0) return (
       <EmptyState icon="tags" title={t('empty.title')} description={t('empty.desc')} />
@@ -221,7 +221,7 @@ export function CategoriesPage({ repository, categoryGroupRepository, partCatego
         mobileIcon={(c) => (
           /* The category's OWN icon in the tile (meaningful), replacing the
              generic "tags" icon; the inline name-column icon is hidden on mobile. */
-          <span className="w-[28px] h-[28px] rounded-[8px] inline-flex items-center justify-center flex-shrink-0 bg-surface-2 text-text-secondary" aria-hidden="true">
+          <span className="w-[1.75rem] h-[1.75rem] rounded-[8px] inline-flex items-center justify-center flex-shrink-0 bg-surface-2 text-text-secondary" aria-hidden="true">
             <Icon name={c.lucideIcon} size={14} />
           </span>
         )}
@@ -234,7 +234,7 @@ export function CategoriesPage({ repository, categoryGroupRepository, partCatego
     <>
       <ListPageShell flushMobile>
         <ListCard
-          className="max-md:mx-[10px]"
+          className="max-md:mx-2.5"
           toolbar={
             <>
               {/* Tab strip — add button sits in the SAME row, right-aligned
@@ -294,7 +294,7 @@ export function CategoriesPage({ repository, categoryGroupRepository, partCatego
                           <button
                             type="button"
                             disabled
-                            className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg border border-dashed border-border text-text-tertiary text-[13px] font-semibold tracking-tight whitespace-nowrap flex-shrink-0 opacity-50 cursor-not-allowed"
+                            className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg border border-dashed border-border text-text-tertiary text-13 font-semibold tracking-tight whitespace-nowrap flex-shrink-0 opacity-50 cursor-not-allowed"
                           >
                             <Icon name="plus" size={13} />
                             {t('create')}

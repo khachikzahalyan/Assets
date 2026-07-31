@@ -112,11 +112,11 @@ function EmployeePropRow({ icon, label, value, mono = false, copyValue }: Employ
   const inner = (
     <>
       <Icon name={icon} size={13} className={`${iconTint(icon)} shrink-0 mt-px`} />
-      <dt className="text-[12.5px] font-semibold uppercase tracking-[0.07em] text-text-subtle w-[72px] shrink-0 leading-none">
+      <dt className="text-12.5 font-semibold uppercase tracking-[0.07em] text-text-subtle w-[4.5rem] shrink-0 leading-none">
         {label}
       </dt>
       <dd
-        className={`flex-1 min-w-0 text-[14.5px] text-text-primary font-medium truncate text-left leading-none${mono ? ' font-mono tabular-nums' : ''}`}
+        className={`flex-1 min-w-0 text-14.5 text-text-primary font-medium truncate text-left leading-none${mono ? ' font-mono tabular-nums' : ''}`}
       >
         {value}
       </dd>
@@ -139,7 +139,7 @@ function EmployeePropRow({ icon, label, value, mono = false, copyValue }: Employ
       <button
         type="button"
         onClick={handleCopy}
-        className="group w-full flex items-center gap-x-3 px-4 py-[9px] text-left hover:bg-bg transition-colors duration-100 rounded-md"
+        className="group w-full flex items-center gap-x-3 px-4 py-[0.5625rem] text-left hover:bg-bg transition-colors duration-100 rounded-md"
       >
         {inner}
       </button>
@@ -147,7 +147,7 @@ function EmployeePropRow({ icon, label, value, mono = false, copyValue }: Employ
   }
 
   return (
-    <div className="flex items-center gap-x-3 px-4 py-[9px]">
+    <div className="flex items-center gap-x-3 px-4 py-[0.5625rem]">
       {inner}
     </div>
   )
@@ -259,16 +259,16 @@ export function EmployeeDetailDrawer({
 
         {/* Name + status chip + joined date */}
         <div className="flex-1 min-w-0 pt-0.5">
-          <h2 className="text-[17px] font-bold text-text-primary tracking-[-0.01em] truncate leading-tight">
+          <h2 className="text-17 font-bold text-text-primary tracking-[-0.01em] truncate leading-tight">
             {emp.firstName} {emp.lastName}
           </h2>
           <div className="mt-2 flex items-center gap-2 flex-wrap">
             <Chip color={isActive ? 'green' : 'red'} dot>
               {t(`status.${emp.status}`)}
             </Chip>
-            <span className="text-text-subtle text-[13px] select-none">·</span>
+            <span className="text-text-subtle text-13 select-none">·</span>
             <span
-              className="inline-flex items-center gap-[5px] text-[13px] text-text-subtle tabular-nums"
+              className="inline-flex items-center gap-[0.3125rem] text-13 text-text-subtle tabular-nums"
               title={t('table.employee')}
             >
               <Icon name="calendar-plus" size={11} className="text-text-subtle shrink-0" />
@@ -347,17 +347,17 @@ export function EmployeeDetailDrawer({
           SECTION BAR — pinned. Assets title + count + select toggle + link CTA.
           ────────────────────────────────────────────── */}
       {/* Mobile: everything single-line — smaller label that truncates, buttons never wrap */}
-      <div className="px-5 max-md:px-[14px] h-11 flex items-center justify-between gap-2 border-b border-border shrink-0">
-        <h3 className="flex items-center min-w-0 text-[13px] max-md:text-[11px] font-semibold text-text-tertiary tracking-[0.06em] max-md:tracking-[0.03em] uppercase">
+      <div className="px-5 max-md:px-3.5 h-11 flex items-center justify-between gap-2 border-b border-border shrink-0">
+        <h3 className="flex items-center min-w-0 text-13 max-md:text-11 font-semibold text-text-tertiary tracking-[0.06em] max-md:tracking-[0.03em] uppercase">
           <span className="truncate whitespace-nowrap">{t('detail.assets')}</span>
-          <span className="ml-2 shrink-0 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-surface-2 text-text-tertiary text-[12.5px] font-semibold tabular-nums">
+          <span className="ml-2 shrink-0 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-surface-2 text-text-tertiary text-12.5 font-semibold tabular-nums">
             {linkedAssets.length}
           </span>
           {selectMode && linkedAssets.length > 0 && (
             <button
               type="button"
               onClick={toggleAll}
-              className="ml-3 text-[13.5px] font-semibold text-emerald-300 light:text-emerald-700 hover:underline"
+              className="ml-3 text-13.5 font-semibold text-emerald-300 light:text-emerald-700 hover:underline"
             >
               {selected.size < linkedAssets.length
                 ? t('transfer.selectAll')
@@ -372,7 +372,7 @@ export function EmployeeDetailDrawer({
               <button
                 type="button"
                 onClick={() => (selectMode ? exitSelect() : setSelectMode(true))}
-                className="inline-flex items-center gap-1 h-7 px-2.5 max-md:px-2 rounded-md text-[14px] max-md:text-[12px] font-semibold whitespace-nowrap text-text-tertiary bg-surface-2 border border-border hover:bg-border transition-colors"
+                className="inline-flex items-center gap-1 h-7 px-2.5 max-md:px-2 rounded-md text-14 max-md:text-12 font-semibold whitespace-nowrap text-text-tertiary bg-surface-2 border border-border hover:bg-border transition-colors"
               >
                 <Icon name={selectMode ? 'x' : 'list-checks'} size={12} />
                 {selectMode ? t('transfer.selectDone') : t('transfer.selectMode')}
@@ -381,7 +381,7 @@ export function EmployeeDetailDrawer({
             <button
               type="button"
               onClick={() => onLinkAssets(emp.id)}
-              className="inline-flex items-center gap-1 h-7 px-2.5 max-md:px-2 rounded-md text-[14px] max-md:text-[12px] font-semibold whitespace-nowrap text-emerald-300 light:text-emerald-700 bg-emerald-500/10 border border-emerald-500/30 light:border-emerald-200 hover:bg-emerald-500/15 transition-colors"
+              className="inline-flex items-center gap-1 h-7 px-2.5 max-md:px-2 rounded-md text-14 max-md:text-12 font-semibold whitespace-nowrap text-emerald-300 light:text-emerald-700 bg-emerald-500/10 border border-emerald-500/30 light:border-emerald-200 hover:bg-emerald-500/15 transition-colors"
             >
               <Icon name="link-2" size={12} />
               {t('detail.linkAsset')}
@@ -396,7 +396,7 @@ export function EmployeeDetailDrawer({
           ────────────────────────────────────────────── */}
       <div className="flex-1 min-h-0 overflow-y-auto px-5 py-3">
         {linkedAssets.length === 0 ? (
-          <div className="text-[14.5px] text-text-subtle italic px-3 py-6 rounded-lg border border-dashed border-border text-center">
+          <div className="text-14.5 text-text-subtle italic px-3 py-6 rounded-lg border border-dashed border-border text-center">
             {t('detail.noAssets')}
           </div>
         ) : (
@@ -448,14 +448,14 @@ export function EmployeeDetailDrawer({
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-[14.5px] font-semibold text-text-primary truncate">
+                      <span className="text-14.5 font-semibold text-text-primary truncate">
                         {a.title}
                       </span>
-                      <span className="inline-flex items-center px-1.5 h-5 rounded bg-surface-2 text-text-tertiary font-mono text-[12.5px] tabular-nums shrink-0">
+                      <span className="inline-flex items-center px-1.5 h-5 rounded bg-surface-2 text-text-tertiary font-mono text-12.5 tabular-nums shrink-0">
                         {a.invCode}
                       </span>
                     </div>
-                    <div className="text-[13px] text-text-tertiary mt-0.5 flex items-center gap-1">
+                    <div className="text-13 text-text-tertiary mt-0.5 flex items-center gap-1">
                       <span>{a.cat}</span>
                       <span className="text-text-subtle">·</span>
                       <span className="inline-flex items-center gap-0.5">
@@ -481,7 +481,7 @@ export function EmployeeDetailDrawer({
         <div className="px-5 py-3 border-t border-border bg-bg/60 shrink-0">
           {!confirming ? (
             <div className="flex items-center gap-2">
-              <span className="text-[14px] font-semibold text-text-primary tabular-nums">
+              <span className="text-14 font-semibold text-text-primary tabular-nums">
                 {t('transfer.nSelected', { count: selected.size })}
               </span>
               <div className="flex-1" />
@@ -501,7 +501,7 @@ export function EmployeeDetailDrawer({
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <span className="text-[14px] text-text-primary flex-1 min-w-0">
+              <span className="text-14 text-text-primary flex-1 min-w-0">
                 {t('transfer.confirmTitle', { count: selected.size, dest: destLabel })}
               </span>
               <Btn variant="ghost" size="sm" onClick={() => setConfirming(false)} disabled={pending}>
