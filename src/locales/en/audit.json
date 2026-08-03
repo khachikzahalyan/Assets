@@ -1,5 +1,5 @@
 {
-  "search": "Search by entity ID or actor…",
+  "search": "Search...",
   "col": {
     "time": "Time", "actor": "Actor", "role": "Role",
     "entity": "Entity", "action": "Action", "entityId": "Entity ID"

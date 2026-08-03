@@ -97,7 +97,7 @@ describe('RolesPage', () => {
   it('filters by search', async () => {
     renderPage()
     await screen.findByText('Super One')
-    fireEvent.change(screen.getByPlaceholderText('Поиск по имени или эл. почте'), { target: { value: 'asset' } })
+    fireEvent.change(screen.getByPlaceholderText('Поиск...'), { target: { value: 'asset' } })
     expect(screen.getByText('Asset Admin')).toBeInTheDocument()
     expect(screen.queryByText('Super One')).not.toBeInTheDocument()
   })

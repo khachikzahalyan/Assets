@@ -182,7 +182,7 @@ export function PartCategoriesSection({
     {
       key: 'order',
       header: t('parts.col.order'),
-      width: '60px',
+      width: 'minmax(4.5rem,4.5rem)',
       render: (def) => (
         <span className={`text-13 text-text-tertiary tabular-nums ${!def.active ? 'opacity-40' : ''}`}>
           {def.order}
@@ -224,7 +224,7 @@ export function PartCategoriesSection({
         <TableSkeleton
           rows={PAGE_SIZE}
           columns={4}
-          gridTemplate="minmax(10rem,2fr) 1fr 3.75rem 5rem"
+          gridTemplate="minmax(10rem,2fr) 1fr 4.5rem 5rem"
           lastColAction
           headers={[t('parts.col.name'), t('parts.col.behavior'), t('parts.col.order'), '']}
         />

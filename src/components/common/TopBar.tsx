@@ -29,7 +29,7 @@ export function TopBar({ breadcrumbs, customContent }: TopBarProps) {
         </div>
 
         {/* Right cluster: theme + bell (admins) + language toggle + profile */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <ThemeToggle />
           {canManageReturns && (
             <NotificationBell onSelect={(assetId) => navigate(`/assets/${assetId}`)} />

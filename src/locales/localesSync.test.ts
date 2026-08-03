@@ -268,7 +268,7 @@ describe('parts namespace — cross-locale distinctness', () => {
 // ---------------------------------------------------------------------------
 
 describe('dashboard namespace — cross-locale distinctness', () => {
-  const SENTINEL_KEYS = ['title', 'recentActivity', 'auditAction.created'] as const
+  const SENTINEL_KEYS = ['title', 'boxes.assets.title', 'kpi.totalAssets'] as const
 
   for (const key of SENTINEL_KEYS) {
     test(`${key} value differs across ru / en / hy`, async () => {

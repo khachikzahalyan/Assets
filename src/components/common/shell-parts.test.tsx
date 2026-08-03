@@ -188,7 +188,7 @@ describe('SearchPalette', () => {
         <SearchPalette open onClose={() => undefined} onPick={() => undefined} />
       </Wrapper>
     )
-    expect(screen.getByPlaceholderText('Поиск активов, сотрудников, филиалов…')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Поиск...')).toBeInTheDocument()
   })
 
   it('shows a loading state while data is being fetched (no mock results)', () => {

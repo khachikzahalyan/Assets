@@ -1,7 +1,7 @@
 {
   "title": "Roles & Access",
   "subtitle": "Manage roles for all system users",
-  "search": "Search by name or email",
+  "search": "Search...",
   "filter": { "role": "Role", "status": "Status", "all": "All" },
   "you": "This is you",
   "col": { "user": "User", "email": "Email", "role": "Role", "status": "Status", "actions": "" },

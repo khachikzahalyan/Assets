@@ -431,9 +431,9 @@ export function ImportPage({ assetRepo, employeeRepo, assignmentRepo }: ImportPa
           {/* ── PREVIEW STEP ──────────────────────────────────────────────── */}
           {step === 'preview' && plan && (
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-15 font-semibold text-text-primary">{t('preview.heading')}</h2>
-                <div className="flex items-center gap-2 text-12.5">
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-15 font-semibold text-text-primary min-w-0">{t('preview.heading')}</h2>
+                <div className="flex items-center gap-2 text-12.5 flex-shrink-0">
                   <span className="text-emerald-400 light:text-emerald-700 font-medium">
                     {t('preview.readyCount', { count: plan.readyEmployees + plan.readyAssets })}
                   </span>

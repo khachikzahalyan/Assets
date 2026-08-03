@@ -98,10 +98,10 @@ describe('AppShell', () => {
   it('Cmd+K opens the SearchPalette', () => {
     render(<TestHarness initialEntries={['/dashboard']} />)
     // SearchPalette is closed initially — placeholder not present
-    expect(screen.queryByPlaceholderText('Поиск активов, сотрудников, филиалов…')).toBeNull()
+    expect(screen.queryByPlaceholderText('Поиск...')).toBeNull()
     // Fire Cmd+K
     fireEvent.keyDown(document, { key: 'k', metaKey: true })
     // The search input should now appear
-    expect(screen.getByPlaceholderText('Поиск активов, сотрудников, филиалов…')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Поиск...')).toBeInTheDocument()
   })
 })

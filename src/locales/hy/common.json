@@ -1,7 +1,7 @@
 {
   "app": { "name": "AMS", "title": "Asset Management System" },
   "actions": { "retry": "Retry", "signOut": "Sign out", "profile": "Profile", "settings": "Settings", "openMenu": "Open menu", "close": "Close", "edit": "Խմբագրել", "delete": "Ջնջել" },
-  "search": { "placeholder": "Search assets, employees, branches…", "empty": "Nothing found", "loading": "Loading…", "hint": "Type to search", "navigate": "navigate", "select": "select", "kindAsset": "Asset", "kindEmployee": "Employee", "kindBranch": "Branch", "kindDepartment": "Department" },
+  "search": { "placeholder": "Որոնում...", "empty": "Nothing found", "loading": "Loading…", "hint": "Type to search", "navigate": "navigate", "select": "select", "kindAsset": "Asset", "kindEmployee": "Employee", "kindBranch": "Branch", "kindDepartment": "Department" },
   "lang": { "title": "Interface language", "ru": "Русский", "en": "English", "hy": "Հայերեն" },
   "theme": { "toLight": "Բաց թեմա", "toDark": "Մուգ թեմա" },
   "states": { "emptyTitle": "Nothing here yet", "errorTitle": "Something went wrong", "errorDesc": "Try refreshing the page or repeat the action in a few seconds." },

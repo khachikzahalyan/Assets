@@ -1,7 +1,7 @@
 {
   "app": { "name": "AMS", "title": "Asset Management System" },
   "actions": { "retry": "Повторить", "signOut": "Выйти", "profile": "Профиль", "settings": "Настройки", "openMenu": "Открыть меню", "close": "Закрыть", "edit": "Изменить", "delete": "Удалить" },
-  "search": { "placeholder": "Поиск активов, сотрудников, филиалов…", "empty": "Ничего не найдено", "loading": "Загрузка…", "hint": "Введите запрос для поиска", "navigate": "навигация", "select": "выбрать", "kindAsset": "Актив", "kindEmployee": "Сотрудник", "kindBranch": "Филиал", "kindDepartment": "Отдел" },
+  "search": { "placeholder": "Поиск...", "empty": "Ничего не найдено", "loading": "Загрузка…", "hint": "Введите запрос для поиска", "navigate": "навигация", "select": "выбрать", "kindAsset": "Актив", "kindEmployee": "Сотрудник", "kindBranch": "Филиал", "kindDepartment": "Отдел" },
   "lang": { "title": "Язык интерфейса", "ru": "Русский", "en": "English", "hy": "Հայերեն" },
   "theme": { "toLight": "Светлая тема", "toDark": "Тёмная тема" },
   "states": { "emptyTitle": "Здесь пока пусто", "errorTitle": "Что-то пошло не так", "errorDesc": "Попробуйте обновить страницу или повторите действие через несколько секунд." },

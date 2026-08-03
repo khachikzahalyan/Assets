@@ -124,11 +124,11 @@ export function ProfileMenu() {
                     onClick={() => { setRole(r.id); setOpen(false) }}
                     className={`w-full flex items-center justify-between gap-2 px-3.5 py-1.5 text-left transition-colors ${isActiveRole ? 'bg-accent text-white' : 'hover:bg-surface text-text-secondary'}`}
                   >
-                    <span className="inline-flex items-center gap-1 text-12 font-medium">
-                      <RoleIcon role={r.id} size={16} />
-                      {t(`roles.${r.id}`, { ns: 'nav' })}
+                    <span className="inline-flex items-center gap-1 text-12 font-medium min-w-0">
+                      <RoleIcon role={r.id} size={16} className="flex-shrink-0" />
+                      <span className="truncate">{t(`roles.${r.id}`, { ns: 'nav' })}</span>
                     </span>
-                    <span className={`text-10 font-mono ${isActiveRole ? 'text-white/80' : 'text-text-subtle'}`}>{r.short}</span>
+                    <span className={`text-10 font-mono flex-shrink-0 ${isActiveRole ? 'text-white/80' : 'text-text-subtle'}`}>{r.short}</span>
                   </button>
                 )
               })}

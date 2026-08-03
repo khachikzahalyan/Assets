@@ -61,6 +61,10 @@ function toAsset(id: string, d: Record<string, unknown>): Asset {
     deptId: (d.deptId as string | null) ?? null,
     updatedAt: toIso(d.updatedAt),
     currentSpecs: (d.currentSpecs as Asset['currentSpecs']) ?? null,
+    // Live installed-component slots written by the Parts module (install/uninstall).
+    // Without this the asset-detail Tech-Specs tiles never see parts changes — a part
+    // installed in Запчасти (e.g. an added M.2, a replaced cooler) stayed invisible here.
+    upgradeCurrent: (d.upgradeCurrent as Asset['upgradeCurrent']) ?? null,
     condition: (d.condition as Asset['condition']) ?? null,
     purchaseDate: (d.purchaseDate as string | null) ?? null,
     warrantyEndsAt: (d.warrantyEndsAt as string | null) ?? null,

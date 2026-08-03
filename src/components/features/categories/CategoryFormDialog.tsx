@@ -79,13 +79,13 @@ export function CategoryFormDialog(p: CategoryFormDialogProps) {
           <Field label={t('form.name')} required>
             <Input value={name} onChange={setName} autoFocus invalid={nameInvalid} />
           </Field>
-          <div className="flex items-center gap-2 pt-1">
+          <div className="flex items-start gap-2 pt-1">
             <input
               id="cat-has-specs"
               type="checkbox"
               checked={hasSpecs}
               onChange={e => setHasSpecs(e.target.checked)}
-              className="w-4 h-4 accent-accent cursor-pointer"
+              className="w-4 h-4 accent-accent cursor-pointer mt-0.5 flex-shrink-0"
             />
             <label
               htmlFor="cat-has-specs"
@@ -94,13 +94,13 @@ export function CategoryFormDialog(p: CategoryFormDialogProps) {
               {t('form.hasSpecs')}
             </label>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-start gap-2">
             <input
               id="cat-has-oem-license"
               type="checkbox"
               checked={hasOemLicense}
               onChange={e => setHasOemLicense(e.target.checked)}
-              className="w-4 h-4 accent-accent cursor-pointer"
+              className="w-4 h-4 accent-accent cursor-pointer mt-0.5 flex-shrink-0"
             />
             <label
               htmlFor="cat-has-oem-license"

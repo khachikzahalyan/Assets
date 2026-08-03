@@ -229,15 +229,15 @@ export function SearchPalette({ open, onClose, onPick }: SearchPaletteProps) {
                   <div className="text-10.5 text-text-subtle truncate">{r.hint}</div>
                 )}
               </div>
-              <Chip color="gray" size="sm">{kindLabel(r.type)}</Chip>
+              <span className="flex-shrink-0"><Chip color="gray" size="sm">{kindLabel(r.type)}</Chip></span>
             </button>
           ))}
         </div>
 
         {/* Footer hint — hidden on mobile/touch (keyboard shortcuts irrelevant) */}
-        <div className="max-md:hidden flex items-center justify-between px-4 py-2 border-t border-border bg-surface-2/60 text-10.5 text-text-subtle">
-          <span>{t('search.hint')}</span>
-          <span className="flex items-center gap-2">
+        <div className="max-md:hidden flex items-center justify-between gap-3 px-4 py-2 border-t border-border bg-surface-2/60 text-10.5 text-text-subtle">
+          <span className="min-w-0 truncate">{t('search.hint')}</span>
+          <span className="flex items-center gap-2 flex-shrink-0">
             <kbd className="px-1.5 py-0.5 font-semibold rounded border border-border bg-surface">↑↓</kbd>
             {t('search.navigate')}
             <kbd className="px-1.5 py-0.5 font-semibold rounded border border-border bg-surface">↵</kbd>

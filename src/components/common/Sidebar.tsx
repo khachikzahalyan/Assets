@@ -36,7 +36,7 @@ export function Sidebar({ currentRoute, onNavigate }: SidebarProps) {
         {nav.map((group) => (
           <div key={group.id} className="mb-0.5">
             {group.labelKey != null && (
-              <div className="sidebar-section-label">{t(group.labelKey, { ns: 'nav' })}</div>
+              <div className="sidebar-section-label truncate" title={t(group.labelKey, { ns: 'nav' })}>{t(group.labelKey, { ns: 'nav' })}</div>
             )}
             {group.items.map((item) => {
               const active = currentRoute === item.id
