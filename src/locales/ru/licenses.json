@@ -16,7 +16,7 @@
     "noAssets": "Нет активов без ключа",
     "oldKeyLabel": "Текущий ключ актива",
     "oldKeyNote": "После активации старый ключ станет «Свободен» и вернётся в пул — он не будет потерян.",
-    "searchPlaceholder": "Поиск по названию, инв. коду или категории…",
+    "searchPlaceholder": "Поиск...",
     "title": "Активировать ключ"
   },
   "add": {
@@ -124,7 +124,7 @@
     "emptyDesc": "По выбранному фильтру ключей не найдено.",
     "emptyTitle": "Нет ключей",
     "freedOn": "Освобождён {{date}}",
-    "searchPlaceholder": "Поиск по активу или инв. коду…",
+    "searchPlaceholder": "Поиск...",
     "sectionTitle": "Windows Key",
     "statusFree": "Свободен",
     "statusInUse": "Используется"
@@ -134,7 +134,7 @@
     "assignedSuffix": "{{phrase}} назначено",
     "done": "Готово",
     "notFound": "Ничего не найдено",
-    "searchPlaceholder": "Поиск по имени, должности или email…",
+    "searchPlaceholder": "Поиск...",
     "subtitle": "Сотрудники · {{count}} / {{total}} мест",
     "title": "Сотрудники",
     "terminatedBadge": "Уволен",
@@ -144,7 +144,7 @@
     "done": "Готово",
     "placeholder": "Выберите сотрудников",
     "searchAria": "Поиск сотрудников",
-    "searchPlaceholder": "Поиск по имени или должности…",
+    "searchPlaceholder": "Поиск...",
     "selectedCount": "{{count}} выбр."
   },
   "maskedKeyLabel": "Ключ скрыт",

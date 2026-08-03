@@ -43,7 +43,7 @@
     "noAssets": "Բանալի չունեցող ակտիվներ չկան",
     "oldKeyLabel": "Ակտիվի ընթացիկ բանալին",
     "oldKeyNote": "Ակտիվացումից հետո հին բանալին կդառնա «Ազատ» և կվերադառնա ֆոնդ — այն չի կորչի։",
-    "searchPlaceholder": "Փնտրել անվանումով, ինվ. կոդով կամ կատեգորիայով…",
+    "searchPlaceholder": "Որոնում...",
     "title": "Ակտիվացնել բանալի"
   },
   "add": {
@@ -129,7 +129,7 @@
     "assignedSuffix": "{{phrase}} հատկացված",
     "done": "Պատրաստ",
     "notFound": "Ոչինչ չի գտնվել",
-    "searchPlaceholder": "Փնտրել անվանումով, պաշտոնով կամ էլ. փոստով…",
+    "searchPlaceholder": "Որոնում...",
     "subtitle": "Աշխատակիցներ · {{count}} / {{total}} նստատեղ",
     "title": "Աշխատակիցներ",
     "terminatedBadge": "Ազատված",
@@ -139,7 +139,7 @@
     "done": "Պատրաստ",
     "placeholder": "Ընտրեք աշխատակիցներ",
     "searchAria": "Աշխատակիցների որոնում",
-    "searchPlaceholder": "Փնտրել անվանումով կամ պաշտոնով…",
+    "searchPlaceholder": "Որոնում...",
     "selectedCount": "{{count}} ընտ."
   },
   "validation": {
@@ -181,7 +181,7 @@
     "emptyDesc": "Ընտրված ֆիլտրի համար բանալիներ չեն գտնվել։",
     "emptyTitle": "Բանալիներ չկան",
     "freedOn": "Ազատվել է {{date}}",
-    "searchPlaceholder": "Փնտրել ակտիվով կամ ինվ. կոդով…",
+    "searchPlaceholder": "Որոնում...",
     "sectionTitle": "Windows Key",
     "statusFree": "Ազատ",
     "statusInUse": "Օգտ."

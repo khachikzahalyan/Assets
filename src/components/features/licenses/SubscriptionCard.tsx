@@ -91,11 +91,11 @@ export function SubscriptionCard({ sub, employees, onUpdateAssignees }: Subscrip
       </div>
 
       {/* Employees row */}
-      <div className="flex items-center justify-between gap-3 pt-1 border-t border-border">
-        <span className="text-11.5 uppercase tracking-[0.06em] font-semibold text-text-subtle">
+      <div className="flex items-center justify-between gap-3 pt-1 border-t border-border flex-wrap">
+        <span className="text-11.5 uppercase tracking-[0.06em] font-semibold text-text-subtle flex-shrink-0">
           {t('subs.employees')}
         </span>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0">
           {seatsUsed > 0 ? (
             <span className="text-13 font-semibold text-text-primary">
               {pluralEmp(seatsUsed)}

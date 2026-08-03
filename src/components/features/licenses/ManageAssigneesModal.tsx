@@ -107,7 +107,7 @@ export function ManageAssigneesModal({
             </span>
             <div className="min-w-0">
               <div id={MANAGE_TITLE_ID} className="text-15 font-bold text-text-primary tracking-tight truncate">{subName}</div>
-              <div className="text-12 text-text-subtle mt-0.5">
+              <div className="text-12 text-text-subtle mt-0.5 truncate">
                 {t('manage.subtitle', { count: assigned.length, total: seatsTotal })}
               </div>
             </div>

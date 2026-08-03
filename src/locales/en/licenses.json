@@ -43,7 +43,7 @@
     "noAssets": "No assets without key",
     "oldKeyLabel": "Asset's current key",
     "oldKeyNote": "After activation the old key becomes «Free» and returns to the pool — it will not be lost.",
-    "searchPlaceholder": "Search by name, inv. code or category…",
+    "searchPlaceholder": "Search...",
     "title": "Activate key"
   },
   "add": {
@@ -129,7 +129,7 @@
     "assignedSuffix": "{{phrase}} assigned",
     "done": "Done",
     "notFound": "Nothing found",
-    "searchPlaceholder": "Search by name, position or email…",
+    "searchPlaceholder": "Search...",
     "subtitle": "Employees · {{count}} / {{total}} seats",
     "title": "Employees",
     "terminatedBadge": "Terminated",
@@ -139,7 +139,7 @@
     "done": "Done",
     "placeholder": "Select employees",
     "searchAria": "Search employees",
-    "searchPlaceholder": "Search by name or position…",
+    "searchPlaceholder": "Search...",
     "selectedCount": "{{count}} selected"
   },
   "validation": {
@@ -181,7 +181,7 @@
     "emptyDesc": "No keys found for the selected filter.",
     "emptyTitle": "No keys",
     "freedOn": "Freed {{date}}",
-    "searchPlaceholder": "Search by asset or inv. code…",
+    "searchPlaceholder": "Search...",
     "sectionTitle": "Windows Keys",
     "statusFree": "Free",
     "statusInUse": "In use"
