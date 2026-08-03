@@ -75,7 +75,7 @@ export function DetailHero({
           {/* Status + actions — all three share one height (h-8 desktop / h-11 mobile),
               same padding/rounding/text so they read as a uniform control row.
               Flows after title on mobile (flex-wrap), stays inline on desktop. */}
-          <div className="shrink-0 flex gap-2 items-center max-md:w-full max-md:mt-0.5">
+          <div className="shrink-0 flex flex-wrap gap-2 items-center max-md:w-full max-md:mt-0.5">
             <span
               className={`inline-flex items-center gap-1.5 h-8 max-md:h-11 px-2.5 rounded-lg text-13 font-semibold border ${
                 CHIP_PALETTE[STATUS_CHIP_COLOR[statusRow.id] ?? 'gray']

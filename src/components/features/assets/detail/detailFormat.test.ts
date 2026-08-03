@@ -60,6 +60,36 @@ describe('buildSpecsLines — labelKey values and ordering', () => {
 })
 
 // ---------------------------------------------------------------------------
+// buildSpecsLines — storage reflects parts installed via the Parts module
+// (Bug: an M.2 added in Запчасти must appear in «Накопители» too)
+// ---------------------------------------------------------------------------
+
+describe('buildSpecsLines — storage from live upgradeCurrent slots', () => {
+  it('appends a part installed via Parts (M.2) to the storage tile', () => {
+    const specs = { cpu: 'Intel i5', ssd: 'SSD 512 ГБ' }
+    const upgradeCurrent = [
+      { kind: 'storage', spec: 'SSD 512 ГБ' },
+      { kind: 'storage', spec: 'M.2 / NVMe 256 ГБ', replaced: false },
+    ]
+    const lines = buildSpecsLines(specs, 'cat_computer', upgradeCurrent)
+    const storage = lines.find(l => l.labelKey === 'form.specSsd' || l.labelKey === 'form.specSsdPlural')
+    expect(storage).toBeDefined()
+    expect(storage!.slots).toHaveLength(2)
+    const joined = storage!.slots!.map(s => s.rawValue ?? s.value).join(' + ')
+    expect(joined).toContain('512')
+    expect(joined).toContain('M.2')
+  })
+
+  it('falls back to currentSpecs.ssd when upgradeCurrent has no storage slots', () => {
+    const lines = buildSpecsLines({ ssd: 'SSD 512 ГБ' }, 'cat_computer')
+    const storage = lines.find(l => l.labelKey === 'form.specSsd' || l.labelKey === 'form.specSsdPlural')
+    expect(storage).toBeDefined()
+    expect(storage!.slots).toHaveLength(1)
+    expect(storage!.slots![0]!.rawValue ?? storage!.value).toContain('512')
+  })
+})
+
+// ---------------------------------------------------------------------------
 // buildSpecsLines — CPU presence regression
 // ---------------------------------------------------------------------------
 

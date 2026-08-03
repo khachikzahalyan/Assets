@@ -186,9 +186,9 @@
   "placeholders": {
     "brand": "HPE",
     "category": "Выберите категорию",
-    "categorySearch": "Поиск категории…",
+    "categorySearch": "Поиск...",
     "noResults": "Ничего не найдено",
-    "recipientSearch": "Поиск…",
+    "recipientSearch": "Поиск...",
     "cpu": "Например: Intel Core i7-1265U",
     "invCode": "460/00007",
     "invCodeFurniture": "470/00012",
@@ -215,7 +215,7 @@
     "minAgo": "{{n}} мин назад",
     "now": "только что"
   },
-  "search": "Поиск по названию, коду, серийному…",
+  "search": "Поиск...",
   "toolbar": {
     "import": "Импорт",
     "create": "Создать"

@@ -323,14 +323,14 @@ export function AssetDetailSkeleton({ hasSpecs }: AssetDetailSkeletonProps = {})
                           so per P2 they render REAL (zero shift); the button is inert
                           (no onClick). Classes copied verbatim from TechSpecsCard ~183-200. */}
                       <div className="mt-5 pt-3 border-t border-dashed border-border flex items-center justify-between gap-3 flex-wrap">
-                        <span className="inline-flex items-center gap-1.5 text-13 text-text-tertiary">
-                          <Icon name="info" size={12} className="text-text-subtle" />
+                        <span className="inline-flex items-center gap-1.5 text-13 text-text-tertiary min-w-0">
+                          <Icon name="info" size={12} className="text-text-subtle shrink-0" />
                           {t('detail.parts.note')}
                         </span>
                         <button
                           type="button"
                           tabIndex={-1}
-                          className="inline-flex items-center justify-center gap-1.5 h-8 px-3.5 rounded-xl text-14 font-semibold text-accent-light bg-accent/10 ring-1 ring-inset ring-accent/30 hover:bg-accent/20 transition-colors"
+                          className="inline-flex items-center justify-center gap-1.5 h-8 px-3.5 rounded-xl text-14 font-semibold text-accent-light bg-accent/10 ring-1 ring-inset ring-accent/30 hover:bg-accent/20 transition-colors shrink-0"
                         >
                           {t('detail.parts.openParts')}
                           <Icon name="arrow-right" size={13} />

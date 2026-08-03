@@ -131,7 +131,7 @@ export function QuickAssignment({
               <div className={`w-7 h-7 rounded-md flex items-center justify-center transition-colors ${active ? ACTIVE_ICON_BOX : 'bg-surface-2 text-text-primary light:bg-slate-100 group-hover:bg-border light:group-hover:bg-slate-200'}`}>
                 <Icon name={b.icon} size={14} />
               </div>
-              <span>{t(b.key)}</span>
+              <span className="text-center break-words leading-tight">{t(b.key)}</span>
             </button>
           )
         })}

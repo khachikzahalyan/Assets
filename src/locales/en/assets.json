@@ -317,13 +317,13 @@
   "placeholders": {
     "brand": "e.g. Apple, Dell",
     "category": "Select a category",
-    "categorySearch": "Search categories…",
+    "categorySearch": "Search...",
     "cpu": "e.g. Intel Core i7-1265U",
     "invCode": "450/100",
     "invCodeFurniture": "470/00012",
     "model": "e.g. XPS 15, MacBook Pro",
     "noResults": "Nothing found",
-    "recipientSearch": "Search…",
+    "recipientSearch": "Search...",
     "serial": "SN-XXXX",
     "spec": "Not specified",
     "type": "e.g. Desk, Chair"
@@ -346,7 +346,7 @@
     "minAgo": "{{n}} min ago",
     "now": "just now"
   },
-  "search": "Search by name, inv. code, serial…",
+  "search": "Search...",
   "toolbar": {
     "import": "Import",
     "create": "Create"

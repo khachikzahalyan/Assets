@@ -280,35 +280,24 @@ export function LicenseBlock({
     // no-license-doc state (active asset, hasOemLicense category) assumes OEM.
     const isOemCompact = lic ? lic.type === 'OEM' : true
     const canCopyCompact = role === 'super_admin' || role === 'tech_admin'
+    // Copy roles (super_admin / tech_admin) with a Retail bound license see the
+    // KEY inline — one line: MS-logo + key + copy button, no name/badge text.
+    const showKeyLine = !isOemCompact && !!lic && canCopyCompact
     return (
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-2.5">
-          {/* White MS-logo box — 1.875rem */}
-          <div className="w-[1.875rem] h-[1.875rem] rounded-lg bg-white flex items-center justify-center shrink-0">
-            <svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true">
-              <rect x="1"  y="1"  width="10" height="10" fill="#F25022"/>
-              <rect x="13" y="1"  width="10" height="10" fill="#7FBA00"/>
-              <rect x="1"  y="13" width="10" height="10" fill="#00A4EF"/>
-              <rect x="13" y="13" width="10" height="10" fill="#FFB900"/>
-            </svg>
-          </div>
-          <span className="text-13 font-bold text-text-primary flex-1 truncate">{licName}</span>
-          {isOemCompact ? (
-            <span className="shrink-0 bg-amber-500/10 border border-amber-500/30 text-amber-300 light:text-amber-700 text-10 font-bold rounded-md px-2 py-0.5">
-              {t('detail.license.oem')}
-            </span>
-          ) : (
-            <span className="shrink-0 bg-blue-500/10 border border-blue-500/30 text-blue-300 light:text-blue-700 text-10 font-bold rounded-md px-2 py-0.5">
-              {t('detail.license.retail')}
-            </span>
-          )}
+      <div className="flex items-center gap-2.5">
+        {/* White MS-logo box — 1.875rem */}
+        <div className="w-[1.875rem] h-[1.875rem] rounded-lg bg-white flex items-center justify-center shrink-0">
+          <svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="1"  y="1"  width="10" height="10" fill="#F25022"/>
+            <rect x="13" y="1"  width="10" height="10" fill="#7FBA00"/>
+            <rect x="1"  y="13" width="10" height="10" fill="#00A4EF"/>
+            <rect x="13" y="13" width="10" height="10" fill="#FFB900"/>
+          </svg>
         </div>
 
-        {/* Retail bound license: show the actual key + copy on mobile too — the
-            compact single-row view used to hide them entirely (desktop parity).
-            OEM keys are never revealed; non-copy roles see nothing. */}
-        {!isOemCompact && lic && canCopyCompact && (
-          <div className="flex items-center gap-2 min-w-0 pl-10">
+        {showKeyLine ? (
+          /* One line: icon + key + copy button (name/badge dropped). */
+          <>
             {hasKey === null && revealedKey === null && (
               <div aria-hidden="true" className="h-[15px] flex-1 min-w-0 rounded anim-skeleton" />
             )}
@@ -333,7 +322,21 @@ export function LicenseBlock({
                 {copied ? t('detail.license.copied') : t('detail.license.copy')}
               </button>
             )}
-          </div>
+          </>
+        ) : (
+          /* OEM / non-copy roles: license name + type badge. */
+          <>
+            <span className="text-13 font-bold text-text-primary flex-1 truncate">{licName}</span>
+            {isOemCompact ? (
+              <span className="shrink-0 bg-amber-500/10 border border-amber-500/30 text-amber-300 light:text-amber-700 text-10 font-bold rounded-md px-2 py-0.5">
+                {t('detail.license.oem')}
+              </span>
+            ) : (
+              <span className="shrink-0 bg-blue-500/10 border border-blue-500/30 text-blue-300 light:text-blue-700 text-10 font-bold rounded-md px-2 py-0.5">
+                {t('detail.license.retail')}
+              </span>
+            )}
+          </>
         )}
       </div>
     )

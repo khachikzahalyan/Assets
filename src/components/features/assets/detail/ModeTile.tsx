@@ -29,7 +29,7 @@ export function ModeTile({ icon, label, selected, onClick }: ModeTileProps) {
         />
       </div>
       <span
-        className={`text-12 max-md:text-10.5 leading-tight text-center transition-colors duration-150 ${selected ? 'text-text-primary font-semibold' : 'text-text-tertiary group-hover:text-text-primary'}`}
+        className={`text-12 max-md:text-10.5 leading-tight text-center break-words hyphens-auto transition-colors duration-150 ${selected ? 'text-text-primary font-semibold' : 'text-text-tertiary group-hover:text-text-primary'}`}
       >
         {label}
       </span>

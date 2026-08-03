@@ -1,5 +1,6 @@
 import type { AssetAssignment, AssetSpecs } from '@/domain/asset'
 import type { UpgradeSlot } from '@/domain/part/types'
+import { resolveUpgradeCurrent } from '@/domain/part/partStock'
 import { LAPTOP_CATEGORY_IDS, SERVER_CATEGORY_IDS, categoryHasGpu } from '@/domain/asset/categoryCapabilities'
 
 // ---------------------------------------------------------------------------
@@ -314,19 +315,30 @@ export function buildSpecsLines(
 ): SpecLine[] {
   if (!currentSpecs) return []
   const lines: SpecLine[] = []
+
+  // Live installed slots — the single source of truth shared with the Parts
+  // «Установлено» list. Storage is derived from these so a part installed via
+  // the Parts module (e.g. an added M.2) shows in «Накопители» too — otherwise
+  // the tile reads a stale currentSpecs.ssd and the two views desync.
+  const liveSlots = resolveUpgradeCurrent(categoryId ?? '', currentSpecs, upgradeCurrent ?? null)
+  const slotsSpec = (kind: string) =>
+    liveSlots.filter(s => s.kind === kind).map(s => (s.spec ?? '').trim()).filter(Boolean).join(' + ')
+  const storageSource = slotsSpec('storage') || (currentSpecs.ssd ?? '')
+  const ramSource = slotsSpec('ram') || (currentSpecs.ram ?? '')
+
   if (currentSpecs.cpu) {
     lines.push({ labelKey: 'form.specCpu', value: currentSpecs.cpu, accent: 'indigo',  icon: 'cpu'           })
   }
   if (currentSpecs.gpu && categoryHasGpu(categoryId)) {
     lines.push({ labelKey: 'form.specGpu', value: currentSpecs.gpu, accent: 'violet',  icon: 'circuit-board' })
   }
-  if (currentSpecs.ram) {
-    lines.push({ labelKey: 'form.specRam', value: currentSpecs.ram, accent: 'emerald', icon: 'memory-stick'  })
+  if (ramSource) {
+    lines.push({ labelKey: 'form.specRam', value: ramSource, accent: 'emerald', icon: 'memory-stick'  })
   }
-  if (currentSpecs.ssd) {
+  if (storageSource) {
     // Split composite storage string (e.g. "SSD 256 ГБ + HDD 1 ТБ + M.2 512 ГБ") into
     // individual slots. All slots are collected into ONE SpecLine to render as a single tile.
-    const rawSlots = currentSpecs.ssd.split(/\s*\+\s*/).map(s => s.trim()).filter(Boolean)
+    const rawSlots = storageSource.split(/\s*\+\s*/).map(s => s.trim()).filter(Boolean)
     const storageSlots: StorageSlot[] = rawSlots.map(rawSlot => {
       const capacity  = extractStorageCapacity(rawSlot)
       const typeLabel = detectStorageType(rawSlot)

@@ -320,13 +320,13 @@
   "placeholders": {
     "brand": "Օրինակ՝ Apple, Dell",
     "category": "Ընտրեք կատեգորիա",
-    "categorySearch": "Կատեգորիայի որոնում…",
+    "categorySearch": "Որոնում...",
     "cpu": "Օր.՝ Intel Core i7-1265U",
     "invCode": "450/100",
     "invCodeFurniture": "470/00012",
     "model": "Օրինակ՝ XPS 15, MacBook Pro",
     "noResults": "Ոչինչ չի գտնվել",
-    "recipientSearch": "Որոնում…",
+    "recipientSearch": "Որոնում...",
     "serial": "SN-XXXX",
     "spec": "Նշված չէ",
     "type": "Օրինակ՝ Սեղան, Բազկաթոռ"
@@ -349,7 +349,7 @@
     "minAgo": "{{n}} րոպե առաջ",
     "now": "հենց հիմա"
   },
-  "search": "Փնտրել անունով, ինվ. կոդով, սերիայով…",
+  "search": "Որոնում...",
   "sort": {
     "hint": {
       "alpha": "Այբբենական",
