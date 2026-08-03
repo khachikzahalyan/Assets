@@ -76,7 +76,7 @@ export interface DataTableProps<T> {
  * Generic CSS-grid ARIA table that matches the /assets table visual style exactly.
  *
  * Style spec:
- * - Sticky 44px header, bg var(--color-bg), bottom-border var(--color-border)
+ * - Sticky 2.75rem header (44px @1920 ref), bg var(--color-bg), bottom-border var(--color-border)
  * - Column headers: 12px uppercase, tracking-[0.09em], font-semibold, text-text-tertiary
  * - First column paddingLeft:20; non-first columns px-3
  * - Rows: border-t border-border, orange hover rgba(249,115,22,0.08)
@@ -146,7 +146,7 @@ export function DataTable<T>({
       >
         <div
           role="row"
-          style={{ display: 'grid', gridTemplateColumns, alignItems: 'center', height: 44 }}
+          style={{ display: 'grid', gridTemplateColumns, alignItems: 'center', height: '2.75rem' }}
         >
           {columns.map((col, idx) => (
             <div

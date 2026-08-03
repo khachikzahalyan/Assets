@@ -316,7 +316,7 @@ export function AssetsTable({
       {
         key: 'actions',
         header: '',
-        width: '56px',
+        width: '3.5rem',
         cellClassName: 'flex items-center justify-end',
         cell: () => (
           <Icon

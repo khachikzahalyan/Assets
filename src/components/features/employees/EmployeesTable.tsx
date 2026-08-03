@@ -184,7 +184,7 @@ export function EmployeesTable({
       width: COL_WIDTHS[7],
       cellClassName: 'overflow-hidden min-w-0',
       cell: (emp) => (
-        <div className="flex items-center justify-end gap-1" style={{ paddingRight: '4px' }}>
+        <div className="flex items-center justify-end gap-1" style={{ paddingRight: '0.25rem' }}>
           {emp.status === 'terminated' && onRestore && (
             <button
               type="button"

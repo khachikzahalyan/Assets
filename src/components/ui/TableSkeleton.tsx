@@ -53,7 +53,7 @@ const BODY_WIDTHS = ['70%', '55%', '60%', '50%', '65%', '45%', '55%', '60%']
 
 /**
  * Table-shaped skeleton that visually matches the full-height AssetsTable /
- * EmployeesTable layout: sticky 44px header + flex-1 body with rows that are
+ * EmployeesTable layout: sticky 2.75rem header + flex-1 body with rows that are
  * each flex:1 1 0; minHeight:58px — exactly the same footprint as the real
  * table when placed inside the ListCard Zone 2 fill region.
  */
@@ -78,7 +78,7 @@ export function TableSkeleton({
       <div
         style={{
           flexShrink: 0,
-          height: 44,
+          height: '2.75rem', /* keep in sync with DataTable header (44px @1920 ref) */
           background: 'var(--color-bg)',
           borderBottom: '1px solid var(--color-border)',
           display: 'grid',

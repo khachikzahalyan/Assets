@@ -52,7 +52,7 @@ export function AuditTable({ rows, ref: refData, minRows, mobileMinRows }: Audit
     {
       key: 'chevron',
       header: '',
-      width: '36px',
+      width: '2.25rem',
       cell: (log) => (
         <Icon
           name="chevron-right"
