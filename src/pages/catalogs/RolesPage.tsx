@@ -159,13 +159,13 @@ function ChangeRoleDialog({ target, isSelf, onClose, onChanged, repo, actor }: C
               <p className="text-11 uppercase tracking-[0.06em] font-semibold text-text-subtle">{t('dialog.employeeMode')}</p>
               <div className="flex gap-2">
                 <button type="button" onClick={() => setEmpMode('link')}
-                  className={`flex-1 h-9 rounded-lg border text-sm font-medium transition-colors ${
+                  className={`flex-1 min-h-[2.25rem] py-1.5 px-2 rounded-lg border text-sm font-medium transition-colors ${
                     empMode === 'link' ? 'bg-accent/10 border-accent text-accent'
                       : 'bg-bg border-border text-text-tertiary hover:border-border-strong'}`}>
                   {t('dialog.link')}
                 </button>
                 <button type="button" onClick={() => setEmpMode('create')}
-                  className={`flex-1 h-9 rounded-lg border text-sm font-medium transition-colors ${
+                  className={`flex-1 min-h-[2.25rem] py-1.5 px-2 rounded-lg border text-sm font-medium transition-colors ${
                     empMode === 'create' ? 'bg-accent/10 border-accent text-accent'
                       : 'bg-bg border-border text-text-tertiary hover:border-border-strong'}`}>
                   {t('dialog.create')}
@@ -329,7 +329,7 @@ export function RolesPage({ repository }: RolesPageProps) {
         cell: (u) => {
           const isSelf = u.id === user.id
           return (
-            <span className="flex items-center gap-2">
+            <span className="flex items-center gap-2 min-w-0">
               {/* Avatar = the role badge itself (owner request); generic tile only when no role */}
               {u.role ? (
                 <RoleIcon role={u.role} size={28} className="shrink-0" />
@@ -338,7 +338,7 @@ export function RolesPage({ repository }: RolesPageProps) {
                   <Icon name="user" size={13} />
                 </span>
               )}
-              <span className="text-13 font-medium text-text-primary truncate max-w-[160px]">{u.displayName || u.email}</span>
+              <span className="text-13 font-medium text-text-primary truncate min-w-0 flex-1">{u.displayName || u.email}</span>
               {isSelf && <span className="text-10.5 px-1.5 py-0.5 rounded bg-accent/15 text-accent flex-shrink-0">{t('you')}</span>}
             </span>
           )
@@ -372,7 +372,7 @@ export function RolesPage({ repository }: RolesPageProps) {
       {
         key: 'action',
         header: '',
-        width: '160px',
+        width: '10rem',
         align: 'right',
         cell: (u) => (
           <Btn size="sm" variant="secondary" className="whitespace-nowrap" onClick={() => setDialogUser(u)}>
@@ -421,7 +421,7 @@ export function RolesPage({ repository }: RolesPageProps) {
                   onChange={setSearch}
                   placeholder={t('search')}
                   aria-label={t('search')}
-                  containerClassName="flex-1 min-w-[180px] max-md:min-w-full"
+                  containerClassName="flex-1 min-w-[11.25rem] max-md:min-w-full"
                 />
                 <div className="flex items-center gap-2 max-md:w-full max-md:gap-1.5">
                   <SelectMini

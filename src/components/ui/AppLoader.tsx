@@ -20,7 +20,7 @@ export function AppLoader({ fullScreen = false }: AppLoaderProps) {
      the auth loader and the route-chunk Suspense fallback. */
   const wrapperClass = fullScreen
     ? 'min-h-screen w-full bg-bg flex items-center justify-center'
-    : 'w-full h-full min-h-[calc(100dvh-128px)] flex items-center justify-center'
+    : 'w-full h-full min-h-[calc(100dvh-8rem)] flex items-center justify-center'
 
   return (
     <div

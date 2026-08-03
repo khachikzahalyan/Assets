@@ -215,7 +215,7 @@ export function AssetDetailDesktopView({
         <div className="space-y-2 lg:min-h-0 lg:overflow-y-auto">
 
           {/* AssignmentCard — min-height for idle bottom-alignment with hero */}
-          <div className="lg:min-h-[155px] flex flex-col [&>*]:flex-1">
+          <div className="lg:min-h-[9.6875rem] flex flex-col [&>*]:flex-1">
             {refData && (
               <AssignmentCard
                 asset={asset}

@@ -153,7 +153,7 @@ export function PartCategoriesSection({
             {/* Desktop-only inline icon — on mobile the icon lives in the row's
                 icon tile (mobileIcon), so this duplicate is hidden there. */}
             <span
-              className={`w-[22px] h-[22px] rounded-md flex-shrink-0 inline-flex items-center justify-center ${tint.iconBg} ${tint.iconText} max-md:hidden`}
+              className={`w-[1.375rem] h-[1.375rem] rounded-md flex-shrink-0 inline-flex items-center justify-center ${tint.iconBg} ${tint.iconText} max-md:hidden`}
               aria-hidden="true"
             >
               <Icon name={def.icon} size={12} />

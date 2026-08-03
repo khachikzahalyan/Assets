@@ -26,16 +26,16 @@ export function StatusBars({ byStatus, statuses, total }: StatusBarsProps) {
 
   return (
     <section className="bg-surface border border-border rounded-xl overflow-hidden">
-      <header className="flex items-center justify-between px-5 py-3.5 border-b border-border">
-        <div className="flex items-center gap-2.5">
+      <header className="flex items-center justify-between gap-2 px-5 py-3.5 border-b border-border">
+        <div className="flex items-center gap-2.5 min-w-0">
           <span className="w-6 h-6 lg:w-7 lg:h-7 rounded-md bg-info/15 text-info inline-flex items-center justify-center flex-shrink-0">
             <Icon name="circle-dot" size={14} />
           </span>
-          <h2 className="text-12 lg:text-13 font-semibold text-text-primary">
+          <h2 className="text-12 lg:text-13 font-semibold text-text-primary min-w-0">
             {t('status.title')}
           </h2>
         </div>
-        <span className="text-11 text-text-subtle tabular-nums">
+        <span className="text-11 text-text-subtle tabular-nums flex-shrink-0">
           {t('status.totalCaption', { count: total })}
         </span>
       </header>
@@ -49,16 +49,16 @@ export function StatusBars({ byStatus, statuses, total }: StatusBarsProps) {
 
           return (
             <div key={id} className="flex flex-col gap-1.5">
-              <div className="flex items-center gap-2">
+              <div className="flex items-start gap-2">
                 {/* Colored status dot */}
                 <span
-                  className={cn('w-1.5 h-1.5 rounded-full flex-shrink-0', cfg.dot)}
+                  className={cn('w-1.5 h-1.5 rounded-full flex-shrink-0 mt-[0.3125rem]', cfg.dot)}
                   aria-hidden="true"
                 />
-                <span className="flex-1 text-12.5 text-text-secondary truncate">
+                <span className="flex-1 min-w-0 text-12.5 text-text-secondary">
                   {t(`status.${id}`, { defaultValue: status?.name ?? id })}
                 </span>
-                <span className="text-12.5 font-mono tabular-nums text-text-primary ml-1">
+                <span className="text-12.5 font-mono tabular-nums text-text-primary ml-1 flex-shrink-0">
                   {count}
                 </span>
               </div>

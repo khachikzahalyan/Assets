@@ -102,7 +102,7 @@ export const DeviceGridCard = memo(function DeviceGridCard({ asset, selected, ha
           </span>
           {isService && (
             <span
-              className="inline-flex items-center justify-center w-[20px] h-[20px] bg-violet-500/10 text-violet-300 border border-violet-500/30 rounded-[6px] flex-shrink-0 light:text-violet-700"
+              className="inline-flex items-center justify-center w-[1.25rem] h-[1.25rem] bg-violet-500/10 text-violet-300 border border-violet-500/30 rounded-[6px] flex-shrink-0 light:text-violet-700"
               title={t('device.service')}
               aria-label={t('device.service')}
             >

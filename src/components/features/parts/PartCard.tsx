@@ -285,7 +285,7 @@ export const PartCard = memo(function PartCard({
 
         return (
           <div
-            className="border-t border-[#2A2F36]/60 bg-[#1B1F24]/70 max-h-[220px] overflow-y-auto light:bg-surface-sunken light:border-border"
+            className="border-t border-[#2A2F36]/60 bg-[#1B1F24]/70 max-h-[13.75rem] overflow-y-auto light:bg-surface-sunken light:border-border"
             onClick={(e) => e.stopPropagation()}
           >
             <ul className="divide-y divide-border">

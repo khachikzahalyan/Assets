@@ -152,7 +152,7 @@ export function AssetPickerItemsStep({
           )}
         </div>
       </div>
-      <div className="max-h-[340px] overflow-y-auto border-t border-border">
+      <div className="max-h-[21.25rem] overflow-y-auto border-t border-border">
         {itemsInCategory.length === 0 ? (
           <div className="px-6 py-12 text-center text-14.5 text-text-tertiary">
             {t('picker.notFound')}
@@ -219,7 +219,7 @@ export function AssetPickerReviewStep({
 }: AssetPickerReviewStepProps) {
   const { t } = useTranslation('employees')
   return (
-    <div className="max-h-[420px] overflow-y-auto">
+    <div className="max-h-[26.25rem] overflow-y-auto">
       {cartRows.length === 0 ? (
         <div className="px-6 py-12 text-center">
           <div className="w-12 h-12 mx-auto rounded-full bg-surface-2 text-text-subtle flex items-center justify-center mb-3">
@@ -241,7 +241,7 @@ export function AssetPickerReviewStep({
                 <span className="text-12.5 font-semibold text-text-tertiary tracking-[0.06em] uppercase">
                   {grp.name}
                 </span>
-                <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-surface-2 text-text-tertiary text-12.5 font-semibold tabular-nums">
+                <span className="inline-flex items-center justify-center min-w-[1.125rem] h-[1.125rem] px-1 rounded-full bg-surface-2 text-text-tertiary text-12.5 font-semibold tabular-nums">
                   {grp.rows.length}
                 </span>
               </div>

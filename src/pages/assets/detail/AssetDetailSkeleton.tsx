@@ -69,18 +69,18 @@ export function AssetDetailSkeleton({ hasSpecs }: AssetDetailSkeletonProps = {})
             <div className="flex items-start gap-3">
               <div className="w-[48px] h-[48px] rounded-xl anim-skeleton flex-shrink-0" />
               <div className="flex-1 min-w-0">
-                <div className="h-[17px] w-[70%] rounded anim-skeleton" />
-                <div className="h-[18px] w-[64px] rounded-md anim-skeleton mt-0.5" />
+                <div className="h-[1.0625rem] w-[70%] rounded anim-skeleton" />
+                <div className="h-[1.125rem] w-[4rem] rounded-md anim-skeleton mt-0.5" />
               </div>
               <div className="flex items-center gap-1.5 flex-shrink-0">
-                <div className="h-7 w-[80px] rounded-lg anim-skeleton" />
-                <div className="h-7 w-[86px] rounded-lg anim-skeleton" />
+                <div className="h-7 w-[5rem] rounded-lg anim-skeleton" />
+                <div className="h-7 w-[5.375rem] rounded-lg anim-skeleton" />
               </div>
             </div>
             {/* Divider + one compact identifier line: inv chip + SN cluster */}
             <div className="mt-2 pt-2 border-t border-border flex items-center gap-2">
-              <div className="h-[22px] w-[96px] rounded-md anim-skeleton flex-shrink-0" />
-              <div className="h-[16px] w-[110px] rounded anim-skeleton" />
+              <div className="h-[1.375rem] w-[6rem] rounded-md anim-skeleton flex-shrink-0" />
+              <div className="h-[1rem] w-[6.875rem] rounded anim-skeleton" />
             </div>
           </div>
         </div>
@@ -110,18 +110,18 @@ export function AssetDetailSkeleton({ hasSpecs }: AssetDetailSkeletonProps = {})
                   <div key={i} className="bg-bg border border-border rounded-lg p-[10px] flex items-center gap-[9px]">
                     <div className="w-7 h-7 rounded-lg anim-skeleton flex-shrink-0" />
                     <div className="flex-1 min-w-0 space-y-1">
-                      <div className="h-[9px] w-[72%] rounded anim-skeleton" />
-                      <div className="h-[12px] w-[85%] rounded anim-skeleton" />
+                      <div className="h-[0.5625rem] w-[72%] rounded anim-skeleton" />
+                      <div className="h-[0.75rem] w-[85%] rounded anim-skeleton" />
                     </div>
                   </div>
                 ))}
                 {/* «Открыть Запчасти» — full-width card row (same footprint as the license row) */}
-                <div className="col-span-2 h-[41px] rounded-[10px] anim-skeleton" />
+                <div className="col-span-2 h-[2.5625rem] rounded-[10px] anim-skeleton" />
                 {/* License row — [icon] name (flex-1) [type chip] */}
                 <div className="col-span-2 bg-surface border border-border rounded-[10px] px-[13px] py-[10px] flex items-center gap-2.5">
                   <div className="w-6 h-6 rounded-md anim-skeleton flex-shrink-0" />
-                  <div className="h-[13px] w-[55%] rounded anim-skeleton" />
-                  <div className="h-[18px] w-[48px] rounded-md anim-skeleton ml-auto flex-shrink-0" />
+                  <div className="h-[0.8125rem] w-[55%] rounded anim-skeleton" />
+                  <div className="h-[1.125rem] w-[3rem] rounded-md anim-skeleton ml-auto flex-shrink-0" />
                 </div>
               </div>
             ) : (
@@ -139,8 +139,8 @@ export function AssetDetailSkeleton({ hasSpecs }: AssetDetailSkeletonProps = {})
                 <div className="p-3.5">
                   {/* mobileBare «Создан … · count» line — flex justify-between, mb-3 pb-2.5 border-b */}
                   <div className="flex items-center justify-between gap-2 mb-3 pb-2.5 border-b border-border">
-                    <div className="h-[12px] w-[72%] rounded anim-skeleton" />
-                    <div className="h-[12px] w-[52px] rounded anim-skeleton flex-shrink-0" />
+                    <div className="h-[0.75rem] w-[72%] rounded anim-skeleton" />
+                    <div className="h-[0.75rem] w-[3.25rem] rounded anim-skeleton flex-shrink-0" />
                   </div>
                   {/* Event rows */}
                   <div className="space-y-3">
@@ -148,8 +148,8 @@ export function AssetDetailSkeleton({ hasSpecs }: AssetDetailSkeletonProps = {})
                       <div key={i} className="flex items-start gap-2.5">
                         <div className="w-6 h-6 rounded-full anim-skeleton flex-shrink-0" />
                         <div className="flex-1 min-w-0 space-y-1.5">
-                          <div className="h-[12px] rounded anim-skeleton" style={{ width: `${68 - i * 6}%` }} />
-                          <div className="h-[10px] w-[40%] rounded anim-skeleton" />
+                          <div className="h-[0.75rem] rounded anim-skeleton" style={{ width: `${68 - i * 6}%` }} />
+                          <div className="h-[0.625rem] w-[40%] rounded anim-skeleton" />
                         </div>
                       </div>
                     ))}
@@ -175,10 +175,10 @@ export function AssetDetailSkeleton({ hasSpecs }: AssetDetailSkeletonProps = {})
                     {Array.from({ length: 2 }).map((__, r) => (
                       <div key={r} className="flex items-center justify-between gap-3 px-3 py-2.5">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-[26px] h-[26px] rounded-md anim-skeleton flex-shrink-0" />
-                          <div className="h-[10px] w-[52px] rounded anim-skeleton" />
+                          <div className="w-[1.625rem] h-[1.625rem] rounded-md anim-skeleton flex-shrink-0" />
+                          <div className="h-[0.625rem] w-[3.25rem] rounded anim-skeleton" />
                         </div>
-                        <div className="h-[13px] w-[35%] rounded anim-skeleton" />
+                        <div className="h-[0.8125rem] w-[35%] rounded anim-skeleton" />
                       </div>
                     ))}
                   </div>
@@ -186,14 +186,14 @@ export function AssetDetailSkeleton({ hasSpecs }: AssetDetailSkeletonProps = {})
                   <div key={cardIdx} className="bg-surface border border-border rounded-xl overflow-hidden">
                     {/* SectionCard-like header: max-md:px-3.5 max-md:py-3 */}
                     <div className="flex items-center gap-2.5 px-3.5 py-3 border-b border-border">
-                      <div className="w-[15px] h-[15px] rounded anim-skeleton flex-shrink-0" />
-                      <div className="h-[10px] w-[40%] rounded anim-skeleton" />
+                      <div className="w-[0.9375rem] h-[0.9375rem] rounded anim-skeleton flex-shrink-0" />
+                      <div className="h-[0.625rem] w-[40%] rounded anim-skeleton" />
                     </div>
                     <div className="p-3.5 space-y-3">
                       {Array.from({ length: 2 }).map((__, r) => (
                         <div
                           key={r}
-                          className="h-[13px] rounded anim-skeleton"
+                          className="h-[0.8125rem] rounded anim-skeleton"
                           style={{ width: `${65 - r * 10}%` }}
                         />
                       ))}
@@ -231,11 +231,11 @@ export function AssetDetailSkeleton({ hasSpecs }: AssetDetailSkeletonProps = {})
                   <div className="w-12 h-12 rounded-xl anim-skeleton flex-shrink-0" />
                   <div className="flex-1 min-w-0 space-y-2">
                     {/* Title shimmer */}
-                    <div className="h-[18px] w-[55%] rounded anim-skeleton" />
+                    <div className="h-[1.125rem] w-[55%] rounded anim-skeleton" />
                     {/* Inv-code + category chips */}
                     <div className="flex items-center gap-2">
-                      <div className="h-[20px] w-[88px] rounded-md anim-skeleton" />
-                      <div className="h-[20px] w-[72px] rounded-md anim-skeleton" />
+                      <div className="h-[1.25rem] w-[5.5rem] rounded-md anim-skeleton" />
+                      <div className="h-[1.25rem] w-[4.5rem] rounded-md anim-skeleton" />
                     </div>
                   </div>
                   {/* Status chip — h-8 matches DetailHero desktop chip (line ~79) */}
@@ -298,8 +298,8 @@ export function AssetDetailSkeleton({ hasSpecs }: AssetDetailSkeletonProps = {})
                           <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-bg border border-border">
                             <div className="w-9 h-9 rounded-lg anim-skeleton flex-shrink-0" />
                             <div className="flex-1 min-w-0 space-y-1.5">
-                              <div className="h-[9px] w-[42%] rounded anim-skeleton" />
-                              <div className="h-[12px] w-[68%] rounded anim-skeleton" />
+                              <div className="h-[0.5625rem] w-[42%] rounded anim-skeleton" />
+                              <div className="h-[0.75rem] w-[68%] rounded anim-skeleton" />
                             </div>
                           </div>
                         ))}

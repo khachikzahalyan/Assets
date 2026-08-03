@@ -81,7 +81,7 @@ export function NotificationBell({ repository, onSelect }: NotificationBellProps
         onClick={toggle}
         title={t('bellTooltip')}
         aria-label={t('bellTooltip')}
-        className="relative inline-flex items-center justify-center w-9 h-9 min-w-[44px] min-h-[44px] max-md:w-11 max-md:h-11 rounded-lg text-text-tertiary hover:bg-surface-2 transition-colors"
+        className="relative inline-flex items-center justify-center w-9 h-9 min-w-[2.75rem] min-h-[2.75rem] max-md:w-11 max-md:h-11 max-md:min-w-[44px] max-md:min-h-[44px] rounded-lg text-text-tertiary hover:bg-surface-2 transition-colors"
       >
         <Icon name="bell" size={18} />
         {count > 0 && (

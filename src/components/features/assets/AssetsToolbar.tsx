@@ -127,7 +127,7 @@ export function AssetsToolbar({
           onChange={handleSearchInput}
           placeholder={t('search')}
           aria-label={t('search')}
-          containerClassName="w-full max-w-[280px] max-md:max-w-none max-md:flex-1"
+          containerClassName="w-full max-w-[17.5rem] max-md:max-w-none max-md:flex-1"
         />
 
         {/* Import — hidden on mobile; enabled when canMutate and handler provided. */}

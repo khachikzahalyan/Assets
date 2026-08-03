@@ -188,7 +188,7 @@ export function ManageAssigneesModal({
                     <div className="text-12 text-text-subtle font-mono truncate">{e.email}</div>
                   </div>
                   {e.position && (
-                    <div className="text-12 text-text-subtle flex-shrink-0 hidden sm:block max-w-[130px] truncate text-right">
+                    <div className="text-12 text-text-subtle flex-shrink-0 hidden sm:block max-w-[8.125rem] truncate text-right">
                       {e.position}
                     </div>
                   )}
@@ -201,11 +201,11 @@ export function ManageAssigneesModal({
 
         {/* Footer */}
         <footer className="px-4 py-3 border-t border-border flex items-center justify-between gap-3 flex-shrink-0">
-          <span className="text-12.5 text-text-subtle">{t('manage.assignedSuffix', { phrase: pluralEmp(assigned.length) })}</span>
+          <span className="text-12.5 text-text-subtle min-w-0 truncate">{t('manage.assignedSuffix', { phrase: pluralEmp(assigned.length) })}</span>
           <button
             type="button"
             onClick={onClose}
-            className="h-9 px-5 rounded-lg bg-gradient-to-b from-accent-light to-accent text-white text-13.5 font-semibold shadow-sm shadow-accent/20 light:shadow-[#F97316]/20 hover:shadow-md hover:shadow-accent/30 light:hover:shadow-[#F97316]/20 transition-all"
+            className="h-9 px-5 rounded-lg bg-gradient-to-b from-accent-light to-accent text-white text-13.5 font-semibold shadow-sm shadow-accent/20 light:shadow-[#F97316]/20 hover:shadow-md hover:shadow-accent/30 light:hover:shadow-[#F97316]/20 transition-all flex-shrink-0"
           >
             {t('manage.done')}
           </button>

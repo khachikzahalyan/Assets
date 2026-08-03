@@ -145,7 +145,7 @@ export function ActivateKeyModal({
 
             <div
               className="rounded-lg border border-border overflow-y-auto flex-1"
-              style={{ maxHeight: 340 }}
+              style={{ maxHeight: '21.25rem' }}
               role="listbox"
               aria-label={t('activate.assetListLabel')}
             >

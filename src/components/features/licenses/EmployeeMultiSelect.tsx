@@ -170,7 +170,7 @@ export function EmployeeMultiSelect({
           bottom: panelPos.bottom != null ? panelPos.bottom : 'auto',
           left: panelPos.left != null ? panelPos.left : 'auto',
           width: panelPos.width ? Math.max(panelPos.width, 260) : 260,
-          maxHeight: 280,
+          maxHeight: '17.5rem',
           animation: 'modalPop 200ms cubic-bezier(.22,1,.36,1) both',
         }}
         onMouseDown={e => e.stopPropagation()}

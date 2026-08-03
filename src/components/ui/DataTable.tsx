@@ -59,11 +59,13 @@ export interface DataTableProps<T> {
   focusRowKey?: string
   /**
    * Opt into the AssetsTable full-height fill contract: the table takes flex:1 1 0
-   * and every row (real + placeholder) gets flex:1 1 0 with minHeight:58 as the
-   * floor, so rows distribute the available card height evenly and the paginator
-   * stays pinned to the card bottom. REQUIRES a bounded-height flex-column parent
-   * (ListCard Zone 2 or equivalent) — without one the table collapses, which is
-   * why this is opt-in and content-driven height remains the default.
+   * so the rowgroup absorbs the available card height and the paginator stays
+   * pinned to the card bottom. Rows keep their NATURAL compact height (3.625rem
+   * floor — rem, scales with the root; 58px at the 1920 reference); extra space
+   * stays empty below the rows (owner decision 2026-08-03: flex-stretched rows
+   * looked broken at compact laptop scale). REQUIRES a bounded-height
+   * flex-column parent (ListCard Zone 2 or equivalent) — without one the table
+   * collapses, which is why this is opt-in.
    */
   fillHeight?: boolean
 }
@@ -157,7 +159,7 @@ export function DataTable<T>({
                 col.align === 'center' ? 'text-center' : '',
                 col.headerClassName ?? '',
               ].filter(Boolean).join(' ')}
-              style={idx === 0 ? { paddingLeft: 20 } : undefined}
+              style={idx === 0 ? { paddingLeft: '1.25rem' } : undefined}
             >
               {col.header}
             </div>
@@ -214,8 +216,9 @@ export function DataTable<T>({
                   display: 'grid',
                   gridTemplateColumns,
                   alignItems: 'center',
-                  minHeight: 58,
-                  ...(fillHeight ? { flex: '1 1 0' } : {}),
+                  // rem floor scales with the root; rows never flex-grow —
+                  // compact natural height at every viewport scale.
+                  minHeight: '3.625rem',
                 }}
               >
                 {columns.map((col, idx) => (
@@ -229,7 +232,7 @@ export function DataTable<T>({
                       col.align === 'center' ? 'text-center' : '',
                       col.cellClassName ?? '',
                     ].filter(Boolean).join(' ')}
-                    style={idx === 0 ? { paddingLeft: 20 } : undefined}
+                    style={idx === 0 ? { paddingLeft: '1.25rem' } : undefined}
                   >
                     {col.cell(row)}
                   </div>
@@ -262,10 +265,9 @@ export function DataTable<T>({
             aria-hidden="true"
             data-testid={placeholderTestId}
             style={{
-              minHeight: 58,
+              minHeight: '3.625rem',
               ...(i === 0 ? { borderTop: '1px solid var(--color-border)' } : {}),
               pointerEvents: 'none',
-              ...(fillHeight ? { flex: '1 1 0' } : {}),
             }}
           />
         ))}

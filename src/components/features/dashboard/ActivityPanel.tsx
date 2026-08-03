@@ -32,11 +32,11 @@ export function ActivityPanel({ rows }: ActivityPanelProps) {
 
   return (
     <section className="bg-surface border border-border rounded-xl overflow-hidden">
-      <header className="flex items-center gap-2.5 px-5 py-3.5 border-b border-border">
+      <header className="flex items-center gap-2.5 px-5 py-3.5 border-b border-border min-w-0">
         <span className="w-6 h-6 lg:w-7 lg:h-7 rounded-md bg-success/15 text-success inline-flex items-center justify-center flex-shrink-0">
           <Icon name="arrow-right-left" size={14} />
         </span>
-        <h2 className="text-12 lg:text-13 font-semibold text-text-primary">
+        <h2 className="text-12 lg:text-13 font-semibold text-text-primary min-w-0">
           {t('recentActivity')}
         </h2>
       </header>

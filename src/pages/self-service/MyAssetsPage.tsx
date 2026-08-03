@@ -114,9 +114,9 @@ export function MyAssetsPage({ repository }: MyAssetsPageProps) {
           <div className="space-y-2">
             {Array.from({ length: 5 }).map((_, i) => (
               <div key={i} className="flex items-center gap-3 rounded-md border border-border bg-bg px-3 py-2 min-h-[44px]">
-                <div className="h-[12px] w-[80px] rounded anim-skeleton flex-shrink-0" />
-                <div className="h-[13px] flex-1 rounded anim-skeleton" style={{ maxWidth: `${40 + (i % 4) * 10}%` }} />
-                <div className="h-[20px] w-[60px] rounded-md anim-skeleton flex-shrink-0" />
+                <div className="h-[0.75rem] w-[5rem] rounded anim-skeleton flex-shrink-0" />
+                <div className="h-[0.8125rem] flex-1 rounded anim-skeleton" style={{ maxWidth: `${40 + (i % 4) * 10}%` }} />
+                <div className="h-[1.25rem] w-[3.75rem] rounded-md anim-skeleton flex-shrink-0" />
               </div>
             ))}
           </div>

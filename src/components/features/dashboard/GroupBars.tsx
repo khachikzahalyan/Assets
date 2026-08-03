@@ -23,16 +23,16 @@ export function GroupBars({ byGroup }: GroupBarsProps) {
 
   return (
     <section className="bg-surface border border-border rounded-xl overflow-hidden">
-      <header className="flex items-center justify-between px-5 py-3.5 border-b border-border">
-        <div className="flex items-center gap-2.5">
+      <header className="flex items-center justify-between gap-2 px-5 py-3.5 border-b border-border">
+        <div className="flex items-center gap-2.5 min-w-0">
           <span className="w-6 h-6 lg:w-7 lg:h-7 rounded-md bg-accent/15 text-accent inline-flex items-center justify-center flex-shrink-0">
             <Icon name="tags" size={14} />
           </span>
-          <h2 className="text-12 lg:text-13 font-semibold text-text-primary">
+          <h2 className="text-12 lg:text-13 font-semibold text-text-primary min-w-0">
             {t('groups.title')}
           </h2>
         </div>
-        <span className="text-11 text-text-subtle">
+        <span className="text-11 text-text-subtle flex-shrink-0">
           {t('groups.categoryCaption', { count: ASSET_GROUPS.length })}
         </span>
       </header>
@@ -45,21 +45,21 @@ export function GroupBars({ byGroup }: GroupBarsProps) {
 
           return (
             <div key={group} className="flex flex-col gap-1.5">
-              <div className="flex items-center gap-2">
+              <div className="flex items-start gap-2">
                 {/* Small leading icon per group */}
                 <span
                   className={cn(
-                    'w-5 h-5 rounded flex-shrink-0 inline-flex items-center justify-center',
+                    'w-5 h-5 rounded flex-shrink-0 inline-flex items-center justify-center mt-px',
                     cfg.iconBox,
                   )}
                   aria-hidden="true"
                 >
                   <Icon name={cfg.icon} size={11} />
                 </span>
-                <span className="flex-1 text-12.5 text-text-secondary truncate">
+                <span className="flex-1 min-w-0 text-12.5 text-text-secondary">
                   {t(`groups.${group}`)}
                 </span>
-                <span className="text-12.5 font-mono tabular-nums text-text-primary ml-1">
+                <span className="text-12.5 font-mono tabular-nums text-text-primary ml-1 flex-shrink-0">
                   {count}
                 </span>
               </div>

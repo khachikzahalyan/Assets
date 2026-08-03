@@ -141,7 +141,7 @@ export function AuditFilterBar({ query, onChange, ref: refData }: AuditFilterBar
         <span className="flex items-center gap-2 flex-shrink-0">
           <span className="flex items-center gap-1.5 text-12 text-text-tertiary flex-shrink-0">
             {t('filters.from')}
-            <div className="w-[128px]">
+            <div className="w-[8rem]">
               <DatePicker
                 id="audit-filter-from"
                 variant="chip"
@@ -155,7 +155,7 @@ export function AuditFilterBar({ query, onChange, ref: refData }: AuditFilterBar
           </span>
           <span className="flex items-center gap-1.5 text-12 text-text-tertiary flex-shrink-0">
             {t('filters.to')}
-            <div className="w-[128px]">
+            <div className="w-[8rem]">
               <DatePicker
                 id="audit-filter-to"
                 variant="chip"

@@ -21,7 +21,7 @@ function SkuPlaceholderDesktop() {
         <div
           key={i}
           aria-hidden="true"
-          className="relative flex items-center gap-3 px-5 h-[54px] border-b border-border last:border-b-0"
+          className="relative flex items-center gap-3 px-5 h-[3.375rem] border-b border-border last:border-b-0"
         >
           <div className="absolute left-5 right-5 top-1/2 -translate-y-1/2 border-t border-dashed border-border/40" />
         </div>

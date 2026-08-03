@@ -258,7 +258,7 @@ export function DatePopover({
         style={{ position: 'fixed', inset: 0, zIndex: 300 }}
       />
       <div
-        className="min-w-[244px] bg-surface border border-border rounded-xl shadow-xl p-2.5"
+        className="min-w-[15.25rem] bg-surface border border-border rounded-xl shadow-xl p-2.5"
         style={{
           position: 'fixed',
           zIndex: 301,

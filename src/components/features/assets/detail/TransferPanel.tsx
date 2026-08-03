@@ -307,12 +307,12 @@ export function TransferPanel({ asset: _asset, refData, caps, busy, onCommit, on
     <div className={`anim-fade-slide-in ${mobileInline ? '' : 'mt-2 border-t border-border pt-2'}`}>
       {/* Divider header — desktop only (side-dividers). Mobile hides it entirely. */}
       {!mobileInline && (
-        <div className="flex items-center gap-3 mb-2">
-          <div className="flex-1 h-px bg-surface-2" />
-          <span className="text-12 text-text-tertiary uppercase tracking-widest whitespace-nowrap">
+        <div className="flex items-center gap-3 mb-2 min-w-0">
+          <div className="flex-1 h-px bg-surface-2 shrink" />
+          <span className="text-12 text-text-tertiary uppercase tracking-widest shrink-0">
             {t('detail.transfer.title')}
           </span>
-          <div className="flex-1 h-px bg-surface-2" />
+          <div className="flex-1 h-px bg-surface-2 shrink" />
         </div>
       )}
 
@@ -330,7 +330,7 @@ export function TransferPanel({ asset: _asset, refData, caps, busy, onCommit, on
       </div>
 
       {/* Per-mode form — reserved slot prevents right-column jump when mode is picked */}
-      <div className="lg:min-h-[64px]">
+      <div className="lg:min-h-[4rem]">
         {mode && (
           <TransferModeForm
             key={mode}

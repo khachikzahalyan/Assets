@@ -222,7 +222,7 @@ export function SelectMini({ id, label, leadingIcon, leadingIconMobile, value, o
         </span>
         <span
           className={[
-            'text-14 leading-none font-semibold tracking-tight truncate max-w-[140px] max-md:text-12',
+            'text-14 leading-none font-semibold tracking-tight truncate max-w-[12rem] max-md:text-12',
             isNonDefault ? 'text-accent-hover' : 'text-text-secondary',
           ].join(' ')}
         >
@@ -261,7 +261,7 @@ export function SelectMini({ id, label, leadingIcon, leadingIconMobile, value, o
             }}
             className="bg-surface border border-border rounded-xl shadow-xl shadow-black/40 light:shadow-slate-300/60 anim-fade-slide-in overflow-hidden"
           >
-            <div className="py-1.5 max-h-[280px] overflow-y-auto" role="listbox">
+            <div className="py-1.5 max-h-[17.5rem] overflow-y-auto" role="listbox">
               {options.map(opt => {
                 const isActive = opt.value === value
                 return (

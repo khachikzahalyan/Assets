@@ -75,13 +75,13 @@ export function ProfilePage({ repository, loadRefData }: ProfilePageProps) {
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 {/* Title shimmer — text-18 font-bold leading-normal ≈ 22px */}
-                <div className="h-[22px] w-[140px] rounded anim-skeleton" />
+                <div className="h-[1.375rem] w-[8.75rem] rounded anim-skeleton" />
               </div>
             </div>
           </div>
           {/* Status chip placeholder — employee status is also async */}
           <div className="flex items-center gap-2 flex-shrink-0">
-            <div className="h-[22px] w-[56px] rounded-full anim-skeleton" />
+            <div className="h-[1.375rem] w-[3.5rem] rounded-full anim-skeleton" />
           </div>
         </header>
         {/* SectionCard: title and icon are local i18n — render real */}
@@ -89,22 +89,22 @@ export function ProfilePage({ repository, loadRefData }: ProfilePageProps) {
           <dl className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
             {/* Field labels are local i18n — render real; only values are async */}
             <Field label={t('form.firstName')}>
-              <div className="h-[13px] w-[65%] rounded anim-skeleton" />
+              <div className="h-[0.8125rem] w-[65%] rounded anim-skeleton" />
             </Field>
             <Field label={t('form.lastName')}>
-              <div className="h-[13px] w-[55%] rounded anim-skeleton" />
+              <div className="h-[0.8125rem] w-[55%] rounded anim-skeleton" />
             </Field>
             <Field label={t('form.email')}>
-              <div className="h-[13px] w-[80%] rounded anim-skeleton" />
+              <div className="h-[0.8125rem] w-[80%] rounded anim-skeleton" />
             </Field>
             <Field label={t('form.position')}>
-              <div className="h-[13px] w-[60%] rounded anim-skeleton" />
+              <div className="h-[0.8125rem] w-[60%] rounded anim-skeleton" />
             </Field>
             <Field label={t('form.branch')}>
-              <div className="h-[13px] w-[50%] rounded anim-skeleton" />
+              <div className="h-[0.8125rem] w-[50%] rounded anim-skeleton" />
             </Field>
             <Field label={t('form.department')}>
-              <div className="h-[13px] w-[55%] rounded anim-skeleton" />
+              <div className="h-[0.8125rem] w-[55%] rounded anim-skeleton" />
             </Field>
           </dl>
         </SectionCard>

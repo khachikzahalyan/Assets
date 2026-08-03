@@ -62,8 +62,8 @@ export function MyActsPage({ repository }: MyActsPageProps) {
           <div className="space-y-2">
             {Array.from({ length: 5 }).map((_, i) => (
               <div key={i} className="flex items-center gap-3 min-h-[44px]">
-                <div className="h-[12px] w-[96px] rounded anim-skeleton flex-shrink-0" />
-                <div className="h-7 w-[112px] rounded-lg anim-skeleton flex-shrink-0" />
+                <div className="h-[0.75rem] w-[6rem] rounded anim-skeleton flex-shrink-0" />
+                <div className="h-7 w-[7rem] rounded-lg anim-skeleton flex-shrink-0" />
               </div>
             ))}
           </div>

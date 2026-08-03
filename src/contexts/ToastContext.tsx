@@ -33,8 +33,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             key={tt.id}
             className={
               tt.variant === 'error'
-                ? 'anim-toast pointer-events-auto bg-surface border border-rose-500/30 rounded-lg shadow-xl shadow-rose-900/10 px-4 py-3 flex items-center gap-2.5 min-w-[260px] max-w-md'
-                : 'anim-toast pointer-events-auto bg-surface border border-emerald-500/30 rounded-lg shadow-xl shadow-emerald-900/10 px-4 py-3 flex items-center gap-2.5 min-w-[260px] max-w-md'
+                ? 'anim-toast pointer-events-auto bg-surface border border-rose-500/30 rounded-lg shadow-xl shadow-rose-900/10 px-4 py-3 flex items-center gap-2.5 min-w-[16.25rem] max-w-md'
+                : 'anim-toast pointer-events-auto bg-surface border border-emerald-500/30 rounded-lg shadow-xl shadow-emerald-900/10 px-4 py-3 flex items-center gap-2.5 min-w-[16.25rem] max-w-md'
             }
             role={tt.variant === 'error' ? 'alert' : 'status'}
             aria-live="polite"

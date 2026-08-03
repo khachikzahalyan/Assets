@@ -26,7 +26,7 @@ export function PartsReceiveSmallCatCard({
         >
           <Icon name={cat.icon} size={11} />
         </span>
-        <span className="text-12.5 font-bold text-text-primary truncate">{cat.label}</span>
+        <span className="text-12.5 font-bold text-text-primary truncate flex-1 min-w-0">{cat.label}</span>
         <span className="ml-auto text-10 text-text-subtle tabular-nums flex-shrink-0">
           {catParts.length}&nbsp;{t('addModal.positions')}
         </span>
@@ -54,7 +54,7 @@ export function PartsReceiveSmallCatCard({
                 onClick={() => bumpQty(p.id, -1)}
                 disabled={qtyNum <= 0}
                 aria-label={t('addModal.decrease')}
-                className="w-[34px] h-8 flex-shrink-0 flex items-center justify-center text-text-tertiary hover:bg-surface-2 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                className="w-[2.125rem] h-8 flex-shrink-0 flex items-center justify-center text-text-tertiary hover:bg-surface-2 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
               >
                 <Icon name="minus" size={12} />
               </button>
@@ -69,7 +69,7 @@ export function PartsReceiveSmallCatCard({
                 type="button"
                 onClick={() => bumpQty(p.id, +1)}
                 aria-label={t('addModal.increase')}
-                className="w-[34px] h-8 flex-shrink-0 flex items-center justify-center text-text-tertiary hover:bg-surface-2 transition-colors"
+                className="w-[2.125rem] h-8 flex-shrink-0 flex items-center justify-center text-text-tertiary hover:bg-surface-2 transition-colors"
               >
                 <Icon name="plus" size={12} />
               </button>

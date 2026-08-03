@@ -78,7 +78,7 @@ export function PartsReceiveSizedCatCard({
           const isActive = qtyNum > 0
           const sizeLabel = p.variantLabel || p.name
           return (
-            <div key={p.id} className="flex-shrink-0 w-[72px]">
+            <div key={p.id} className="flex-shrink-0 w-[4.5rem]">
               <div
                 className={`text-10.5 mb-1 leading-none ${
                   isActive ? 'text-accent' : 'text-text-secondary'

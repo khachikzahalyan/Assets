@@ -270,7 +270,7 @@ export function DestPicker({
               className="w-full text-left px-2.5 py-3 md:py-2 rounded-xl text-14.5 font-medium text-text-primary hover:bg-bg transition-colors duration-100 flex items-center gap-2.5"
             >
               <span
-                className={`inline-flex items-center justify-center w-[20px] h-[20px] rounded-[5px] shrink-0 ${opt.iconCls}`}
+                className={`inline-flex items-center justify-center w-[1.25rem] h-[1.25rem] rounded-[5px] shrink-0 ${opt.iconCls}`}
               >
                 <Icon name={opt.icon} size={11} />
               </span>
@@ -283,8 +283,8 @@ export function DestPicker({
           {/* Employee / department / branch search sub-panels */}
           {sub !== 'temporary' && (
             <>
-              {/* Sub-picker header: back + search */}
-              <div className="flex items-center gap-1 px-1 mb-1.5">
+              {/* Sub-picker header: back + search — one even 32px row */}
+              <div className="flex items-center gap-1.5 px-0.5 pt-0.5 mb-1.5">
                 <button
                   type="button"
                   aria-label={t('dest.back')}
@@ -292,12 +292,12 @@ export function DestPicker({
                     setSub(null)
                     setQuery('')
                   }}
-                  className="p-1 rounded-md text-text-subtle hover:text-text-secondary hover:bg-surface-2 transition-colors"
+                  className="w-8 h-8 shrink-0 inline-flex items-center justify-center rounded-lg text-text-subtle hover:text-text-secondary hover:bg-surface-2 transition-colors"
                 >
-                  <Icon name="arrow-left" size={12} />
+                  <Icon name="arrow-left" size={13} />
                 </button>
-                <div className="ams-destpicker-search flex-1 flex items-center gap-1.5 bg-bg rounded-lg px-2 py-1">
-                  <Icon name="search" size={11} className="text-text-subtle shrink-0" />
+                <div className="ams-destpicker-search flex-1 h-8 flex items-center gap-1.5 bg-bg ring-1 ring-border/60 focus-within:ring-accent/40 rounded-lg px-2.5 transition-shadow">
+                  <Icon name="search" size={12} className="text-text-subtle shrink-0" />
                   <input
                     type="text"
                     value={query}
@@ -309,7 +309,7 @@ export function DestPicker({
                   />
                 </div>
               </div>
-              <div className="max-h-[45vh] md:max-h-[160px] overflow-y-auto space-y-0.5">
+              <div className="max-h-[45vh] md:max-h-[10rem] overflow-y-auto space-y-0.5">
                 {sub === 'employee' &&
                   filteredEmps.map((e) => (
                     <button
@@ -319,7 +319,7 @@ export function DestPicker({
                       className="w-full text-left px-2.5 py-3 md:py-2 rounded-xl text-14 font-medium text-text-primary hover:bg-bg transition-colors duration-100 flex items-center gap-2 truncate"
                     >
                       <span
-                        className={`inline-flex items-center justify-center w-[18px] h-[18px] rounded-[4px] shrink-0 ${SUB_ICON.employee.iconCls}`}
+                        className={`inline-flex items-center justify-center w-[1.125rem] h-[1.125rem] rounded-[4px] shrink-0 ${SUB_ICON.employee.iconCls}`}
                       >
                         <Icon name={SUB_ICON.employee.icon} size={11} />
                       </span>
@@ -337,7 +337,7 @@ export function DestPicker({
                       className="w-full text-left px-2.5 py-3 md:py-2 rounded-xl text-14 font-medium text-text-primary hover:bg-bg transition-colors duration-100 flex items-center gap-2 truncate"
                     >
                       <span
-                        className={`inline-flex items-center justify-center w-[18px] h-[18px] rounded-[4px] shrink-0 ${SUB_ICON.department.iconCls}`}
+                        className={`inline-flex items-center justify-center w-[1.125rem] h-[1.125rem] rounded-[4px] shrink-0 ${SUB_ICON.department.iconCls}`}
                       >
                         <Icon name={SUB_ICON.department.icon} size={11} />
                       </span>
@@ -353,7 +353,7 @@ export function DestPicker({
                       className="w-full text-left px-2.5 py-3 md:py-2 rounded-xl text-14 font-medium text-text-primary hover:bg-bg transition-colors duration-100 flex items-center gap-2 truncate"
                     >
                       <span
-                        className={`inline-flex items-center justify-center w-[18px] h-[18px] rounded-[4px] shrink-0 ${SUB_ICON.branch.iconCls}`}
+                        className={`inline-flex items-center justify-center w-[1.125rem] h-[1.125rem] rounded-[4px] shrink-0 ${SUB_ICON.branch.iconCls}`}
                       >
                         <Icon name={SUB_ICON.branch.icon} size={11} />
                       </span>
@@ -370,14 +370,14 @@ export function DestPicker({
           {/* Temporary sub-panel */}
           {sub === 'temporary' && (
             <div className="px-1.5 pb-1">
-              <div className="flex items-center gap-1 px-0.5 mb-2">
+              <div className="flex items-center gap-1.5 px-0.5 pt-0.5 mb-2">
                 <button
                   type="button"
                   aria-label={t('dest.back')}
                   onClick={() => { setSub(null); setTempKind(null); setReturnDate(plusDaysISO(7)) }}
-                  className="p-1 rounded-md text-text-subtle hover:text-text-secondary hover:bg-surface-2 transition-colors"
+                  className="w-8 h-8 shrink-0 inline-flex items-center justify-center rounded-lg text-text-subtle hover:text-text-secondary hover:bg-surface-2 transition-colors"
                 >
-                  <Icon name="arrow-left" size={12} />
+                  <Icon name="arrow-left" size={13} />
                 </button>
                 <span className="text-12 uppercase tracking-[0.06em] font-semibold text-text-tertiary">
                   {t('dest.temporary')}
@@ -444,11 +444,11 @@ export function DestPicker({
         className={`ams-handover-destpicker-trigger inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 text-14 font-medium ring-1 transition-colors duration-150 cursor-pointer ${accent.chipCls}`}
       >
         <span
-          className={`inline-flex items-center justify-center w-[18px] h-[18px] rounded-[4px] shrink-0 ${accent.iconCls}`}
+          className={`inline-flex items-center justify-center w-[1.125rem] h-[1.125rem] rounded-[4px] shrink-0 ${accent.iconCls}`}
         >
           <Icon name={accent.icon} size={11} />
         </span>
-        <span className="truncate max-w-[110px]">{chipLabel}</span>
+        <span className="truncate max-w-[6.875rem]">{chipLabel}</span>
         <Icon name="chevron-down" size={10} className="shrink-0 opacity-50" />
       </button>
 

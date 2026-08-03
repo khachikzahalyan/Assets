@@ -201,15 +201,16 @@ export function HistoryPanel({
     <div>
       {/* ── Metrics strip ── */}
       <div className="px-5 py-2.5 max-md:px-3.5 max-md:py-1.5 border-t border-border flex items-center gap-3 flex-shrink-0 bg-bg">
-        <span className="text-13 uppercase tracking-wider text-text-subtle font-semibold max-md:text-10 max-md:font-bold max-md:tracking-[1.4px] max-md:text-text-secondary">
+        <span className="text-13 uppercase tracking-wider text-text-subtle font-semibold max-md:text-10 max-md:font-bold max-md:tracking-[1.4px] max-md:text-text-secondary min-w-0 shrink">
           {t('warehouse.history')}
         </span>
-        <div className="flex items-center gap-1.5 ml-auto">
+        <div className="flex items-center gap-1.5 ml-auto flex-shrink-0">
+          {/* Mobile: drop the «Добавлено/Использовано» words → «+N шт» / «-N шт». Desktop: full label. */}
           <Chip color="green" size="sm" dot>
-            {t('warehouse.historyAdded')}: {addedQty} шт
+            {isMobile ? `+${addedQty} шт` : `${t('warehouse.historyAdded')}: ${addedQty} шт`}
           </Chip>
           <Chip color="violet" size="sm" dot>
-            {t('warehouse.historyUsed')}: {usedQty} шт
+            {isMobile ? `-${usedQty} шт` : `${t('warehouse.historyUsed')}: ${usedQty} шт`}
           </Chip>
         </div>
       </div>
@@ -505,19 +506,19 @@ export function HistoryPanel({
                   type="button"
                   disabled={safePage === 1}
                   onClick={() => goToPage(Math.max(1, safePage - 1))}
-                  className="h-7 px-3 rounded-md bg-surface border border-border text-14 text-text-primary disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="h-7 px-3 rounded-md bg-surface border border-border text-14 text-text-primary disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap flex-shrink-0"
                   aria-label={t('warehouse.pagePrev')}
                 >
                   ← {t('warehouse.pagePrev')}
                 </button>
-                <span className="text-14 text-text-tertiary tabular-nums">
+                <span className="text-14 text-text-tertiary tabular-nums flex-shrink-0">
                   {safePage} / {totalPages}
                 </span>
                 <button
                   type="button"
                   disabled={safePage === totalPages}
                   onClick={() => goToPage(Math.min(totalPages, safePage + 1))}
-                  className="h-7 px-3 rounded-md bg-surface border border-border text-14 text-text-primary disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="h-7 px-3 rounded-md bg-surface border border-border text-14 text-text-primary disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap flex-shrink-0"
                   aria-label={t('warehouse.pageNext')}
                 >
                   {t('warehouse.pageNext')} →

@@ -112,7 +112,7 @@ function EmployeePropRow({ icon, label, value, mono = false, copyValue }: Employ
   const inner = (
     <>
       <Icon name={icon} size={13} className={`${iconTint(icon)} shrink-0 mt-px`} />
-      <dt className="text-12.5 font-semibold uppercase tracking-[0.07em] text-text-subtle w-[4.5rem] shrink-0 leading-none">
+      <dt className="text-12.5 font-semibold uppercase tracking-[0.07em] text-text-subtle w-[5.5rem] whitespace-nowrap shrink-0 leading-none">
         {label}
       </dt>
       <dd
@@ -350,14 +350,14 @@ export function EmployeeDetailDrawer({
       <div className="px-5 max-md:px-3.5 h-11 flex items-center justify-between gap-2 border-b border-border shrink-0">
         <h3 className="flex items-center min-w-0 text-13 max-md:text-11 font-semibold text-text-tertiary tracking-[0.06em] max-md:tracking-[0.03em] uppercase">
           <span className="truncate whitespace-nowrap">{t('detail.assets')}</span>
-          <span className="ml-2 shrink-0 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-surface-2 text-text-tertiary text-12.5 font-semibold tabular-nums">
+          <span className="ml-2 shrink-0 inline-flex items-center justify-center min-w-[1.125rem] h-[1.125rem] px-1 rounded-full bg-surface-2 text-text-tertiary text-12.5 font-semibold tabular-nums">
             {linkedAssets.length}
           </span>
           {selectMode && linkedAssets.length > 0 && (
             <button
               type="button"
               onClick={toggleAll}
-              className="ml-3 text-13.5 font-semibold text-emerald-300 light:text-emerald-700 hover:underline"
+              className="ml-3 text-13.5 font-semibold text-emerald-300 light:text-emerald-700 hover:underline whitespace-nowrap shrink-0"
             >
               {selected.size < linkedAssets.length
                 ? t('transfer.selectAll')

@@ -129,7 +129,7 @@ export function TableSkeleton({
             data-testid="table-skeleton-row"
             style={{
               flex: '1 1 0',
-              minHeight: 58,
+              minHeight: '3.625rem',
               borderTop: '1px solid var(--color-border)',
               display: 'grid',
               gridTemplateColumns: effectiveGrid,

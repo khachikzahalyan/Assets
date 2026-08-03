@@ -18,7 +18,7 @@ export function ThemeToggle() {
       onClick={toggleTheme}
       title={label}
       aria-label={label}
-      className="inline-flex items-center justify-center w-9 h-9 min-w-[44px] min-h-[44px] max-md:w-9 max-md:h-9 max-md:min-w-0 max-md:min-h-0 max-md:rounded-[9px] rounded-lg text-text-tertiary hover:bg-surface-2 transition-colors"
+      className="inline-flex items-center justify-center w-9 h-9 min-w-[2.75rem] min-h-[2.75rem] max-md:w-9 max-md:h-9 max-md:min-w-0 max-md:min-h-0 max-md:rounded-[9px] rounded-lg text-text-tertiary hover:bg-surface-2 transition-colors"
     >
       <Icon name={theme === 'dark' ? 'sun' : 'moon'} size={17} />
     </button>

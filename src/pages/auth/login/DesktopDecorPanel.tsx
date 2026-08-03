@@ -19,8 +19,8 @@ export function DesktopDecorPanel() {
           top: '50%',
           left: '40%',
           transform: 'translate(-50%, -50%)',
-          width: '700px',
-          height: '700px',
+          width: '43.75rem',
+          height: '43.75rem',
           background: 'radial-gradient(circle, rgba(232,105,42,0.18) 0%, rgba(232,105,42,0.05) 40%, transparent 70%)',
           pointerEvents: 'none',
         }}
@@ -70,7 +70,7 @@ export function DesktopDecorPanel() {
           position: 'absolute',
           bottom: '-40px',
           right: '-30px',
-          fontSize: '280px',
+          fontSize: '17.5rem',
           fontWeight: 800,
           color: 'rgba(255,255,255,0.025)',
           letterSpacing: '-10px',
@@ -108,7 +108,7 @@ export function DesktopDecorPanel() {
           border: '1px solid rgba(255,255,255,0.08)',
           borderRadius: '14px',
           padding: '20px 24px',
-          maxWidth: '280px',
+          maxWidth: '17.5rem',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>

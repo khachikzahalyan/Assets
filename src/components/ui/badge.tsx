@@ -15,7 +15,7 @@ export function Badge({ children, tone = 'slate', className = '' }: BadgeProps) 
     amber:   'bg-amber-950/60 light:bg-amber-50 text-amber-300 light:text-amber-700',
   }
   return (
-    <span className={`inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-10.5 font-bold tabular-nums ${tones[tone]} ${className}`}>
+    <span className={`inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full text-10.5 font-bold tabular-nums ${tones[tone]} ${className}`}>
       {children}
     </span>
   )

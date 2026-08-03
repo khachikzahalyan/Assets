@@ -332,9 +332,9 @@ export function PartsReceivePage({ repository }: PartsReceivePageProps = {}) {
                 {/* Section header: icon + title + real divider + count shimmer */}
                 <div className="flex items-center gap-2 mb-1.5">
                   <div className="w-7 h-7 rounded-lg anim-skeleton flex-shrink-0" />
-                  <div className="h-[14px] w-[25%] rounded anim-skeleton" />
+                  <div className="h-[0.875rem] w-[25%] rounded anim-skeleton" />
                   <div className="flex-1 h-px bg-border" />
-                  <div className="h-[12px] w-[64px] rounded anim-skeleton" />
+                  <div className="h-[0.75rem] w-[4rem] rounded anim-skeleton" />
                 </div>
                 {/* SKU card grid — mirrors real: p-2, top row label + chip, stepper */}
                 <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(10rem, 1fr))' }}>
@@ -342,8 +342,8 @@ export function PartsReceivePage({ repository }: PartsReceivePageProps = {}) {
                     <div key={c} className="bg-surface border border-border rounded-lg p-2">
                       {/* top row: mono label + chip footprint */}
                       <div className="flex items-center justify-between gap-2 mb-1.5">
-                        <div className="h-[14px] w-[55%] rounded anim-skeleton" />
-                        <div className="h-[18px] w-[26px] rounded-full anim-skeleton" />
+                        <div className="h-[0.875rem] w-[55%] rounded anim-skeleton" />
+                        <div className="h-[1.125rem] w-[1.625rem] rounded-full anim-skeleton" />
                       </div>
                       {/* stepper row */}
                       <div className="h-7 rounded-md anim-skeleton" />
