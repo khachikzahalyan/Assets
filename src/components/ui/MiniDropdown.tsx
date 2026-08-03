@@ -162,7 +162,10 @@ export function MiniDropdown({ value, onChange, options, placeholder = 'Выбе
             minWidth: pos.width,
             maxWidth: `calc(100vw - 16px)`,
             maxHeight: pos.maxHeight,
-            zIndex: 1000,
+            // Above MobileSheet (z-9000) — the popup portals to <body>, so a lower
+            // z-index would render behind the bottom-sheet backdrop (asset picker
+            // opened but showed no options / couldn't select on mobile).
+            zIndex: 9500,
           }}
           className="bg-surface rounded-xl ring-1 ring-border shadow-xl shadow-slate-900/30 light:shadow-slate-300/60 py-1.5 overflow-y-auto w-max anim-fade-slide-in"
         >

@@ -257,7 +257,7 @@ export function SelectMini({ id, label, leadingIcon, leadingIconMobile, value, o
               top: pos.top,
               left: pos.left,
               minWidth: pos.minWidth,
-              zIndex: 1000,
+              zIndex: 9500, // above MobileSheet (z-9000) — see MiniDropdown note
             }}
             className="bg-surface border border-border rounded-xl shadow-xl shadow-black/40 light:shadow-slate-300/60 anim-fade-slide-in overflow-hidden"
           >

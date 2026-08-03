@@ -218,8 +218,8 @@ export function SearchSelect({
         </div>
       </div>
 
-      {/* Option list */}
-      <div ref={listRef} className="max-h-72 overflow-y-auto py-1" role="listbox">
+      {/* Option list — desktop caps at max-h-72; inside the mobile sheet it flex-fills. */}
+      <div ref={listRef} className="overflow-y-auto py-1 md:max-h-72 max-md:flex-1 max-md:min-h-0" role="listbox">
         {filtered.length === 0 ? (
           <div className="px-3 py-6 text-center text-14 text-text-primary">
             {t('placeholders.noResults')}
@@ -325,7 +325,7 @@ export function SearchSelect({
 
       {/* Mobile: bottom sheet */}
       {isMobile && (
-        <MobileSheet open={open} onClose={() => { setOpen(false); setQuery('') }} {...(title !== undefined ? { title } : {})}>
+        <MobileSheet open={open} onClose={() => { setOpen(false); setQuery('') }} height="60vh" {...(title !== undefined ? { title } : {})}>
           {listContent}
         </MobileSheet>
       )}

@@ -101,7 +101,7 @@ export function SpecCombobox({ value, onChange, suggestions, placeholder, id }: 
           ref={portalRef}
           data-spec-portal="true"
           data-ams-dropdown="true"
-          style={{ position: 'fixed', top: pos.top, left: pos.left, width: pos.width, zIndex: 1000 }}
+          style={{ position: 'fixed', top: pos.top, left: pos.left, width: pos.width, zIndex: 9500 /* above MobileSheet (z-9000) */ }}
           className="rounded-lg bg-surface shadow-lg ring-1 ring-border max-h-64 overflow-y-auto anim-fade-slide-in"
         >
           {filtered.map((s, idx) => {
