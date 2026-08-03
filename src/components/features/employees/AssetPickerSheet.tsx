@@ -206,7 +206,7 @@ export function AssetPickerSheet({
             </>
           )}
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
           {step === 'category' && (
             <Btn variant="ghost" onClick={goToGroupStep}>
               <Icon name="chevron-left" size={14} /> {t('picker.back')}

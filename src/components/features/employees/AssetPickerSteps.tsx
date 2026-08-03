@@ -136,7 +136,7 @@ export function AssetPickerItemsStep({
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder={`Поиск в «${catName}»…`}
+            placeholder="Поиск..."
             aria-label={`Поиск в «${catName}»`}
             className="flex-1 text-14 bg-transparent border-none outline-none placeholder:text-text-subtle text-text-primary min-w-0"
           />

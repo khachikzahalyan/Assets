@@ -474,7 +474,7 @@ export function HandoverModal({
           <div className="flex-1 min-w-0" />
 
           {/* RIGHT zone */}
-          <div className="ams-handover-footer-right flex items-center gap-2 shrink-0">
+          <div className="ams-handover-footer-right flex items-center gap-2 shrink-0 flex-wrap justify-end">
             <Btn
               variant="ghost"
               size="sm"

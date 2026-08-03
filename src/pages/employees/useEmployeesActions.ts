@@ -45,8 +45,8 @@ export function useEmployeesActions(d: EmployeesDataBag) {
     employees, former, catMap,
     assetCountOf, headOfficeBranchId,
     detailId, setDetailId,
-    setDetailLinkedAssets, setFormOpen, setFormInitial,
-    setHandoverTarget, setHandoverAssets,
+    detailLinkedAssets, setDetailLinkedAssets, setFormOpen, setFormInitial,
+    handoverAssets, setHandoverTarget, setHandoverAssets,
     setPickerTarget, setPickerStock,
     setRestoreTarget,
     handoverTarget, pickerTarget, pickerStock, restoreTarget,
@@ -182,18 +182,36 @@ export function useEmployeesActions(d: EmployeesDataBag) {
 
   async function handleHandoverConfirm(rows: { id: string; received: boolean; destination: Destination }[]) {
     if (!handoverTarget) return
+    const handById = new Map(handoverAssets.map(a => [a.id, a]))
     try {
       for (const r of rows) {
         if (!r.received) continue
         if (r.destination.kind === 'warehouse') {
           await asnRepo.returnAsset(r.id, actor)
         } else {
-          const patch = destToPatch(r.destination, employees)
+          const dest = r.destination
+          const patch = destToPatch(dest, employees)
           await assetRepo.changeStatus(r.id, patch.toStatusId, actor, {
             assignment: patch.assignment,
             branchId: patch.branchId,
             deptId: patch.deptId,
           })
+          // Best-effort handover email when the asset is redirected to an employee.
+          if (dest.kind === 'employee') {
+            const recipient = employees.find(e => e.id === dest.id) ?? null
+            const email = recipient?.email?.trim()
+            if (email) {
+              const row = handById.get(r.id)
+              void sendAccessEmail({
+                email,
+                name: dest.label ?? (recipient ? `${recipient.firstName} ${recipient.lastName}`.trim() : ''),
+                kind: 'asset',
+                assetLabel: row?.title ?? '',
+                assetCode: row?.invCode ?? '',
+                assetId: r.id,
+              })
+            }
+          }
         }
       }
       await repo.archiveEmployee(handoverTarget.id, actor)
@@ -209,6 +227,14 @@ export function useEmployeesActions(d: EmployeesDataBag) {
 
   async function handleTransferAssets(assetIds: string[], dest: Destination) {
     const patch = destToPatch(dest, employees)
+    // Best-effort handover email: only when transferring TO an employee, one per
+    // successfully-transferred asset. Resolve recipient + asset label/code once.
+    const recipient = dest.kind === 'employee' ? employees.find(e => e.id === dest.id) ?? null : null
+    const recipientEmail = recipient?.email?.trim()
+    const recipientName = dest.kind === 'employee'
+      ? (dest.label ?? (recipient ? `${recipient.firstName} ${recipient.lastName}`.trim() : ''))
+      : ''
+    const linkedById = new Map(detailLinkedAssets.map(a => [a.id, a]))
     let okCount = 0
     let failCount = 0
     for (const id of assetIds) {
@@ -219,6 +245,17 @@ export function useEmployeesActions(d: EmployeesDataBag) {
           deptId: patch.deptId,
         })
         okCount++
+        if (recipientEmail) {
+          const row = linkedById.get(id)
+          void sendAccessEmail({
+            email: recipientEmail,
+            name: recipientName,
+            kind: 'asset',
+            assetLabel: row?.title ?? '',
+            assetCode: row?.invCode ?? '',
+            assetId: id,
+          })
+        }
       } catch {
         failCount++
       }
@@ -284,6 +321,8 @@ export function useEmployeesActions(d: EmployeesDataBag) {
   async function handleConfirmLink(ids: string[]) {
     if (!pickerTarget) return
     const byId = new Map(pickerStock.map(s => [s.id, s]))
+    const recipientEmail = pickerTarget.email?.trim()
+    const recipientName = `${pickerTarget.firstName} ${pickerTarget.lastName}`.trim()
     try {
       for (const id of ids) {
         const row = byId.get(id)
@@ -299,6 +338,17 @@ export function useEmployeesActions(d: EmployeesDataBag) {
           },
           actor,
         )
+        // Best-effort handover email per linked asset — never blocks the link.
+        if (recipientEmail) {
+          void sendAccessEmail({
+            email: recipientEmail,
+            name: recipientName,
+            kind: 'asset',
+            assetLabel: row?.title ?? '',
+            assetCode: row?.invCode ?? '',
+            assetId: id,
+          })
+        }
       }
       showToast(t('toast.linked', { count: ids.length }))
       setPickerTarget(null)

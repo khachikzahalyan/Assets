@@ -112,7 +112,7 @@ function EmployeePropRow({ icon, label, value, mono = false, copyValue }: Employ
   const inner = (
     <>
       <Icon name={icon} size={13} className={`${iconTint(icon)} shrink-0 mt-px`} />
-      <dt className="text-12.5 font-semibold uppercase tracking-[0.07em] text-text-subtle w-[5.5rem] whitespace-nowrap shrink-0 leading-none">
+      <dt className="text-12.5 font-semibold uppercase tracking-[0.07em] text-text-subtle w-[6.5rem] whitespace-nowrap shrink-0 leading-none">
         {label}
       </dt>
       <dd
@@ -347,8 +347,8 @@ export function EmployeeDetailDrawer({
           SECTION BAR — pinned. Assets title + count + select toggle + link CTA.
           ────────────────────────────────────────────── */}
       {/* Mobile: everything single-line — smaller label that truncates, buttons never wrap */}
-      <div className="px-5 max-md:px-3.5 h-11 flex items-center justify-between gap-2 border-b border-border shrink-0">
-        <h3 className="flex items-center min-w-0 text-13 max-md:text-11 font-semibold text-text-tertiary tracking-[0.06em] max-md:tracking-[0.03em] uppercase">
+      <div className="px-5 max-md:px-3.5 min-h-11 py-2 flex items-center justify-between gap-2 flex-wrap border-b border-border shrink-0">
+        <h3 className="flex items-center min-w-0 overflow-hidden text-13 max-md:text-11 font-semibold text-text-tertiary tracking-[0.06em] max-md:tracking-[0.03em] uppercase">
           <span className="truncate whitespace-nowrap">{t('detail.assets')}</span>
           <span className="ml-2 shrink-0 inline-flex items-center justify-center min-w-[1.125rem] h-[1.125rem] px-1 rounded-full bg-surface-2 text-text-tertiary text-12.5 font-semibold tabular-nums">
             {linkedAssets.length}
@@ -357,7 +357,7 @@ export function EmployeeDetailDrawer({
             <button
               type="button"
               onClick={toggleAll}
-              className="ml-3 text-13.5 font-semibold text-emerald-300 light:text-emerald-700 hover:underline whitespace-nowrap shrink-0"
+              className="ml-3 text-13.5 font-semibold text-emerald-300 light:text-emerald-700 hover:underline shrink-0 whitespace-nowrap"
             >
               {selected.size < linkedAssets.length
                 ? t('transfer.selectAll')
@@ -481,10 +481,10 @@ export function EmployeeDetailDrawer({
         <div className="px-5 py-3 border-t border-border bg-bg/60 shrink-0">
           {!confirming ? (
             <div className="flex items-center gap-2">
-              <span className="text-14 font-semibold text-text-primary tabular-nums">
+              <span className="text-14 font-semibold text-text-primary tabular-nums shrink-0">
                 {t('transfer.nSelected', { count: selected.size })}
               </span>
-              <div className="flex-1" />
+              <div className="flex-1 min-w-0" />
               <DestPicker
                 value={dest}
                 onChange={setDest}
