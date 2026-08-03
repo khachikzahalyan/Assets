@@ -6,8 +6,7 @@
  * Rows are inert (no onClick) — selection is handled by CategoryChipStrip.
  */
 import { memo } from 'react'
-import { CHIP_PALETTE } from '@/components/ui/chip'
-import { Icon, MobileListRow } from '@/components/ui'
+import { Icon, MobileListRow, Chip } from '@/components/ui'
 import type { Tint } from './partsTokens'
 
 export interface WarehouseSkuRowMobileProps {
@@ -53,26 +52,8 @@ export const WarehouseSkuRowMobile = memo(function WarehouseSkuRowMobile({
 
   const right = (
     <div className="flex items-center gap-1.5 flex-shrink-0">
-      <span
-        className={[
-          'inline-flex items-center border rounded-[5px] px-[0.4375rem] py-0.5',
-          'text-10 font-bold whitespace-nowrap leading-none',
-          CHIP_PALETTE.green,
-        ].join(' ')}
-      >
-        {'● '}{onHand} шт
-      </span>
-      {broken > 0 && (
-        <span
-          className={[
-            'inline-flex items-center border rounded-[5px] px-[0.4375rem] py-0.5',
-            'text-10 font-bold whitespace-nowrap leading-none',
-            CHIP_PALETTE.red,
-          ].join(' ')}
-        >
-          {'● '}{broken} шт
-        </span>
-      )}
+      <Chip color="green" size="sm" dot>{onHand} шт</Chip>
+      {broken > 0 && <Chip color="red" size="sm" dot>{broken} шт</Chip>}
     </div>
   )
 

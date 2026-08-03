@@ -119,20 +119,11 @@ export function PartsReceiveMobileForm({
        leaked an 8px page scroll on top of the intended inner scroll. Now header +
        footer stay pinned, ONLY the category-card body scrolls, footer lands 10px
        above the global bottom nav, and the page itself never moves. */
-    <div className="flex flex-col h-[calc(100dvh-136px)] overflow-hidden bg-bg">
-      {/* ── Fixed header ───────────────────────────────────────────────── */}
-      <div className="flex-shrink-0 flex items-center justify-between px-4 py-3.5 bg-surface-2 border-b border-border">
-        <span className="text-15 font-bold text-text-primary">{t('addModal.title')}</span>
-        <button
-          type="button"
-          onClick={onCancel}
-          aria-label={t('addModal.close')}
-          className="w-[var(--ctl-h-sm)] h-[var(--ctl-h-sm)] rounded-[9px] bg-white/6 flex items-center justify-center text-text-secondary hover:bg-white/10 transition-colors light:bg-black/5 light:hover:bg-black/8"
-        >
-          <Icon name="x" size={14} />
-        </button>
-      </div>
-
+    /* Height reserves topbar 52 + content pt 10 + bottom-nav 64 = 126 (the nav is
+       64px tall, not 74), so the footer lands right on top of the bottom nav with
+       no dead gap. Own «Добавить запчасть» header removed (owner request) — the
+       topbar already shows the section; cancel lives in the footer. */
+    <div className="flex flex-col h-[calc(100dvh-126px)] overflow-hidden bg-bg">
       {/* ── Scrollable body ────────────────────────────────────────────── */}
       <div className="flex-1 min-h-0 overflow-y-auto px-3.5 pt-3 pb-4 space-y-1.5">
         {loading === true ? (
@@ -208,13 +199,14 @@ export function PartsReceiveMobileForm({
       </div>
 
       {/* ── Fixed footer bar ───────────────────────────────────────────── */}
-      {/* pb-3 (not pb-6): the global bottom nav sits directly below — no extra bulk */}
-      <div className="flex-shrink-0 flex gap-2.5 px-3.5 pt-3 pb-3 bg-surface-2 border-t border-border">
+      {/* pb-3 (not pb-6): the global bottom nav sits directly below — no extra bulk.
+          Both buttons share one height (h-11) and center-align — no oversized pill. */}
+      <div className="flex-shrink-0 flex items-center gap-2.5 px-3.5 pt-2.5 pb-2.5 bg-surface-2 border-t border-border">
         <button
           type="button"
           onClick={onCancel}
           disabled={submitting}
-          className="flex-shrink-0 px-5 py-3.5 rounded-xl text-13.5 font-semibold text-text-secondary border border-border bg-transparent hover:bg-surface transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-shrink-0 h-11 px-5 rounded-xl text-13.5 font-semibold text-text-secondary border border-border bg-transparent hover:bg-surface transition-colors disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center"
         >
           {t('addModal.cancel')}
         </button>
@@ -222,7 +214,7 @@ export function PartsReceiveMobileForm({
           type="button"
           onClick={onSubmit}
           disabled={!canSubmit || submitting}
-          className="flex-1 py-3.5 rounded-xl text-14 font-bold text-white bg-accent shadow-lg shadow-accent/30 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-1.5 transition-all active:opacity-90"
+          className="flex-1 h-11 rounded-xl text-14 font-bold text-white bg-accent shadow-sm shadow-accent/20 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-1.5 transition-all active:opacity-90"
         >
           {submitting ? (
             <>

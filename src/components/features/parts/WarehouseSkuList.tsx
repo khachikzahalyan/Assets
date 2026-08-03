@@ -11,21 +11,15 @@ import { WarehouseSkuRowMobile } from './WarehouseSkuRowMobile'
 const SKU_PLACEHOLDER_COUNT = 3
 
 /**
- * Desktop empty-stock placeholder: dashed slots matching real SKU row height.
- * Empty card only — no hint text (empty state stays quiet).
+ * Desktop empty-stock state: a clean, quiet centered message — no dashed skeleton
+ * rows (those read as a broken half-rendered table when the whole panel is empty).
  */
 function SkuPlaceholderDesktop() {
+  const { t } = useTranslation('parts')
   return (
-    <div className="flex flex-col flex-shrink-0">
-      {Array.from({ length: SKU_PLACEHOLDER_COUNT }).map((_, i) => (
-        <div
-          key={i}
-          aria-hidden="true"
-          className="relative flex items-center gap-3 px-5 h-[3.375rem] border-b border-border last:border-b-0"
-        >
-          <div className="absolute left-5 right-5 top-1/2 -translate-y-1/2 border-t border-dashed border-border/40" />
-        </div>
-      ))}
+    <div className="flex flex-col items-center justify-center gap-1.5 px-5 py-7 text-center flex-shrink-0">
+      <Icon name="package" size={18} className="text-text-subtle/70" />
+      <span className="text-13 text-text-subtle">{t('warehouse.noneAvailable')}</span>
     </div>
   )
 }
@@ -103,23 +97,33 @@ export function WarehouseSkuList({
 
   if (visibleSkus.length === 0) {
     if (isModelsCat) {
-      /* Models (GPU) zero: preserve slot geometry, keep the Add button as compact action */
+      /* Models (GPU) zero: show the SAME category header row every stocked category
+         has (own icon + label + «0 шт» chip) instead of a bare "Нет в наличии"
+         placeholder — so empty models read like a normal category, not broken.
+         (Adding a model is done elsewhere; no inline button here per owner request.) */
+      const resolvedTint = tint ?? categoryTint(selectedCatId)
+      const icon = categoryIcon(selectedCatId)
+      const label = catMeta?.label ?? selectedCatId
+      if (isMobile) {
+        // Empty models on mobile: no «[icon] name · 0 шт» placeholder row — the
+        // selected «Видеокарта» chip already labels it and the История section
+        // below carries the empty state. Matches PSU/Cooler (chips + history only).
+        return null
+      }
       return (
-        <div className="flex flex-col flex-shrink-0">
-          {isMobile
-            ? <SkuPlaceholderMobile />
-            : <SkuPlaceholderDesktop />}
-          <div className="px-5 pb-3 max-md:px-3.5">
-            <button
-              type="button"
-              onClick={onAddGpu}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-13.5 font-semibold text-accent border border-[#F97316]/30 bg-[#F97316]/10 hover:bg-[#F97316]/15 transition-colors light:border-[#F97316]/40"
-            >
-              <Icon name="plus" size={12} />
-              {t('gpu.addBtn')}
-            </button>
-          </div>
-        </div>
+        <ul className="divide-y divide-border flex-shrink-0">
+          <li className="flex items-center gap-3 px-5 py-3">
+            <span className={`w-8 h-8 rounded-lg ${resolvedTint.iconBg} ${resolvedTint.iconText} inline-flex items-center justify-center flex-shrink-0`}>
+              <Icon name={icon} size={14} />
+            </span>
+            <div className="flex-1 min-w-0">
+              <div className="text-15 font-semibold text-text-primary truncate leading-tight">{label}</div>
+            </div>
+            <div className="flex items-center gap-1.5 flex-shrink-0">
+              <Chip color="green" size="sm" dot>0 шт</Chip>
+            </div>
+          </li>
+        </ul>
       )
     }
     if (isMobile) {
@@ -196,6 +200,20 @@ export function WarehouseSkuList({
             />
           )
         })}
+        {/* Models (GPU): the desktop card exposes an "Add" action — mirror it here
+            so the mobile list can add a new model too (not only in the empty state). */}
+        {isModelsCat && (
+          <div className="px-3.5 py-3 border-t border-border">
+            <button
+              type="button"
+              onClick={onAddGpu}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-13.5 font-semibold text-accent border border-[#F97316]/30 bg-[#F97316]/10 hover:bg-[#F97316]/15 transition-colors light:border-[#F97316]/40"
+            >
+              <Icon name="plus" size={12} />
+              {t('gpu.addBtn')}
+            </button>
+          </div>
+        )}
       </div>
     )
   }

@@ -10,6 +10,7 @@ import {
   fmtPartsDate,
   plural,
   PART_CAT_BY_ID,
+  isReplacementInstall,
 } from './partsTokens'
 
 /* ── Local helpers (mirrors InstalledDetailPanel logic, mobile-only path) ── */
@@ -191,7 +192,7 @@ export function DeviceDetailMobileView({
                 const actionLabel = mv.broken
                   ? t('journal.scrapped')
                   : mv.type === 'install'
-                    ? t('journal.replaced')
+                    ? (isReplacementInstall(mv.reason) ? t('journal.replaced') : t('journal.added'))
                     : mv.type === 'uninstall'
                       ? t('journal.uninstalled')
                       : t('journal.installed')

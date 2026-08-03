@@ -256,6 +256,17 @@ export function fmtPartsDate(value: string | number | Date | null | undefined): 
   return `${dd}/${MON[d.getMonth()]}/${d.getFullYear()}`
 }
 
+/**
+ * True when an install movement REPLACED an existing part (vs added alongside).
+ * Derived from the movement `reason` — a fixed domain constant the install txn
+ * writes ('Установка в актив' for add, '…взамен…' / 'Заменено через сервис' for
+ * replace). Works for both new and pre-existing movements with no schema change,
+ * so the history label can show «Заменено» only on real replacements.
+ */
+export function isReplacementInstall(reason: string | null | undefined): boolean {
+  return /взамен|через сервис/i.test(reason ?? '')
+}
+
 /* ── SKU grouping helper (shared by WarehouseTab + PartsPage) ────────────── */
 /** @deprecated Use groupSkusByCategoryDef with live catalog. */
 export function groupSkusByCategory(parts: Part[]): Record<string, Part[]> {

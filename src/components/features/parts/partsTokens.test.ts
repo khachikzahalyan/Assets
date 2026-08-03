@@ -21,6 +21,7 @@ import {
   CATEGORY_TINT,
   COMPONENT_ORDER,
   TINT_FALLBACK,
+  isReplacementInstall,
 } from './partsTokens'
 import { isSizedCategory, isModelsCategory } from '@/domain/part/partCategory-types'
 import type { Part } from '@/domain/part/types'
@@ -216,5 +217,19 @@ describe('variantRankDef', () => {
 
   it('undefined def returns 999', () => {
     expect(variantRankDef(undefined, '256gb')).toBe(999)
+  })
+})
+
+describe('isReplacementInstall — add vs replace from movement reason', () => {
+  it('true for replacement reasons (взамен / через сервис)', () => {
+    expect(isReplacementInstall('Установка взамен (плановая замена)')).toBe(true)
+    expect(isReplacementInstall('Установка взамен неисправного')).toBe(true)
+    expect(isReplacementInstall('Заменено через сервис')).toBe(true)
+  })
+  it('false for an add / empty / null reason', () => {
+    expect(isReplacementInstall('Установка в актив')).toBe(false)
+    expect(isReplacementInstall('')).toBe(false)
+    expect(isReplacementInstall(null)).toBe(false)
+    expect(isReplacementInstall(undefined)).toBe(false)
   })
 })

@@ -94,12 +94,8 @@ export const DeviceGridCard = memo(function DeviceGridCard({ asset, selected, ha
             {asset.id}&nbsp;·&nbsp;{catLabel}
           </div>
         </div>
-        {/* Right cluster: comp-count chip + service icon (icon-only, no text) */}
+        {/* Right cluster: service icon (icon-only, no text) + comp-count chip */}
         <div className="flex items-center gap-1.5 flex-shrink-0">
-          <span className={`inline-flex items-center gap-1 px-[0.4375rem] py-0.5 rounded-[6px] text-10 font-semibold border leading-none whitespace-nowrap ${chipTone}`}>
-            <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${dotColor}`} />
-            {totalComponents}&nbsp;{t('devices.compShort', 'комп.')}
-          </span>
           {isService && (
             <span
               className="inline-flex items-center justify-center w-[1.25rem] h-[1.25rem] bg-violet-500/10 text-violet-300 border border-violet-500/30 rounded-[6px] flex-shrink-0 light:text-violet-700"
@@ -109,6 +105,10 @@ export const DeviceGridCard = memo(function DeviceGridCard({ asset, selected, ha
               <Icon name="wrench" size={10} />
             </span>
           )}
+          <span className={`inline-flex items-center gap-1 px-[0.4375rem] py-0.5 rounded-[6px] text-10 font-semibold border leading-none whitespace-nowrap ${chipTone}`}>
+            <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${dotColor}`} />
+            {totalComponents}&nbsp;{t('devices.compShort', 'комп.')}
+          </span>
         </div>
       </button>
     )

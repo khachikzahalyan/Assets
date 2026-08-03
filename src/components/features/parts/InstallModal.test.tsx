@@ -118,6 +118,21 @@ function renderInstallModal({
   )
 }
 
+/**
+ * Select an asset via the <SearchSelect> combobox: open the trigger, then click
+ * the option row (SearchSelect uses role="option", not a native <select>, so
+ * user.selectOptions no longer applies).
+ */
+async function selectAsset(
+  user: ReturnType<typeof userEvent.setup>,
+  asset: PartsAsset,
+) {
+  await user.click(screen.getAllByRole('combobox')[0]!)
+  const label = `${asset.id} — ${asset.name} (${asset.kind})`
+  const options = await screen.findAllByRole('option', { name: label })
+  await user.click(options[0]!)
+}
+
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe('InstallModal — slot-decision rendering', () => {
@@ -133,7 +148,7 @@ describe('InstallModal — slot-decision rendering', () => {
 
       // Act — render and select the asset
       renderInstallModal({ sku, partsAssets: [asset] })
-      await user.selectOptions(screen.getAllByRole('combobox')[0]!, asset.id)
+      await selectAsset(user, asset)
 
       // Assert — no action-mode radios (replace/add) are rendered
       expect(screen.queryByDisplayValue('replace')).not.toBeInTheDocument()
@@ -148,7 +163,7 @@ describe('InstallModal — slot-decision rendering', () => {
 
       // Act
       renderInstallModal({ sku, partsAssets: [asset] })
-      await user.selectOptions(screen.getAllByRole('combobox')[0]!, asset.id)
+      await selectAsset(user, asset)
 
       // Assert
       expect(screen.queryByDisplayValue('replace')).not.toBeInTheDocument()
@@ -167,7 +182,7 @@ describe('InstallModal — slot-decision rendering', () => {
 
       // Act
       renderInstallModal({ sku, partsAssets: [asset] })
-      await user.selectOptions(screen.getAllByRole('combobox')[0]!, asset.id)
+      await selectAsset(user, asset)
 
       // Assert — replace radio is present, add radio is NOT (isSingle=true → add hidden)
       const replaceRadios = screen.getAllByDisplayValue('replace')
@@ -185,7 +200,7 @@ describe('InstallModal — slot-decision rendering', () => {
 
       // Act
       renderInstallModal({ sku, partsAssets: [asset] })
-      await user.selectOptions(screen.getAllByRole('combobox')[0]!, asset.id)
+      await selectAsset(user, asset)
 
       // Assert — the occupied slot spec text is shown in the slot picker
       expect(screen.getAllByText('be quiet! Pure Rock 2').length).toBeGreaterThan(0)
@@ -203,7 +218,7 @@ describe('InstallModal — slot-decision rendering', () => {
 
       // Act
       renderInstallModal({ sku, partsAssets: [asset] })
-      await user.selectOptions(screen.getAllByRole('combobox')[0]!, asset.id)
+      await selectAsset(user, asset)
 
       // Assert — both replace and add radios present (isSingle=false for RAM)
       const replaceRadios = screen.getAllByDisplayValue('replace')
@@ -222,7 +237,7 @@ describe('InstallModal — slot-decision rendering', () => {
 
       // Act
       renderInstallModal({ sku, partsAssets: [asset] })
-      await user.selectOptions(screen.getAllByRole('combobox')[0]!, asset.id)
+      await selectAsset(user, asset)
 
       // Assert — server family → slotIsSingle(cooler, 'server') = false → add shown
       const addRadios = screen.getAllByDisplayValue('add')
@@ -239,7 +254,7 @@ describe('InstallModal — slot-decision rendering', () => {
 
       // Act
       renderInstallModal({ sku, partsAssets: [asset] })
-      await user.selectOptions(screen.getAllByRole('combobox')[0]!, asset.id)
+      await selectAsset(user, asset)
       // Click first "add" radio (desktop copy is [0])
       await user.click(screen.getAllByDisplayValue('add')[0]!)
 

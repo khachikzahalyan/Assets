@@ -2,7 +2,9 @@
   "actions": {
     "add": "Add part",
     "back": "Back",
+    "collapse": "Collapse",
     "dismiss": "Dismiss",
+    "expand": "Expand",
     "install": "Install",
     "logService": "Log service",
     "receive": "Receive parts",
@@ -64,7 +66,7 @@
     "familyDesktop": "Desktop",
     "familyLaptop": "Laptops",
     "familyServer": "Servers",
-    "searchPlaceholder": "Search by inv. code, model or employee…"
+    "searchPlaceholder": "Search..."
   },
   "gpu": {
     "addBtn": "Add GPU"
@@ -86,6 +88,7 @@
     "actionAdd": "Add alongside",
     "actionReplace": "Replace",
     "assetPlaceholder": "Select an asset",
+    "assetSearchPlaceholder": "Search...",
     "autoScrapNotice": "Coolers and power supplies are automatically scrapped on replacement",
     "cancel": "Cancel",
     "close": "Close",
@@ -112,6 +115,7 @@
     "move": "Move",
     "received": "Received",
     "replaced": "Replaced",
+    "added": "Added",
     "scrapped": "Scrapped",
     "serviceReplace": "Service replacement",
     "title": "Movement journal",
@@ -189,6 +193,7 @@
     "fromWarehouse": "From stock",
     "serviceChip": "Service",
     "history": "HISTORY",
+    "pickSizeTitle": "Choose size",
     "historyAdded": "Added",
     "historyEmpty": "No movements yet",
     "historyEmptyFilter": "No results for this filter",

@@ -2,7 +2,9 @@
   "actions": {
     "add": "Добавить запчасть",
     "back": "Назад",
+    "collapse": "Свернуть",
     "dismiss": "Закрыть",
+    "expand": "Развернуть",
     "install": "Установить",
     "logService": "Записать сервис",
     "receive": "Принять запчасти",
@@ -64,7 +66,7 @@
     "familyDesktop": "ПК",
     "familyLaptop": "Ноутбуки",
     "familyServer": "Серверы",
-    "searchPlaceholder": "Поиск по инв. коду, модели или сотруднику…"
+    "searchPlaceholder": "Поиск..."
   },
   "gpu": {
     "addBtn": "Добавить видеокарту"
@@ -86,6 +88,7 @@
     "actionAdd": "Добавить рядом",
     "actionReplace": "Заменить",
     "assetPlaceholder": "Выберите актив",
+    "assetSearchPlaceholder": "Поиск...",
     "autoScrapNotice": "Кулеры и блоки питания при замене списываются автоматически",
     "cancel": "Отмена",
     "close": "Закрыть",
@@ -112,6 +115,7 @@
     "move": "Перемещение",
     "received": "Поступление",
     "replaced": "Заменено",
+    "added": "Добавлено",
     "scrapped": "Списано",
     "serviceReplace": "Замена через сервис",
     "title": "Журнал движений",
@@ -189,6 +193,7 @@
     "fromWarehouse": "Со склада",
     "serviceChip": "Сервис",
     "history": "ИСТОРИЯ",
+    "pickSizeTitle": "Выберите размер",
     "historyAdded": "Добавлено",
     "historyEmpty": "Движений пока нет",
     "historyEmptyFilter": "По фильтру ничего не найдено",

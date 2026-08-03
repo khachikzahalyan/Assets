@@ -19,7 +19,6 @@ export function GpuAddModal({ open, onClose, onConfirm }: GpuAddModalProps) {
   const { t } = useTranslation('parts')
   const isMobile = useIsMobile()
   const [name, setName] = useState('')
-  const [qty, setQty] = useState('1')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -33,7 +32,6 @@ export function GpuAddModal({ open, onClose, onConfirm }: GpuAddModalProps) {
 
   const handleClose = useCallback(() => {
     setName('')
-    setQty('1')
     setError(null)
     onClose()
   }, [onClose])
@@ -43,18 +41,18 @@ export function GpuAddModal({ open, onClose, onConfirm }: GpuAddModalProps) {
       setError(t('gpuModal.errorName'))
       return
     }
-    const parsedQty = Math.max(0, parseInt(qty, 10) || 0)
+    // Qty field removed (owner request) — a created model registers 1 unit in stock.
     setSubmitting(true)
     setError(null)
     try {
-      await onConfirm(name.trim(), parsedQty)
+      await onConfirm(name.trim(), 1)
       handleClose()
     } catch {
       setError(t('gpuModal.errorFailed'))
     } finally {
       setSubmitting(false)
     }
-  }, [name, qty, onConfirm, handleClose, t])
+  }, [name, onConfirm, handleClose, t])
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && name.trim()) {
@@ -88,21 +86,6 @@ export function GpuAddModal({ open, onClose, onConfirm }: GpuAddModalProps) {
             onChange={e => setName(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="например, NVIDIA GeForce RTX 4060"
-            className="w-full bg-surface-2 border border-border rounded-lg px-3 py-2 text-15.5 text-text-primary placeholder:text-text-subtle outline-none focus:border-accent focus:ring-1 focus:ring-[var(--color-focus-ring)] transition-colors"
-          />
-        </div>
-        <div>
-          <label htmlFor="gpu-qty-input" className="block text-14 font-semibold text-text-tertiary mb-1.5">
-            {t('gpuModal.labelQty')}
-          </label>
-          <input
-            id="gpu-qty-input"
-            type="number"
-            min="0"
-            step="1"
-            value={qty}
-            onChange={e => setQty(e.target.value)}
-            onKeyDown={handleKeyDown}
             className="w-full bg-surface-2 border border-border rounded-lg px-3 py-2 text-15.5 text-text-primary placeholder:text-text-subtle outline-none focus:border-accent focus:ring-1 focus:ring-[var(--color-focus-ring)] transition-colors"
           />
         </div>
@@ -157,7 +140,9 @@ export function GpuAddModal({ open, onClose, onConfirm }: GpuAddModalProps) {
         document.body,
       )}
       {isMobile && (
-        <MobileSheet open={open} onClose={handleClose} title={t('gpuModal.title')}>
+        /* No `title` prop — the content already has its own «Добавить видеокарту»
+           header; passing it here rendered the title twice on mobile. */
+        <MobileSheet open={open} onClose={handleClose}>
           {content}
         </MobileSheet>
       )}

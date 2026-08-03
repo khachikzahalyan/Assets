@@ -9,6 +9,7 @@ import {
   fmtPartsDate,
   plural,
   PART_CAT_BY_ID,
+  isReplacementInstall,
 } from './partsTokens'
 
 /* ── helpers ─────────────────────────────────────────────────────────────── */
@@ -362,7 +363,9 @@ function HistoryBody({ movements, parts, t }: HistoryBodyProps) {
           if (dt === 'receive')
             return <Chip color="green" size="sm"><Icon name="inbox" size={11} />+{mv.qty}</Chip>
           if (dt === 'install')
-            return <Chip color="violet" size="sm"><Icon name="wrench" size={11} />{t('journal.installed')}</Chip>
+            return isReplacementInstall(mv.reason)
+              ? <Chip color="violet" size="sm"><Icon name="wrench" size={11} />{t('journal.replaced')}</Chip>
+              : <Chip color="green" size="sm"><Icon name="wrench" size={11} />{t('journal.added')}</Chip>
           if (dt === 'uninstall')
             return <Chip color="blue" size="sm"><Icon name="rotate-ccw" size={11} />{t('journal.uninstalled')}</Chip>
           if (dt === 'move')

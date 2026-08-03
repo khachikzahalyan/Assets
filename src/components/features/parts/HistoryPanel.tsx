@@ -68,7 +68,22 @@ export interface HistoryPanelProps {
    * this array is already loaded by PartsPage via PartReferenceData.
    */
   partsAssets?: PartsAsset[]
+  /**
+   * Hide the added/used metric chips in the «ИСТОРИЯ» strip (the «ИСТОРИЯ» label
+   * stays). Opt-in for WarehouseMobileDetail, which surfaces those metrics in its
+   * own header instead — avoids showing the same +N/-N twice on one screen.
+   */
+  hideMetricChips?: boolean
+  /**
+   * Externally-controlled metric filter (from the mobile header chips): narrows
+   * the rows to added (receive) / used (install) / service (serviceReplace).
+   * Applied on top of the internal event-type filter. null → no narrowing.
+   */
+  metricFilter?: MetricFilter | null
 }
+
+/** Metric-chip filter surfaced in the mobile header (WarehouseMobileDetail). */
+export type MetricFilter = 'added' | 'used' | 'service'
 
 /**
  * Per-category history block — matches the prototype Склад «История» section:
@@ -87,6 +102,8 @@ export function HistoryPanel({
   categoryId,
   remainingAfterMap = {},
   partsAssets = [],
+  hideMetricChips = false,
+  metricFilter = null,
 }: HistoryPanelProps) {
   const { t } = useTranslation('parts')
   const [page, setPage] = useState(1)
@@ -99,11 +116,11 @@ export function HistoryPanel({
     setEventFilter(null)
   }, [categoryId])
 
-  /* Reset page when filter changes */
+  /* Reset page when either filter changes */
   useEffect(() => {
     setPage(1)
     scrollRef.current?.scrollTo({ top: 0, behavior: 'auto' })
-  }, [eventFilter])
+  }, [eventFilter, metricFilter])
 
   /* Resolve the effective SKU id set */
   const effectiveSkuIds = useMemo((): Set<string> | null => {
@@ -160,11 +177,16 @@ export function HistoryPanel({
     [sorted],
   )
 
-  /* Event-type filter */
+  /* Event-type filter (internal) + metric filter (header-controlled) */
   const filtered = useMemo(() => {
-    if (!eventFilter) return sorted
-    return sorted.filter((m) => resolveDisplayType(m) === eventFilter)
-  }, [sorted, eventFilter])
+    let rows = eventFilter
+      ? sorted.filter((m) => resolveDisplayType(m) === eventFilter)
+      : sorted
+    if (metricFilter === 'added') rows = rows.filter((m) => m.type === 'receive')
+    else if (metricFilter === 'used') rows = rows.filter((m) => m.type === 'install' && !m.serviceReplace)
+    else if (metricFilter === 'service') rows = rows.filter((m) => m.type === 'install' && m.serviceReplace)
+    return rows
+  }, [sorted, eventFilter, metricFilter])
 
   /* Pagination */
   const totalRows = filtered.length
@@ -204,15 +226,17 @@ export function HistoryPanel({
         <span className="text-13 uppercase tracking-wider text-text-subtle font-semibold max-md:text-10 max-md:font-bold max-md:tracking-[1.4px] max-md:text-text-secondary min-w-0 shrink">
           {t('warehouse.history')}
         </span>
-        <div className="flex items-center gap-1.5 ml-auto flex-shrink-0">
-          {/* Mobile: drop the «Добавлено/Использовано» words → «+N шт» / «-N шт». Desktop: full label. */}
-          <Chip color="green" size="sm" dot>
-            {isMobile ? `+${addedQty} шт` : `${t('warehouse.historyAdded')}: ${addedQty} шт`}
-          </Chip>
-          <Chip color="violet" size="sm" dot>
-            {isMobile ? `-${usedQty} шт` : `${t('warehouse.historyUsed')}: ${usedQty} шт`}
-          </Chip>
-        </div>
+        {!hideMetricChips && (
+          <div className="flex items-center gap-1.5 ml-auto flex-shrink-0">
+            {/* Mobile: drop the «Добавлено/Использовано» words → «+N шт» / «-N шт». Desktop: full label. */}
+            <Chip color="green" size="sm" dot>
+              {isMobile ? `+${addedQty} шт` : `${t('warehouse.historyAdded')}: ${addedQty} шт`}
+            </Chip>
+            <Chip color="violet" size="sm" dot>
+              {isMobile ? `-${usedQty} шт` : `${t('warehouse.historyUsed')}: ${usedQty} шт`}
+            </Chip>
+          </div>
+        )}
       </div>
 
       {/* ── Event-type filter chips — mirrors prototype lines 2058-2122 (desktop only) ── */}
@@ -289,61 +313,45 @@ export function HistoryPanel({
 
       {/* ── Empty / placeholder state — geometry-preserving: no icon circle, no big heading ── */}
       {filtered.length === 0 ? (
-        /* Placeholder slots matching real history row height (h-[56px] desktop, ~48px mobile).
-           Compact hint text sits in the last slot — no layout jump when first row arrives. */
-        <div
-          className={isMobile
-            ? 'ams-stock-history-list border-t border-border'
-            : 'ams-stock-history-list border-t border-border flex-shrink-0'}
-          style={isMobile ? undefined : { minHeight: 'min(700px, 62vh)' }}
-        >
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div
-              key={i}
-              aria-hidden="true"
-              className={isMobile
-                ? 'relative border-b border-border last:border-b-0'
-                : 'relative flex items-center px-5 h-[56px] border-b border-border last:border-b-0'}
-              style={isMobile ? { minHeight: 48 } : undefined}
-            >
-              {isMobile && (
-                /* invisible height-anchor matching MobileListRow two-line layout */
-                <div className="opacity-0 px-3.5 py-[0.4375rem]">
-                  <div className="text-13 font-bold leading-snug mb-0.5">&nbsp;</div>
-                  <div className="text-11 leading-snug">&nbsp;</div>
-                </div>
-              )}
-              <div
-                className={isMobile
-                  ? 'absolute left-3.5 right-3.5 top-1/2 -translate-y-1/2 border-t border-dashed border-border/40'
-                  : 'absolute left-5 right-5 top-1/2 -translate-y-1/2 border-t border-dashed border-border/40'}
-              />
-              {/* Compact hint in the first slot, below the dashed rule */}
-              {i === 0 && (
-                <div
-                  className={[
-                    'absolute bottom-1 text-11.5 text-text-tertiary',
-                    isMobile ? 'left-3.5 right-3.5' : 'left-5 right-5',
-                  ].join(' ')}
-                >
-                  {eventFilter
-                    ? t('warehouse.historyEmptyFilter')
-                    : t('warehouse.historyEmptyHint')}
-                  {eventFilter && (
-                    <button
-                      type="button"
-                      onClick={() => setEventFilter(null)}
-                      className="ml-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-11.5 font-semibold cursor-pointer bg-slate-500/15 text-slate-300 ring-1 ring-slate-500/30 hover:bg-slate-500/25"
-                    >
-                      <Icon name="x" size={9} />
-                      {t('warehouse.filterReset')}
-                    </button>
-                  )}
-                </div>
-              )}
+        isMobile ? (
+          /* Mobile: clean «empty table» — faint row lines filling down to the bottom,
+             no hint text (owner request: убрать текст, линии до низу). */
+          <div
+            aria-hidden="true"
+            className="ams-stock-history-list border-t border-border"
+            style={{
+              minHeight: '60vh',
+              backgroundImage:
+                'repeating-linear-gradient(to bottom, transparent 0, transparent calc(3rem - 1px), var(--color-border) calc(3rem - 1px), var(--color-border) 3rem)',
+            }}
+          />
+        ) : (
+          /* Desktop: clean centered empty state — no dashed skeleton rows, so an
+             empty category reads as a tidy empty table, not a broken half-render. */
+          <div
+            className="border-t border-border flex-shrink-0 flex flex-col items-center justify-center gap-2.5 text-center px-6"
+            style={{ minHeight: 'min(420px, 46vh)' }}
+          >
+            <span className="w-11 h-11 rounded-full bg-surface-2 inline-flex items-center justify-center">
+              <Icon name="inbox" size={19} className="text-text-subtle" />
+            </span>
+            <div className="text-13.5 text-text-subtle max-w-[300px] leading-snug">
+              {eventFilter
+                ? t('warehouse.historyEmptyFilter')
+                : t('warehouse.historyEmptyHint')}
             </div>
-          ))}
-        </div>
+            {eventFilter && (
+              <button
+                type="button"
+                onClick={() => setEventFilter(null)}
+                className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-12.5 font-semibold cursor-pointer bg-slate-500/15 text-slate-300 ring-1 ring-slate-500/30 hover:bg-slate-500/25 light:text-slate-600"
+              >
+                <Icon name="x" size={11} />
+                {t('warehouse.filterReset')}
+              </button>
+            )}
+          </div>
+        )
       ) : (
         <>
           {/* ── Event rows ── */}

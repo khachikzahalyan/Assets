@@ -1,33 +1,10 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Icon } from '@/components/ui'
-import type { Part } from '@/domain/part/types'
+import { Icon, Chip, MobileSheet } from '@/components/ui'
+import { WarehouseHistorySection } from './WarehouseHistorySection'
+import { variantRank } from './partsTokens'
 import { workingStock } from '@/domain/part/partStock'
-import type { PartStock } from '@/domain/part/types'
-import { categoryTint, categoryIcon, PART_CAT_BY_ID, variantRank } from './partsTokens'
-
-/** Placeholder slots for sized-category empty state (mobile-only component).
- *  Slots match the per-size row height (py-3.5 ≈ 56px).
- *  Empty card only — no hint text (empty state stays quiet). */
-function SizedPlaceholder() {
-  return (
-    <div className="flex flex-col">
-      {Array.from({ length: 3 }).map((_, i) => (
-        <div
-          key={i}
-          aria-hidden="true"
-          className="relative border-b border-border/50 last:border-b-0"
-        >
-          {/* invisible height-anchor matching real per-size row */}
-          <div className="opacity-0 flex items-center justify-between px-3.5 py-3.5">
-            <span className="text-13.5 font-medium">&nbsp;</span>
-          </div>
-          <div className="absolute left-3.5 right-3.5 top-1/2 -translate-y-1/2 border-t border-dashed border-border/40" />
-        </div>
-      ))}
-    </div>
-  )
-}
+import type { Part, PartMovement, PartsAsset, PartStock } from '@/domain/part/types'
 
 export interface WarehouseSizedDetailProps {
   categoryId: string
@@ -36,127 +13,124 @@ export interface WarehouseSizedDetailProps {
   /** Per-SKU stock map (authoritative, derived from movements). */
   stockMap: Record<string, PartStock>
   onInstall: (sku: Part) => void
+  /** Movement log — feeds the shared «История» section. */
+  movements: PartMovement[]
+  /** SKU id set for this category (history filter). */
+  skuIds: Set<string>
+  /** All parts (SKU-label resolution in history). */
+  parts: Part[]
+  /** Running-stock snapshot per movement id (for «Осталось N шт»). */
+  remainingAfterMap: Record<string, number>
+  /** Upgradeable-asset projections — resolves asset names in history rows. */
+  partsAssets?: PartsAsset[]
 }
 
 /**
- * Mobile-only per-size row layout for sized categories (SSD / HDD / M.2 / ОЗУ).
- * Replaces the desktop AGG_CATS collapsed single-row on mobile.
+ * Mobile-only layout for sized categories (SSD / HDD / M.2 / ОЗУ).
  *
- * Shows only in-stock sizes (workingStock > 0). If the whole category has no
- * stock, renders an EmptyState instead of the size list.
+ * IDENTICAL design to single-position categories (PSU / Cooler): the shared
+ * WarehouseHistorySection (metric chips + «Установить» + HistoryPanel). No
+ * category header and no inline per-size list — the selected category is already
+ * shown in the chip strip, and history reads the same on every category.
  *
- * Layout per prototype:
- *   – Category header: [36px colored icon][title + "N размеров"][● Nшт chip][chevron]
- *   – ОЗУ only: DDR3/DDR4/DDR5 toggle (active = uniform accent)
- *   – Per-size rows (in-stock only): label left, [qty + "Установить" button] right
+ * The difference is behind «Установить»: because these categories have multiple
+ * sizes (256 ГБ, 2 ТБ …), tapping it opens a size-picker sheet listing the
+ * in-stock variants; picking one hands off to the shared InstallModal. With a
+ * single in-stock size we skip the picker and install it directly.
  */
-export function WarehouseSizedDetail({ categoryId, skus, stockMap, onInstall }: WarehouseSizedDetailProps) {
+export function WarehouseSizedDetail({
+  categoryId,
+  skus,
+  stockMap,
+  onInstall,
+  movements,
+  skuIds,
+  parts,
+  remainingAfterMap,
+  partsAssets = [],
+}: WarehouseSizedDetailProps) {
   const { t } = useTranslation('parts')
-  const [ramDdr, setRamDdr] = useState('DDR4')
+  const [pickerOpen, setPickerOpen] = useState(false)
 
-  const tint = categoryTint(categoryId)
-  const icon = categoryIcon(categoryId)
-  const catMeta = PART_CAT_BY_ID[categoryId]
-  const isRam = categoryId === 'ram'
-
-  const totalOnHand = skus.reduce((sum, s) => {
-    const stock = stockMap[s.id] ?? { onHand: 0, broken: 0 }
-    return sum + workingStock(stock)
-  }, 0)
-
-  const ddrFiltered = isRam ? skus.filter(s => s.ddr === ramDdr) : skus
-  const visibleSkus = ddrFiltered
-    .filter(s => workingStock(stockMap[s.id] ?? { onHand: 0, broken: 0 }) > 0)
+  // In-stock variants (workingStock > 0), ordered by variant rank (small → large).
+  const inStock = skus
+    .filter((s) => workingStock(stockMap[s.id] ?? { onHand: 0, broken: 0 }) > 0)
     .slice()
     .sort((a, b) => variantRank(categoryId, a.variantId) - variantRank(categoryId, b.variantId))
 
-  const sizeCount = visibleSkus.length
-  const sizeLabel = totalOnHand === 0
-    ? t('warehouse.noStock')
-    : `${sizeCount} ${sizeCount === 1 ? 'размер' : sizeCount >= 2 && sizeCount <= 4 ? 'размера' : 'размеров'}`
+  const handleInstallClick = () => {
+    if (inStock.length === 0) return
+    if (inStock.length === 1) {
+      onInstall(inStock[0]!)
+      return
+    }
+    setPickerOpen(true)
+  }
+
+  const pickSize = (sku: Part) => {
+    setPickerOpen(false)
+    onInstall(sku)
+  }
+
+  // «Установить» — surfaced as the history section's header action (same as Cooler/PSU).
+  const installBtn = inStock.length > 0 ? (
+    <button
+      type="button"
+      onClick={handleInstallClick}
+      aria-label={t('actions.install', 'Установить')}
+      className="focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 rounded-md"
+    >
+      <Chip color="orange" size="sm">
+        <Icon name="wrench" size={10} />
+        {t('actions.install', 'Установить')}
+      </Chip>
+    </button>
+  ) : null
 
   return (
-    <div>
-      {/* Category header */}
-      <div className="flex items-center gap-3 px-3.5 py-3.5 border-b border-border">
-        <span className={`w-9 h-9 rounded-[10px] ${tint.iconBg} ${tint.iconText} inline-flex items-center justify-center flex-shrink-0`}>
-          <Icon name={icon} size={16} />
-        </span>
-        <div className="flex-1 min-w-0">
-          <div className="text-15 font-bold text-text-primary leading-tight">{catMeta?.label ?? categoryId}</div>
-          <div className="text-11.5 text-text-secondary">{sizeLabel}</div>
+    <>
+      <WarehouseHistorySection
+        catId={categoryId}
+        movements={movements}
+        skuIds={skuIds}
+        parts={parts}
+        remainingAfterMap={remainingAfterMap}
+        partsAssets={partsAssets}
+        {...(installBtn ? { headerAction: installBtn } : {})}
+      />
+
+      {/* Size picker — which in-stock size to install. Picking one opens InstallModal. */}
+      <MobileSheet
+        open={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        title={t('warehouse.pickSizeTitle', 'Выберите размер')}
+        height="60vh"
+      >
+        <div className="flex flex-col flex-1 min-h-0 overflow-y-auto">
+          {inStock.map((sku, idx) => {
+            const onHand = workingStock(stockMap[sku.id] ?? { onHand: 0, broken: 0 })
+            const label = sku.variantLabel || sku.name
+            const isLast = idx === inStock.length - 1
+            return (
+              <button
+                key={sku.id}
+                type="button"
+                onClick={() => pickSize(sku)}
+                className={`flex items-center justify-between gap-3 px-4 py-3.5 text-left transition-colors hover:bg-surface-2${!isLast ? ' border-b border-border/60' : ''}`}
+              >
+                <span className="text-14.5 font-medium text-text-primary min-w-0 truncate">
+                  {label}
+                  {sku.ddr && <span className="text-text-tertiary font-normal"> · {sku.ddr}</span>}
+                </span>
+                <span className="flex items-center gap-2 flex-shrink-0">
+                  <Chip color="green" size="sm" dot>{onHand} шт</Chip>
+                  <Icon name="chevron-right" size={15} className="text-text-subtle" />
+                </span>
+              </button>
+            )
+          })}
         </div>
-        <span className={`text-11 font-bold rounded-full px-2.5 py-1 flex-shrink-0
-          ${totalOnHand > 0
-            ? 'bg-emerald-500/10 border border-emerald-500/28 text-emerald-400 light:text-emerald-700'
-            : 'bg-surface-2 border border-border text-text-subtle'}`}>
-          ● {totalOnHand}шт
-        </span>
-        <Icon name="chevron-up" size={14} className="text-text-subtle flex-shrink-0" />
-      </div>
-
-      {/* Whole category empty → geometry-preserving placeholder, no icon/heading */}
-      {totalOnHand === 0 ? (
-        <SizedPlaceholder />
-      ) : (
-        <>
-          {/* DDR toggle for ОЗУ */}
-          {isRam && (
-            <div className="flex items-center gap-1.5 px-3.5 py-2.5 border-b border-border/50">
-              {['DDR3', 'DDR4', 'DDR5'].map(ddr => (
-                <button
-                  key={ddr}
-                  type="button"
-                  onClick={() => setRamDdr(ddr)}
-                  className={`px-2.5 h-5 rounded text-10 font-semibold transition-all
-                    ${ramDdr === ddr
-                      ? 'bg-accent text-white'
-                      : 'bg-surface text-text-tertiary border border-border hover:border-border-strong'}`}
-                >
-                  {ddr}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Per-size rows — all in stock (filtered above, no 0шт branch needed) */}
-          {visibleSkus.length === 0 ? (
-            <div className="px-3.5 py-6 text-13 text-text-subtle text-center">
-              {t('warehouse.noStock')}
-            </div>
-          ) : (
-            <div>
-              {visibleSkus.map((sku, idx) => {
-                const stock = stockMap[sku.id] ?? { onHand: 0, broken: 0 }
-                const onHand = workingStock(stock)
-                const sizeCellLabel = sku.variantLabel || sku.name
-                const isLast = idx === visibleSkus.length - 1
-                return (
-                  <div
-                    key={sku.id}
-                    className={`flex items-center justify-between px-3.5 py-3.5${!isLast ? ' border-b border-border/50' : ''}`}
-                  >
-                    <span className="text-13.5 font-medium text-text-primary">
-                      {sizeCellLabel}
-                    </span>
-                    <div className="flex items-center gap-3 flex-shrink-0">
-                      <span className="text-13 font-semibold text-text-primary">{onHand} шт</span>
-                      <button
-                        type="button"
-                        onClick={() => onInstall(sku)}
-                        className="inline-flex items-center gap-1 text-accent text-12 font-semibold"
-                      >
-                        <Icon name="wrench" size={11} />
-                        {t('actions.install', 'Установить')}
-                      </button>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          )}
-        </>
-      )}
-    </div>
+      </MobileSheet>
+    </>
   )
 }

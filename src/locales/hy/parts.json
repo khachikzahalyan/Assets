@@ -2,7 +2,9 @@
   "actions": {
     "add": "Ավելացնել մաս",
     "back": "Հետ",
+    "collapse": "Ծալել",
     "dismiss": "Փակել",
+    "expand": "Բացել",
     "install": "Տեղադրել",
     "logService": "Գրանցել սպասարկում",
     "receive": "Ընդունել մասեր",
@@ -64,7 +66,7 @@
     "familyDesktop": "ԱՀ",
     "familyLaptop": "Նոութբուքեր",
     "familyServer": "Սերվերներ",
-    "searchPlaceholder": "Որոնել ինվ. կոդով, մոդելով կամ աշխատակցով…"
+    "searchPlaceholder": "Որոնում..."
   },
   "gpu": {
     "addBtn": "Ավելացնել տեսաքարտ"
@@ -86,6 +88,7 @@
     "actionAdd": "Ավելացնել կողքին",
     "actionReplace": "Փոխարինել",
     "assetPlaceholder": "Ընտրեք ակտիվ",
+    "assetSearchPlaceholder": "Որոնում...",
     "autoScrapNotice": "Սառնարանները և սնուցման բլոկները փոխարինելիս ավտոմատ դուրս են գրվում",
     "cancel": "Չեղարկել",
     "close": "Փակել",
@@ -112,6 +115,7 @@
     "move": "Տեղափոխություն",
     "received": "Ստացված",
     "replaced": "Փոխարինված",
+    "added": "Ավելացված",
     "scrapped": "Դուրս գրված",
     "serviceReplace": "Սպասարկման փոխարինում",
     "title": "Շարժումների մատյան",
@@ -189,6 +193,7 @@
     "fromWarehouse": "Պահեստից",
     "serviceChip": "Սպաս.",
     "history": "ՊԱՏՄՈՒԹՅՈՒՆ",
+    "pickSizeTitle": "Ընտրեք չափը",
     "historyAdded": "Ավելացված",
     "historyEmpty": "Շարժումներ դեռ չկան",
     "historyEmptyFilter": "Զտիչով արդյունք չկա",

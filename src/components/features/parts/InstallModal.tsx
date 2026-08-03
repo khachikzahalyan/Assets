@@ -1,7 +1,8 @@
 import { useState, useCallback, useMemo } from 'react'
 import ReactDOM from 'react-dom'
 import { useTranslation } from 'react-i18next'
-import { Btn, Icon, MobileSheet, Select } from '@/components/ui'
+import { Btn, Icon, MobileSheet } from '@/components/ui'
+import { SearchSelect } from '@/components/features/assets/create/SearchSelect'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import type { Part, PartsAsset } from '@/domain/part/types'
 import type { InstallInput } from '@/domain/part/PartRepository'
@@ -43,9 +44,10 @@ type ActionMode = 'install' | 'replace' | 'add'
  * NO slot/stock math is implemented here — all calls go to domain helpers.
  *
  * Note field is intentionally removed (prototype does not have it).
- * Asset selector uses the shared <Select> (themed MiniDropdown + sr-only native
- * <select>), so mobile and desktop share one styled control while tests keep
- * driving the hidden combobox via getAllByRole('combobox')[0].
+ * Asset selector uses the shared <SearchSelect> — a searchable combobox that
+ * opens its own list surface: a portal dropdown on desktop and a dedicated
+ * MobileSheet (with search) on mobile. Tests drive it by clicking the trigger
+ * (role="combobox") then the option row.
  */
 export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: InstallModalProps) {
   const { t } = useTranslation('parts')
@@ -160,23 +162,18 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
   const forcedReplace = isSingle && occupiedSlots.length === 1
 
   const content = (
-    <div className="flex flex-col gap-0">
-      {/* Header */}
-      <div className="px-5 pt-5 pb-3 border-b border-border flex items-start justify-between gap-3">
-        <div>
-          <h2 className="text-17 font-bold text-text-primary leading-tight">
-            Установить {sku.name}{sku.variantLabel ? ` · ${sku.variantLabel}` : ''}
-          </h2>
-          <p className="mt-0.5 text-14.5 text-text-tertiary">
-            Остаток: <span className="font-semibold text-text-secondary">{workingStock(sku)} шт</span>
-          </p>
-        </div>
-        <button type="button" onClick={handleClose} aria-label={t('installModal.close')} className="w-8 h-8 rounded-lg flex items-center justify-center text-text-subtle hover:text-text-primary hover:bg-surface-2 transition-colors">
-          <Icon name="x" size={16} />
-        </button>
+    <div className="flex flex-col gap-0 max-md:flex-1 max-md:min-h-0">
+      {/* Header — single title (the sheet's own title bar is removed to avoid duplication) */}
+      <div className="px-5 pt-5 pb-3 border-b border-border">
+        <h2 className="text-17 font-bold text-text-primary leading-tight">
+          Установить {sku.name}{sku.variantLabel ? ` · ${sku.variantLabel}` : ''}
+        </h2>
+        <p className="mt-0.5 text-14.5 text-text-tertiary">
+          Остаток: <span className="font-semibold text-text-secondary">{workingStock(sku)} шт</span>
+        </p>
       </div>
 
-      <div className="overflow-y-auto flex flex-col gap-4 px-5 py-4" style={{ maxHeight: '60vh' }}>
+      <div className="overflow-y-auto flex flex-col gap-4 px-5 py-4 max-md:flex-1 max-md:min-h-0" style={{ maxHeight: '60vh' }}>
         {/* Stock warning */}
         {!isService && !stockOk && (
           <div className="flex items-center gap-2 bg-rose-950/30 border border-rose-800/40 rounded-lg px-3 py-2 text-12.5 text-rose-300 light:bg-rose-50 light:border-rose-200 light:text-rose-700">
@@ -185,18 +182,20 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
           </div>
         )}
 
-        {/* Asset selector — shared <Select> (themed dropdown, one control for mobile + desktop).
-            The sr-only native <select> inside it stays first in the DOM for getAllByRole('combobox')[0]. */}
+        {/* Asset selector — shared <SearchSelect>: searchable, opens its own list
+            surface (portal dropdown on desktop, MobileSheet with search on mobile). */}
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="install-asset" className="text-12.5 font-medium text-text-tertiary">
+          <span className="text-12.5 font-medium text-text-tertiary">
             {t('installModal.labelAsset')} <span className="text-rose-400 light:text-rose-600">*</span>
-          </label>
-          <Select
-            id="install-asset"
+          </span>
+          <SearchSelect
             value={selectedAssetId ?? ''}
             onChange={handleAssetSelect}
             placeholder={t('installModal.assetPlaceholder')}
-            options={partsAssets.map(a => ({ value: a.id, label: `${a.id} — ${a.name} (${a.kind})` }))}
+            searchPlaceholder={t('installModal.assetSearchPlaceholder', 'Поиск...')}
+            title={t('installModal.labelAsset')}
+            ariaLabel={t('installModal.labelAsset')}
+            options={partsAssets.map(a => ({ value: a.id, label: `${a.id} — ${a.name} (${a.categoryName ?? a.kind})` }))}
           />
         </div>
 
@@ -211,23 +210,7 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
         {/* Contextual panel — shown when asset is selected */}
         {selectedAsset && (
           <div className="rounded-lg border border-border bg-bg overflow-hidden">
-            {/* Asset row */}
-            <div className="px-3 py-2 border-b border-border flex items-center gap-2">
-              <span className="w-7 h-7 rounded-md bg-surface-2 text-text-tertiary inline-flex items-center justify-center flex-shrink-0">
-                <Icon name="monitor" size={13} />
-              </span>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-13.5 font-bold text-accent">{selectedAsset.id}</span>
-                  <span className="inline-flex items-center px-1.5 py-0.5 text-11.5 font-semibold rounded bg-surface-2 text-text-primary border border-[#2A2F36]/80 light:border-border">
-                    {selectedAsset.kind}
-                  </span>
-                </div>
-                <div className="text-13 text-text-tertiary truncate">{selectedAsset.name}</div>
-              </div>
-            </div>
-
-            {/* Slot state */}
+            {/* Slot state (asset row removed — the chosen asset is already shown in the selector above) */}
             {!hasOccupied && (
               /* Empty slot — straight install */
               <div className="px-3 py-2.5 flex items-center gap-2 border-t border-border bg-[#161A1F] light:bg-surface-sunken">
@@ -388,11 +371,12 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
         </div>
       )}
 
-      <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-border">
-        <Btn variant="secondary" size="md" onClick={handleClose} disabled={submitting}>
+      <div className="flex items-center gap-2 px-5 py-4 border-t border-border">
+        <Btn className="flex-1" variant="secondary" size="md" onClick={handleClose} disabled={submitting}>
           {t('installModal.cancel')}
         </Btn>
         <Btn
+          className="flex-1"
           variant="primary"
           size="md"
           onClick={handleSubmit}
@@ -429,7 +413,7 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
         document.body,
       )}
       {isMobile && (
-        <MobileSheet open={open} onClose={handleClose} title={t('installModal.title')}>
+        <MobileSheet open={open} onClose={handleClose} height="70vh">
           {content}
         </MobileSheet>
       )}

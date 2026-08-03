@@ -62,10 +62,10 @@ function DevicesSkeleton() {
           type="button"
           disabled
           className={
-            'h-7 w-full rounded-md text-14 font-medium border inline-flex items-center justify-center cursor-not-allowed ' +
+            'h-7 w-full rounded-md text-14 font-medium border inline-flex items-center justify-center cursor-not-allowed whitespace-nowrap ' +
             // Mobile overrides — compact pill shape matching DevicesTab
             'max-md:w-auto max-md:rounded-full max-md:h-auto max-md:py-[7px] max-md:px-[18px] ' +
-            'max-md:text-12.5 max-md:font-semibold max-md:whitespace-nowrap max-md:flex-shrink-0 ' +
+            'max-md:text-12.5 max-md:font-semibold max-md:flex-shrink-0 ' +
             // First pill = 'all' — active style
             (i === 0
               ? 'bg-accent border-accent text-white opacity-80'

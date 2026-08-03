@@ -1,12 +1,15 @@
 import { useMemo, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
+import { Chip, Icon } from '@/components/ui'
 import { PartCard } from './PartCard'
 import { HistoryPanel } from './HistoryPanel'
+import { WarehouseHistorySection } from './WarehouseHistorySection'
 import { WarehouseSizedDetail } from './WarehouseSizedDetail'
 import { WarehouseMobileDetail } from './WarehouseMobileDetail'
 import { WarehouseSkuList, AGG_CATS } from './WarehouseSkuList'
 import type { Part, PartMovement, PartStock, PartsAsset } from '@/domain/part/types'
 import { PART_CATEGORY_META, groupSkusByCategoryDef, buildCategoryTint, type Tint, type PartCatMeta } from './partsTokens'
-import { deriveStock } from '@/domain/part/partStock'
+import { deriveStock, workingStock } from '@/domain/part/partStock'
 import type { PartCategoryDef } from '@/domain/part/partCategory-types'
 import { isSizedCategory, isModelsCategory } from '@/domain/part/partCategory-types'
 import { DEFAULT_PART_CATEGORY_DEFS } from '@/domain/part/partCategoryDefaults'
@@ -56,6 +59,7 @@ export function WarehouseTab({
   partCatMeta,
   categoryTints,
 }: WarehouseTabProps) {
+  const { t } = useTranslation('parts')
   const effectiveDefs = partCategories ?? (DEFAULT_PART_CATEGORY_DEFS as unknown as PartCategoryDef[])
   const effectiveMeta = partCatMeta ?? PART_CATEGORY_META
 
@@ -159,36 +163,61 @@ export function WarehouseTab({
          pb-[4.25rem] removed — bottom clearance comes from .app-shell-content-flush. */
       <div className="flex flex-col">
         {isAgg ? (
-          /* Sized categories: SSD / HDD / M.2 / ОЗУ — per-size rows */
+          /* Sized categories: SSD / HDD / M.2 / ОЗУ — per-size rows + shared История */
           <WarehouseSizedDetail
             categoryId={selectedCatId}
             skus={selectedSkus}
             stockMap={stockMap}
             onInstall={onInstall}
+            movements={movements}
+            skuIds={selectedSkuIds}
+            parts={parts}
+            remainingAfterMap={remainingAfterMap}
+            partsAssets={partsAssets}
           />
         ) : isModelsCat ? (
-          /* Models (GPU): full-bleed without nested card chrome — fused card body */
-          <div>
-            <WarehouseSkuList
-              selectedCatId={selectedCatId}
-              selectedSkus={selectedSkus}
-              stockOf={stockOf}
-              isMobile={true}
-              onAddGpu={onAddGpu}
-              catMeta={selectedCatMeta}
-              {...(selectedDef !== undefined ? { catDef: selectedDef } : {})}
-              {...(effectiveTints[selectedCatId] !== undefined ? { tint: effectiveTints[selectedCatId] } : {})}
-            />
-            <HistoryPanel
-              movements={movements}
-              skuIds={selectedSkuIds}
-              parts={parts}
-              isMobile
-              categoryId={selectedCatId}
-              remainingAfterMap={remainingAfterMap}
-              partsAssets={partsAssets}
-            />
-          </div>
+          /* Models (GPU): shared История section with TWO header actions —
+             «Добавить видеокарту» (create a model) + «Установить» (install a model
+             with stock). Same layout as every other category (chips + история). */
+          <WarehouseHistorySection
+            catId={selectedCatId}
+            movements={movements}
+            skuIds={selectedSkuIds}
+            parts={parts}
+            remainingAfterMap={remainingAfterMap}
+            partsAssets={partsAssets}
+            headerAction={(() => {
+              const installSku = selectedSkus.find(s => workingStock(stockOf(s.id)) > 0) ?? null
+              return (
+                <>
+                  <button
+                    type="button"
+                    onClick={onAddGpu}
+                    aria-label={t('gpu.addBtn')}
+                    className="focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 rounded-md"
+                  >
+                    <Chip color="green" size="sm">
+                      <Icon name="plus" size={10} />
+                      {selectedCatMeta?.label ?? t('gpu.addBtn')}
+                    </Chip>
+                  </button>
+                  {installSku && (
+                    <button
+                      type="button"
+                      onClick={() => onInstall(installSku)}
+                      aria-label={t('actions.install')}
+                      className="focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 rounded-md"
+                    >
+                      <Chip color="orange" size="sm">
+                        <Icon name="wrench" size={10} />
+                        {t('actions.install')}
+                      </Chip>
+                    </button>
+                  )}
+                </>
+              )
+            })()}
+          />
         ) : (
           /* Single-pos: PSU / Cooler — header + HistoryPanel full-bleed */
           <WarehouseMobileDetail

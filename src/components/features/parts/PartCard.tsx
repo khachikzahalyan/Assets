@@ -1,4 +1,4 @@
-import { memo, useState } from 'react'
+import { memo, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Icon, Chip } from '@/components/ui'
 import type { Part, PartStock } from '@/domain/part/types'
@@ -88,6 +88,13 @@ export const PartCard = memo(function PartCard({
 
   const [ramDdr, setRamDdr] = useState('DDR4')
 
+  // Inline variant-list expand state (multi-variant cards). Decoupled from
+  // `selected` so the chevron can COLLAPSE the list while the card stays
+  // selected (desktop keeps its right-panel detail). Re-opens whenever the card
+  // becomes selected, so a fresh selection always shows its sizes.
+  const [expanded, setExpanded] = useState(true)
+  useEffect(() => { if (selected) setExpanded(true) }, [selected])
+
   const catMeta = PART_CAT_BY_ID[categoryId]
   const tint = categoryTint(categoryId)
   const icon = categoryIcon(categoryId)
@@ -162,7 +169,13 @@ export const PartCard = memo(function PartCard({
 
   return (
     <div
-      onClick={() => onSelect(categoryId)}
+      onClick={() => {
+        // Primitive accordion: 1st click selects + opens; clicking the already-
+        // selected multi-variant card toggles its size list closed/open. Selection
+        // (and the desktop right panel) is kept — only the inline list collapses.
+        if (!selected) onSelect(categoryId)
+        else if (isSized && allVariants) setExpanded((v) => !v)
+      }}
       className={`
         relative bg-surface border rounded-xl overflow-hidden transition-all cursor-pointer
         ${selected
@@ -255,17 +268,29 @@ export const PartCard = memo(function PartCard({
             )
           })()}
 
-          {/* Multi-variant: chevron */}
+          {/* Multi-variant: chevron toggles the inline size list. Clicking it on an
+              unselected card selects + opens; on the selected card it collapses/expands
+              without deselecting (the desktop right panel stays put). */}
           {isSized && allVariants && (
-            <span className={`text-text-subtle transition-transform ${selected ? 'rotate-180' : ''}`}>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                if (!selected) { onSelect(categoryId); setExpanded(true) }
+                else setExpanded((v) => !v)
+              }}
+              aria-label={t(expanded && selected ? 'actions.collapse' : 'actions.expand')}
+              aria-expanded={selected && expanded}
+              className={`inline-flex items-center justify-center w-6 h-6 rounded-md text-text-subtle hover:text-text-secondary hover:bg-bg transition-[transform,color,background-color] ${selected && expanded ? 'rotate-180' : ''}`}
+            >
               <Icon name="chevron-down" size={14} />
-            </span>
+            </button>
           )}
         </div>
       </div>
 
       {/* ── EXPANDED VARIANTS LIST ── */}
-      {selected && allVariants && (() => {
+      {selected && allVariants && expanded && (() => {
         const visibleVariants = (variants ?? []).filter((v) => {
           const sku = skuByVariant[v.id]
           return sku && stockOf(sku.id).onHand > 0
