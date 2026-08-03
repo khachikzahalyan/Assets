@@ -80,10 +80,8 @@ function makeRepo() {
       lic('l_2', 'active', 'device'),
       lic('l_3', 'retired', 'unassigned'),
     ],
-    serverLicenseCount: 7,
     employeeCount: 42,
     auditLogs: auditRows,
-    users: [{ id: 'u_1', firstName: 'Bob', lastName: 'Jones' }],
   })
 }
 
@@ -103,69 +101,81 @@ describe('InMemoryDashboardRepository', () => {
     ])
   })
 
-  it('loadAssignmentActivity returns enriched rows newest-first with assetLabel and recipientName', async () => {
-    const rows = await makeRepo().loadAssignmentActivity(8)
-    expect(rows).toHaveLength(2)
-
-    // returned row: a_2 has no assignment, so recipientName=null; assetLabel='B M'
-    expect(rows[0]).toMatchObject({
-      auditId: 'au_3', assetId: 'a_2', action: 'returned',
-      actorUid: 'u_1', at: '2026-06-10T00:00:00.000Z',
-      assetLabel: 'B M', recipientName: null,
-    })
-    // assigned row: a_1 is currently assigned to emp_1 (Alice Smith)
-    expect(rows[1]).toMatchObject({
-      auditId: 'au_2', assetId: 'a_1', action: 'assigned',
-      actorUid: 'u_1', at: '2026-06-09T00:00:00.000Z',
-      assetLabel: 'B M', recipientName: 'Alice Smith',
-    })
-  })
-
-  it('loadAssignmentActivity respects limit', async () => {
-    const rows = await makeRepo().loadAssignmentActivity(1)
-    expect(rows).toHaveLength(1)
-    expect(rows[0]!.auditId).toBe('au_3')
-    expect(rows[0]).toHaveProperty('assetLabel')
-    expect(rows[0]).toHaveProperty('recipientName')
-  })
-
   it('loadWorkstationLicenseStats splits free/inUse/retired', async () => {
     const s = await makeRepo().loadWorkstationLicenseStats()
     expect(s).toEqual({ total: 3, free: 1, inUse: 1, retired: 1 })
-  })
-
-  it('loadServerLicenseCount', async () => {
-    expect(await makeRepo().loadServerLicenseCount()).toBe(7)
   })
 
   it('loadPeopleStats returns the employee count', async () => {
     expect(await makeRepo().loadPeopleStats()).toEqual({ employeeCount: 42 })
   })
 
-  it('loadRecentAuditRows returns newest-first, limited, with actorName and targetLabel', async () => {
-    const rows = await makeRepo().loadRecentAuditRows(2)
+  it('loadRecentEvents filters by sinceIso and sorts desc', async () => {
+    const since = '2026-06-09T00:00:00.000Z'
+    const rows = await makeRepo().loadRecentEvents(since)
+    // au_3 (2026-06-10) and au_2 (2026-06-09) are >= since; au_1 (2026-06-08) is not
     expect(rows).toHaveLength(2)
     expect(rows[0]!.id).toBe('au_3')
     expect(rows[1]!.id).toBe('au_2')
-    // actorUid 'u_1' resolves to 'Bob Jones' from seeded users
-    expect(rows[0]!.actorName).toBe('Bob Jones')
-    expect(rows[1]!.actorName).toBe('Bob Jones')
-    // au_3 is entityType='assignment' with after.assetId='a_2'
-    expect(rows[0]!.targetLabel).toBe('a_2')
-    // au_2 is entityType='assignment' with after.assetId='a_1'
-    expect(rows[1]!.targetLabel).toBe('a_1')
-    // au_1 is entityType='asset' — cut by limit=2, so not present
   })
 
-  it('loadRecentAuditRows falls back to actorRole when user is not seeded', async () => {
-    const repoNoUsers = new InMemoryDashboardRepository({
+  it('loadRecentEvents respects cap', async () => {
+    const since = '2026-06-01T00:00:00.000Z'
+    const rows = await makeRepo().loadRecentEvents(since, 1)
+    expect(rows).toHaveLength(1)
+    expect(rows[0]!.id).toBe('au_3')
+  })
+
+  it('loadRecentPartInstalls returns only install movements after sinceIso', async () => {
+    const repo = new InMemoryDashboardRepository({
       assets: [], ref,
-      workstationLicenses: [], serverLicenseCount: 0,
+      workstationLicenses: [],
       employeeCount: 0,
-      auditLogs: [auditRows[2]!],  // au_1: entityType='asset', actorUid='u_1'
+      auditLogs: [],
+      partMovements: [
+        { id: 'mv_1', type: 'install', skuId: 'sku_1', qty: 1, broken: false,
+          assetId: 'a_1', assetInvCode: 'INV/a_1', serviceReplace: false,
+          note: null, reason: null, actorUid: 'u', actorRole: 'tech_admin',
+          at: '2026-06-10T00:00:00.000Z' },
+        { id: 'mv_2', type: 'receive', skuId: 'sku_1', qty: 5, broken: false,
+          assetId: null, assetInvCode: null, serviceReplace: false,
+          note: null, reason: null, actorUid: 'u', actorRole: 'tech_admin',
+          at: '2026-06-10T00:00:00.000Z' },
+        { id: 'mv_3', type: 'install', skuId: 'sku_2', qty: 1, broken: false,
+          assetId: 'a_2', assetInvCode: 'INV/a_2', serviceReplace: false,
+          note: null, reason: null, actorUid: 'u', actorRole: 'tech_admin',
+          at: '2026-06-08T00:00:00.000Z' },
+      ],
     })
-    const rows = await repoNoUsers.loadRecentAuditRows(8)
-    expect(rows[0]!.actorName).toBe('asset_admin')  // fallback to actorRole
-    expect(rows[0]!.targetLabel).toBe('a_1')  // entityType='asset', after=null → entityId
+    const since = '2026-06-09T00:00:00.000Z'
+    const rows = await repo.loadRecentPartInstalls(since)
+    // mv_1 is install after since; mv_2 is receive (filtered); mv_3 is before since
+    expect(rows).toHaveLength(1)
+    expect(rows[0]!.id).toBe('mv_1')
+    expect(rows[0]!.type).toBe('install')
+  })
+
+  it('loadDomainCounts sums partsUnits and partNames from seed', async () => {
+    const repo = new InMemoryDashboardRepository({
+      assets: [], ref,
+      workstationLicenses: [],
+      employeeCount: 0,
+      auditLogs: [],
+      parts: [
+        { id: 'p1', name: 'RAM 8GB', category: 'ram', variantId: null, variantLabel: null,
+          ddr: null, unit: 'шт', onHand: 10, broken: 0, lowStockThreshold: 5,
+          createdAt: '', updatedAt: '', createdBy: '', updatedBy: '' },
+        { id: 'p2', name: 'SSD 512', category: 'ssd', variantId: null, variantLabel: null,
+          ddr: null, unit: 'шт', onHand: 5, broken: 0, lowStockThreshold: 3,
+          createdAt: '', updatedAt: '', createdBy: '', updatedBy: '' },
+      ],
+      subscriptionCount: 3,
+    })
+    const res = await repo.loadDomainCounts()
+    expect(res.counts.partsUnits).toBe(15)
+    expect(res.partNames).toEqual({ p1: 'RAM 8GB', p2: 'SSD 512' })
+    expect(res.counts.branches).toBe(2)   // ref.branches.length
+    expect(res.counts.departments).toBe(0) // ref.departments.length
+    expect(res.counts.subscriptions).toBe(3) // subscriptionCount=3, no sub-type licenses
   })
 })

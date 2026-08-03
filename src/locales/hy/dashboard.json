@@ -1,52 +1,20 @@
 {
-  "activity": {
-    "assigned": "Ակտիվը հանձնվել է",
-    "returned": "Ակտիվը վերադարձվել է"
-  },
   "relTime": {
     "justNow": "հենց նոր",
     "minAgo": "{{n}} ր առաջ",
     "hourAgo": "{{n}} ժ առաջ",
     "dayAgo": "{{n}} օր առաջ"
   },
-  "audit": {
-    "col": {
-      "action": "Գործողություն",
-      "description": "Նկարագրություն",
-      "time": "Ժամանակ",
-      "user": "Օգտատեր"
-    }
-  },
-  "auditAction": {
-    "assigned": "Հատկացված",
-    "created": "Ստեղծվել է",
-    "deleted": "Ջնջվել է",
-    "disposed": "Դուրս է գրվել",
-    "key_revealed": "Բանալին բացվել է",
-    "key_rotated": "Բանալին փոխարինվել է",
-    "license_decoupled": "Լիցենզիան անջատվել է",
-    "license_retired_with_asset": "Լիցենզիան դուրս է գրվել ակտիվի հետ",
-    "reactivated": "Վերականգնվել է",
-    "repair_completed": "Վերանորոգումն ավարտվել է",
-    "returned": "Վերադարձվել է",
-    "role_assigned": "Դերը նշանակվել է",
-    "sent_to_repair": "Ուղարկվել է վերանորոգման",
-    "status_changed": "Կարգավիճակը փոխվել է",
-    "terminated": "Աշխատանքից ազատվել է",
-    "transferred": "Տեղափոխվել է",
-    "updated": "Թարմացվել է",
-    "upgrade_added": "Կատարելագործում ավելացվել է"
-  },
-  "branches": {
-    "empty": "Մասնաճյուղերի տվյալներ չկան",
-    "title": "Ըստ մասնաճյուղի"
-  },
-  "groups": {
-    "categoryCaption": "{{count}} կատեգորիա",
-    "devices": "Սարքեր",
-    "furniture": "Կահույք",
-    "network": "Ցանցային սարքեր",
-    "title": "Ըստ խմբի"
+  "boxes": {
+    "assets":        { "title": "Ակտիվներ",              "viewAll": "Բոլոր ակտիվները" },
+    "employees":     { "title": "Աշխատակիցներ",          "viewAll": "Բոլոր աշխատակիցները" },
+    "parts":         { "title": "Պահեստամասեր",          "viewAll": "Բոլոր պահեստամասերը" },
+    "subscriptions": { "title": "Բաժանորդագրություններ", "viewAll": "Բոլոր բաժանորդագրությունները" },
+    "branches":      { "title": "Մասնաճյուղեր",          "viewAll": "Բոլոր մասնաճյուղերը" },
+    "departments":   { "title": "Բաժիններ",              "viewAll": "Բոլոր բաժինները" },
+    "delta7d": "+{{n}} 7 օրում",
+    "empty": "Վերջին 7 օրում իրադարձություններ չկան",
+    "partsUnits": "միավոր պահեստում"
   },
   "kpi": {
     "currentlyOut": "Ներկայումս հանձնված",
@@ -58,33 +26,5 @@
     "serverLicenses": "Սերվերային լիցենզիաներ",
     "totalAssets": "Ընդամենը ակտիվներ"
   },
-  "license": {
-    "free": "Ազատ",
-    "inUse": "Օգտագործվում է",
-    "retired": "Արխիվում",
-    "title": "Աշխատակայանի լիցենզիաներ",
-    "total": "Ընդամենը",
-    "totalLabel": "լիցենզիա ընդամենը",
-    "usage": "Բեռնվածություն"
-  },
-  "noActivity": "Ակտիվություն չկա",
-  "noAudit": "Իրադարձություններ չկան",
-  "people": {
-    "employees": "Աշխատակիցներ",
-    "pending": "սպասում է հաստատման",
-    "title": "Աշխատակիցներ"
-  },
-  "recentActivity": "Վերջին ակտիվություն",
-  "recentAudit": "Վերջին աուդիտի իրադարձություններ",
-  "status": {
-    "st_assigned": "Հանձնված",
-    "st_pending": "Սպասման մեջ",
-    "st_disposed": "Դուրս գրված",
-    "st_repair": "Վերանորոգման մեջ",
-    "st_warehouse": "Պահեստում",
-    "title": "Ակտիվների կարգավիճակներ",
-    "totalCaption": "{{count}} ընդամենը"
-  },
-  "title": "Կառավարման վահանակ",
-  "viewAll": "Տեսնել բոլորը"
+  "title": "Կառավարման վահանակ"
 }

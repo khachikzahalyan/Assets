@@ -1,50 +1,34 @@
 import type { Role } from '@/config/roles'
 import type { DashboardRepository, DashboardData } from '@/domain/dashboard'
+import {
+  groupDomainEvents,
+  DASHBOARD_WINDOW_DAYS,
+} from '@/domain/dashboard'
 import { useCachedResource, cacheIdentity } from './useCachedResource'
 
 const EMPTY: DashboardData = {
   assets: null,
-  assignments: null,
   workstationLicenses: null,
-  serverLicenseCount: null,
   people: null,
-  recentAudit: null,
+  counts: null,
+  boxes: null,
 }
 
 export interface UseDashboardResult {
   data: DashboardData
   loading: boolean
-  /** True if ANY permitted section failed (per-section nulls remain). */
+  /** True if ANY section failed (per-section nulls remain). */
   error: boolean
   reload: () => void
 }
 
 /**
- * Section permissions per role. The KPI SUMMARY sections (assets, assignments,
- * workstationLicenses, people) are visible to EVERY admin — the owner wants the
- * dashboard overview complete for any admin, and firestore.rules already allow
- * every admin to READ the underlying /assets, /licenses and /employees docs
- * (secrets stay separately gated). Navigation is still role-gated: a KPI card for
- * a route the role can't open renders as non-clickable (see DashboardPage).
- * serverLicense + recentAudit stay super-only (more sensitive, not summary KPIs).
- */
-function permissions(role: Role) {
-  const isAdmin = role === 'super_admin' || role === 'asset_admin' || role === 'tech_admin'
-  return {
-    assets: isAdmin,
-    assignments: isAdmin,
-    workstationLicenses: isAdmin,
-    serverLicense: role === 'super_admin',
-    people: isAdmin,
-    recentAudit: role === 'super_admin',
-  }
-}
-
-/**
- * Loads dashboard sections the role is permitted to see, in parallel. SWR-cached
- * per (repo, role) pair — repeat visits render instantly.
+ * Loads all dashboard sections in parallel. SWR-cached per (repo, role) pair.
+ * Role-gating of individual calls is REMOVED: all 6 methods are called for all
+ * 3 admin roles. Role stays in the cache key so a role-switch invalidates.
  *
- * Sections a role cannot access are NEVER fetched — this is the security gate.
+ * Degradation: each section is independently Promise.allSettled — a rejected
+ * section leaves its slot null and sets error=true while the others still render.
  *
  * @param repo MUST be a stable reference (memoized / singleton).
  * @param role The current user's role.
@@ -55,37 +39,58 @@ export function useDashboard(repo: DashboardRepository, role: Role): UseDashboar
   const { data: cached, loading, error: fetchErr, reload } = useCachedResource(
     key,
     async () => {
-      const p = permissions(role)
       const next: DashboardData = { ...EMPTY }
       let anyError = false
 
-      const tasks: Promise<void>[] = []
+      const since = new Date(Date.now() - DASHBOARD_WINDOW_DAYS * 86_400_000).toISOString()
 
-      function run<T>(fn: () => Promise<T>, assign: (v: T) => void): void {
-        tasks.push(
-          fn()
-            .then(assign)
-            .catch(() => { anyError = true }),
-        )
+      const [assets, lic, people, events, installs, countsRes] = await Promise.allSettled([
+        repo.loadAssetStats(5),
+        repo.loadWorkstationLicenseStats(),
+        repo.loadPeopleStats(),
+        repo.loadRecentEvents(since),
+        repo.loadRecentPartInstalls(since),
+        repo.loadDomainCounts(),
+      ])
+
+      if (assets.status === 'fulfilled') {
+        next.assets = assets.value
+      } else {
+        anyError = true
       }
 
-      if (p.assets)               run(() => repo.loadAssetStats(5),            v => { next.assets = v })
-      if (p.assignments)          run(() => repo.loadAssignmentActivity(8),     v => {
-        next.assignments = { currentlyOut: 0, recent: v }
-      })
-      if (p.workstationLicenses)  run(() => repo.loadWorkstationLicenseStats(), v => { next.workstationLicenses = v })
-      if (p.serverLicense)        run(() => repo.loadServerLicenseCount(),       v => { next.serverLicenseCount = v })
-      if (p.people)               run(() => repo.loadPeopleStats(),             v => { next.people = v })
-      if (p.recentAudit)          run(() => repo.loadRecentAuditRows(8),         v => { next.recentAudit = v })
+      if (lic.status === 'fulfilled') {
+        next.workstationLicenses = lic.value
+      } else {
+        anyError = true
+      }
 
-      await Promise.allSettled(tasks)
+      if (people.status === 'fulfilled') {
+        next.people = people.value
+      } else {
+        anyError = true
+      }
 
-      // Derive currentlyOut from assetStats.byStatus to avoid a double-count.
-      if (next.assignments !== null && next.assets !== null) {
-        next.assignments = {
-          ...next.assignments,
-          currentlyOut: next.assets.byStatus.st_assigned,
-        }
+      if (countsRes.status === 'fulfilled') {
+        next.counts = countsRes.value.counts
+      } else {
+        anyError = true
+      }
+
+      if (events.status === 'fulfilled') {
+        next.boxes = groupDomainEvents({
+          auditLogs: events.value,
+          partInstalls: installs.status === 'fulfilled' ? installs.value : [],
+          partNames: countsRes.status === 'fulfilled' ? countsRes.value.partNames : {},
+        })
+      } else {
+        anyError = true
+      }
+
+      // installs rejection is only marked if events also failed (boxes covers both);
+      // if events succeeded but installs failed, boxes still renders with empty installs.
+      if (installs.status === 'rejected' && events.status === 'rejected') {
+        anyError = true
       }
 
       return { data: next, anyError }

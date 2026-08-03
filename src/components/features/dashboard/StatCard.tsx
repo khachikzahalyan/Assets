@@ -146,7 +146,7 @@ export function StatCard({
               <div className="text-display-sm lg:text-[2rem] font-bold leading-none tracking-tight tabular-nums text-text-primary">
                 {value ?? '—'}
               </div>
-              <div className={cn('text-11 lg:text-11.5 mt-0.5 leading-tight truncate', cls.label)}>
+              <div className={cn('text-11 lg:text-11.5 mt-0.5 leading-tight', cls.label)}>
                 {label}
               </div>
             </div>
@@ -198,7 +198,7 @@ export function StatCard({
             >
               {value ?? '—'}
             </div>
-            <div className={cn('text-11 lg:text-11.5 mt-0.5 leading-tight truncate', cls.label)}>
+            <div className={cn('text-11 lg:text-11.5 mt-0.5 leading-tight', cls.label)}>
               {label}
             </div>
           </div>

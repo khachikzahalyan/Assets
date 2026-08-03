@@ -14,7 +14,7 @@
  */
 
 import { describe, it, expect, vi, beforeAll } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { I18nextProvider } from 'react-i18next'
 import i18n from '@/lib/i18n'
@@ -23,7 +23,6 @@ import { InMemoryDashboardRepository } from '@/infra/repositories'
 import type { Asset } from '@/domain/asset'
 import type { AssetReferenceData } from '@/domain/asset'
 import type { WorkstationLicense } from '@/domain/license'
-import type { AuditLog } from '@/domain/audit'
 import { DashboardPage } from './DashboardPage'
 
 // ── Firebase mocks ────────────────────────────────────────────────────────────
@@ -50,13 +49,12 @@ vi.mock('@/infra/repositories', async (importOriginal) => {
   const real = await importOriginal<typeof import('@/infra/repositories')>()
   class FirestoreDashboardRepositoryStub {
     constructor() {}
-    loadAssetStats() { return Promise.resolve(real.InMemoryDashboardRepository
-      ? undefined as never : undefined as never) }
-    loadAssignmentActivity() { return Promise.resolve([]) }
+    loadAssetStats() { return Promise.resolve(undefined as never) }
     loadWorkstationLicenseStats() { return Promise.resolve({ total: 0, free: 0, inUse: 0, retired: 0 }) }
-    loadServerLicenseCount() { return Promise.resolve(0) }
     loadPeopleStats() { return Promise.resolve({ employeeCount: 0 }) }
-    loadRecentAuditRows() { return Promise.resolve([]) }
+    loadRecentEvents() { return Promise.resolve([]) }
+    loadRecentPartInstalls() { return Promise.resolve([]) }
+    loadDomainCounts() { return Promise.resolve({ counts: { partsUnits: 0, branches: 0, departments: 0, subscriptions: 0 }, partNames: {} }) }
   }
   return {
     ...real,
@@ -103,24 +101,6 @@ function makeLicense(id: string, lifecycle: 'active' | 'retired', assignment: 'e
   }
 }
 
-const auditLogs: AuditLog[] = [
-  {
-    id: 'au_3', entityType: 'assignment', entityId: 'as_3', action: 'returned',
-    actorUid: 'u_1', actorRole: 'asset_admin', before: null, after: { assetId: 'a_2' },
-    comment: null, at: '2026-06-10T00:00:00.000Z',
-  },
-  {
-    id: 'au_2', entityType: 'assignment', entityId: 'as_2', action: 'assigned',
-    actorUid: 'u_1', actorRole: 'asset_admin', before: null, after: { assetId: 'a_1' },
-    comment: null, at: '2026-06-09T00:00:00.000Z',
-  },
-  {
-    id: 'au_1', entityType: 'asset', entityId: 'a_1', action: 'created',
-    actorUid: 'u_1', actorRole: 'asset_admin', before: null, after: null,
-    comment: null, at: '2026-06-08T00:00:00.000Z',
-  },
-]
-
 function makeRepo() {
   return new InMemoryDashboardRepository({
     assets: [
@@ -135,9 +115,8 @@ function makeRepo() {
       makeLicense('l_2', 'active',  'device'),
       makeLicense('l_3', 'retired', 'unassigned'),
     ],
-    serverLicenseCount: 7,
     employeeCount: 42,
-    auditLogs,
+    auditLogs: [],
   })
 }
 
@@ -167,12 +146,12 @@ describe('DashboardPage loading state', () => {
   it('renders the page container while loading', () => {
     // Use a repo that never resolves to hold the loading state
     const slowRepo = {
-      loadAssetStats:            () => new Promise(() => {}),
-      loadAssignmentActivity:    () => new Promise(() => {}),
+      loadAssetStats:              () => new Promise(() => {}),
       loadWorkstationLicenseStats: () => new Promise(() => {}),
-      loadServerLicenseCount:    () => new Promise(() => {}),
-      loadPeopleStats:           () => new Promise(() => {}),
-      loadRecentAuditRows:       () => new Promise(() => {}),
+      loadPeopleStats:             () => new Promise(() => {}),
+      loadRecentEvents:            () => new Promise(() => {}),
+      loadRecentPartInstalls:      () => new Promise(() => {}),
+      loadDomainCounts:            () => new Promise(() => {}),
     }
     // @ts-expect-error — intentionally partial stub for loading test
     renderPage('super_admin', slowRepo)
@@ -184,7 +163,7 @@ describe('DashboardPage loading state', () => {
 describe('DashboardPage super_admin', () => {
   it('shows total-assets KPI value (4 seeded assets)', async () => {
     renderPage('super_admin')
-    await waitFor(() => expect(screen.getByText('4')).toBeInTheDocument())
+    await waitFor(() => expect(within(screen.getByTestId('section-total-assets')).getByText('4')).toBeInTheDocument())
   })
 
   it('shows workstation license tile', async () => {
@@ -194,24 +173,10 @@ describe('DashboardPage super_admin', () => {
     )
   })
 
-  it('shows server-licenses KPI', async () => {
-    renderPage('super_admin')
-    await waitFor(() =>
-      expect(screen.getByTestId('kpi-server-licenses')).toBeInTheDocument(),
-    )
-  })
-
   it('shows people/employees tile', async () => {
     renderPage('super_admin')
     await waitFor(() =>
       expect(screen.getByTestId('section-people')).toBeInTheDocument(),
-    )
-  })
-
-  it('shows recent-audit list', async () => {
-    renderPage('super_admin')
-    await waitFor(() =>
-      expect(screen.getByTestId('section-recent-audit')).toBeInTheDocument(),
     )
   })
 })
@@ -219,7 +184,7 @@ describe('DashboardPage super_admin', () => {
 describe('DashboardPage asset_admin', () => {
   it('shows total-assets KPI value', async () => {
     renderPage('asset_admin')
-    await waitFor(() => expect(screen.getByText('4')).toBeInTheDocument())
+    await waitFor(() => expect(within(screen.getByTestId('section-total-assets')).getByText('4')).toBeInTheDocument())
   })
 
   it('shows people/employees tile', async () => {
@@ -235,18 +200,6 @@ describe('DashboardPage asset_admin', () => {
       expect(screen.getByTestId('section-licenses')).toBeInTheDocument(),
     )
   })
-
-  it('does NOT show server-licenses KPI', async () => {
-    renderPage('asset_admin')
-    await waitFor(() => expect(screen.getByText('4')).toBeInTheDocument())
-    expect(screen.queryByTestId('kpi-server-licenses')).not.toBeInTheDocument()
-  })
-
-  it('does NOT show recent-audit list', async () => {
-    renderPage('asset_admin')
-    await waitFor(() => expect(screen.getByText('4')).toBeInTheDocument())
-    expect(screen.queryByTestId('section-recent-audit')).not.toBeInTheDocument()
-  })
 })
 
 describe('DashboardPage error handling', () => {
@@ -258,7 +211,7 @@ describe('DashboardPage error handling', () => {
     renderPage('tech_admin', partialRepo)
 
     // Wait for loading to finish — total-assets KPI (value "4") must still be visible
-    await waitFor(() => expect(screen.getByText('4')).toBeInTheDocument())
+    await waitFor(() => expect(within(screen.getByTestId('section-total-assets')).getByText('4')).toBeInTheDocument())
 
     // Error banner must be present and wired to reload
     expect(screen.getByTestId('dashboard-error')).toBeInTheDocument()
@@ -268,7 +221,7 @@ describe('DashboardPage error handling', () => {
 describe('DashboardPage tech_admin', () => {
   it('shows total-assets KPI value', async () => {
     renderPage('tech_admin')
-    await waitFor(() => expect(screen.getByText('4')).toBeInTheDocument())
+    await waitFor(() => expect(within(screen.getByTestId('section-total-assets')).getByText('4')).toBeInTheDocument())
   })
 
   it('shows workstation license tile', async () => {
@@ -284,16 +237,75 @@ describe('DashboardPage tech_admin', () => {
       expect(screen.getByTestId('section-people')).toBeInTheDocument(),
     )
   })
+})
 
-  it('does NOT show server-licenses KPI', async () => {
-    renderPage('tech_admin')
-    await waitFor(() => expect(screen.getByText('4')).toBeInTheDocument())
-    expect(screen.queryByTestId('kpi-server-licenses')).not.toBeInTheDocument()
+// ── Domain boxes grid (ROW 2) ───────────────────────────────────────────────────
+
+describe('DashboardPage domain boxes', () => {
+  const EXPECTED_ORDER = [
+    'assets', 'employees', 'parts', 'subscriptions', 'branches', 'departments',
+  ]
+
+  it('renders all 6 domain boxes in the fixed order', async () => {
+    renderPage('super_admin')
+    await waitFor(() =>
+      expect(screen.getByTestId('domain-box-assets')).toBeInTheDocument(),
+    )
+    const boxes = Array.from(
+      document.querySelectorAll('[data-testid^="domain-box-"]'),
+    ).map(el => el.getAttribute('data-testid')!.replace('domain-box-', ''))
+    expect(boxes).toEqual(EXPECTED_ORDER)
   })
 
-  it('does NOT show recent-audit list', async () => {
-    renderPage('tech_admin')
-    await waitFor(() => expect(screen.getByText('4')).toBeInTheDocument())
-    expect(screen.queryByTestId('section-recent-audit')).not.toBeInTheDocument()
+  it('does NOT render the boxes grid when the event window fails to load', async () => {
+    const repo = makeRepo()
+    repo.loadRecentEvents = () => Promise.reject(new Error('audit window failed'))
+
+    renderPage('super_admin', repo)
+
+    // KPI row still loads (asset stats resolved) …
+    await waitFor(() =>
+      expect(screen.getByTestId('section-total-assets')).toBeInTheDocument(),
+    )
+    // … but with boxes === null the whole grid is absent.
+    expect(screen.queryByTestId('domain-box-assets')).toBeNull()
+    // Degraded fetch surfaces the error banner too.
+    expect(screen.getByTestId('dashboard-error')).toBeInTheDocument()
+  })
+
+  it('renders the «view all subscriptions» link for super_admin but hides it for asset_admin', async () => {
+    const { unmount } = renderPage('super_admin')
+    await waitFor(() =>
+      expect(screen.getByTestId('domain-box-subscriptions')).toBeInTheDocument(),
+    )
+    const saBox = screen.getByTestId('domain-box-subscriptions')
+    expect(
+      within(saBox).getAllByRole('link').some(l => l.getAttribute('href') === '/licenses'),
+    ).toBe(true)
+    unmount()
+
+    renderPage('asset_admin')
+    await waitFor(() =>
+      expect(screen.getByTestId('domain-box-subscriptions')).toBeInTheDocument(),
+    )
+    const aaBox = screen.getByTestId('domain-box-subscriptions')
+    // asset_admin can't reach /licenses → no view-all link at all.
+    expect(within(aaBox).queryByRole('link')).toBeNull()
+  })
+
+  it('shows «—» for a degraded (null) count', async () => {
+    const repo = makeRepo()
+    repo.loadDomainCounts = () => Promise.resolve({
+      counts: { partsUnits: 0, branches: 2, departments: 0, subscriptions: null },
+      partNames: {},
+    })
+
+    renderPage('super_admin', repo)
+
+    await waitFor(() =>
+      expect(screen.getByTestId('domain-box-subscriptions')).toBeInTheDocument(),
+    )
+    const subsBox = screen.getByTestId('domain-box-subscriptions')
+    expect(within(subsBox).getByText('—')).toBeInTheDocument()
   })
 })

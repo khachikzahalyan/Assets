@@ -1,40 +1,52 @@
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
-import { ErrorState, Icon } from '@/components/ui'
-import {
-  StatCard,
-  StatusBars,
-  GroupBars,
-  BranchBars,
-  LicensePanel,
-  ActivityPanel,
-  AuditTable,
-  AUDIT_GRID,
-} from '@/components/features/dashboard'
+import { ErrorState } from '@/components/ui'
+import { SectionCard } from '@/components/ui/section-card'
+import type { SectionCardProps } from '@/components/ui/section-card'
+import { StatCard, DomainBox } from '@/components/features/dashboard'
 import { useDashboard } from '@/hooks'
-import type { DashboardRepository } from '@/domain/dashboard'
+import type { DashboardRepository, DashboardData, DomainBoxKey } from '@/domain/dashboard'
+import { DOMAIN_BOX_KEYS } from '@/domain/dashboard'
 import { ASSET_STATUS } from '@/domain/asset'
 import { getSharedDashboardRepository } from '@/infra/repositories'
 import { canAccess } from '@/config/access'
+import type { RouteId } from '@/config/nav'
 import { cn } from '@/lib/utils'
-
-// ── Dashboard grid templates ───────────────────────────────────────────────────
-// ROW 1 (KPI cards): Tailwind arbitrary class lg:grid-cols-[repeat(auto-fit,minmax(12rem,1fr))].
-//   Useful content width on 1366px ≈ 1366 - 260 (sidebar) - 38 (padding) ≈ 1068px ≈ 66.75rem.
-//   At minmax(12rem, 1fr): floor(66.75 / 12) = 5 columns → fits all 5 cards on 1366
-//   without horizontal scroll. On 1920+: content ≈ 100rem → still 5 columns (auto-fit fills).
-//   Mobile (< lg) keeps explicit 2-col so col-span-2 on the featured card works.
-
-// ROW 2 (2 panels): auto-fit minmax(20rem, 1fr) — 2 cols on lg+, collapses on mobile.
-//   At ~1068px content: floor(1068/320) = 3 potential, but 2 items → 2 cols.
-const PANEL_GRID_2 = 'repeat(auto-fit, minmax(20rem, 1fr))'
-
-// ROW 3 (3 panels): auto-fit minmax(17rem, 1fr) — exactly 3 cols at 1366, fills on 1920+.
-//   At ~1068px content: floor(1068/272) = 3 cols → exactly 3 on 1366. Collapses on mobile.
-const PANEL_GRID_3 = 'repeat(auto-fit, minmax(17rem, 1fr))'
 
 export interface DashboardPageProps {
   repo?: DashboardRepository
+}
+
+// ── Domain-box presentation config (icon/tone/bar colour + list route) ─────────
+interface BoxMeta {
+  icon: string
+  iconTone?: SectionCardProps['iconTone']
+  barClass: string
+  routeId: RouteId
+  path: string
+}
+
+const BOX_GRID = 'repeat(auto-fit, minmax(20rem, 1fr))'
+
+const BOX_META: Record<DomainBoxKey, BoxMeta> = {
+  assets:        { icon: 'package',   barClass: 'bg-text-tertiary/50', routeId: 'assets',      path: '/assets' },
+  employees:     { icon: 'users',     iconTone: 'blue',   barClass: 'bg-sky-400/70',     routeId: 'employees',   path: '/employees' },
+  parts:         { icon: 'wrench',    iconTone: 'rose',   barClass: 'bg-rose-400/70',    routeId: 'parts',       path: '/parts' },
+  subscriptions: { icon: 'key-round', iconTone: 'orange', barClass: 'bg-amber-400/70',   routeId: 'licenses',    path: '/licenses' },
+  branches:      { icon: 'map-pin',   iconTone: 'green',  barClass: 'bg-emerald-400/70', routeId: 'branches',    path: '/branches' },
+  departments:   { icon: 'building',  iconTone: 'cyan',   barClass: 'bg-cyan-400/70',    routeId: 'departments', path: '/departments' },
+}
+
+/** Aggregated total for a box header; null renders as «—». */
+function boxTotal(key: DomainBoxKey, data: DashboardData): number | null {
+  switch (key) {
+    case 'assets':        return data.assets?.total ?? null
+    case 'employees':     return data.people?.employeeCount ?? null
+    case 'parts':         return data.counts?.partsUnits ?? null
+    case 'subscriptions': return data.counts?.subscriptions ?? null
+    case 'branches':      return data.counts?.branches ?? null
+    case 'departments':   return data.counts?.departments ?? null
+  }
 }
 
 export function DashboardPage({ repo }: DashboardPageProps) {
@@ -44,11 +56,11 @@ export function DashboardPage({ repo }: DashboardPageProps) {
   const activeRepo = repo ?? getSharedDashboardRepository()
   const { data, loading, error, reload } = useDashboard(activeRepo, role)
 
-  // ── Loading skeleton (mirrors the 4-row layout — plain shimmer blocks only) ──
+  // ── Loading skeleton (KPI row + 6 domain-box grid) ───────────────────────────
   if (loading) {
     return (
       <div className="space-y-5" aria-busy="true">
-        {/* ROW 1: 5 KPI card shimmers — 2-col on mobile, auto-fit (KPI_GRID) on lg+ */}
+        {/* ROW 1: 5 KPI card shimmers — 2-col on mobile, auto-fit on lg+ */}
         <div className="grid grid-cols-2 gap-2 lg:gap-3 lg:[grid-template-columns:repeat(auto-fit,minmax(12rem,1fr))]">
           {Array.from({ length: 5 }).map((_, i) => (
             <div
@@ -94,117 +106,47 @@ export function DashboardPage({ repo }: DashboardPageProps) {
           ))}
         </div>
 
-        {/* ROW 2: 2 panel shimmers — real headers, shimmer content; auto-fit PANEL_GRID_2 */}
-        <div className="grid gap-4" style={{ gridTemplateColumns: PANEL_GRID_2 }}>
-          {[
-            { icon: 'circle-dot', iconCls: 'bg-info/15 text-info', title: t('status.title') },
-            { icon: 'tags',       iconCls: 'bg-accent/15 text-accent', title: t('groups.title') },
-          ].map((p, i) => (
-            <div key={i} className="bg-surface border border-border rounded-xl overflow-hidden">
-              <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-border">
-                <span className={`w-6 h-6 lg:w-7 lg:h-7 rounded-md inline-flex items-center justify-center flex-shrink-0 ${p.iconCls}`}>
-                  <Icon name={p.icon} size={13} />
-                </span>
-                <span className="text-12 lg:text-13 font-semibold text-text-primary">{p.title}</span>
-              </div>
-              <div className="p-4 lg:p-5 flex flex-col gap-3.5">
-                {Array.from({ length: 4 }).map((__, j) => (
-                  <div key={j} className="flex flex-col gap-1.5">
-                    <div className="h-3 w-full rounded anim-skeleton" />
-                    <div className="h-[5px] lg:h-1.5 w-full rounded-full anim-skeleton" />
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* ROW 3: 3 panel shimmers — real headers, shimmer content; auto-fit PANEL_GRID_3 */}
-        <div className="grid gap-4" style={{ gridTemplateColumns: PANEL_GRID_3 }}>
-          {[
-            { icon: 'building',         iconCls: 'bg-success/15 text-success',           title: t('branches.title') },
-            { icon: 'key-round',        iconCls: 'bg-violet-500/15 text-violet-300 light:text-violet-700',      title: t('license.title') },
-            { icon: 'arrow-right-left', iconCls: 'bg-success/15 text-success',            title: t('recentActivity') },
-          ].map((p, i) => (
-            <div key={i} className="bg-surface border border-border rounded-xl overflow-hidden">
-              <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-border">
-                <span className={`w-6 h-6 lg:w-7 lg:h-7 rounded-md inline-flex items-center justify-center flex-shrink-0 ${p.iconCls}`}>
-                  <Icon name={p.icon} size={13} />
-                </span>
-                <span className="text-12 lg:text-13 font-semibold text-text-primary">{p.title}</span>
-              </div>
-              <div className="p-4 lg:p-5 space-y-3">
-                {Array.from({ length: 3 }).map((__, j) => (
-                  <div key={j} className="h-3 w-full rounded anim-skeleton" />
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* ROW 4: Audit table shimmer — mirrors AuditTable (dashboard/AuditTable.tsx).
-            P2: panel header (icon + title + «viewAll» link) is local chrome — renders real.
-            P1: desktop sub-header row (4-col labels) mirrors AuditTable header (AUDIT_GRID);
-                body rows use the same AUDIT_GRID as real rows. */}
-        <div className="bg-surface border border-border rounded-xl overflow-hidden">
-          {/* Panel header — local chrome: icon, title, and «viewAll» link render real */}
-          <div className="flex items-center justify-between px-5 py-3.5 border-b border-border">
-            <div className="flex items-center gap-2.5">
-              <span className="w-6 h-6 lg:w-7 lg:h-7 rounded-md inline-flex items-center justify-center flex-shrink-0 bg-surface-2 text-text-tertiary">
-                <Icon name="history" size={13} />
-              </span>
-              <span className="text-12 lg:text-13 font-semibold text-text-primary">{t('recentAudit')}</span>
-            </div>
-            {/* «viewAll» link is local chrome (known translation string) — renders real, not shimmered */}
-            <span className="text-11.5 text-accent pointer-events-none opacity-50">
-              {t('viewAll')}
-            </span>
-          </div>
-
-          {/* Desktop column sub-header — mirrors AuditTable header; columns defined by AUDIT_GRID */}
-          <div className="hidden lg:grid gap-4 px-5 py-2 border-b border-border/50" style={{ gridTemplateColumns: AUDIT_GRID }}>
-            {(['audit.col.action', 'audit.col.description', 'audit.col.user', 'audit.col.time'] as const).map(key => (
-              <span key={key} className="text-10.5 font-semibold uppercase tracking-wider text-text-subtle">
-                {t(key)}
-              </span>
-            ))}
-          </div>
-
-          {/* Body rows — same grid as real AuditTable */}
-          <div className="divide-y divide-border/50">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="px-5 py-3">
-                {/* Desktop: mirrors AuditTable row grid; columns defined by AUDIT_GRID */}
-                <div className="hidden lg:grid gap-4 items-center" style={{ gridTemplateColumns: AUDIT_GRID }}>
-                  <div className="h-5 w-[100px] rounded-md anim-skeleton flex-shrink-0" />
-                  <div className="h-3 flex-1 rounded anim-skeleton" />
-                  <div className="h-3 w-[120px] rounded anim-skeleton flex-shrink-0" />
-                  <div className="h-3 w-[40px] rounded anim-skeleton flex-shrink-0" />
+        {/* ROW 2: 6 domain-box shimmers — real header, async body shimmers */}
+        <div className="grid gap-4" style={{ gridTemplateColumns: BOX_GRID }}>
+          {DOMAIN_BOX_KEYS.map(key => {
+            const meta = BOX_META[key]
+            return (
+              <SectionCard
+                key={key}
+                icon={meta.icon}
+                {...(meta.iconTone ? { iconTone: meta.iconTone } : {})}
+                title={t(`boxes.${key}.title`)}
+                action={<div className="h-6 w-[4.5rem] rounded anim-skeleton" />}
+              >
+                {/* Total + delta shimmer */}
+                <div className="flex items-baseline gap-2">
+                  <div className="h-8 w-16 rounded anim-skeleton" />
+                  <div className="h-4 w-20 rounded-full anim-skeleton" />
                 </div>
-                {/* Mobile: flex-col gap-1.5 — action badge + date / targetLabel */}
-                <div className="lg:hidden flex flex-col gap-1.5">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="h-5 w-[90px] rounded-md anim-skeleton" />
-                    <div className="h-3 w-[40px] rounded anim-skeleton" />
-                  </div>
-                  <div className="h-3 w-[70%] rounded anim-skeleton" />
+                <hr className="border-border my-3" />
+                {/* Feed shimmer — one stripe per row */}
+                <div className="flex flex-col gap-0.5">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className="min-h-11 flex items-center px-2">
+                      <div className="h-3.5 w-full rounded anim-skeleton" />
+                    </div>
+                  ))}
                 </div>
-              </div>
-            ))}
-          </div>
+                {/* View-all muted placeholder */}
+                <div className="hidden lg:block pt-3 text-right">
+                  <span className="text-11.5 text-accent opacity-50 pointer-events-none">
+                    {t(`boxes.${key}.viewAll`)}
+                  </span>
+                </div>
+              </SectionCard>
+            )
+          })}
         </div>
       </div>
     )
   }
 
   const assets = data.assets
-
-  const statuses = [
-    { id: ASSET_STATUS.warehouse, name: t('status.st_warehouse'), color: 'gray'   },
-    { id: ASSET_STATUS.assigned,  name: t('status.st_assigned'),  color: 'green'  },
-    { id: ASSET_STATUS.repair,    name: t('status.st_repair'),    color: 'orange' },
-    { id: ASSET_STATUS.disposed,  name: t('status.st_disposed'),  color: 'red'    },
-  ] as const
 
   return (
     <div className="space-y-5">
@@ -224,6 +166,7 @@ export function DashboardPage({ repo }: DashboardPageProps) {
             to="/assets"
             accent="orange"
             featured
+            testId="section-total-assets"
             heroStats={[
               {
                 value: assets.byStatus[ASSET_STATUS.assigned],
@@ -263,6 +206,7 @@ export function DashboardPage({ repo }: DashboardPageProps) {
             value={data.workstationLicenses.total}
             {...(canAccess(role, 'licenses') ? { to: '/licenses' } : {})}
             accent="violet"
+            testId="section-licenses"
           />
         )}
         {data.people && (
@@ -277,35 +221,37 @@ export function DashboardPage({ repo }: DashboardPageProps) {
         )}
       </div>
 
-      {/* ROW 2 — Status breakdown + Group breakdown; auto-fit PANEL_GRID_2 */}
-      {assets && (
-        <div className="grid gap-4" style={{ gridTemplateColumns: PANEL_GRID_2 }}>
-          <StatusBars
-            byStatus={assets.byStatus}
-            total={assets.total}
-            statuses={[...statuses]}
-          />
-          <GroupBars byGroup={assets.byGroup} />
+      {/* ROW 2 — 6 domain boxes (total + 7-day mini-bar + event feed) */}
+      {data.boxes && (
+        <div className="grid gap-4" style={{ gridTemplateColumns: BOX_GRID }}>
+          {DOMAIN_BOX_KEYS.map(key => {
+            const meta = BOX_META[key]
+            const box = data.boxes![key]
+            const linked = canAccess(role, meta.routeId)
+            // Strip per-row links when the role can't reach the target list/detail.
+            const events = linked
+              ? box.events
+              : box.events.map(({ linkTo: _linkTo, ...rest }) => rest)
+            return (
+              <DomainBox
+                key={key}
+                icon={meta.icon}
+                {...(meta.iconTone ? { iconTone: meta.iconTone } : {})}
+                title={t(`boxes.${key}.title`)}
+                total={boxTotal(key, data)}
+                delta7d={box.delta7d}
+                days={box.days}
+                events={events}
+                barClass={meta.barClass}
+                {...(linked ? { viewAllTo: meta.path } : {})}
+                viewAllLabel={t(`boxes.${key}.viewAll`)}
+                emptyLabel={t('boxes.empty')}
+                {...(key === 'parts' ? { totalCaption: t('boxes.partsUnits') } : {})}
+                testId={`domain-box-${key}`}
+              />
+            )
+          })}
         </div>
-      )}
-
-      {/* ROW 3 — Branches + Licenses + Activity; auto-fit PANEL_GRID_3 */}
-      <div className="grid gap-4" style={{ gridTemplateColumns: PANEL_GRID_3 }}>
-        {assets && <BranchBars branches={assets.topBranches} />}
-        {data.workstationLicenses && (
-          <LicensePanel
-            stats={data.workstationLicenses}
-            serverLicenseCount={data.serverLicenseCount}
-          />
-        )}
-        {data.assignments && (
-          <ActivityPanel rows={data.assignments.recent} />
-        )}
-      </div>
-
-      {/* ROW 4 — Audit log table (super_admin only) */}
-      {data.recentAudit && (
-        <AuditTable rows={data.recentAudit} />
       )}
     </div>
   )

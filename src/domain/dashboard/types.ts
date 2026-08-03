@@ -1,6 +1,5 @@
 import type { AssetStatusId } from '@/domain/asset'
 import { ASSET_STATUS_IDS } from '@/domain/asset'
-import type { AuditAction } from '@/domain/audit'
 
 export type AssetGroup = 'devices' | 'network' | 'furniture'
 export const ASSET_GROUPS: readonly AssetGroup[] = ['devices', 'network', 'furniture']
@@ -15,23 +14,6 @@ export interface AssetStats {
   topBranches: BranchCount[]
 }
 
-export interface AssignmentActivityRow {
-  auditId: string
-  assetId: string
-  action: 'assigned' | 'returned'
-  actorUid: string
-  at: string
-  /** Human-readable label: «{brand} {model}», else invCode, else assetId. */
-  assetLabel: string
-  /** Display name of assignee (assigned) or prior holder (returned); null if unresolvable. */
-  recipientName: string | null
-}
-
-export interface AssignmentActivity {
-  currentlyOut: number
-  recent: AssignmentActivityRow[]
-}
-
 export interface WorkstationLicenseStats {
   total: number
   free: number
@@ -43,24 +25,12 @@ export interface PeopleStats {
   employeeCount: number
 }
 
-/** Enriched audit row for the dashboard audit table. Does NOT mutate the shared AuditLog type. */
-export interface DashboardAuditRow {
-  id: string
-  action: AuditAction
-  /** Best-effort display name of the actor; falls back to actorRole if unresolvable. */
-  actorName: string
-  /** Concise label for the affected entity (brand+model, employee name, etc.); falls back to entityType. */
-  targetLabel: string
-  at: string
-}
-
 export interface DashboardData {
   assets: AssetStats | null
-  assignments: AssignmentActivity | null
   workstationLicenses: WorkstationLicenseStats | null
-  serverLicenseCount: number | null
   people: PeopleStats | null
-  recentAudit: DashboardAuditRow[] | null
+  counts: DomainCounts | null
+  boxes: Record<DomainBoxKey, DomainBoxData> | null
 }
 
 /** Template of zeroed per-status counts. Spread (`{ ...EMPTY_STATUS_COUNTS }`) before mutating. */
@@ -76,4 +46,46 @@ export function emptyAssetStats(): AssetStats {
     byGroup: ASSET_GROUPS.map(group => ({ group, count: 0 })),
     topBranches: [],
   }
+}
+
+// ── Domain boxes (dashboard redesign 2026-07-31) ──────────────────────────────
+
+export type DomainBoxKey = 'assets' | 'employees' | 'parts' | 'subscriptions' | 'branches' | 'departments'
+
+export const DOMAIN_BOX_KEYS: readonly DomainBoxKey[] = [
+  'assets', 'employees', 'parts', 'subscriptions', 'branches', 'departments',
+]
+
+/** Одна строка ленты бокса. */
+export interface DomainEventVM {
+  id: string                  // auditId | movementId
+  primary: string             // label сущности / запчасти (fallback-цепочка, никогда не пустой)
+  secondary: string | null    // actorName (у part_movements всегда null)
+  at: string                  // ISO
+  linkTo?: string             // маршрут; страница убирает при отсутствии canAccess
+}
+
+export interface DomainBoxData {
+  key: DomainBoxKey
+  delta7d: number
+  days: number[]              // ровно 7, [0]=6 дней назад … [6]=сегодня
+  events: DomainEventVM[]     // ≤ 6, desc
+}
+
+/**
+ * Поля nullable per-count: /subscriptions read закрыт для asset_admin
+ * (firestore.rules PII-обоснование) — счётчик деградирует в null («—» в UI),
+ * остальные боксы живут.
+ */
+export interface DomainCounts {
+  partsUnits: number | null
+  branches: number | null
+  departments: number | null
+  subscriptions: number | null   // subscriptions count + licenses(type=='Subscription') count
+}
+
+/** Результат loadDomainCounts: счётчики + карта имён SKU (каталог parts уже прочитан для Σ onHand). */
+export interface DomainCountsResult {
+  counts: DomainCounts
+  partNames: Record<string, string>
 }

@@ -1,19 +1,24 @@
 import {
-  collection, doc, getDocs, getDoc, query as fsQuery, where, orderBy, limit as fsLimit,
+  collection, getDocs, query as fsQuery, where, orderBy, limit as fsLimit,
+  Timestamp, getCountFromServer,
   type Firestore,
+  type AggregateQuerySnapshot,
+  type AggregateField,
 } from 'firebase/firestore'
 import type { Asset, CategoryRow, RefRow, StatusRow, EmployeeRow } from '@/domain/asset'
 import type { AssetReferenceData } from '@/domain/asset'
 import type { WorkstationLicense } from '@/domain/license'
 import type { AuditLog } from '@/domain/audit'
+import type { PartMovement } from '@/domain/part/types'
 import type { DashboardRepository } from '@/domain/dashboard'
 import type {
-  AssetStats, AssignmentActivityRow, WorkstationLicenseStats, PeopleStats, DashboardAuditRow,
-  AssetActivityInfo, EmployeeActivityInfo,
+  AssetStats, WorkstationLicenseStats, PeopleStats, DomainCountsResult,
 } from '@/domain/dashboard'
 import {
-  reduceAssetStats, reduceWorkstationLicenseStats, mapAssignmentActivity, resolveTargetLabel,
+  reduceAssetStats, reduceWorkstationLicenseStats,
+  DASHBOARD_AUDIT_CAP, DASHBOARD_MOVEMENTS_CAP,
 } from '@/domain/dashboard'
+import { toMovement } from './firestorePartRepository.mappers'
 
 function toIso(v: unknown): string {
   if (typeof v === 'string') return v
@@ -71,72 +76,6 @@ export class FirestoreDashboardRepository implements DashboardRepository {
     }
   }
 
-  async loadAssignmentActivity(limitN = 8): Promise<AssignmentActivityRow[]> {
-    const snap = await getDocs(fsQuery(
-      collection(this.db, 'audit_logs'),
-      where('entityType', '==', 'assignment'),
-      orderBy('at', 'desc'),
-      fsLimit(limitN * 2),
-    ))
-    const rows = snap.docs.map(d => this.toAuditLog(d.id, d.data() as Record<string, unknown>))
-
-    // Collect unique assetIds from assign/return rows
-    const candidateRows = rows.filter(l => l.action === 'assigned' || l.action === 'returned')
-    const assetIds = [...new Set(
-      candidateRows
-        .map(l => String((l.after as Record<string, unknown> | null)?.assetId ?? ''))
-        .filter(Boolean),
-    )]
-
-    // Fetch asset docs in parallel (small N, per-row lookup acceptable)
-    const assetMap = new Map<string, AssetActivityInfo>()
-    await Promise.all(assetIds.map(async id => {
-      try {
-        const s = await getDoc(doc(this.db, 'assets', id))
-        if (s.exists()) {
-          const x = s.data() as Record<string, unknown>
-          const assignment = x.assignment as Record<string, unknown> | null
-          assetMap.set(id, {
-            brand: String(x.brand ?? '').trim() || null,
-            model: String(x.model ?? '').trim() || null,
-            invCode: String(x.invCode ?? ''),
-            assignedEmployeeId: assignment?.mode === 'employee'
-              ? (String(assignment.employeeId ?? '').trim() || null)
-              : null,
-          })
-        }
-      } catch {
-        // asset unresolvable — label falls back to assetId
-      }
-    }))
-
-    // Collect unique employeeIds from assets
-    const employeeIds = [...new Set(
-      [...assetMap.values()]
-        .map(a => a.assignedEmployeeId)
-        .filter((id): id is string => id !== null),
-    )]
-
-    // Fetch employee docs in parallel
-    const employeeMap = new Map<string, EmployeeActivityInfo>()
-    await Promise.all(employeeIds.map(async id => {
-      try {
-        const s = await getDoc(doc(this.db, 'employees', id))
-        if (s.exists()) {
-          const x = s.data() as Record<string, unknown>
-          employeeMap.set(id, {
-            firstName: String(x.firstName ?? '').trim() || null,
-            lastName: String(x.lastName ?? '').trim() || null,
-          })
-        }
-      } catch {
-        // employee unresolvable — recipientName stays null
-      }
-    }))
-
-    return mapAssignmentActivity(rows, assetMap, employeeMap).slice(0, limitN)
-  }
-
   async loadWorkstationLicenseStats(): Promise<WorkstationLicenseStats> {
     const snap = await getDocs(collection(this.db, 'licenses'))
     const rows = snap.docs.map(d => {
@@ -158,46 +97,70 @@ export class FirestoreDashboardRepository implements DashboardRepository {
     return reduceWorkstationLicenseStats(rows)
   }
 
-  async loadServerLicenseCount(): Promise<number> {
-    const snap = await getDocs(collection(this.db, 'server_licenses'))
-    return snap.size
-  }
-
   async loadPeopleStats(): Promise<PeopleStats> {
     const employeesSnap = await getDocs(collection(this.db, 'employees'))
     return { employeeCount: employeesSnap.size }
   }
 
-  async loadRecentAuditRows(limitN = 8): Promise<DashboardAuditRow[]> {
+  async loadRecentEvents(sinceIso: string, cap = DASHBOARD_AUDIT_CAP): Promise<AuditLog[]> {
     const snap = await getDocs(fsQuery(
       collection(this.db, 'audit_logs'),
+      where('at', '>=', Timestamp.fromDate(new Date(sinceIso))),
       orderBy('at', 'desc'),
-      fsLimit(limitN),
+      fsLimit(cap),
     ))
-    const logs = snap.docs.map(d => this.toAuditLog(d.id, d.data() as Record<string, unknown>))
+    return snap.docs.map(d => this.toAuditLog(d.id, d.data() as Record<string, unknown>))
+  }
 
-    // Resolve actor display names from /users/{uid}.displayName (best-effort)
-    const uniqueUids = [...new Set(logs.map(l => l.actorUid).filter(Boolean))]
-    const actorNames = new Map<string, string>()
-    await Promise.all(uniqueUids.map(async uid => {
-      try {
-        const u = await getDoc(doc(this.db, 'users', uid))
-        if (u.exists()) {
-          const name = String((u.data() as Record<string, unknown>).displayName ?? '').trim()
-          if (name) actorNames.set(uid, name)
-        }
-      } catch {
-        // unresolvable — actorRole fallback applied below
+  async loadRecentPartInstalls(sinceIso: string, cap = DASHBOARD_MOVEMENTS_CAP): Promise<PartMovement[]> {
+    const snap = await getDocs(fsQuery(
+      collection(this.db, 'part_movements'),
+      where('at', '>=', Timestamp.fromDate(new Date(sinceIso))),
+      orderBy('at', 'desc'),
+      fsLimit(cap),
+    ))
+    return snap.docs
+      .map(d => toMovement(d.id, d.data() as Record<string, unknown>))
+      .filter(m => m.type === 'install')
+  }
+
+  async loadDomainCounts(): Promise<DomainCountsResult> {
+    // branches: listBranches has no status filter in the production adapter — count all.
+    const [branches, departments, subs, subLics, partsSnap] = await Promise.allSettled([
+      getCountFromServer(collection(this.db, 'branches')),
+      getCountFromServer(collection(this.db, 'departments')),
+      getCountFromServer(collection(this.db, 'subscriptions')),
+      getCountFromServer(fsQuery(collection(this.db, 'licenses'), where('type', '==', 'Subscription'))),
+      getDocs(collection(this.db, 'parts')),
+    ])
+
+    let partsUnits: number | null = null
+    const partNames: Record<string, string> = {}
+    if (partsSnap.status === 'fulfilled') {
+      partsUnits = 0
+      for (const d of partsSnap.value.docs) {
+        const x = d.data() as Record<string, unknown>
+        partsUnits += Number(x.onHand ?? 0)
+        partNames[d.id] = String(x.name ?? '').trim() || d.id
       }
-    }))
+    }
 
-    return logs.map(log => ({
-      id: log.id,
-      action: log.action,
-      actorName: actorNames.get(log.actorUid) ?? log.actorRole,
-      targetLabel: resolveTargetLabel(log),
-      at: log.at,
-    }))
+    const count = (r: PromiseSettledResult<AggregateQuerySnapshot<{ count: AggregateField<number> }>>) =>
+      r.status === 'fulfilled' ? r.value.data().count : null
+
+    const subsCount = count(subs)
+    const subLicCount = count(subLics)
+
+    return {
+      counts: {
+        partsUnits,
+        branches: count(branches),
+        departments: count(departments),
+        // subscriptions = SaaS subscriptions + licenses of type 'Subscription'
+        subscriptions: subsCount !== null && subLicCount !== null ? subsCount + subLicCount : null,
+      },
+      partNames,
+    }
   }
 
   private toAuditLog(id: string, x: Record<string, unknown>): AuditLog {
@@ -211,6 +174,7 @@ export class FirestoreDashboardRepository implements DashboardRepository {
       before: (x.before as AuditLog['before']) ?? null,
       after: (x.after as AuditLog['after']) ?? null,
       comment: (x.comment as string | null) ?? null,
+      actorName: (x.actorName as string | null | undefined) ?? null,
       at: toIso(x.at),
     }
   }
@@ -222,4 +186,5 @@ export class FirestoreDashboardRepository implements DashboardRepository {
     const snap = await getDocs(collection(this.db, name))
     return snap.docs.map(d => ({ ...map(d.data() as Record<string, unknown>), id: d.id } as T))
   }
+
 }
