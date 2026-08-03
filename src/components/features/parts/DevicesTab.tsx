@@ -140,12 +140,13 @@ export function DevicesTab({
                   onClick={() => setFamily(f.id)}
                   className={
                     'h-7 w-full rounded-md text-14 font-medium border transition-colors inline-flex items-center justify-center ' +
-                    // Mobile: compact prototype pills — auto width (w-full is for the desktop grid),
-                    // 12.5px text, 7px/18px padding, horizontal scroll row.
-                    'max-md:w-auto max-md:rounded-full max-md:h-auto max-md:py-[0.4375rem] max-md:px-4.5 max-md:text-12.5 max-md:font-semibold max-md:whitespace-nowrap max-md:flex-shrink-0 ' +
+                    // Mobile: match the warehouse CategoryChipStrip pill exactly
+                    // (h-8 px-2.5 rounded-lg text-13, solid surface + border-border idle),
+                    // so both parts tabs share one pill look. Horizontal scroll row.
+                    'max-md:w-auto max-md:rounded-lg max-md:h-8 max-md:px-2.5 max-md:text-13 max-md:font-semibold max-md:whitespace-nowrap max-md:flex-shrink-0 ' +
                     (active
                       ? 'bg-accent border-accent text-white'
-                      : 'bg-surface border-border text-text-tertiary hover:text-text-primary hover:border-[#3A3F46] max-md:border-white/10 light:max-md:border-black/10')
+                      : 'bg-surface border-border text-text-tertiary hover:text-text-primary hover:border-[#3A3F46] max-md:text-text-primary')
                   }
                 >
                   {t(f.labelKey, f.labelFallback)}
