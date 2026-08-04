@@ -401,6 +401,40 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // ---- /notifications — bell events (receipt confirmed / role activated) ----
+    // Read is scoped by audience: any admin sees 'admins'; only super_admin sees
+    // 'super_admin'. receipt_confirmed docs are written by the Vercel confirm
+    // functions via the service account (bypasses rules). The ONLY client create
+    // is the first-login role_activated self-report (userUid must be the caller).
+    // Updates may only append the caller's own uid to readBy (mark-as-read).
+    // Nothing is ever deleted from the client.
+    match /notifications/{id} {
+      allow read: if (isAnyAdmin() && resource.data.audience == 'admins')
+        || (isSuperAdmin() && resource.data.audience == 'super_admin');
+      allow create: if isSignedIn()
+        && request.resource.data.type == 'role_activated'
+        && request.resource.data.audience == 'super_admin'
+        && request.resource.data.userUid == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.readBy is list
+        && request.resource.data.readBy.size() == 0
+        && request.resource.data.userName is string
+        && request.resource.data.userEmail is string
+        && request.resource.data.roleId is string
+        && request.resource.data.keys().hasAll(
+             ['type', 'audience', 'userUid', 'userName', 'userEmail', 'roleId', 'createdAt', 'readBy'])
+        && request.resource.data.keys().hasOnly(
+             ['type', 'audience', 'userUid', 'userName', 'userEmail', 'roleId', 'createdAt', 'readBy']);
+      allow update: if ((isAnyAdmin() && resource.data.audience == 'admins')
+          || (isSuperAdmin() && resource.data.audience == 'super_admin'))
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readBy'])
+        && request.resource.data.readBy is list
+        && request.resource.data.readBy.hasAll(resource.data.readBy)
+        && request.resource.data.readBy.size() <= resource.data.readBy.size() + 1
+        && request.auth.uid in request.resource.data.readBy;
+      allow delete: if false;
+    }
+
     // ---- /mail — Trigger Email queue. Write-only for admins; never client-readable. ----
     match /mail/{id} {
       allow create: if isSuperAdmin() || isAssetAdmin();
@@ -516,7 +550,9 @@ service cloud.firestore {
     //   · at         must equal request.time (server timestamp — rules compare timestamps).
     //   · type       must be one of the four defined MovementType values.
     //   · keys()     are whitelisted; optional fields (assetId, assetInvCode, note, reason,
-    //                kindId, kindLabel) may be absent but are the ONLY extras allowed.
+    //                kindId, kindLabel, and the replace-install denormalisation
+    //                replacedSpec / replacedStorageType / replacedSlotIndex / oldDisposal)
+    //                may be absent but are the ONLY extras allowed.
     match /part_movements/{id} {
       allow read: if isSignedIn() && role() in ['super_admin', 'asset_admin', 'tech_admin'];
 
@@ -529,6 +565,7 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly([
              'type', 'skuId', 'qty', 'broken', 'assetId', 'assetInvCode',
              'serviceReplace', 'note', 'reason', 'kindId', 'kindLabel',
+             'replacedSpec', 'replacedStorageType', 'replacedSlotIndex', 'oldDisposal',
              'actorUid', 'actorRole', 'at']);
 
       allow update, delete: if false;
