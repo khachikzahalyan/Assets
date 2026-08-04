@@ -75,6 +75,20 @@ export function toMovement(id: string, d: Record<string, unknown>): PartMovement
     actorUid: String(d['actorUid'] ?? ''),
     actorRole: d['actorRole'] as PartMovement['actorRole'],
     at: toIso(d['at']),
+    // Replace-install denormalisation (optional — conditional-spread keeps
+    // exactOptionalPropertyTypes happy and old docs shape-identical).
+    ...(typeof d['replacedSpec'] === 'string' && d['replacedSpec'] !== ''
+      ? { replacedSpec: d['replacedSpec'] }
+      : {}),
+    ...(d['replacedStorageType'] !== undefined
+      ? { replacedStorageType: (d['replacedStorageType'] as string | null) ?? null }
+      : {}),
+    ...(typeof d['replacedSlotIndex'] === 'number'
+      ? { replacedSlotIndex: d['replacedSlotIndex'] }
+      : {}),
+    ...(d['oldDisposal'] === 'kept' || d['oldDisposal'] === 'broken'
+      ? { oldDisposal: d['oldDisposal'] }
+      : {}),
   }
 }
 

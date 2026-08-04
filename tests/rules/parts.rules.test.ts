@@ -64,6 +64,22 @@ describe('/part_movements create — whitelist (bug #1 regression guard)', () =>
     await assertSucceeds(setDoc(doc(db, 'part_movements/m_ok'), movementDoc(TECH, 'tech_admin')))
   })
 
+  it('allows a replace-install movement with the replaced-part denormalisation fields', async () => {
+    const db = authedDb(env, TECH)
+    await assertSucceeds(
+      setDoc(doc(db, 'part_movements/m_replace'), {
+        ...movementDoc(TECH, 'tech_admin'),
+        type: 'install',
+        assetId: 'asset1',
+        assetInvCode: 'INV/asset1',
+        replacedSpec: 'SSD 512 ГБ',
+        replacedStorageType: 'SSD',
+        replacedSlotIndex: 1,
+        oldDisposal: 'kept',
+      }),
+    )
+  })
+
   it('REJECTS a movement carrying a stray actorName (the GPU-add prod failure)', async () => {
     const db = authedDb(env, TECH)
     await assertFails(

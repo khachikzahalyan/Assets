@@ -95,6 +95,10 @@ export const HistoryRowMobile = memo(function HistoryRowMobile({
   /* Subline — install: «Осталось N шт» moves here (kills the pill-overlap bug) */
   const assetCode = mv.assetInvCode ?? mv.assetId ?? null
   const assetName = rt.assetName ?? null
+  /* Replace-install denormalisation: «← заменил <old spec>» (subtle, joined inline) */
+  const replacedNote = mv.replacedSpec
+    ? `← ${t('warehouse.replacedOld')} ${mv.replacedSpec}${mv.replacedStorageType ? ` · ${mv.replacedStorageType}` : ''}`
+    : null
 
   /* Slots */
   const iconTile = (
@@ -128,11 +132,11 @@ export const HistoryRowMobile = memo(function HistoryRowMobile({
           {t('warehouse.fromWarehouse')}
         </span>
       ) : kind === 'install' ? (
-        [assetCode, assetName, `${t('warehouse.actionRemaining')} ${remainingAfter} шт`]
+        [assetCode, assetName, replacedNote, `${t('warehouse.actionRemaining')} ${remainingAfter} шт`]
           .filter(Boolean)
           .join(' · ')
       ) : (
-        [assetCode, assetName].filter(Boolean).join(' · ')
+        [assetCode, assetName, replacedNote].filter(Boolean).join(' · ')
       )}
     </div>
   )

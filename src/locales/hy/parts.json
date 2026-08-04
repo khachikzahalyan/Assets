@@ -94,7 +94,7 @@
     "close": "Փակել",
     "confirm": "Տեղադրել",
     "disposalBroken": "Դուրս գրել (անսարք)",
-    "disposalWarehouse": "Վերադարձնել պահեստ",
+    "disposalKeep": "Պահել որպես սարքին",
     "errorFailed": "Չհաջողվեց տեղադրել մասը: Կրկին փորձեք:",
     "insufficientStock": "Պահեստում բավարար քանակ չկա",
     "labelAction": "Գործողություն",
@@ -208,6 +208,7 @@
     "noStock": "Պահեստում չկա",
     "pageNext": "Հաջորդ",
     "pageOf": "Էջ {{page}} {{total}}-ից",
-    "pagePrev": "Նախորդ"
+    "pagePrev": "Նախորդ",
+    "replacedOld": "փոխարինեց"
   }
 }

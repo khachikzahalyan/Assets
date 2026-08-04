@@ -320,7 +320,7 @@ export function HistoryPanel({
             aria-hidden="true"
             className="ams-stock-history-list border-t border-border"
             style={{
-              minHeight: '60vh',
+              minHeight: '60dvh',
               backgroundImage:
                 'repeating-linear-gradient(to bottom, transparent 0, transparent calc(3rem - 1px), var(--color-border) calc(3rem - 1px), var(--color-border) 3rem)',
             }}
@@ -452,6 +452,10 @@ export function HistoryPanel({
                   /* Subline: asset invcode + name OR «Со склада» — prototype lines 3961-3974 */
                   const assetCode = mv.assetInvCode ?? mv.assetId
                   const assetName = (mv as MovementRuntime).assetName ?? null
+                  /* Replace-install denormalisation: «← заменил <old spec>» (subtle) */
+                  const replacedLabel = mv.replacedSpec
+                    ? `${mv.replacedSpec}${mv.replacedStorageType ? ` · ${mv.replacedStorageType}` : ''}`
+                    : null
                   const subline = assetCode ? (
                     <>
                       <span className="font-mono text-13 uppercase tracking-wider bg-white/5 border border-white/10 rounded px-1.5 py-0.5 text-zinc-300 flex-shrink-0 light:bg-slate-100 light:border-slate-300 light:text-slate-600">
@@ -459,6 +463,12 @@ export function HistoryPanel({
                       </span>
                       {assetName && (
                         <span className="ams-stock-history-asset-name truncate text-text-subtle">{assetName}</span>
+                      )}
+                      {replacedLabel && (
+                        <span className="inline-flex items-center gap-1 min-w-0 text-text-subtle">
+                          <span aria-hidden="true">←</span>
+                          <span className="truncate">{t('warehouse.replacedOld')} {replacedLabel}</span>
+                        </span>
                       )}
                     </>
                   ) : (

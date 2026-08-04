@@ -364,3 +364,89 @@ describe('HistoryRowMobile', () => {
     expect(screen.getByText('Блок питания')).toBeInTheDocument()
   })
 })
+
+// ── Replace-install denormalisation: «← заменил <old spec>» affordance ─────
+describe('replaced-part affordance («← заменил X»)', () => {
+  it('desktop install row with replacedSpec: renders the replaced-old label with old spec + storageType', () => {
+    const parts = [makePart()]
+    const movements = [makeMovement({
+      type: 'install',
+      serviceReplace: false,
+      replacedSpec: 'SSD 512 ГБ',
+      replacedStorageType: 'SSD',
+      replacedSlotIndex: 1,
+      oldDisposal: 'kept',
+    })]
+
+    render(
+      <HistoryPanel
+        movements={movements}
+        parts={parts}
+        partsAssets={[makePartsAsset()]}
+        isMobile={false}
+        remainingAfterMap={{ mv_001: 4 }}
+      />,
+    )
+
+    // t() returns the key; the old spec is rendered next to it in the same span
+    const label = screen.getByText(/warehouse\.replacedOld/)
+    expect(label).toBeInTheDocument()
+    expect(label.textContent).toContain('SSD 512 ГБ')
+    expect(label.textContent).toContain('· SSD')
+  })
+
+  it('desktop install row WITHOUT replacedSpec: no replaced-old affordance', () => {
+    const parts = [makePart()]
+    const movements = [makeMovement({ type: 'install', serviceReplace: false })]
+
+    render(
+      <HistoryPanel
+        movements={movements}
+        parts={parts}
+        partsAssets={[makePartsAsset()]}
+        isMobile={false}
+        remainingAfterMap={{ mv_001: 4 }}
+      />,
+    )
+
+    expect(screen.queryByText(/warehouse\.replacedOld/)).not.toBeInTheDocument()
+  })
+
+  it('mobile row (HistoryRowMobile) with replacedSpec: subline carries «← заменил <old spec>»', () => {
+    const mv = makeMovement({
+      type: 'install',
+      serviceReplace: false,
+      replacedSpec: 'HDD 1 ТБ',
+      replacedStorageType: 'HDD',
+      oldDisposal: 'kept',
+    })
+
+    render(
+      <HistoryRowMobile
+        mv={mv}
+        skuLabel="Блок питания"
+        catIconName="plug"
+        remainingAfter={4}
+        assetCategoryName="Ноутбук"
+      />,
+    )
+
+    expect(screen.getByText(/← warehouse\.replacedOld HDD 1 ТБ · HDD/)).toBeInTheDocument()
+  })
+
+  it('mobile row without replacedSpec: subline has no replaced-old note', () => {
+    const mv = makeMovement({ type: 'install', serviceReplace: false })
+
+    render(
+      <HistoryRowMobile
+        mv={mv}
+        skuLabel="Блок питания"
+        catIconName="plug"
+        remainingAfter={4}
+        assetCategoryName="Ноутбук"
+      />,
+    )
+
+    expect(screen.queryByText(/warehouse\.replacedOld/)).not.toBeInTheDocument()
+  })
+})

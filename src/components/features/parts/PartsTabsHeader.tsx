@@ -47,7 +47,6 @@ export interface PartsTabsHeaderProps {
 export function PartsTabsHeader({
   activeTab,
   onTabChange,
-  devicesCount,
   onAdd,
   deviceSearch,
   onDeviceSearchChange,
@@ -60,17 +59,20 @@ export function PartsTabsHeader({
 }: PartsTabsHeaderProps) {
   const { t } = useTranslation('parts')
 
+  // No count badge on the parts tabs (owner request) — labels only.
   const tabItems: TabStripItem<ActiveTab>[] = TABS.map(tab => ({
     id: tab.id,
     label: t(tab.labelKey),
     icon: tab.icon,
-    ...(tab.id === 'devices' && devicesCount > 0 ? { count: devicesCount } : {}),
   }))
 
   return (
     <>
-      {/* ── Tab strip ─────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between border-b border-border max-md:bg-surface-2 max-md:px-1.5">
+      {/* ── Tab strip ─────────────────────────────────────────────────────────
+          Mobile: items-end so the active-tab underline sits flush ON the header's
+          bottom border (the 36px «+» no longer centers the shorter tabs off it);
+          pt-[5px] gives top breathing room. Desktop keeps items-center. ── */}
+      <div className="flex items-end md:items-center justify-between border-b border-border max-md:bg-surface-2 max-md:px-3.5 max-md:pt-[5px]">
         <TabStrip<ActiveTab>
           tabs={tabItems}
           active={activeTab}
@@ -94,7 +96,7 @@ export function PartsTabsHeader({
         <MobileAddButton
           onClick={onAdd}
           ariaLabel={t('actions.add')}
-          className="md:hidden mr-2"
+          className="md:hidden mr-2 self-center"
         />
       </div>
 

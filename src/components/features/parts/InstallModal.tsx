@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import ReactDOM from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { Btn, Icon, MobileSheet } from '@/components/ui'
@@ -25,7 +25,12 @@ export interface InstallModalProps {
   onConfirm: (input: InstallInput) => Promise<void>
 }
 
-type DisposalChoice = 'warehouse' | 'broken'
+/**
+ * Fate of the old part on replace. 'keep' is a RECORD-ONLY note — the old part
+ * does NOT return to warehouse stock (install-replace credits nothing back;
+ * only a real uninstall does). 'broken' selects the scrap wording/audit.
+ */
+type DisposalChoice = 'keep' | 'broken'
 type ActionMode = 'install' | 'replace' | 'add'
 
 /**
@@ -55,7 +60,7 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null)
   const [actionMode, setActionMode] = useState<ActionMode>('install')
   const [replaceIdx, setReplaceIdx] = useState<number | null>(null)
-  const [disposal, setDisposal] = useState<DisposalChoice>('warehouse')
+  const [disposal, setDisposal] = useState<DisposalChoice>('keep')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -63,7 +68,7 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
     setSelectedAssetId(null)
     setActionMode('install')
     setReplaceIdx(null)
-    setDisposal('warehouse')
+    setDisposal('keep')
     setError(null)
     onClose()
   }, [onClose])
@@ -110,10 +115,32 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
   const handleAssetSelect = useCallback((assetId: string) => {
     setSelectedAssetId(assetId)
     setReplaceIdx(null)
-    setDisposal('warehouse')
+    setDisposal('keep')
     setError(null)
     setActionMode('install')
   }, [])
+
+  /**
+   * Occupied slots for the SKU's kind on the selected asset. Memoised BEFORE the
+   * early return so the auto-select effect below can depend on it.
+   */
+  const occupiedSlots = useMemo(
+    () => existingSlots.filter(s => !s.isEmpty),
+    [existingSlots],
+  )
+
+  /**
+   * Auto-select the sole occupied slot as the replace target. Covers BOTH former
+   * silent-append holes: (a) forced replace on single-slot categories, where the
+   * radio's onChange never fired, and (b) multi-slot categories with exactly one
+   * occupied slot, where submit was possible without picking a row. With this,
+   * the payload always carries a real replaceUcIndex when a replace is possible.
+   */
+  useEffect(() => {
+    if (selectedAsset && occupiedSlots.length === 1 && replaceIdx === null) {
+      setReplaceIdx(occupiedSlots[0]!.idx)
+    }
+  }, [selectedAsset, occupiedSlots, replaceIdx])
 
   // Once we know existingSlots, snap actionMode to derived if not yet set by user
   const effectiveAction = !selectedAsset ? 'install' : (actionMode === 'install' ? derivedAction : actionMode)
@@ -156,8 +183,6 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
 
   if (!open || !sku) return null
 
-  const occupiedSlots = existingSlots.filter(s => !s.isEmpty)
-
   // For single-slot with exactly 1 current: action is forced (no radio needed)
   const forcedReplace = isSingle && occupiedSlots.length === 1
 
@@ -173,7 +198,7 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
         </p>
       </div>
 
-      <div className="overflow-y-auto flex flex-col gap-4 px-5 py-4 max-md:flex-1 max-md:min-h-0" style={{ maxHeight: '60vh' }}>
+      <div className="overflow-y-auto flex flex-col gap-4 px-5 py-4 max-md:flex-1 max-md:min-h-0" style={{ maxHeight: '60dvh' }}>
         {/* Stock warning */}
         {!isService && !stockOk && (
           <div className="flex items-center gap-2 bg-rose-950/30 border border-rose-800/40 rounded-lg px-3 py-2 text-12.5 text-rose-300 light:bg-rose-50 light:border-rose-200 light:text-rose-700">
@@ -241,11 +266,12 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
                           value="replace"
                           checked={isPicked || forcedReplace}
                           onChange={() => {
-                            if (!forcedReplace) {
-                              setActionMode('replace')
-                              setReplaceIdx(idx)
-                              setDisposal('warehouse')
-                            }
+                            // Always record the target index — including forced
+                            // replace (belt & suspenders next to the auto-select
+                            // effect) so the payload never lacks replaceUcIndex.
+                            setActionMode('replace')
+                            setReplaceIdx(idx)
+                            setDisposal('keep')
                           }}
                           className={forcedReplace ? 'sr-only' : 'mt-1 accent-rose-500'}
                         />
@@ -280,27 +306,27 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
                           <div className="grid grid-cols-2 gap-2">
                             <label
                               className={`flex items-center justify-center gap-2 px-2 py-2 rounded-md cursor-pointer transition-colors min-h-[var(--ctl-h-md)] border
-                                ${disposal === 'warehouse'
+                                ${disposal === 'keep'
                                   ? 'bg-emerald-500/10 ring-1 ring-emerald-500/30 border-emerald-500/40'
                                   : 'border-border hover:bg-surface-2'}`}
                             >
                               <input
                                 type="radio"
                                 name="disposal"
-                                value="warehouse"
-                                checked={disposal === 'warehouse'}
-                                onChange={() => setDisposal('warehouse')}
+                                value="keep"
+                                checked={disposal === 'keep'}
+                                onChange={() => setDisposal('keep')}
                                 className="sr-only"
                               />
                               <span className={`w-3.5 h-3.5 rounded-full border flex-shrink-0 flex items-center justify-center transition-colors
-                                ${disposal === 'warehouse' ? 'bg-emerald-500 border-emerald-500' : 'bg-border border-border-strong'}`}>
-                                {disposal === 'warehouse' && (
+                                ${disposal === 'keep' ? 'bg-emerald-500 border-emerald-500' : 'bg-border border-border-strong'}`}>
+                                {disposal === 'keep' && (
                                   <span className="w-1.5 h-1.5 rounded-full bg-white inline-block" />
                                 )}
                               </span>
-                              <Icon name="package" size={12} className={`flex-shrink-0 ${disposal === 'warehouse' ? 'text-emerald-400 light:text-emerald-700' : 'text-text-subtle'}`} />
-                              <span className={`text-13 leading-tight ${disposal === 'warehouse' ? 'text-emerald-300 light:text-emerald-700' : 'text-text-secondary'}`}>
-                                Вернуть на склад
+                              <Icon name="package" size={12} className={`flex-shrink-0 ${disposal === 'keep' ? 'text-emerald-400 light:text-emerald-700' : 'text-text-subtle'}`} />
+                              <span className={`text-13 leading-tight ${disposal === 'keep' ? 'text-emerald-300 light:text-emerald-700' : 'text-text-secondary'}`}>
+                                {t('installModal.disposalKeep')}
                               </span>
                             </label>
                             <label
@@ -346,7 +372,7 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
                       name="action-mode"
                       value="add"
                       checked={effectiveAction === 'add'}
-                      onChange={() => { setActionMode('add'); setDisposal('warehouse') }}
+                      onChange={() => { setActionMode('add'); setDisposal('keep') }}
                       className="mt-1 accent-emerald-500"
                     />
                     <div className="min-w-0 flex-1">
@@ -383,7 +409,10 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
           disabled={
             submitting ||
             !canSubmit ||
-            (effectiveAction === 'replace' && !forcedReplace && replaceIdx === null && occupiedSlots.length > 1)
+            // A replace may NEVER submit without a resolved target index —
+            // regardless of how many slots are occupied (the sole-occupied and
+            // forced-replace cases are auto-selected by the effect above).
+            (effectiveAction === 'replace' && replaceIdx === null)
           }
         >
           {submitting ? (

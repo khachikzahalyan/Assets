@@ -27,6 +27,30 @@ export function isInsufficientStockError(e: unknown): e is InsufficientStockErro
 }
 
 /**
+ * Thrown by the installPart replace path when the explicitly-requested
+ * replaceUcIndex points at an upgradeCurrent slot whose `kind` does not match
+ * the slot kind the SKU category resolves to (slotKindForSku). Defensive guard:
+ * a RAM install must never overwrite a storage slot because of a stale index.
+ */
+export class SlotKindMismatchError extends Error {
+  override readonly name = 'SlotKindMismatchError'
+
+  constructor(
+    readonly slotIndex: number,
+    readonly expectedKind: string,
+    readonly actualKind: string,
+  ) {
+    super(
+      `SlotKindMismatchError: upgradeCurrent[${slotIndex}] has kind '${actualKind}', expected '${expectedKind}'`,
+    )
+  }
+}
+
+export function isSlotKindMismatchError(e: unknown): e is SlotKindMismatchError {
+  return e instanceof SlotKindMismatchError
+}
+
+/**
  * Thrown by createModelSku when the resolved PartCategoryDef has
  * behavior !== 'models'. E.g. calling createModelSku with categoryId 'ram'
  * (behavior 'sized') must fail at the domain level before any Firestore write.

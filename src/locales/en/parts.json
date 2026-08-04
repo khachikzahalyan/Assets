@@ -94,7 +94,7 @@
     "close": "Close",
     "confirm": "Install",
     "disposalBroken": "Scrap (faulty)",
-    "disposalWarehouse": "Return to stock",
+    "disposalKeep": "Keep as working",
     "errorFailed": "Failed to install part. Please try again.",
     "insufficientStock": "Not enough in stock",
     "labelAction": "Action",
@@ -208,6 +208,7 @@
     "noStock": "Out of stock",
     "pageNext": "Next",
     "pageOf": "Page {{page}} of {{total}}",
-    "pagePrev": "Prev"
+    "pagePrev": "Prev",
+    "replacedOld": "replaced"
   }
 }

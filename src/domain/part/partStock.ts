@@ -16,6 +16,7 @@
 import { LAPTOP_CATEGORY_IDS, SERVER_CATEGORY_IDS } from '@/domain/asset/categoryCapabilities'
 import type { AssetSpecs } from '@/domain/asset/types'
 import type { PartCategory, PartStock, UpgradeSlot } from './types'
+import { SlotKindMismatchError } from './errors'
 
 export type AssetFamily = 'laptop' | 'desktop' | 'server' | null
 
@@ -202,6 +203,55 @@ export function currentPartsForSkuCategory(
     out.push({ idx: i, slot: s, isEmpty: !s.spec || s.spec === '' })
   }
   return out
+}
+
+/**
+ * Resolve which upgradeCurrent index a replace-install must overwrite.
+ * SINGLE source of truth for BOTH write adapters (Firestore + in-memory) so a
+ * `action:'replace'` can never silently degrade into an append.
+ *
+ * Rules:
+ *   1. Explicit valid `requestedIndex` → guard the slot's kind against
+ *      slotKindForSku (throws SlotKindMismatchError on mismatch), return it.
+ *   2. null / out-of-range index → resolve the same way the UI does, via
+ *      currentPartsForSkuCategory over the SAME array the txn will mutate:
+ *        · exactly ONE occupied slot → replace it (the only sane target);
+ *        · ZERO occupied slots      → return null = append as a TRUE add
+ *                                     (nothing exists to replace);
+ *        · TWO OR MORE occupied     → throw — the target is ambiguous and
+ *                                     guessing would reintroduce the
+ *                                     silent-append bug.
+ */
+export function resolveReplaceTargetIndex(
+  upgradeCurrent: ReadonlyArray<UpgradeSlot>,
+  skuCat: PartCategory,
+  assetFamily: AssetFamily,
+  requestedIndex: number | null,
+): number | null {
+  const expectedKind = slotKindForSku(skuCat, assetFamily)
+
+  if (
+    requestedIndex !== null &&
+    requestedIndex >= 0 &&
+    requestedIndex < upgradeCurrent.length
+  ) {
+    const slot = upgradeCurrent[requestedIndex]!
+    if (expectedKind && slot.kind !== expectedKind) {
+      throw new SlotKindMismatchError(requestedIndex, expectedKind, slot.kind)
+    }
+    return requestedIndex
+  }
+
+  // Fallback: index missing/invalid — resolve from the occupied slots of the
+  // SKU's kind (currentPartsForSkuCategory already filters by resolved kind,
+  // so the kind guard is inherent here).
+  const occupied = currentPartsForSkuCategory(upgradeCurrent, skuCat, assetFamily)
+    .filter(c => !c.isEmpty)
+  if (occupied.length === 1) return occupied[0]!.idx
+  if (occupied.length === 0) return null // nothing to replace → true add
+  throw new Error(
+    `installPart: replace target ambiguous — ${occupied.length} occupied '${expectedKind}' slots; replaceUcIndex is required`,
+  )
 }
 
 /**

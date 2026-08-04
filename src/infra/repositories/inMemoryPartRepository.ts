@@ -34,6 +34,7 @@ import {
   assetFamilyOf,
   currentPartsForSkuCategory,
   isServiceOnly,
+  resolveReplaceTargetIndex,
 } from '@/domain/part/partStock'
 import { InsufficientStockError, InvalidCategoryBehaviorError } from '@/domain/part/errors'
 import type { PartCategoryDef } from '@/domain/part/partCategory-types'
@@ -244,10 +245,13 @@ export class InMemoryPartRepository implements PartRepository, PartWriteReposito
     // Audit before/after (upgradeCurrent snapshots)
     const ucBefore = pa.upgradeCurrent.map(s => ({ ...s }))
 
-    // Determine audit action per plan §1.5
-    let auditAction: 'part_installed' | 'part_returned' | 'part_scrapped'
-    if (input.action === 'replace') {
-      auditAction = input.oldIsBroken ? 'part_scrapped' : 'part_returned'
+    // Honest audit semantics (mirrors firestorePartRepository.install.ts):
+    // install-replace credits NO stock for the old part, so a working old part
+    // is a record-only 'kept' note on the movement — audited as 'part_installed',
+    // never 'part_returned' (that action is reserved for real uninstall returns).
+    let auditAction: 'part_installed' | 'part_scrapped'
+    if (input.action === 'replace' && input.oldIsBroken) {
+      auditAction = 'part_scrapped'
     } else {
       auditAction = 'part_installed'
     }
@@ -268,7 +272,37 @@ export class InMemoryPartRepository implements PartRepository, PartWriteReposito
       async () => {
         const at = nowIso()
 
-        // 1. Append movement
+        // 1. Resolve the replace target FIRST (shared helper — same as the
+        //    Firestore adapter) so the movement can denormalise the outgoing
+        //    part. null/invalid replaceUcIndex resolves to the sole occupied
+        //    slot of the SKU's kind; only when nothing is occupied does replace
+        //    fall back to a true append. Never a silent append-instead-of-replace.
+        let replacedFields: {
+          replacedSpec: string
+          replacedStorageType: string | null
+          replacedSlotIndex: number
+          oldDisposal: 'kept' | 'broken'
+        } | null = null
+        let replaceTargetIdx: number | null = null
+        if (input.action === 'replace') {
+          replaceTargetIdx = resolveReplaceTargetIndex(
+            pa.upgradeCurrent, part.category, family, input.replaceUcIndex,
+          )
+          if (replaceTargetIdx !== null) {
+            const oldSlot = pa.upgradeCurrent[replaceTargetIdx]!
+            if (oldSlot.spec) {
+              replacedFields = {
+                replacedSpec: oldSlot.spec,
+                replacedStorageType: oldSlot.storageType ?? null,
+                replacedSlotIndex: replaceTargetIdx,
+                oldDisposal: input.oldIsBroken ? 'broken' : 'kept',
+              }
+            }
+          }
+        }
+
+        // 2. Append movement (conditional-spread: replaced* only on replace —
+        //    exactOptionalPropertyTypes forbids explicit undefined)
         movement = {
           id: this.nextId('mv'),
           type: 'install',
@@ -283,18 +317,14 @@ export class InMemoryPartRepository implements PartRepository, PartWriteReposito
           actorUid: actor.uid,
           actorRole: actor.role,
           at,
+          ...(replacedFields ?? {}),
         }
         this.movements.push(movement)
 
-        // 2. Mutate upgradeCurrent
-        if (
-          input.action === 'replace' &&
-          input.replaceUcIndex !== null &&
-          input.replaceUcIndex >= 0 &&
-          input.replaceUcIndex < pa.upgradeCurrent.length
-        ) {
+        // 3. Mutate upgradeCurrent
+        if (input.action === 'replace' && replaceTargetIdx !== null) {
           // In-place overwrite of existing slot (prototype 3265-3278)
-          const slot = pa.upgradeCurrent[input.replaceUcIndex]!
+          const slot = pa.upgradeCurrent[replaceTargetIdx]!
           slot.spec = newSpec
           slot.replaced = true
           slot.installedAt = at
@@ -313,7 +343,7 @@ export class InMemoryPartRepository implements PartRepository, PartWriteReposito
 
         const ucAfter = pa.upgradeCurrent.map(s => ({ ...s }))
 
-        // 3. Recompute snapshot (service movements are skipped by deriveStock)
+        // 4. Recompute snapshot (service movements are skipped by deriveStock)
         this.recomputeSnapshots(new Set([input.skuId]))
 
         return {

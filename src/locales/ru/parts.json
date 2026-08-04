@@ -94,7 +94,7 @@
     "close": "Закрыть",
     "confirm": "Установить",
     "disposalBroken": "Списать (неисправна)",
-    "disposalWarehouse": "Вернуть на склад",
+    "disposalKeep": "Оставить исправной",
     "errorFailed": "Не удалось установить запчасть. Попробуйте ещё раз.",
     "insufficientStock": "Недостаточно на складе",
     "labelAction": "Действие",
@@ -208,6 +208,7 @@
     "noStock": "Нет на складе",
     "pageNext": "Вперёд",
     "pageOf": "Стр. {{page}} из {{total}}",
-    "pagePrev": "Назад"
+    "pagePrev": "Назад",
+    "replacedOld": "заменил"
   }
 }

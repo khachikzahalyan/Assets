@@ -37,6 +37,7 @@ import {
   assetFamilyOf,
   isServiceOnly,
   resolveUpgradeCurrent,
+  resolveReplaceTargetIndex,
 } from '@/domain/part/partStock'
 import { InsufficientStockError } from '@/domain/part/errors'
 import type { AssetSpecs } from '@/domain/asset/types'
@@ -72,9 +73,14 @@ export async function fsInstallPart(
     reason = 'Установка в актив'
   }
 
-  let auditAction: 'part_installed' | 'part_returned' | 'part_scrapped'
-  if (input.action === 'replace') {
-    auditAction = input.oldIsBroken ? 'part_scrapped' : 'part_returned'
+  // Honest audit semantics: an install-replace with a working old part is
+  // NOT a return — no stock is credited (unlike uninstallPart, which writes a
+  // real +onHand). The old part is a record-only note on the movement
+  // (oldDisposal:'kept'), so the audit action stays 'part_installed'.
+  // Only a broken old part still records 'part_scrapped'.
+  let auditAction: 'part_installed' | 'part_scrapped'
+  if (input.action === 'replace' && input.oldIsBroken) {
+    auditAction = 'part_scrapped'
   } else {
     auditAction = 'part_installed'
   }
@@ -131,18 +137,7 @@ export async function fsInstallPart(
 
       // Mutate upgradeCurrent copy.
       const ucMutated = [...upgradeCurrent.map(s => ({ ...s }))]
-      if (
-        input.action === 'replace' &&
-        input.replaceUcIndex !== null &&
-        input.replaceUcIndex >= 0 &&
-        input.replaceUcIndex < ucMutated.length
-      ) {
-        const slot = ucMutated[input.replaceUcIndex]!
-        slot.spec = newSpec
-        slot.replaced = true
-        slot.installedAt = at
-        if (stType) slot.storageType = stType
-      } else {
+      const appendNewSlot = (): void => {
         const newSlot: UpgradeSlot = {
           kind: slotKind ?? 'storage',
           spec: newSpec,
@@ -153,9 +148,48 @@ export async function fsInstallPart(
         ucMutated.push(newSlot)
       }
 
+      // Replace path: resolve the target slot INSIDE the txn (same helper the
+      // in-memory twin uses). A null/invalid replaceUcIndex resolves to the sole
+      // occupied slot of the SKU's kind; only when NOTHING is occupied does the
+      // install fall back to a true append. Never a silent append-instead-of-replace.
+      let replacedFields: {
+        replacedSpec: string
+        replacedStorageType: string | null
+        replacedSlotIndex: number
+        oldDisposal: 'kept' | 'broken'
+      } | null = null
+      if (input.action === 'replace') {
+        const targetIdx = resolveReplaceTargetIndex(
+          ucMutated, partCategory, family, input.replaceUcIndex,
+        )
+        if (targetIdx !== null) {
+          const slot = ucMutated[targetIdx]!
+          if (slot.spec) {
+            // Denormalise the outgoing part into the movement so History can
+            // render «← заменил <old spec>» without extra reads.
+            replacedFields = {
+              replacedSpec: slot.spec,
+              replacedStorageType: slot.storageType ?? null,
+              replacedSlotIndex: targetIdx,
+              oldDisposal: input.oldIsBroken ? 'broken' : 'kept',
+            }
+          }
+          slot.spec = newSpec
+          slot.replaced = true
+          slot.installedAt = at
+          if (stType) slot.storageType = stType
+        } else {
+          appendNewSlot()
+        }
+      } else {
+        appendNewSlot()
+      }
+
       const ucAfter = ucMutated.map(s => ({ ...s }))
 
-      // 1. Write movement.
+      // 1. Write movement (conditional-spread: replaced* fields only on replace —
+      //    exactOptionalPropertyTypes forbids explicit undefined, and Firestore
+      //    rejects undefined field values).
       const mv: PartMovement = {
         id: mvRef.id,
         type: 'install',
@@ -170,12 +204,14 @@ export async function fsInstallPart(
         actorUid: actor.uid,
         actorRole: actor.role,
         at,
+        ...(replacedFields ?? {}),
       }
       t.set(mvRef, {
         type: mv.type, skuId: mv.skuId, qty: mv.qty, broken: mv.broken,
         assetId: mv.assetId, assetInvCode: mv.assetInvCode,
         serviceReplace: mv.serviceReplace, note: mv.note, reason: mv.reason,
         actorUid: mv.actorUid, actorRole: mv.actorRole, at: serverTimestamp(),
+        ...(replacedFields ?? {}),
       })
 
       // 2. Update asset.upgradeCurrent.

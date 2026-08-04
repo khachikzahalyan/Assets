@@ -14,7 +14,7 @@ import { InMemoryPartRepository } from './inMemoryPartRepository'
 import { createInMemoryAuditStore, inMemoryAuditContext } from '@/lib/audit'
 import type { Part, PartMovement, PartsAsset, UpgradeSlot } from '@/domain/part/types'
 import type { Actor } from '@/domain/asset/AssetRepository'
-import { isInsufficientStockError, isInvalidCategoryBehaviorError } from '@/domain/part/errors'
+import { isInsufficientStockError, isInvalidCategoryBehaviorError, isSlotKindMismatchError } from '@/domain/part/errors'
 import type { PartCategoryDef } from '@/domain/part/partCategory-types'
 import { DEFAULT_PART_CATEGORY_DEFS } from '@/domain/part/partCategoryDefaults'
 
@@ -301,7 +301,7 @@ describe('InMemoryPartRepository', () => {
       const logsBefore = store2.logs.length
 
       // Act — replace with broken old part
-      await repo2.installPart({
+      const r = await repo2.installPart({
         skuId: SKU_SSD.id,
         assetId: ASSET_DESKTOP_ID,
         assetInvCode: 'INV/desktop',
@@ -324,15 +324,21 @@ describe('InMemoryPartRepository', () => {
       expect(pa?.upgradeCurrent).toHaveLength(1)
       expect(pa?.upgradeCurrent[0]!.replaced).toBe(true)
       expect(pa?.upgradeCurrent[0]!.spec).toContain('SSD')
+
+      // Assert — movement denormalises the outgoing part (Fix 3)
+      expect(r.value.replacedSpec).toBe('SSD 128 ГБ')
+      expect(r.value.replacedStorageType).toBe('SSD')
+      expect(r.value.replacedSlotIndex).toBe(0)
+      expect(r.value.oldDisposal).toBe('broken')
     })
   })
 
   // -------------------------------------------------------------------------
-  // installPart replace — oldIsBroken:false → audit action part_returned
+  // installPart replace — oldIsBroken:false → audit action part_installed (kept)
   // -------------------------------------------------------------------------
 
   describe('installPart replace with oldIsBroken:false', () => {
-    it('overwrites existing slot and records part_returned audit action', async () => {
+    it('overwrites existing slot and records part_installed audit action (old part kept)', async () => {
       // Arrange
       const existingSlot: UpgradeSlot = {
         kind: 'storage',
@@ -351,7 +357,7 @@ describe('InMemoryPartRepository', () => {
       const logsBefore = store2.logs.length
 
       // Act — replace with working old part
-      await repo2.installPart({
+      const r = await repo2.installPart({
         skuId: SKU_SSD.id,
         assetId: ASSET_DESKTOP_ID,
         assetInvCode: 'INV/desktop',
@@ -365,14 +371,141 @@ describe('InMemoryPartRepository', () => {
       // Assert — ONE audit entry
       expect(store2.logs).toHaveLength(logsBefore + 1)
 
-      // Assert — audit action is part_returned (old part was working)
-      expect(store2.logs[store2.logs.length - 1]!.action).toBe('part_returned')
+      // Assert — audit action is part_installed: install-replace credits NO
+      // stock for the working old part (record-only 'kept'), so 'part_returned'
+      // is reserved for real uninstall returns (honest audit semantics).
+      expect(store2.logs[store2.logs.length - 1]!.action).toBe('part_installed')
 
       // Assert — slot overwritten in-place
       const ref = await repo2.loadReferenceData()
       const pa = ref.partsAssets.find(a => a.assetId === ASSET_DESKTOP_ID)
       expect(pa?.upgradeCurrent).toHaveLength(1)
       expect(pa?.upgradeCurrent[0]!.replaced).toBe(true)
+
+      // Assert — movement records the record-only fate of the old part (Fix 3)
+      expect(r.value.oldDisposal).toBe('kept')
+      expect(r.value.replacedSpec).toBe('SSD 128 ГБ')
+
+      // Assert — stock honesty: install debited 1, NOTHING credited back for the old part
+      const ssd = ref.parts.find(p => p.id === SKU_SSD.id)
+      expect(ssd?.onHand).toBe(4)
+      expect(ssd?.broken).toBe(0)
+    })
+  })
+
+  // -------------------------------------------------------------------------
+  // installPart replace — replaceUcIndex:null fallback (silent-append bug fix)
+  // -------------------------------------------------------------------------
+
+  describe('installPart replace with replaceUcIndex:null — fallback resolution', () => {
+    /** Fresh repo: one desktop asset with the given upgradeCurrent + SSD stock. */
+    async function makeReplaceRepo(uc: UpgradeSlot[]) {
+      const store2 = createInMemoryAuditStore()
+      const audit2 = inMemoryAuditContext(store2)
+      const parts = [{ ...SKU_SSD }]
+      const movements: PartMovement[] = []
+      const partsAssets = [makePartsAsset(ASSET_DESKTOP_ID, CAT_DESKTOP, uc)]
+      const repo2 = new InMemoryPartRepository(parts, movements, partsAssets, audit2)
+      await repo2.receiveParts([{ skuId: SKU_SSD.id, qty: 5 }], ACTOR)
+      return { repo2, store2 }
+    }
+
+    function replaceInput(replaceUcIndex: number | null) {
+      return {
+        skuId: SKU_SSD.id,
+        assetId: ASSET_DESKTOP_ID,
+        assetInvCode: 'INV/desktop',
+        assetCategoryId: CAT_DESKTOP,
+        action: 'replace' as const,
+        replaceUcIndex,
+        oldIsBroken: false,
+        serviceReplace: false,
+      }
+    }
+
+    it('REPLACES the sole occupied slot in-place (never appends) when replaceUcIndex is null', async () => {
+      // Arrange — psu slot at idx 0, the sole occupied storage slot at idx 1
+      const { repo2 } = await makeReplaceRepo([
+        { kind: 'psu', spec: 'PSU 450W', installedAt: '2026-01-01T00:00:00.000Z', replaced: false },
+        { kind: 'storage', spec: 'HDD 1 ТБ', storageType: 'HDD', installedAt: '2026-01-01T00:00:00.000Z', replaced: false },
+      ])
+
+      // Act — the exact former-bug payload: action:'replace' + replaceUcIndex:null
+      const r = await repo2.installPart(replaceInput(null), ACTOR)
+
+      // Assert — length UNCHANGED (2, not 3): replaced, not appended
+      const ref = await repo2.loadReferenceData()
+      const pa = ref.partsAssets.find(a => a.assetId === ASSET_DESKTOP_ID)
+      expect(pa?.upgradeCurrent).toHaveLength(2)
+      // Storage slot spec swapped in-place at idx 1
+      expect(pa?.upgradeCurrent[1]!.spec).toContain('SSD 256')
+      expect(pa?.upgradeCurrent[1]!.replaced).toBe(true)
+      // PSU slot untouched
+      expect(pa?.upgradeCurrent[0]!.spec).toBe('PSU 450W')
+
+      // Assert — movement denormalises the outgoing part with the REAL index
+      expect(r.value.replacedSpec).toBe('HDD 1 ТБ')
+      expect(r.value.replacedStorageType).toBe('HDD')
+      expect(r.value.replacedSlotIndex).toBe(1)
+      expect(r.value.oldDisposal).toBe('kept')
+    })
+
+    it('falls back to a TRUE add when replace is requested but no occupied slot exists', async () => {
+      // Arrange — only an EMPTY factory storage slot
+      const { repo2 } = await makeReplaceRepo([
+        { kind: 'storage', spec: '', replaced: false },
+      ])
+
+      // Act
+      const r = await repo2.installPart(replaceInput(null), ACTOR)
+
+      // Assert — appended (nothing existed to replace)
+      const ref = await repo2.loadReferenceData()
+      const pa = ref.partsAssets.find(a => a.assetId === ASSET_DESKTOP_ID)
+      expect(pa?.upgradeCurrent).toHaveLength(2)
+      // No replaced-part denormalisation on a true add
+      expect(r.value.replacedSpec).toBeUndefined()
+      expect(r.value.oldDisposal).toBeUndefined()
+    })
+
+    it('throws when the replace target is ambiguous (2+ occupied slots, no index) — never guesses', async () => {
+      // Arrange — TWO occupied storage slots
+      const { repo2, store2 } = await makeReplaceRepo([
+        { kind: 'storage', spec: 'HDD 1 ТБ', storageType: 'HDD', replaced: false },
+        { kind: 'storage', spec: 'SSD 512 ГБ', storageType: 'SSD', replaced: false },
+      ])
+      const logsBefore = store2.logs.length
+      const movementsBefore = (await repo2.loadReferenceData()).movements.length
+
+      // Act + Assert
+      await expect(repo2.installPart(replaceInput(null), ACTOR)).rejects.toThrow(/ambiguous/)
+
+      // Assert — nothing written: no movement, no audit, slots untouched
+      const ref = await repo2.loadReferenceData()
+      expect(ref.movements).toHaveLength(movementsBefore)
+      expect(store2.logs).toHaveLength(logsBefore)
+      const pa = ref.partsAssets.find(a => a.assetId === ASSET_DESKTOP_ID)
+      expect(pa?.upgradeCurrent).toHaveLength(2)
+      expect(pa?.upgradeCurrent[0]!.spec).toBe('HDD 1 ТБ')
+    })
+
+    it('throws SlotKindMismatchError when the explicit index points at a different-kind slot', async () => {
+      // Arrange — explicit index 0 points at a PSU slot; SKU is storage (SSD)
+      const { repo2, store2 } = await makeReplaceRepo([
+        { kind: 'psu', spec: 'PSU 450W', replaced: false },
+      ])
+      const logsBefore = store2.logs.length
+
+      // Act + Assert — defensive kind guard fires
+      await repo2.installPart(replaceInput(0), ACTOR).then(
+        () => { throw new Error('expected SlotKindMismatchError') },
+        (e: unknown) => { expect(isSlotKindMismatchError(e)).toBe(true) },
+      )
+
+      // Assert — nothing written
+      expect(store2.logs).toHaveLength(logsBefore)
+      const pa = (await repo2.loadReferenceData()).partsAssets.find(a => a.assetId === ASSET_DESKTOP_ID)
+      expect(pa?.upgradeCurrent[0]!.spec).toBe('PSU 450W')
     })
   })
 

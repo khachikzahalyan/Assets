@@ -81,6 +81,18 @@ export interface PartMovement {
   /** Prototype-parity flag: install row represents a factory (pre-installed) part.
    *  Not written by any current repository. Read defensively by parts history UI. */
   factory?: boolean | null
+  /** Replace-install only: denormalised spec of the OLD slot content that this
+   *  install overwrote (e.g. 'SSD 128 ГБ'). Absent on plain installs/adds and
+   *  when the overwritten slot was an empty factory slot. */
+  replacedSpec?: string
+  /** Replace-install only: storageType of the replaced slot ('SSD'|'HDD'|'M.2'), null for non-storage. */
+  replacedStorageType?: string | null
+  /** Replace-install only: index into upgradeCurrent that was overwritten. */
+  replacedSlotIndex?: number
+  /** Replace-install only: fate of the old part. 'kept' is a RECORD-ONLY note —
+   *  warehouse stock is NOT credited (unlike a real uninstall). 'broken' likewise
+   *  does not touch the broken counter; it selects the scrap wording/audit. */
+  oldDisposal?: 'kept' | 'broken' | null
   actorUid: string
   actorRole: Role
   at: string                       // ISO timestamp

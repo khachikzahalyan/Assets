@@ -275,4 +275,62 @@ describe('InstallModal — slot-decision rendering', () => {
       expect(screen.queryByDisplayValue('add')).not.toBeInTheDocument()
     })
   })
+
+  describe('replace payload integrity — replaceUcIndex is always resolved (silent-append bug fix)', () => {
+    /** Click the desktop copy of the submit button («Установить»). */
+    async function clickSubmit(user: ReturnType<typeof userEvent.setup>) {
+      const buttons = screen.getAllByRole('button', { name: /Установить/ })
+      await user.click(buttons[0]!)
+    }
+
+    it('multi-slot with a SOLE occupied slot: auto-selects it and submits its REAL index (not null)', async () => {
+      // Arrange — RAM slot is the sole occupied one, and it is NOT at index 0
+      // (a storage slot sits before it) so the payload must carry idx 1, not 0.
+      const sku = makeRamSku()
+      const asset = makeDesktopAsset([
+        { kind: 'storage', spec: 'SSD 512 ГБ', storageType: 'SSD', installedAt: '2024-01-01' },
+        { kind: 'ram', spec: 'Samsung 8 GB DDR4', installedAt: '2024-01-01' },
+      ])
+      const onConfirm = vi.fn().mockResolvedValue(undefined)
+      const user = userEvent.setup()
+
+      // Act — select the asset and submit WITHOUT touching the replace radio
+      // (this was the former silent-append hole: derived action is 'replace'
+      // but replaceIdx stayed null and submit was not blocked)
+      renderInstallModal({ sku, partsAssets: [asset], onConfirm })
+      await selectAsset(user, asset)
+      await clickSubmit(user)
+
+      // Assert — payload carries the real resolved index
+      expect(onConfirm).toHaveBeenCalledTimes(1)
+      expect(onConfirm.mock.calls[0]![0]).toMatchObject({
+        action: 'replace',
+        replaceUcIndex: 1,
+      })
+    })
+
+    it('forced replace (single-slot cooler): submits action replace with the occupied slot index and autoScrap', async () => {
+      // Arrange — desktop cooler = single-slot → forced replace, radio is sr-only
+      // and its onChange never used to fire (the second silent-append hole)
+      const sku = makeCoolerSku()
+      const asset = makeDesktopAsset([
+        { kind: 'cooler', spec: 'be quiet! Pure Rock 2', installedAt: '2024-01-01' },
+      ])
+      const onConfirm = vi.fn().mockResolvedValue(undefined)
+      const user = userEvent.setup()
+
+      // Act
+      renderInstallModal({ sku, partsAssets: [asset], onConfirm })
+      await selectAsset(user, asset)
+      await clickSubmit(user)
+
+      // Assert — real index + cooler auto-scrap
+      expect(onConfirm).toHaveBeenCalledTimes(1)
+      expect(onConfirm.mock.calls[0]![0]).toMatchObject({
+        action: 'replace',
+        replaceUcIndex: 0,
+        oldIsBroken: true,
+      })
+    })
+  })
 })
