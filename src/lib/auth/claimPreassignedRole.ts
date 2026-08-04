@@ -90,6 +90,23 @@ export async function claimPreassignedRole(
       // Audit is best-effort; the role grant itself already succeeded.
     }
 
+    // Best-effort bell event for the super_admin: «подтвердил доступ и вошёл».
+    // The /notifications create rule only admits this exact self-report shape.
+    try {
+      await setDoc(doc(collection(db(), 'notifications')), {
+        type: 'role_activated',
+        audience: 'super_admin',
+        userUid: uid,
+        userName: (displayName && displayName.trim()) || trimmed,
+        userEmail: trimmed,
+        roleId: role,
+        createdAt: serverTimestamp(),
+        readBy: [],
+      })
+    } catch {
+      // Notification is best-effort; the role grant itself already succeeded.
+    }
+
     return { role, employeeId: match.id }
   } catch {
     return null

@@ -32,7 +32,10 @@ export function TopBar({ breadcrumbs, customContent }: TopBarProps) {
         <div className="flex items-center gap-2 flex-shrink-0">
           <ThemeToggle />
           {canManageReturns && (
-            <NotificationBell onSelect={(assetId) => navigate(`/assets/${assetId}`)} />
+            <NotificationBell
+              onSelect={(assetId) => navigate(`/assets/${assetId}`)}
+              onSelectRoles={() => navigate('/roles')}
+            />
           )}
           <LanguageToggle />
           <ProfileMenu />

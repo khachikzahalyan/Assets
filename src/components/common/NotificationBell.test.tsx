@@ -2,11 +2,30 @@ import { describe, it, expect, vi, beforeAll } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { I18nextProvider } from 'react-i18next'
 import i18n from '@/lib/i18n'
+import { AuthContext } from '@/contexts/AuthContext'
 import { NotificationBell } from './NotificationBell'
+import { InMemoryNotificationRepository } from '@/infra/repositories'
 import type { AssetRepository } from '@/domain/asset/AssetRepository'
 import type { Asset, AssetReferenceData } from '@/domain/asset'
+import type { AppNotification } from '@/domain/notification'
+
+vi.mock('@/lib/firebase', () => ({
+  app:       () => ({}),
+  auth:      () => ({}),
+  db:        () => ({}),
+  storage:   () => ({}),
+  functions: () => ({}),
+}))
 
 beforeAll(async () => { await i18n.changeLanguage('ru') })
+
+type AdminRole = 'super_admin' | 'asset_admin' | 'tech_admin'
+function authCtx(role: AdminRole) {
+  return {
+    user: { id: 'u_admin', name: 'Admin', email: 'a@x', role, initials: 'A', avatarColor: '' },
+    role, status: 'ready' as const, setRole: () => {}, signOut: () => {},
+  }
+}
 
 const base: Asset = {
   id: 'a0', categoryId: 'cat_laptop', brand: 'Dell', model: 'Latitude',
@@ -27,9 +46,43 @@ function stubRepo(assets: Asset[]): AssetRepository {
     findByInvCode: vi.fn().mockResolvedValue(null),
   }
 }
-function renderBell(repo: AssetRepository, onSelect = vi.fn()) {
-  render(<I18nextProvider i18n={i18n}><NotificationBell repository={repo} onSelect={onSelect} /></I18nextProvider>)
-  return { onSelect }
+function renderBell(
+  repo: AssetRepository,
+  onSelect = vi.fn(),
+  opts: { role?: AdminRole; notifRepo?: InMemoryNotificationRepository; onSelectRoles?: () => void } = {},
+) {
+  const notifRepo = opts.notifRepo ?? new InMemoryNotificationRepository([])
+  render(
+    <I18nextProvider i18n={i18n}>
+      <AuthContext.Provider value={authCtx(opts.role ?? 'super_admin')}>
+        <NotificationBell
+          repository={repo}
+          notificationRepository={notifRepo}
+          onSelect={onSelect}
+          {...(opts.onSelectRoles ? { onSelectRoles: opts.onSelectRoles } : {})}
+        />
+      </AuthContext.Provider>
+    </I18nextProvider>,
+  )
+  return { onSelect, notifRepo }
+}
+
+const NOW_ISO = new Date().toISOString()
+function receiptEvent(over: Partial<AppNotification> = {}): AppNotification {
+  return {
+    id: 'ev_receipt', type: 'receipt_confirmed', audience: 'admins',
+    createdAt: NOW_ISO, readBy: [],
+    assetId: 'a_conf', assetTitle: 'Dell XPS', invCode: '450/777', employeeName: 'Анна Смирнова',
+    ...over,
+  }
+}
+function roleEvent(over: Partial<AppNotification> = {}): AppNotification {
+  return {
+    id: 'ev_role', type: 'role_activated', audience: 'super_admin',
+    createdAt: NOW_ISO, readBy: [],
+    userUid: 'u_9', userName: 'Пето Петян', userEmail: 'p@x', roleId: 'employee',
+    ...over,
+  }
 }
 const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 
@@ -55,7 +108,7 @@ describe('NotificationBell', () => {
     renderBell(repo)
     await waitFor(() => expect(repo.listAssets).toHaveBeenCalled())
     fireEvent.click(screen.getByRole('button', { name: 'Уведомления' }))
-    expect(await screen.findByText('Нет активов к возврату')).toBeInTheDocument()
+    expect(await screen.findByText('Нет уведомлений')).toBeInTheDocument()
   })
 
   it('while loading with no items, shows skeleton rows and NOT the empty state', async () => {
@@ -72,7 +125,7 @@ describe('NotificationBell', () => {
 
     // Skeleton is present; the «всё прочитано» empty-state text must NOT flash.
     expect(await screen.findByTestId('bell-loading')).toBeInTheDocument()
-    expect(screen.queryByText('Нет активов к возврату')).toBeNull()
+    expect(screen.queryByText('Нет уведомлений')).toBeNull()
   })
 
   it('after load resolves, the skeleton is replaced by real notification items', async () => {
@@ -112,5 +165,86 @@ describe('NotificationBell', () => {
     expect(items).toHaveLength(2)
     fireEvent.click(items[0]!) // overdue first → late1
     expect(onSelect).toHaveBeenCalledWith('late1')
+  })
+
+  // ── Persistent events (/notifications) — receipt confirmed / role activated ──
+
+  it('badge counts unread events; super_admin sees receipt AND role events', async () => {
+    const notifRepo = new InMemoryNotificationRepository([receiptEvent(), roleEvent()])
+    renderBell(stubRepo([]), vi.fn(), { role: 'super_admin', notifRepo })
+    await waitFor(() => expect(screen.getByTestId('bell-badge')).toHaveTextContent('2'))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Уведомления' }))
+    const rows = await screen.findAllByTestId('bell-event')
+    expect(rows).toHaveLength(2)
+    expect(screen.getByText('Анна Смирнова')).toBeInTheDocument()
+    expect(screen.getByText('Пето Петян')).toBeInTheDocument()
+  })
+
+  it('asset_admin does NOT see role_activated events (audience super_admin)', async () => {
+    const notifRepo = new InMemoryNotificationRepository([receiptEvent(), roleEvent()])
+    renderBell(stubRepo([]), vi.fn(), { role: 'asset_admin', notifRepo })
+    await waitFor(() => expect(screen.getByTestId('bell-badge')).toHaveTextContent('1'))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Уведомления' }))
+    const rows = await screen.findAllByTestId('bell-event')
+    expect(rows).toHaveLength(1)
+    expect(screen.queryByText('Пето Петян')).toBeNull()
+  })
+
+  it('opening the bell marks visible events as read (readBy gets the uid, badge clears)', async () => {
+    const notifRepo = new InMemoryNotificationRepository([receiptEvent()])
+    renderBell(stubRepo([]), vi.fn(), { role: 'super_admin', notifRepo })
+    await waitFor(() => expect(screen.getByTestId('bell-badge')).toHaveTextContent('1'))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Уведомления' }))
+    await screen.findAllByTestId('bell-event')
+
+    await waitFor(() => {
+      expect(notifRepo.docs[0]!.readBy).toContain('u_admin')
+    })
+    expect(screen.queryByTestId('bell-badge')).toBeNull()
+  })
+
+  it('already-read events show no badge but still render in the list', async () => {
+    const notifRepo = new InMemoryNotificationRepository([receiptEvent({ readBy: ['u_admin'] })])
+    renderBell(stubRepo([]), vi.fn(), { role: 'super_admin', notifRepo })
+    await waitFor(() => expect(notifRepo).toBeTruthy())
+    expect(screen.queryByTestId('bell-badge')).toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Уведомления' }))
+    expect(await screen.findAllByTestId('bell-event')).toHaveLength(1)
+  })
+
+  it('click on a receipt event opens the asset; click on a role event opens roles', async () => {
+    const onSelect = vi.fn()
+    const onSelectRoles = vi.fn()
+    const notifRepo = new InMemoryNotificationRepository([receiptEvent(), roleEvent()])
+    renderBell(stubRepo([]), onSelect, { role: 'super_admin', notifRepo, onSelectRoles })
+    await waitFor(() => expect(screen.getByTestId('bell-badge')).toHaveTextContent('2'))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Уведомления' }))
+    let rows = await screen.findAllByTestId('bell-event')
+    // Newest-first ordering is by createdAt; both share NOW_ISO so use text lookup.
+    const receiptRow = rows.find(r => r.textContent?.includes('Анна Смирнова'))!
+    fireEvent.click(receiptRow)
+    expect(onSelect).toHaveBeenCalledWith('a_conf')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Уведомления' }))
+    rows = await screen.findAllByTestId('bell-event')
+    const roleRow = rows.find(r => r.textContent?.includes('Пето Петян'))!
+    fireEvent.click(roleRow)
+    expect(onSelectRoles).toHaveBeenCalled()
+  })
+
+  it('events older than 30 days are not shown', async () => {
+    const old = new Date(Date.now() - 40 * 86_400_000).toISOString()
+    const notifRepo = new InMemoryNotificationRepository([receiptEvent({ createdAt: old })])
+    renderBell(stubRepo([]), vi.fn(), { role: 'super_admin', notifRepo })
+    await waitFor(() => expect(notifRepo).toBeTruthy())
+    expect(screen.queryByTestId('bell-badge')).toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Уведомления' }))
+    expect(await screen.findByText('Нет уведомлений')).toBeInTheDocument()
   })
 })

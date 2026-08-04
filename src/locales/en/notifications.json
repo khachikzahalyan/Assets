@@ -1,13 +1,17 @@
 {
   "bellTooltip": "Notifications",
   "title": "Notifications",
-  "subtitle": "Temporary hand-outs to return",
-  "empty": "No assets to return",
-  "emptyHint": "Temporary hand-outs that are due appear here.",
+  "subtitle": "Returns & events",
+  "empty": "No notifications",
+  "emptyHint": "Events and temporary handouts due for return will appear here.",
   "dueSoon": "Return by {{date}}",
   "overdue": "Overdue — {{date}}",
   "kindAudit": "Audit",
   "kindIntern": "Intern",
   "kindTemp": "Temporary",
-  "loadError": "Couldn't load notifications"
+  "loadError": "Couldn't load notifications",
+  "holdsSection": "Returns",
+  "eventsSection": "Events",
+  "eventReceipt": "confirmed asset receipt",
+  "eventRole": "activated access and signed in"
 }

@@ -139,13 +139,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     const getRes = await fetch(`${base}/assets/${encodeURIComponent(assetId)}`, { headers: authH })
     if (!getRes.ok) { res.status(404).json({ error: 'asset_not_found' }); return }
     const doc = (await getRes.json()) as {
-      fields?: {
-        statusId?: { stringValue?: string }
-        assignment?: { mapValue?: { fields?: { employeeId?: { stringValue?: string } } } }
-      }
+      fields?: Record<string, { stringValue?: string; mapValue?: { fields?: Record<string, { stringValue?: string }> } }>
     }
-    const status = doc.fields?.statusId?.stringValue
-    const assignedEmployeeId = doc.fields?.assignment?.mapValue?.fields?.employeeId?.stringValue ?? ''
+    const status = doc.fields?.['statusId']?.stringValue
+    const assignedEmployeeId = doc.fields?.['assignment']?.mapValue?.fields?.['employeeId']?.stringValue ?? ''
 
     // Authorize: caller must be the assignee. Invited employees have an HR doc id
     // distinct from their uid — resolve users/{uid}.employeeId and accept either
@@ -200,6 +197,40 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
         }),
       })
     } catch { /* audit is best-effort */ }
+
+    // Best-effort bell notification for ALL admins (audience 'admins').
+    try {
+      const f = doc.fields ?? {}
+      const sv = (k: string): string => f[k]?.stringValue ?? ''
+      const asn = f['assignment']?.mapValue?.fields ?? {}
+      const invCode = sv('invCode')
+      const assetTitle = [sv('brand'), sv('model')].filter(Boolean).join(' ').trim() || invCode
+      let employeeName = asn['employeeName']?.stringValue ?? ''
+      if (!employeeName && assignedEmployeeId) {
+        const eRes = await fetch(`${base}/employees/${encodeURIComponent(assignedEmployeeId)}`, { headers: authH })
+        if (eRes.ok) {
+          const eDoc = (await eRes.json()) as { fields?: Record<string, { stringValue?: string }> }
+          employeeName = [eDoc.fields?.['firstName']?.stringValue, eDoc.fields?.['lastName']?.stringValue]
+            .filter(Boolean).join(' ').trim()
+        }
+      }
+      await fetch(`${base}/notifications`, {
+        method: 'POST',
+        headers: { ...authH, 'content-type': 'application/json' },
+        body: JSON.stringify({
+          fields: {
+            type: { stringValue: 'receipt_confirmed' },
+            audience: { stringValue: 'admins' },
+            assetId: { stringValue: assetId },
+            assetTitle: { stringValue: assetTitle },
+            invCode: { stringValue: invCode },
+            employeeName: { stringValue: employeeName },
+            createdAt: { timestampValue: nowIso },
+            readBy: { arrayValue: {} },
+          },
+        }),
+      })
+    } catch { /* notification is best-effort */ }
 
     res.status(200).json({ ok: true })
   } catch (e) {

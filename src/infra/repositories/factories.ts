@@ -10,6 +10,7 @@ import { FirestoreAuditLogRepository } from './firestoreAuditLogRepository'
 import { FirestoreDashboardRepository } from './firestoreDashboardRepository'
 import { FirestoreAuthSettingsRepository } from './firestoreAuthSettingsRepository'
 import { FirestoreSubscriptionRepository } from './firestoreSubscriptionRepository'
+import { FirestoreNotificationRepository } from './firestoreNotificationRepository'
 import { FirestoreWorkstationLicenseRepository } from './firestoreWorkstationLicenseRepository'
 import { FirestoreBranchRepository } from './firestoreBranchRepository'
 import { FirestoreDepartmentRepository } from './firestoreDepartmentRepository'
@@ -118,6 +119,11 @@ export function getSharedAuthSettingsRepository(): FirestoreAuthSettingsReposito
 /** Shared SubscriptionRepository singleton. */
 export function getSharedSubscriptionRepository(): FirestoreSubscriptionRepository {
   return shared('subscription', () => new FirestoreSubscriptionRepository(db()))
+}
+
+/** Shared NotificationRepository singleton (bell events). */
+export function getSharedNotificationRepository(): FirestoreNotificationRepository {
+  return shared('notification', () => new FirestoreNotificationRepository(db()))
 }
 
 /** Shared WorkstationLicenseRepository singleton. */

@@ -120,7 +120,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
 
     const getRes = await fetch(`${base}/assets/${encodeURIComponent(claim.assetId)}`, { headers: authH })
     if (!getRes.ok) { send(404, 'Актив не найден', 'Актив не найден в системе.'); return }
-    const doc = (await getRes.json()) as { fields?: Record<string, { stringValue?: string }> }
+    const doc = (await getRes.json()) as {
+      fields?: Record<string, { stringValue?: string; mapValue?: { fields?: Record<string, { stringValue?: string }> } }>
+    }
     const status = doc.fields?.['statusId']?.stringValue
 
     if (status !== 'st_pending') {
@@ -161,6 +163,41 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
         }),
       })
     } catch { /* audit is best-effort */ }
+
+    // Best-effort bell notification for ALL admins (audience 'admins').
+    try {
+      const f = doc.fields ?? {}
+      const sv = (k: string): string => f[k]?.stringValue ?? ''
+      const asn = f['assignment']?.mapValue?.fields ?? {}
+      const invCode = sv('invCode')
+      const assetTitle = [sv('brand'), sv('model')].filter(Boolean).join(' ').trim() || invCode
+      let employeeName = asn['employeeName']?.stringValue ?? ''
+      const employeeId = asn['employeeId']?.stringValue ?? ''
+      if (!employeeName && employeeId) {
+        const eRes = await fetch(`${base}/employees/${encodeURIComponent(employeeId)}`, { headers: authH })
+        if (eRes.ok) {
+          const eDoc = (await eRes.json()) as { fields?: Record<string, { stringValue?: string }> }
+          employeeName = [eDoc.fields?.['firstName']?.stringValue, eDoc.fields?.['lastName']?.stringValue]
+            .filter(Boolean).join(' ').trim()
+        }
+      }
+      await fetch(`${base}/notifications`, {
+        method: 'POST',
+        headers: { ...authH, 'content-type': 'application/json' },
+        body: JSON.stringify({
+          fields: {
+            type: { stringValue: 'receipt_confirmed' },
+            audience: { stringValue: 'admins' },
+            assetId: { stringValue: claim.assetId },
+            assetTitle: { stringValue: assetTitle },
+            invCode: { stringValue: invCode },
+            employeeName: { stringValue: employeeName },
+            createdAt: { timestampValue: nowIso },
+            readBy: { arrayValue: {} },
+          },
+        }),
+      })
+    } catch { /* notification is best-effort */ }
 
     send(200, 'Получение подтверждено ✓', 'Спасибо! Вы подтвердили, что получили актив. Статус в системе обновлён на «Выдано».')
   } catch (e) {
