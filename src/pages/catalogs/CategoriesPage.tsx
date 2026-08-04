@@ -240,7 +240,7 @@ export function CategoriesPage({ repository, categoryGroupRepository, partCatego
               {/* Tab strip — add button sits in the SAME row, right-aligned
                   (licenses-page pattern: tabs left, primary action right) */}
               {canMutate && (
-                <div className="flex items-center justify-between gap-3 px-5 max-md:px-3 border-b border-border">
+                <div className="flex items-center justify-between gap-3 px-5 max-md:px-3.5 max-md:bg-surface-2 border-b border-border">
                   <TabStrip<CategoriesTab>
                     tabs={[
                       { id: 'assets' as CategoriesTab, label: t('tabs.assets') },

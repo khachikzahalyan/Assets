@@ -118,7 +118,7 @@ export const MobileCard = memo(function MobileCard({
         {'● '}{displayStatus.name}
       </span>
       {/* Inventory code — plain monospace, no accent border/box */}
-      <span className="font-['JetBrains_Mono',ui-monospace,monospace] text-10 text-text-subtle whitespace-nowrap">
+      <span className="font-['JetBrains_Mono',ui-monospace,monospace] text-10 text-text-secondary whitespace-nowrap">
         {a.invCode}
       </span>
     </div>

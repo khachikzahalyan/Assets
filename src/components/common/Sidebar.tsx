@@ -31,8 +31,9 @@ export function Sidebar({ currentRoute, onNavigate }: SidebarProps) {
         </div>
       </div>
 
-      {/* Navigation groups */}
-      <nav className="flex-1 py-2 overflow-hidden">
+      {/* Navigation groups — scrollable so short desktop windows (<~650px tall)
+          can still reach the bottom items (Audit / Roles / Settings) */}
+      <nav className="flex-1 py-2 min-h-0 overflow-y-auto no-scrollbar">
         {nav.map((group) => (
           <div key={group.id} className="mb-0.5">
             {group.labelKey != null && (

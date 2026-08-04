@@ -26,7 +26,9 @@ interface BoxMeta {
   path: string
 }
 
-const BOX_GRID = 'repeat(auto-fit, minmax(20rem, 1fr))'
+// 6 domain boxes → fixed even columns (1 / 2 / 3). auto-fit produced ragged last
+// rows (e.g. 4+2 or 5+1 with the trailing boxes stretched to a different width).
+const BOX_GRID_CLASS = 'grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3'
 
 const BOX_META: Record<DomainBoxKey, BoxMeta> = {
   assets:        { icon: 'package',   barClass: 'bg-text-tertiary/50', routeId: 'assets',      path: '/assets' },
@@ -107,7 +109,7 @@ export function DashboardPage({ repo }: DashboardPageProps) {
         </div>
 
         {/* ROW 2: 6 domain-box shimmers — real header, async body shimmers */}
-        <div className="grid gap-4" style={{ gridTemplateColumns: BOX_GRID }}>
+        <div className={BOX_GRID_CLASS}>
           {DOMAIN_BOX_KEYS.map(key => {
             const meta = BOX_META[key]
             return (
@@ -223,7 +225,7 @@ export function DashboardPage({ repo }: DashboardPageProps) {
 
       {/* ROW 2 — 6 domain boxes (total + 7-day mini-bar + event feed) */}
       {data.boxes && (
-        <div className="grid gap-4" style={{ gridTemplateColumns: BOX_GRID }}>
+        <div className={BOX_GRID_CLASS}>
           {DOMAIN_BOX_KEYS.map(key => {
             const meta = BOX_META[key]
             const box = data.boxes![key]

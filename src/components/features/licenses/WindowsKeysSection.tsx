@@ -20,7 +20,6 @@ import { KeyDetailsModal } from './KeyDetailsModal'
 import { ActivateKeyModal, type KeylessAsset } from './ActivateKeyModal'
 import { KeyRowMobile } from './KeyRowMobile'
 import { LicensesPagination } from './LicensesPagination'
-import { MobileListPlaceholders } from '@/components/ui'
 import { fmtDate } from './licenseHelpers'
 import { revealLicenseKey } from '@/lib/licenses/revealKey'
 
@@ -341,7 +340,7 @@ export function WindowsKeysSection({
                     rows + dashed placeholder slots pad to PAGE_SIZE, every slot
                     flexGrow:1 so the block fills the card and the paginator
                     stays pinned at a constant position. ── */
-              <div className="flex-1 min-h-0 flex flex-col">
+              <div className="flex-1 min-h-0 flex flex-col overflow-y-auto">
                 {pageRows.map(lic => {
                   const isFree = licenseStatus(lic) === 'free'
                   const masked = maskedKeys[lic.id] ?? '—'
@@ -359,15 +358,25 @@ export function WindowsKeysSection({
                       showAction={showAction}
                       onRowClick={() => setDetailsId(lic.id)}
                       onActivate={e => { e.stopPropagation(); setActivatingId(lic.id) }}
-                      outerStyle={{ flexGrow: 1, flexShrink: 0 }}
                     />
                   )
                 })}
-                {/* Placeholder slots — mirror AssetsTable's mobile placeholders exactly */}
-                <MobileListPlaceholders
-                  count={Math.max(0, PAGE_SIZE - pageRows.length)}
-                  dataTestId="key-card-placeholder"
-                />
+                {/* Fill the rest of the page with faint EMPTY TABLE ROWS down to the
+                    pagination bar — real rows stay natural height (no stretch); the
+                    list reads as a full PAGE_SIZE table, not a dead blank gap.
+                    3.5rem line interval ≈ KeyRowMobile row height. */}
+                {pageRows.length < PAGE_SIZE && (
+                  <div
+                    aria-hidden="true"
+                    data-testid="key-card-placeholder"
+                    style={{
+                      flexGrow: 1,
+                      flexShrink: 0,
+                      backgroundImage:
+                        'repeating-linear-gradient(to bottom, transparent 0, transparent calc(3.5rem - 1px), var(--color-border) calc(3.5rem - 1px), var(--color-border) 3.5rem)',
+                    }}
+                  />
+                )}
               </div>
             ) : (
               /* ── Desktop DataTable — fillHeight: rows flex-stretch to fill the

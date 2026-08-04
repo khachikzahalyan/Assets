@@ -106,10 +106,12 @@ export function LabelPreviewDialog({ assets, onClose, onPrint }: LabelPreviewDia
           </div>
 
           {/* Body — shows the label(s) on a white card at a realistic size */}
-          <div className="overflow-y-auto max-h-[60vh] px-5 py-5 flex flex-col items-center gap-4">
+          <div className="overflow-y-auto max-h-[60dvh] px-5 py-5 flex flex-col items-center gap-4">
             {assets.map((a) => (
               <div key={a.id} className="w-full flex justify-center">
-                <div className="shadow-lg" style={{ width: '320px', maxWidth: '100%' }}>
+                {/* min(): full preview size where it fits, shrink inside the
+                    dialog padding on ~320px viewports instead of touching edges */}
+                <div className="shadow-lg" style={{ width: 'min(20rem, 100%)' }}>
                   <AssetLabel asset={a} />
                 </div>
               </div>

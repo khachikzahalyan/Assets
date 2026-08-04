@@ -30,10 +30,10 @@ export function DesktopDecorPanel() {
       <div
         style={{
           position: 'absolute',
-          top: '-100px',
-          right: '-80px',
-          width: '500px',
-          height: '500px',
+          top: '-6.25rem',
+          right: '-5rem',
+          width: '31.25rem',
+          height: '31.25rem',
           background: 'radial-gradient(circle, rgba(56,130,220,0.12) 0%, transparent 65%)',
           pointerEvents: 'none',
         }}
@@ -68,12 +68,12 @@ export function DesktopDecorPanel() {
       <div
         style={{
           position: 'absolute',
-          bottom: '-40px',
-          right: '-30px',
+          bottom: '-2.5rem',
+          right: '-1.875rem',
           fontSize: '17.5rem',
           fontWeight: 800,
           color: 'rgba(255,255,255,0.025)',
-          letterSpacing: '-10px',
+          letterSpacing: '-0.625rem',
           lineHeight: 1,
           pointerEvents: 'none',
           userSelect: 'none',
@@ -100,44 +100,44 @@ export function DesktopDecorPanel() {
       <div
         style={{
           position: 'absolute',
-          bottom: '40px',
-          left: '40px',
+          bottom: '2.5rem',
+          left: '2.5rem',
           background: 'rgba(255,255,255,0.04)',
           backdropFilter: 'blur(12px)',
           WebkitBackdropFilter: 'blur(12px)',
           border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: '14px',
-          padding: '20px 24px',
+          borderRadius: '0.875rem',
+          padding: '1.25rem 1.5rem',
           maxWidth: '17.5rem',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.625rem' }}>
           <div
             style={{
-              width: '8px',
-              height: '8px',
+              width: '0.5rem',
+              height: '0.5rem',
               borderRadius: '50%',
               background: '#22c55e',
-              boxShadow: '0 0 8px #22c55e',
+              boxShadow: '0 0 0.5rem #22c55e',
               flexShrink: 0,
             }}
           />
           <span
             style={{
               color: '#6b7280',
-              fontSize: '11px',
+              fontSize: '0.6875rem',
               fontWeight: 500,
               textTransform: 'uppercase',
-              letterSpacing: '.8px',
+              letterSpacing: '0.07em',
             }}
           >
             {t('visual.statusOnline')}
           </span>
         </div>
-        <p style={{ color: '#e5e7eb', fontSize: '14px', fontWeight: 500, marginBottom: '4px' }}>
+        <p style={{ color: '#e5e7eb', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.25rem' }}>
           {t('visual.infoTitle')}
         </p>
-        <p style={{ color: '#4a5065', fontSize: '12px', lineHeight: 1.5 }}>
+        <p style={{ color: '#4a5065', fontSize: '0.75rem', lineHeight: 1.5 }}>
           {t('visual.infoDesc')}
         </p>
       </div>
@@ -146,11 +146,11 @@ export function DesktopDecorPanel() {
       <div
         style={{
           position: 'absolute',
-          top: '40px',
-          right: '40px',
+          top: '2.5rem',
+          right: '2.5rem',
           display: 'flex',
           flexDirection: 'column',
-          gap: '10px',
+          gap: '0.625rem',
           alignItems: 'flex-end',
         }}
       >
@@ -159,15 +159,15 @@ export function DesktopDecorPanel() {
           style={{
             background: 'rgba(232,105,42,0.12)',
             border: '1px solid rgba(232,105,42,0.25)',
-            borderRadius: '10px',
-            padding: '10px 16px',
+            borderRadius: '0.625rem',
+            padding: '0.625rem 1rem',
             textAlign: 'right',
           }}
         >
-          <p style={{ color: '#E8692A', fontSize: '18px', fontWeight: 700, lineHeight: 1 }}>
+          <p style={{ color: '#E8692A', fontSize: '1.125rem', fontWeight: 700, lineHeight: 1 }}>
             {t('visual.rolesValue')}
           </p>
-          <p style={{ color: '#4a5065', fontSize: '11px', marginTop: '2px' }}>
+          <p style={{ color: '#4a5065', fontSize: '0.6875rem', marginTop: '0.125rem' }}>
             {t('visual.rolesDesc')}
           </p>
         </div>
@@ -177,15 +177,15 @@ export function DesktopDecorPanel() {
           style={{
             background: 'rgba(255,255,255,0.04)',
             border: '1px solid rgba(255,255,255,0.07)',
-            borderRadius: '10px',
-            padding: '10px 16px',
+            borderRadius: '0.625rem',
+            padding: '0.625rem 1rem',
             textAlign: 'right',
           }}
         >
-          <p style={{ color: '#e5e7eb', fontSize: '18px', fontWeight: 700, lineHeight: 1 }}>
+          <p style={{ color: '#e5e7eb', fontSize: '1.125rem', fontWeight: 700, lineHeight: 1 }}>
             {t('visual.qrValue')}
           </p>
-          <p style={{ color: '#4a5065', fontSize: '11px', marginTop: '2px' }}>
+          <p style={{ color: '#4a5065', fontSize: '0.6875rem', marginTop: '0.125rem' }}>
             {t('visual.qrDesc')}
           </p>
         </div>

@@ -13,6 +13,7 @@ import {
   PartsTabsHeader,
 } from '@/components/features/parts'
 import { useParts } from '@/hooks/useParts'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import type { Part, PartsAsset, UpgradeSlot } from '@/domain/part/types'
 import { workingStock, deriveStock } from '@/domain/part/partStock'
 import type { PartRepository, PartWriteRepository } from '@/domain/part/PartRepository'
@@ -80,9 +81,7 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
   const [activeTab, setActiveTab] = useState<ActiveTab>(
     urlTab === 'warehouse' ? 'warehouse' : 'devices',
   )
-  const [isMobile, setIsMobile] = useState(() =>
-    typeof window !== 'undefined' ? window.matchMedia('(max-width: 767px)').matches : false,
-  )
+  const isMobile = useIsMobile()
 
   // ── Lifted state (T2) ───────────────────────────────────────────────────────
   // Warehouse category selection — lifted so PartsTabsHeader can drive the chip strip.
@@ -91,14 +90,6 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
   )
   // Device search — lifted so PartsTabsHeader row-2 can own the input on mobile.
   const [deviceSearch, setDeviceSearch] = useState('')
-
-  // Sync isMobile on resize
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 767px)')
-    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
-    mq.addEventListener('change', handler)
-    return () => mq.removeEventListener('change', handler)
-  }, [])
 
   // ── Modal state ──────────────────────────────────────────────────────────────
   const [gpuModalOpen, setGpuModalOpen] = useState(false)
