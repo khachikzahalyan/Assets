@@ -114,7 +114,7 @@ function ChangeRoleDialog({ target, isSelf, onClose, onChanged, repo, actor }: C
     >
       <div
         role="dialog" aria-modal="true" aria-labelledby="change-role-title"
-        className={`w-full max-w-md bg-surface border border-border rounded-xl max-md:rounded-b-none max-md:rounded-t-[18px] max-md:max-h-[92vh] max-md:overflow-y-auto shadow-2xl p-6 space-y-5 mx-4 max-md:mx-0 ${MODAL_SHEET}`}
+        className={`w-full max-w-md bg-surface border border-border rounded-xl max-md:rounded-b-none max-md:rounded-t-[18px] max-md:max-h-[92dvh] max-md:overflow-y-auto shadow-2xl p-6 space-y-5 mx-4 max-md:mx-0 ${MODAL_SHEET}`}
       >
         <div className="max-md:block hidden mx-auto h-1 w-9 rounded-full bg-white/20 light:bg-black/10 mb-3 -mt-3" />
         <header className="flex items-center justify-between gap-3">

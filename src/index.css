@@ -143,6 +143,17 @@
   --sidebar-width:          16.25rem;   /* 260px at the 1440px reference */
   --topbar-height:          4rem;
   --topbar-height-mobile:   3.25rem;    /* 52px/16; used by mobile block + any JS that needs it */
+  --bottomnav-height:       64px;       /* px intentional (fixed mobile pattern) — single source for
+                                           BottomNav h-[calc(…)] and the content bottom clearances below */
+  /* Exact inner height of .app-shell-content-flush on mobile — for viewport-locked
+     pages (licenses tab chrome, parts receive form, asset detail mobile view):
+     100dvh − topbar − flush pt (10px) − flush pb (bottomnav + 10px + safe-area).
+     The two 10px terms MUST match the .app-shell-content-flush paddings.
+     Derived, not hand-tuned: the old magic constants (126/128/136) assumed a
+     52px topbar, but the mobile topbar is 3.25rem at the 15px mobile root
+     = 48.75px, and none of them subtracted the safe-area inset — hence the
+     per-device dead bands / page-scroll leaks. */
+  --flush-locked-height: calc(100dvh - var(--topbar-height-mobile) - 10px - var(--bottomnav-height) - 10px - env(safe-area-inset-bottom, 0px));
   /* Owner decision 2026-07-31: no content cap — content fills any screen width. */
   --content-max-width:      none;
   --content-px:             1.1875rem;  /* 19px at reference */
@@ -911,13 +922,13 @@ html.light .sidebar-overlay {
 
   /* ── Content area: 12px padding, NO inner scroll.
      Body is the single scroller (body-scroll model).
-     Bottom padding = 64px (fixed BottomNav height) + safe-area so content
+     Bottom padding = --bottomnav-height + safe-area so content
      is never hidden behind the BottomNav bar on iOS/Android.
      Note: pages that go edge-to-edge (assets / licenses / parts card lists)
      override padding via the .app-shell-content-flush modifier that AppShell
      applies for those routes. ── */
   .app-shell-content {
-    padding: 12px 12px calc(64px + env(safe-area-inset-bottom, 0px)) !important;
+    padding: 12px 12px calc(var(--bottomnav-height) + env(safe-area-inset-bottom, 0px)) !important;
     overflow-y: visible !important; /* was auto — body is now the single scroller */
     flex: 1;
     min-height: 0;
@@ -933,10 +944,10 @@ html.light .sidebar-overlay {
   /* ── Floating-card override for pages (e.g. assets card list): zero side
      padding (the ListCard carries its own 10px mx gutters) and a UNIFORM
      10px breathing gap on every edge — top 10px, sides 10px (card mx),
-     bottom 10px above the 64px BottomNav (64+10=74). Card sits perfectly
-     even. No negative-margin coupling needed. ── */
+     bottom 10px above the BottomNav (--bottomnav-height + 10). Card sits
+     perfectly even. No negative-margin coupling needed. ── */
   .app-shell-content-flush {
-    padding: 10px 0 calc(74px + env(safe-area-inset-bottom, 0px)) !important;
+    padding: 10px 0 calc(var(--bottomnav-height) + 10px + env(safe-area-inset-bottom, 0px)) !important;
     /* Flex column so the ListCard can stretch to the exact bottom edge
        (= BottomNav top, thanks to the 64px+safe bottom padding) via flex-1 —
        no dvh arithmetic. The shell root is min-height:100dvh, so on short

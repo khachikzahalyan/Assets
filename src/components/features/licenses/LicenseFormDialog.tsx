@@ -126,7 +126,7 @@ export function LicenseFormDialog({ open, kind, submitting, submitError, onSubmi
       onClick={onCancel}
     >
       <div
-        className={`${MODAL_W_LG} max-md:rounded-b-none max-md:rounded-t-[18px] max-h-[90vh] max-md:max-h-[85vh] overflow-y-auto rounded-lg border border-border bg-surface p-5 mx-4 max-md:mx-0 ${MODAL_SHEET}`}
+        className={`${MODAL_W_LG} max-md:rounded-b-none max-md:rounded-t-[18px] max-h-[90dvh] max-md:max-h-[85dvh] overflow-y-auto rounded-lg border border-border bg-surface p-5 mx-4 max-md:mx-0 ${MODAL_SHEET}`}
         onClick={e => e.stopPropagation()}
       >
         <div className="max-md:block hidden mx-auto h-1 w-9 rounded-full bg-white/20 light:bg-black/10 mb-3" />

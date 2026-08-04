@@ -110,7 +110,7 @@ export function EmployeeMultiSelect({
       </div>
 
       {/* Employee list */}
-      <div className={isMobile ? 'overflow-y-auto max-h-[45vh] py-1' : 'overflow-y-auto flex-1 py-1'}>
+      <div className={isMobile ? 'overflow-y-auto max-h-[45dvh] py-1' : 'overflow-y-auto flex-1 py-1'}>
         {filtered.length === 0 ? (
           <div className="px-3 py-6 text-center text-13 text-text-subtle">{t('manage.notFound')}</div>
         ) : filtered.map(e => {

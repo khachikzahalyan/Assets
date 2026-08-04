@@ -87,7 +87,7 @@ export function UninstallModal({ open, onClose, sku, asset, slot: _slot, stock, 
       </div>
 
       {/* Body */}
-      <div className="px-5 py-4 overflow-y-auto flex-1 flex flex-col gap-3" style={{ maxHeight: '60vh' }}>
+      <div className="px-5 py-4 overflow-y-auto flex-1 flex flex-col gap-3" style={{ maxHeight: '60dvh' }}>
 
         {/* Flow card */}
         <div className="rounded-xl border border-border bg-bg overflow-hidden">

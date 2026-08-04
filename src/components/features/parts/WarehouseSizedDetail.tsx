@@ -104,7 +104,7 @@ export function WarehouseSizedDetail({
         open={pickerOpen}
         onClose={() => setPickerOpen(false)}
         title={t('warehouse.pickSizeTitle', 'Выберите размер')}
-        height="60vh"
+        height="60dvh"
       >
         <div className="flex flex-col flex-1 min-h-0 overflow-y-auto">
           {inStock.map((sku, idx) => {

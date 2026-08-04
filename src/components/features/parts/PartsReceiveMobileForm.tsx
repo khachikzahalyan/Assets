@@ -114,16 +114,14 @@ export function PartsReceiveMobileForm({
 
   return (
     /* Viewport-locked column. The form is the direct flex child of the flush
-       content box (.app-shell-content-flush: topbar 52 + content pt 10 + pb 74 =
-       136), so its height must subtract exactly 136 — 128 overshot by 8px and
-       leaked an 8px page scroll on top of the intended inner scroll. Now header +
-       footer stay pinned, ONLY the category-card body scrolls, footer lands 10px
-       above the global bottom nav, and the page itself never moves. */
-    /* Height reserves topbar 52 + content pt 10 + bottom-nav 64 = 126 (the nav is
-       64px tall, not 74), so the footer lands right on top of the bottom nav with
-       no dead gap. Own «Добавить запчасть» header removed (owner request) — the
-       topbar already shows the section; cancel lives in the footer. */
-    <div className="flex flex-col h-[calc(100dvh-126px)] overflow-hidden bg-bg">
+       content box, so its height is --flush-locked-height (the token-derived
+       exact inner height of .app-shell-content-flush — see index.css; replaces
+       the hand-tuned 126/128/136 constants that assumed a 52px topbar). Header +
+       footer stay pinned, ONLY the category-card body scrolls, and the page
+       itself never moves. Own «Добавить запчасть» header removed (owner
+       request) — the topbar already shows the section; cancel lives in the
+       footer. */
+    <div className="flex flex-col h-[var(--flush-locked-height)] overflow-hidden bg-bg">
       {/* ── Scrollable body ────────────────────────────────────────────── */}
       <div className="flex-1 min-h-0 overflow-y-auto px-3.5 pt-3 pb-4 space-y-1.5">
         {loading === true ? (

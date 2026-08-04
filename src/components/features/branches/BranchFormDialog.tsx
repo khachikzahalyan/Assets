@@ -35,7 +35,7 @@ export function BranchFormDialog(p: BranchFormDialogProps) {
 
   return ReactDOM.createPortal(
     <div className={DIALOG_BACKDROP} onClick={p.onCancel}>
-      <div className={`${MODAL_W_MD} max-md:rounded-b-none max-md:rounded-t-[18px] max-md:max-h-[85vh] max-md:overflow-y-auto rounded-lg border border-border bg-surface p-5 mx-4 max-md:mx-0 ${MODAL_SHEET}`} onClick={e => e.stopPropagation()}>
+      <div className={`${MODAL_W_MD} max-md:rounded-b-none max-md:rounded-t-[18px] max-md:max-h-[85dvh] max-md:overflow-y-auto rounded-lg border border-border bg-surface p-5 mx-4 max-md:mx-0 ${MODAL_SHEET}`} onClick={e => e.stopPropagation()}>
         <div className="max-md:block hidden mx-auto h-1 w-9 rounded-full bg-white/20 mb-3 light:bg-black/10" />
         <h3 className="text-15 font-semibold text-text-primary mb-4">
           {p.initial ? t('form.editTitle') : t('form.createTitle')}

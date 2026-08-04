@@ -55,10 +55,10 @@ export function AssetDetailSkeleton({ hasSpecs }: AssetDetailSkeletonProps = {})
       {/* ════════════════════════════════════════════════════════
           MOBILE skeleton  (hidden on md+)
           Mirrors AssetDetailMobileView:
-            h-[calc(100dvh-128px)] / flex-col / overflow-hidden
+            h-[var(--flush-locked-height)] / flex-col / overflow-hidden
           ════════════════════════════════════════════════════════ */}
       <div
-        className="md:hidden flex flex-col h-[calc(100dvh-128px)] overflow-hidden"
+        className="md:hidden flex flex-col h-[var(--flush-locked-height)] overflow-hidden"
         aria-hidden="true"
       >
         {/* ① HERO — px-3.5 pt-1 wrapper, mirrors DetailHeroMobile footprint */}

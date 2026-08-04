@@ -133,7 +133,7 @@ export function KeyDetailsModal({
       onMouseDown={e => { if (e.target === e.currentTarget) onClose() }}
     >
       <div
-        className={`relative w-full max-w-md bg-surface rounded-xl shadow-2xl shadow-black/60 light:shadow-slate-300/60 border border-border overflow-hidden flex flex-col max-h-[90vh] ${MODAL_SHEET}`}
+        className={`relative w-full max-w-md bg-surface rounded-xl shadow-2xl shadow-black/60 light:shadow-slate-300/60 border border-border overflow-hidden flex flex-col max-h-[90dvh] ${MODAL_SHEET}`}
         style={{ animation: 'modalPop 200ms cubic-bezier(.22,1,.36,1) both' }}
         role="dialog"
         aria-modal="true"

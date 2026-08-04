@@ -210,7 +210,7 @@ export function DepartmentsPage({ repository, employeeRepository }: DepartmentsP
         >
           <div
             role="dialog" aria-modal="true" aria-labelledby="dept-roster-title"
-            className={`w-full max-w-md bg-surface border border-border rounded-xl max-md:rounded-b-none max-md:rounded-t-[18px] max-md:max-h-[85vh] max-md:overflow-y-auto shadow-2xl mx-4 max-md:mx-0 ${MODAL_SHEET}`}
+            className={`w-full max-w-md bg-surface border border-border rounded-xl max-md:rounded-b-none max-md:rounded-t-[18px] max-md:max-h-[85dvh] max-md:overflow-y-auto shadow-2xl mx-4 max-md:mx-0 ${MODAL_SHEET}`}
           >
             <header className="flex items-center justify-between gap-3 px-5 pt-5 pb-3">
               <div className="flex items-center gap-2.5 min-w-0">
@@ -234,7 +234,7 @@ export function DepartmentsPage({ repository, employeeRepository }: DepartmentsP
               </button>
             </header>
 
-            <div className="px-2 pb-4 max-h-[60vh] overflow-y-auto">
+            <div className="px-2 pb-4 max-h-[60dvh] overflow-y-auto">
               {viewingEmployees.length === 0 ? (
                 <p className="px-3 py-8 text-center text-13 text-text-tertiary">
                   {t('employeesDialog.empty')}

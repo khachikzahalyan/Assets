@@ -330,10 +330,11 @@ export function LicensesPage({
        content-area bottom and DataTable rows distribute the height (flex:1 1 0),
        exactly like AssetsTable. space-y (margins) kept over gap — the mobile
        keys card cancels its top margin via !mt-0 to fuse with the tab chrome. */
-    /* Mobile: viewport-locked column (topbar 52 + content pt 10 + pb 74 = 136,
-       the PartsReceiveMobileForm constant) — the tab chrome stays pinned and
-       ONLY the tab body scrolls. Deterministic, unlike body-relative sticky. */
-    <div className="flex flex-col h-full min-h-0 space-y-5 max-md:space-y-3 max-md:mx-2.5 max-md:flex-none max-md:h-[calc(100dvh-136px)] max-md:overflow-hidden">
+    /* Mobile: viewport-locked column (--flush-locked-height = exact inner height
+       of the flush content box, token-derived in index.css) — the tab chrome
+       stays pinned and ONLY the tab body scrolls. Deterministic, unlike
+       body-relative sticky. */
+    <div className="flex flex-col h-full min-h-0 space-y-5 max-md:space-y-3 max-md:mx-2.5 max-md:flex-none max-md:h-[var(--flush-locked-height)] max-md:overflow-hidden">
       {/* Tab strip + search + add button — one line, no page title.
           Mobile: assets-etalon header — card chrome, surface-2 tab strip, then a
           search+«+» row; on the keys tab the chrome fuses with the card below. */}
@@ -341,7 +342,7 @@ export function LicensesPage({
         <div className={`max-md:bg-surface max-md:border max-md:border-border max-md:rounded-t-xl max-md:overflow-hidden ${
           activeTab === 'keys' ? 'max-md:border-b-0' : 'max-md:rounded-b-xl'
         }`}>
-        <div className="flex items-center justify-between gap-3 max-md:bg-surface-2 max-md:border-b max-md:border-border max-md:px-1.5">
+        <div className="flex items-center justify-between gap-3 max-md:bg-surface-2 max-md:border-b max-md:border-border max-md:px-3.5">
           {/* Tab buttons — scrollable on mobile */}
           <TabStrip<ActiveTab>
             tabs={tabItems}

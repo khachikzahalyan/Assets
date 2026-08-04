@@ -127,12 +127,13 @@ export function AssetDetailMobileView({
 
   return (
     /*
-     * Viewport-locked column: the topbar (52px) + bottom nav (64px) frame the
-     * page, so the view fills the remaining height and ONLY its inner region
-     * scrolls — the hero + tab strip stay fixed (prototype behaviour). This
-     * component renders on mobile only, so no max-md gating is needed.
+     * Viewport-locked column: the topbar + bottom nav frame the page, so the
+     * view fills the remaining height (--flush-locked-height, token-derived in
+     * index.css) and ONLY its inner region scrolls — the hero + tab strip stay
+     * fixed (prototype behaviour). This component renders on mobile only, so
+     * no max-md gating is needed.
      */
-    <div className="flex flex-col h-[calc(100dvh-128px)] overflow-hidden">
+    <div className="flex flex-col h-[var(--flush-locked-height)] overflow-hidden">
       {/* Action error banner */}
       {actionError && (
         <p role="alert" className="mx-3.5 mt-2 text-12 text-rose-300 light:text-rose-700 px-1 flex-shrink-0">

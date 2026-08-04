@@ -325,7 +325,7 @@ export function SearchSelect({
 
       {/* Mobile: bottom sheet */}
       {isMobile && (
-        <MobileSheet open={open} onClose={() => { setOpen(false); setQuery('') }} height="60vh" {...(title !== undefined ? { title } : {})}>
+        <MobileSheet open={open} onClose={() => { setOpen(false); setQuery('') }} height="60dvh" {...(title !== undefined ? { title } : {})}>
           {listContent}
         </MobileSheet>
       )}

@@ -7,8 +7,8 @@ export interface MobileSheetProps {
   onClose: () => void
   title?: string
   /**
-   * Fixed panel height (e.g. '78vh'). Without it the sheet sizes to content
-   * (up to 85vh). With it the panel becomes a flex column of constant height —
+   * Fixed panel height (e.g. '78dvh'). Without it the sheet sizes to content
+   * (up to 85dvh). With it the panel becomes a flex column of constant height —
    * switching inner tabs or empty states never resizes the sheet; give your
    * scrollable region `flex-1 min-h-0 overflow-y-auto`.
    */
@@ -54,7 +54,9 @@ export function MobileSheet({ open, onClose, title, height, children }: MobileSh
           height ? 'flex flex-col overflow-hidden' : 'overflow-y-auto'
         }`}
         style={{
-          maxHeight: '85vh',
+          // dvh, not vh: vh includes the collapsed mobile address bar, so a
+          // 85vh sheet gets its bottom clipped while the bar is expanded.
+          maxHeight: '85dvh',
           ...(height ? { height } : {}),
           paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)',
           boxSizing: 'border-box',

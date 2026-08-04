@@ -309,7 +309,7 @@ export function DestPicker({
                   />
                 </div>
               </div>
-              <div className="max-h-[45vh] md:max-h-[10rem] overflow-y-auto space-y-0.5">
+              <div className="max-h-[45dvh] md:max-h-[10rem] overflow-y-auto space-y-0.5">
                 {sub === 'employee' &&
                   filteredEmps.map((e) => (
                     <button

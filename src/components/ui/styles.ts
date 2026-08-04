@@ -28,7 +28,7 @@ export const DIALOG_BACKDROP_BLUR =
  * Pair with DIALOG_BACKDROP or DIALOG_BACKDROP_BLUR (both already have max-md:items-end).
  */
 export const MODAL_SHEET =
-  'max-md:w-full max-md:max-w-full max-md:rounded-t-[18px] max-md:rounded-b-none max-md:max-h-[90vh] max-md:overflow-y-auto max-md:[animation:amsSheetIn_0.22s_ease-out]'
+  'max-md:w-full max-md:max-w-full max-md:rounded-t-[18px] max-md:rounded-b-none max-md:max-h-[90dvh] max-md:overflow-y-auto max-md:[animation:amsSheetIn_0.22s_ease-out]'
 
 /**
  * Absolute inner backdrop for portal-based modals (EmployeeModalShell, HandoverModal, Drawer).
