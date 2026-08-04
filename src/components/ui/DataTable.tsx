@@ -58,14 +58,20 @@ export interface DataTableProps<T> {
    */
   focusRowKey?: string
   /**
-   * Opt into the AssetsTable full-height fill contract: the table takes flex:1 1 0
-   * so the rowgroup absorbs the available card height and the paginator stays
-   * pinned to the card bottom. Rows keep their NATURAL compact height (3.625rem
-   * floor — rem, scales with the root; 58px at the 1920 reference); extra space
-   * stays empty below the rows (owner decision 2026-08-03: flex-stretched rows
-   * looked broken at compact laptop scale). REQUIRES a bounded-height
-   * flex-column parent (ListCard Zone 2 or equivalent) — without one the table
-   * collapses, which is why this is opt-in.
+   * Opt into the full-height fill contract (owner reconfirmed 2026-08-04;
+   * supersedes the 2026-08-03 natural-height decision):
+   *
+   * - The role="table" root takes flex:1 1 0 so it absorbs the available card
+   *   height and the paginator stays pinned to the card bottom.
+   * - Every real row AND every placeholder row gets flex:1 1 0, so the 10 slots
+   *   (minRows=PAGE_SIZE=10) evenly distribute the available height — no dead zone
+   *   between the last row and the paginator, no bloated rows at large viewports.
+   * - minHeight:3.625rem (rem floor, scales with root; ≈58px at 1920 ref) is the
+   *   low-viewport safety net: on short viewports rows bottom out at the floor and
+   *   the rowgroup scrolls rather than crushing rows.
+   *
+   * REQUIRES a bounded-height flex-column parent (ListCard Zone 2 or equivalent)
+   * — without one the table collapses to 0, which is why this is opt-in.
    */
   fillHeight?: boolean
 }
@@ -80,7 +86,7 @@ export interface DataTableProps<T> {
  * - Column headers: 12px uppercase, tracking-[0.09em], font-semibold, text-text-tertiary
  * - First column paddingLeft:20; non-first columns px-3
  * - Rows: border-t border-border, orange hover rgba(249,115,22,0.08)
- * - Rows: display:grid, flex:1 1 0, minHeight:58
+ * - Rows: display:grid, minHeight:3.625rem; flex:1 1 0 only under fillHeight (even distribution contract)
  * - Placeholder rows: border rgba(42,47,54,0.35), dashed center guide line
  * - Keyboard: Enter/Space fires onRowClick; rows tabIndex=0 when clickable
  * - ARIA: role="table" / "rowgroup" / "row" / "columnheader" / "cell"
@@ -129,7 +135,20 @@ export function DataTable<T>({
         display: 'flex',
         flexDirection: 'column',
         width: '100%',
-        ...(fillHeight ? { flex: '1 1 0', minHeight: 0 } : {}),
+        // fillHeight only:
+        // - height:100% is LOAD-BEARING, not belt-and-suspenders: /assets and
+        //   /employees pass the table through a BLOCK h-full wrapper (not a flex
+        //   parent), where flex:1 1 0 is inert. Without it the root collapses to
+        //   header height and the basis-0 rowgroup renders 0px tall — with the
+        //   overflow-y:auto below that clips every row (empty-table bug,
+        //   2026-08-04; verified in real Chromium). In flex parents the flex
+        //   basis wins over height, so both contexts resolve correctly.
+        // - overflow-x:auto is the horizontal escape hatch for the narrow-desktop
+        //   band (768–830px) where rem minmax column floors exceed the card width.
+        //   NOT applied without fillHeight: content-driven tables need an ancestor
+        //   scroller for their sticky header, and overflow-x here would make the
+        //   root the sticky containing block (header would stop sticking).
+        ...(fillHeight ? { flex: '1 1 0', minHeight: 0, height: '100%', overflowX: 'auto' } : {}),
       }}
     >
       {/* ── Sticky header rowgroup ─────────────────────────────────────────── */}
@@ -142,6 +161,9 @@ export function DataTable<T>({
           background: 'var(--color-bg)',
           borderBottom: '1px solid var(--color-border)',
           flexShrink: 0,
+          // min-width so the header widens with the body under the fillHeight
+          // horizontal escape hatch and both scroll in lockstep.
+          ...(fillHeight ? { minWidth: 'fit-content' } : {}),
         }}
       >
         <div
@@ -168,15 +190,20 @@ export function DataTable<T>({
       </div>
 
       {/* ── Body rowgroup ─────────────────────────────────────────────────── */}
-      {/* Content-driven height (NO flex:1/height:100% — those collapse the table
-          to 0 when a consumer like CatalogTable has no bounded-height parent).
-          Consistent list height comes from a shared minRows/PAGE_SIZE, not flex. */}
+      {/* Without fillHeight: content-driven height. flex:1/height:100% would
+          collapse the table to 0 when there is no bounded-height parent (e.g.
+          CatalogTable without a ListCard Zone 2), so fill behaviour is opt-in.
+          Under fillHeight: the rowgroup gets flex:1 1 0 and each row (real +
+          placeholder) also gets flex:1 1 0, distributing available height evenly
+          across the 10 slots. The rowgroup is also the scroll owner: on short
+          viewports, when 10 rem floors don't fit, it scrolls vertically instead
+          of letting ListCard Zone 2's overflow-hidden clip the bottom rows. */}
       <div
         role="rowgroup"
         style={{
           display: 'flex',
           flexDirection: 'column',
-          ...(fillHeight ? { flex: '1 1 0', minHeight: 0 } : {}),
+          ...(fillHeight ? { flex: '1 1 0', minHeight: 0, overflowY: 'auto', minWidth: 'fit-content' } : {}),
         }}
       >
         {rows.map(row => {
@@ -216,9 +243,11 @@ export function DataTable<T>({
                   display: 'grid',
                   gridTemplateColumns,
                   alignItems: 'center',
-                  // rem floor scales with the root; rows never flex-grow —
-                  // compact natural height at every viewport scale.
+                  // Under fillHeight rows flex-stretch to evenly divide the available
+                  // height; the rem floor is the low-viewport safety (the rowgroup
+                  // scrolls when 10 floors don't fit).
                   minHeight: '3.625rem',
+                  ...(fillHeight ? { flex: '1 1 0' } : {}),
                 }}
               >
                 {columns.map((col, idx) => (
@@ -266,6 +295,7 @@ export function DataTable<T>({
             data-testid={placeholderTestId}
             style={{
               minHeight: '3.625rem',
+              ...(fillHeight ? { flex: '1 1 0' } : {}),
               ...(i === 0 ? { borderTop: '1px solid var(--color-border)' } : {}),
               pointerEvents: 'none',
             }}

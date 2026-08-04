@@ -95,4 +95,30 @@ describe('EmployeesTable', () => {
     expect(onRowClick).toHaveBeenCalledOnce()
     expect(onRowClick).toHaveBeenCalledWith(emp)
   })
+
+  it('(3) desktop DataTable rows carry the fill contract (flex:1 1 0px, minHeight:3.625rem)', () => {
+    // jsdom: isMobile=false (matchMedia undefined → false) → desktop DataTable renders.
+    // With fillHeight, DataTable gives every real body row and every placeholder
+    // flex:'1 1 0' and minHeight:'3.625rem' (jsdom serializes 0 basis as '0px').
+    const rows = [makeEmp('e1'), makeEmp('e2'), makeEmp('e3')]
+    renderTable(rows)
+
+    // All role="row" elements — includes the header row; skip it (index 0).
+    const allRows = screen.getAllByRole('row')
+    // The first role="row" is the header; the remaining are the 3 data rows.
+    const bodyRows = allRows.slice(1)
+    expect(bodyRows.length).toBe(3)
+
+    for (const row of bodyRows) {
+      // jsdom serializes flex shorthand 'flex: 1 1 0' with a '0px' basis.
+      expect(row).toHaveStyle({ flex: '1 1 0px', minHeight: '3.625rem' })
+    }
+
+    // Placeholders: 7 with fill contract too.
+    const placeholders = screen.getAllByTestId('emp-placeholder-row')
+    expect(placeholders).toHaveLength(7)
+    for (const ph of placeholders) {
+      expect(ph).toHaveStyle({ flex: '1 1 0px', minHeight: '3.625rem' })
+    }
+  })
 })

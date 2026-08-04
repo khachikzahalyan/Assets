@@ -237,6 +237,7 @@ export function EmployeesTable({
       onRowClick={onRowClick}
       minRows={minRows}
       placeholderTestId="emp-placeholder-row"
+      fillHeight
       aria-label={t('title')}
     />
   )

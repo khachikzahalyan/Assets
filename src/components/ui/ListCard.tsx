@@ -14,6 +14,9 @@ import { type ReactNode } from 'react'
  *   - be `height: 100%` at its wrapper level
  *   - use `flex: 1 1 0` on its body-row container so rows distribute to fill
  *   - use `flex: 1 1 0` on real rows AND placeholder rows
+ *   - own vertical overflow on its body-row container (`overflow-y: auto`) — Zone 2
+ *     itself is overflow-hidden, so on short viewports the table body scrolls
+ *     rather than having its bottom rows clipped (DataTable fillHeight does this)
  * The parent page must use ListPageShell (or equivalent w-full h-full flex flex-col)
  * to opt into full-height rendering.
  */
