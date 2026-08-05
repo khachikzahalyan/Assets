@@ -99,6 +99,11 @@ export class InMemoryAssignmentRepository implements AssignmentRepository {
     return r
   }
 
+  async getActScanUrl(path: string): Promise<string> {
+    // Deterministic fake URL — usable in tests without touching Firebase Storage.
+    return `https://storage.test/acts/${encodeURIComponent(path)}`
+  }
+
   async returnAsset(assetId: string, actor: Actor): Promise<AuditedResult<Assignment>> {
     const idx = this.assets.findIndex(a => a.id === assetId)
     if (idx < 0) throw new Error(`Asset not found: ${assetId}`)

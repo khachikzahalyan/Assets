@@ -8,6 +8,8 @@ import type { Assignment, AssignInput, AssignmentRepository } from '@/domain/ass
 import { firestoreAuditContext, withAudit } from '@/lib/audit'
 import type { AuditedResult } from '@/domain/audit'
 import { toIso } from './firestoreUtils'
+import { storage } from '@/lib/firebase'
+import { actScanUrl } from '@/infra/storage'
 
 function toAssignment(id: string, d: Record<string, unknown>): Assignment {
   return {
@@ -114,6 +116,10 @@ export class FirestoreAssignmentRepository implements AssignmentRepository {
     const created = await getDoc(asnRef)
     if (!created.exists()) throw new Error('Assignment create succeeded but readback failed')
     return { value: toAssignment(asnRef.id, created.data() as Record<string, unknown>), auditId: r.auditId }
+  }
+
+  async getActScanUrl(path: string): Promise<string> {
+    return actScanUrl(storage(), path)
   }
 
   async returnAsset(assetId: string, actor: Actor): Promise<AuditedResult<Assignment>> {

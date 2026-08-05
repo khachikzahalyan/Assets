@@ -1,12 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
-import type { Asset, AssetReferenceData } from '@/domain/asset'
-import type { Employee } from '@/domain/employee'
-import type { Branch } from '@/domain/branch'
-import {
-  getSharedAssetRepository,
-  getSharedEmployeeRepository,
-  getSharedBranchRepository,
-} from '@/infra/repositories'
+import type { Asset, AssetReferenceData, AssetRepository } from '@/domain/asset'
+import type { Employee, EmployeeRepository } from '@/domain/employee'
+import type { Branch, BranchRepository } from '@/domain/branch'
 
 /** All data the palette needs — loaded once per open, cached until unmount. */
 export interface SearchPaletteData {
@@ -23,26 +18,32 @@ export type SearchPaletteDataState =
   | { status: 'ready'; data: SearchPaletteData }
   | { status: 'error'; error: Error }
 
+export interface SearchPaletteRepos {
+  assetRepo: Pick<AssetRepository, 'listAssets' | 'loadReferenceData'>
+  employeeRepo: Pick<EmployeeRepository, 'listEmployees'>
+  branchRepo: Pick<BranchRepository, 'listBranches'>
+}
+
 /**
  * Lazy one-shot loader for the SearchPalette. Data is fetched the FIRST time
  * `open` becomes true, then held in component state for the rest of the session.
- * Uses the shared repository singletons so it composes with the app-wide SWR cache.
+ * Repositories are injected by the caller so the hook stays infra-free.
+ * `repos` may be null while the palette has never been opened — the caller
+ * resolves them lazily so shell mounts don't construct Firestore singletons.
  */
-export function useSearchPaletteData(open: boolean): SearchPaletteDataState {
+export function useSearchPaletteData(open: boolean, repos: SearchPaletteRepos | null): SearchPaletteDataState {
   const [state, setState] = useState<SearchPaletteDataState>({ status: 'idle' })
   // Track whether we've already fetched so reopening doesn't re-fetch.
   const fetchedRef = useRef(false)
 
   useEffect(() => {
-    if (!open) return
+    if (!open || repos === null) return
     if (fetchedRef.current) return
     fetchedRef.current = true
 
     setState({ status: 'loading' })
 
-    const assetRepo    = getSharedAssetRepository()
-    const employeeRepo = getSharedEmployeeRepository()
-    const branchRepo   = getSharedBranchRepository()
+    const { assetRepo, employeeRepo, branchRepo } = repos
 
     let cancelled = false
     void (async () => {
@@ -62,7 +63,8 @@ export function useSearchPaletteData(open: boolean): SearchPaletteDataState {
     })()
 
     return () => { cancelled = true }
-  }, [open])
+  // repos identity is memoized at the call site (flips null → object once).
+  }, [open, repos])
 
   return state
 }

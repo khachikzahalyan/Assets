@@ -8,30 +8,16 @@ import type { Assignment, AssignmentRepository } from '@/domain/assignment'
 import type { Actor } from '@/domain/asset'
 import type { AuditedResult } from '@/domain/audit'
 
-// MyActsPage imports storage() from firebase only inside handleViewScan (not at render time).
-// Mock it so the module resolves even though no Firebase app is initialised.
-vi.mock('@/lib/firebase', () => ({
-  app:       () => ({}),
-  auth:      () => ({}),
-  db:        () => ({}),
-  storage:   () => ({}),
-  functions: () => ({}),
-}))
-
-// actScanUrl is called only when the user clicks "view scan" — not during render.
-// Mock it globally so the import doesn't touch the real Firebase Storage SDK.
-vi.mock('@/infra/storage', () => ({
-  actScanUrl: vi.fn().mockResolvedValue('https://example.test/scan.pdf'),
-}))
-
 // ---------------------------------------------------------------------------
-// Minimal stub — only implements the one method MyActsPage calls.
+// Minimal stub — implements the methods MyActsPage calls.
+// getActScanUrl is injected here so the page never touches Firebase Storage.
 // ---------------------------------------------------------------------------
 function makeRepo(assignments: Assignment[]): AssignmentRepository {
   return {
     listAssignmentsForEmployee: async () => assignments,
     listAssignments:   async () => [],
     getActiveAssignment: async () => null,
+    getActScanUrl: vi.fn().mockResolvedValue('https://example.test/scan.pdf'),
     assign:      (_input: unknown, _actor: Actor): Promise<AuditedResult<Assignment>> => Promise.reject(new Error('not implemented')),
     returnAsset: (_assetId: string, _actor: Actor): Promise<AuditedResult<Assignment>> => Promise.reject(new Error('not implemented')),
   }

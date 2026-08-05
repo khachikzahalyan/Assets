@@ -6,8 +6,6 @@ import {
 import { useAuth } from '@/contexts/AuthContext'
 import type { Assignment, AssignmentRepository } from '@/domain/assignment'
 import { getSharedAssignmentRepository } from '@/infra/repositories'
-import { actScanUrl } from '@/infra/storage'
-import { storage } from '@/lib/firebase'
 
 export interface MyActsPageProps {
   repository?: AssignmentRepository
@@ -44,7 +42,7 @@ export function MyActsPage({ repository }: MyActsPageProps) {
   }, [load])
 
   function handleViewScan(path: string) {
-    void actScanUrl(storage(), path)
+    void repo.getActScanUrl(path)
       .then(u => window.open(u, '_blank', 'noopener'))
       .catch(() => setActionError(t('validation.saveFailed')))
   }

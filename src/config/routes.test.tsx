@@ -79,6 +79,7 @@ vi.mock('@/infra/repositories', async () => {
 
   class StubAssignmentRepo {
     async listAssignmentsForEmployee() { return [] }
+    async getActScanUrl()              { return 'https://example.test/scan' }
   }
 
   class StubUserRepo {

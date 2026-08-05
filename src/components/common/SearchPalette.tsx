@@ -1,12 +1,17 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
 import { canAccess } from '@/config/access'
 import { Icon } from '@/components/ui/icon'
 import { Chip } from '@/components/ui/chip'
-import { useSearchPaletteData } from '@/hooks/useSearchPaletteData'
+import { useSearchPaletteData, type SearchPaletteRepos } from '@/hooks/useSearchPaletteData'
 import { assetTitle, deriveDisplayStatusId, statusLabel } from '@/components/features/assets/assetFormat'
+import {
+  getSharedAssetRepository,
+  getSharedEmployeeRepository,
+  getSharedBranchRepository,
+} from '@/infra/repositories'
 
 /** Maximum results shown per entity type. */
 const MAX_PER_TYPE = 6
@@ -25,13 +30,33 @@ export interface SearchPaletteProps {
   open: boolean
   onClose: () => void
   onPick: (r: SearchResult) => void
+  /** Repository overrides — injected in tests; defaults to the shared production singletons. */
+  repos?: SearchPaletteRepos
 }
 
-export function SearchPalette({ open, onClose, onPick }: SearchPaletteProps) {
+export function SearchPalette({ open, onClose, onPick, repos }: SearchPaletteProps) {
   const [query, setQuery]   = useState('')
   const { t }               = useTranslation('common')
   const { role }            = useAuth()
-  const dataState           = useSearchPaletteData(open)
+
+  // Resolve repositories lazily — only once the palette has actually been
+  // opened. Tests inject repos via the prop; production callers omit it and
+  // get the shared singletons. Resolving at mount would construct Firestore
+  // repos on every shell render, including jsdom tests that never open the
+  // palette (source of the 2026-08-05 routes.test slowdown/flake).
+  const hasOpened = useRef(false)
+  if (open) hasOpened.current = true
+  const resolvedRepos = useMemo<SearchPaletteRepos | null>(
+    () => repos ?? (hasOpened.current ? {
+      assetRepo:    getSharedAssetRepository(),
+      employeeRepo: getSharedEmployeeRepository(),
+      branchRepo:   getSharedBranchRepository(),
+    } : null),
+    // `open` re-runs the memo on the render where hasOpened flips true.
+    [repos, open],
+  )
+
+  const dataState           = useSearchPaletteData(open, resolvedRepos)
 
   // ESC to close
   useEffect(() => {

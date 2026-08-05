@@ -36,4 +36,6 @@ export interface AssignmentRepository {
   getActiveAssignment(assetId: string): Promise<Assignment | null>
   /** Assignment history for a given employee (self-service My Acts), newest first. */
   listAssignmentsForEmployee(employeeId: string): Promise<Assignment[]>
+  /** Resolve a temporary download URL for a stored act scan by its Storage path. */
+  getActScanUrl(path: string): Promise<string>
 }

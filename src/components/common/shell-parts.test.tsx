@@ -8,6 +8,40 @@ import { LanguageToggle } from './LanguageToggle'
 import { ProfileMenu } from './ProfileMenu'
 import { SearchPalette } from './SearchPalette'
 import { Breadcrumbs } from './Breadcrumbs'
+import type { SearchPaletteRepos } from '@/hooks/useSearchPaletteData'
+
+// SearchPalette now imports getShared* from @/infra/repositories which in turn
+// calls db() from @/lib/firebase. Stub both so the module resolves in jsdom.
+vi.mock('@/lib/firebase', () => ({
+  app:       () => ({}),
+  auth:      () => ({}),
+  db:        () => ({}),
+  storage:   () => ({}),
+  functions: () => ({}),
+}))
+
+vi.mock('@/infra/repositories', async () => {
+  const actual = await vi.importActual<typeof import('@/infra/repositories')>('@/infra/repositories')
+  const stubRepo = {
+    listAssets:            async () => [],
+    loadReferenceData:     async () => ({ statuses: [], branches: [], departments: [], categories: [], employees: [], categoryGroups: [] }),
+    listEmployees:         async () => [],
+    listBranches:          async () => [],
+  }
+  return {
+    ...actual,
+    getSharedAssetRepository:    () => stubRepo,
+    getSharedEmployeeRepository: () => stubRepo,
+    getSharedBranchRepository:   () => stubRepo,
+  }
+})
+
+// Stub repos passed directly to SearchPalette so the hook uses pure in-memory fakes.
+const STUB_SEARCH_REPOS: SearchPaletteRepos = {
+  assetRepo:    { listAssets: async () => [], loadReferenceData: async () => ({ statuses: [], branches: [], departments: [], categories: [], employees: [], categoryGroups: [] }) },
+  employeeRepo: { listEmployees: async () => [] },
+  branchRepo:   { listBranches: async () => [] },
+}
 
 // ----------------------------------------------------------------
 // Setup — switch to 'ru' once before all tests
@@ -185,7 +219,7 @@ describe('SearchPalette', () => {
   it('open=true renders the search input with placeholder', () => {
     render(
       <Wrapper>
-        <SearchPalette open onClose={() => undefined} onPick={() => undefined} />
+        <SearchPalette open onClose={() => undefined} onPick={() => undefined} repos={STUB_SEARCH_REPOS} />
       </Wrapper>
     )
     expect(screen.getByPlaceholderText('Поиск...')).toBeInTheDocument()
@@ -194,7 +228,7 @@ describe('SearchPalette', () => {
   it('shows a loading state while data is being fetched (no mock results)', () => {
     render(
       <Wrapper>
-        <SearchPalette open onClose={() => undefined} onPick={() => undefined} />
+        <SearchPalette open onClose={() => undefined} onPick={() => undefined} repos={STUB_SEARCH_REPOS} />
       </Wrapper>
     )
     // Palette shows "Загрузка…" immediately because the async repo call is pending
@@ -207,7 +241,7 @@ describe('SearchPalette', () => {
     const onClose = vi.fn()
     render(
       <Wrapper>
-        <SearchPalette open onClose={onClose} onPick={() => undefined} />
+        <SearchPalette open onClose={onClose} onPick={() => undefined} repos={STUB_SEARCH_REPOS} />
       </Wrapper>
     )
     fireEvent.keyDown(document, { key: 'Escape' })
@@ -217,7 +251,7 @@ describe('SearchPalette', () => {
   it('open=false renders nothing', () => {
     const { container } = render(
       <Wrapper>
-        <SearchPalette open={false} onClose={() => undefined} onPick={() => undefined} />
+        <SearchPalette open={false} onClose={() => undefined} onPick={() => undefined} repos={STUB_SEARCH_REPOS} />
       </Wrapper>
     )
     // createPortal returns null when open=false

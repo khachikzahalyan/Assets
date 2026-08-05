@@ -116,4 +116,11 @@ describe('InMemoryAssignmentRepository', () => {
     expect(list[0]!.assignedToEmployeeId).toBe('uid_1')
     expect(await repo.listAssignmentsForEmployee('uid_2')).toHaveLength(0)
   })
+
+  it('getActScanUrl returns a deterministic URL containing the encoded path', async () => {
+    const path = 'acts/a_1/scan.pdf'
+    const url = await repo.getActScanUrl(path)
+    expect(url).toContain(encodeURIComponent(path))
+    expect(url.startsWith('https://')).toBe(true)
+  })
 })
