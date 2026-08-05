@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeAll } from 'vitest'
+import { describe, it, expect, vi, beforeAll, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { I18nextProvider } from 'react-i18next'
 import i18n from '@/lib/i18n'
@@ -15,6 +15,12 @@ vi.mock('@/lib/firebase', () => ({
   db:        () => ({}),
   storage:   () => ({}),
   functions: () => ({}),
+}))
+
+// Mutable flag so individual tests can flip mobile on/off.
+let _mockIsMobile = false
+vi.mock('@/hooks/useIsMobile', () => ({
+  useIsMobile: () => _mockIsMobile,
 }))
 
 beforeAll(async () => { await i18n.changeLanguage('ru') })
@@ -246,5 +252,83 @@ describe('NotificationBell', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Уведомления' }))
     expect(await screen.findByText('Нет уведомлений')).toBeInTheDocument()
+  })
+})
+
+describe('NotificationBell — popover positioning via useIsMobile', () => {
+  beforeEach(() => { _mockIsMobile = false })
+
+  it('at viewport ≤767px (mobile) the popover receives left/right/bottom positioning', async () => {
+    _mockIsMobile = true
+    // Stub getBoundingClientRect so desktop path doesn't interfere if ever reached.
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue(
+      { top: 50, bottom: 70, left: 900, right: 940, width: 40, height: 20, x: 900, y: 50, toJSON: () => {} } as DOMRect,
+    )
+    const repo = stubRepo([])
+    render(
+      <I18nextProvider i18n={i18n}>
+        <AuthContext.Provider value={authCtx('super_admin')}>
+          <NotificationBell
+            repository={repo}
+            notificationRepository={new InMemoryNotificationRepository([])}
+            onSelect={vi.fn()}
+          />
+        </AuthContext.Provider>
+      </I18nextProvider>,
+    )
+    await waitFor(() => expect(repo.listAssets).toHaveBeenCalled())
+
+    fireEvent.click(screen.getByRole('button', { name: 'Уведомления' }))
+
+    // After opening, the popover portal should have mobile inline styles:
+    // left: 8px, right: 8px, bottom: 8px, width: 'auto'
+    await waitFor(() => {
+      const popover = document.body.querySelector<HTMLElement>('[style*="position: fixed"]')
+      expect(popover).not.toBeNull()
+      const style = popover!.style
+      expect(style.left).toBe('8px')
+      expect(style.right).toBe('8px')
+      expect(style.bottom).toBe('8px')
+      expect(style.width).toBe('auto')
+      expect(style.top).toBe('')
+    })
+    vi.restoreAllMocks()
+  })
+
+  it('at viewport ≥768px (desktop) the popover receives top/right/width:340px positioning', async () => {
+    _mockIsMobile = false
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue(
+      { top: 50, bottom: 70, left: 860, right: 900, width: 40, height: 20, x: 860, y: 50, toJSON: () => {} } as DOMRect,
+    )
+    Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 1280 })
+
+    const repo = stubRepo([])
+    render(
+      <I18nextProvider i18n={i18n}>
+        <AuthContext.Provider value={authCtx('super_admin')}>
+          <NotificationBell
+            repository={repo}
+            notificationRepository={new InMemoryNotificationRepository([])}
+            onSelect={vi.fn()}
+          />
+        </AuthContext.Provider>
+      </I18nextProvider>,
+    )
+    await waitFor(() => expect(repo.listAssets).toHaveBeenCalled())
+
+    fireEvent.click(screen.getByRole('button', { name: 'Уведомления' }))
+
+    // After opening, the popover portal should have desktop inline styles:
+    // top: rect.bottom + 6, right: window.innerWidth - rect.right, width: 340px
+    await waitFor(() => {
+      const popover = document.body.querySelector<HTMLElement>('[style*="position: fixed"]')
+      expect(popover).not.toBeNull()
+      const style = popover!.style
+      expect(style.top).toBe('76px')     // bottom(70) + 6
+      expect(style.right).toBe('380px')  // innerWidth(1280) - rect.right(900)
+      expect(style.width).toBe('340px')
+      expect(style.bottom).toBe('')
+    })
+    vi.restoreAllMocks()
   })
 })

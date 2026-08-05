@@ -93,7 +93,7 @@ export function useAssetDetail({ id, repo, repoAsn, licenseRepo, onPersistOemSec
       setAsset(a)
       setRef(refData)
     } catch {
-      setLoadError(tRef.current('validation.saveFailed'))
+      setLoadError(tRef.current('validation.loadFailed'))
       setLoading(false)
       return
     }

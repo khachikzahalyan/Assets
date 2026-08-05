@@ -154,7 +154,7 @@ describe('FirestoreDashboardRepository', () => {
       expect(mockCollection).toHaveBeenCalledWith(fakeDb, 'audit_logs')
     })
 
-    it('maps docs to AuditLog shape with actorName fallback to null when absent', async () => {
+    it('maps docs to AuditLog shape, omitting actorName when absent (legacy docs)', async () => {
       const auditDocs = [
         {
           id: 'ev_1',
@@ -173,7 +173,8 @@ describe('FirestoreDashboardRepository', () => {
             actorUid: 'u_2', actorRole: 'super_admin',
             before: null, after: { firstName: 'Bob' }, comment: null,
             at: '2026-07-01T08:00:00.000Z',
-            // actorName intentionally absent — should map to null
+            // actorName intentionally absent — the key must be omitted (legacy
+            // doc contract: undefined = absent, null = explicitly stored null)
           },
         },
       ]
@@ -192,8 +193,10 @@ describe('FirestoreDashboardRepository', () => {
         actorRole: 'asset_admin',
         actorName: 'Alice Smith',
       })
-      // actorName absent in Firestore doc → null
-      expect(events[1]).toMatchObject({ id: 'ev_2', actorName: null })
+      // actorName absent in Firestore doc → key omitted (conditional-spread,
+      // matches the canonical firestoreAuditLogRepository mapper)
+      expect(events[1]).toMatchObject({ id: 'ev_2' })
+      expect('actorName' in events[1]!).toBe(false)
     })
   })
 

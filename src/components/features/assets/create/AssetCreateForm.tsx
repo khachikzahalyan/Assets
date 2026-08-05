@@ -482,7 +482,7 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
             <section className="max-md:px-3.5 px-6 py-5">
               {/* Mobile: divider before Характеристики (right col stacks below left col) */}
               <MobileDivider />
-              <SpecsPanel specs={specs} onChange={setSpecs} isServer={caps.isServer} hasGpu={caps.hasGpu} />
+              <SpecsPanel specs={specs} onChange={setSpecs} isServer={caps.isServer} hasGpu={caps.hasGpu} resetKey={categoryId} />
             </section>
           )}
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
 import { Btn, Icon, ErrorState, TableSkeleton, CardListSkeleton, SearchInput, SectionCard, TabStrip } from '@/components/ui'
@@ -66,6 +66,8 @@ export function LicensesPage({
   assetRepo,
 }: LicensesPageProps) {
   const { t } = useTranslation('licenses')
+  const tRef = useRef(t)
+  tRef.current = t
   const { user, role } = useAuth()
   const isMobile = useIsMobile()
 
@@ -145,11 +147,10 @@ export function LicensesPage({
       writeResourceCache(snapKey, { rows, maskedKeys: map })
     } catch {
       if (guard && !guard.value) return
-      setWError(t('error'))
+      setWError(tRef.current('error'))
     } finally {
       if (!guard || guard.value) setWLoading(false)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [wRepo])
 
   // ── Load audit for license tab ───────────────────────────────────────────────
@@ -201,11 +202,10 @@ export function LicensesPage({
       writeResourceCache(snapKey, { subs: rows })
     } catch {
       if (guard && !guard.value) return
-      setSubsError(t('error'))
+      setSubsError(tRef.current('error'))
     } finally {
       if (!guard || guard.value) setSubsLoading(false)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [subRepo])
 
   // ── Load employees ───────────────────────────────────────────────────────────

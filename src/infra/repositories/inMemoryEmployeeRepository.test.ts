@@ -215,6 +215,45 @@ describe('InMemoryEmployeeRepository archive/restore (in-place)', () => {
   })
 })
 
+// ── preassignedRole preservation on restore ────────────────────────────────────
+
+describe('InMemoryEmployeeRepository restoreEmployee — preassignedRole preserved', () => {
+  it('in-place restore: preassignedRole is carried over from the terminated record', async () => {
+    const active = [makeEmp('e1', { preassignedRole: 'asset_admin' })]
+    const repo = new InMemoryEmployeeRepository(active, [])
+    await repo.archiveEmployee('e1', ARCHIVE_ACTOR)
+    const r = await repo.restoreEmployee('e1', ARCHIVE_ACTOR)
+    expect(r.value.preassignedRole).toBe('asset_admin')
+    expect(active.find(e => e.id === 'e1')?.preassignedRole).toBe('asset_admin')
+  })
+
+  it('in-place restore: employee without preassignedRole stays without it (undefined/null)', async () => {
+    const active = [makeEmp('e1')]  // preassignedRole absent
+    const repo = new InMemoryEmployeeRepository(active, [])
+    await repo.archiveEmployee('e1', ARCHIVE_ACTOR)
+    const r = await repo.restoreEmployee('e1', ARCHIVE_ACTOR)
+    // preassignedRole must not be forced to a value
+    expect(r.value.preassignedRole == null).toBe(true)
+  })
+
+  it('legacy restore: preassignedRole from former_employees array is preserved', async () => {
+    const active: Employee[] = []
+    const former = [makeEmp('e1', { status: 'terminated', terminatedAt: '2021-01-01T00:00:00.000Z', preassignedRole: 'tech_admin' })]
+    const repo = new InMemoryEmployeeRepository(active, former)
+    const r = await repo.restoreEmployee('e1', ARCHIVE_ACTOR)
+    expect(r.value.preassignedRole).toBe('tech_admin')
+    expect(active.find(e => e.id === 'e1')?.preassignedRole).toBe('tech_admin')
+  })
+
+  it('legacy restore: employee without preassignedRole stays without it', async () => {
+    const active: Employee[] = []
+    const former = [makeEmp('e1', { status: 'terminated', terminatedAt: '2021-01-01T00:00:00.000Z' })]
+    const repo = new InMemoryEmployeeRepository(active, former)
+    const r = await repo.restoreEmployee('e1', ARCHIVE_ACTOR)
+    expect(r.value.preassignedRole == null).toBe(true)
+  })
+})
+
 // ── Legacy restore path ────────────────────────────────────────────────────────
 
 describe('InMemoryEmployeeRepository legacy restore (from former array)', () => {

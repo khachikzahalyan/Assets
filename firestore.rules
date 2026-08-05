@@ -550,9 +550,10 @@ service cloud.firestore {
     //   · at         must equal request.time (server timestamp — rules compare timestamps).
     //   · type       must be one of the four defined MovementType values.
     //   · keys()     are whitelisted; optional fields (assetId, assetInvCode, note, reason,
-    //                kindId, kindLabel, and the replace-install denormalisation
-    //                replacedSpec / replacedStorageType / replacedSlotIndex / oldDisposal)
-    //                may be absent but are the ONLY extras allowed.
+    //                kindId, kindLabel, serviceActorName, and the replace-install
+    //                denormalisation replacedSpec / replacedStorageType /
+    //                replacedSlotIndex / oldDisposal) may be absent but are the ONLY
+    //                extras allowed.
     match /part_movements/{id} {
       allow read: if isSignedIn() && role() in ['super_admin', 'asset_admin', 'tech_admin'];
 
@@ -566,6 +567,7 @@ service cloud.firestore {
              'type', 'skuId', 'qty', 'broken', 'assetId', 'assetInvCode',
              'serviceReplace', 'note', 'reason', 'kindId', 'kindLabel',
              'replacedSpec', 'replacedStorageType', 'replacedSlotIndex', 'oldDisposal',
+             'serviceActorName',
              'actorUid', 'actorRole', 'at']);
 
       allow update, delete: if false;

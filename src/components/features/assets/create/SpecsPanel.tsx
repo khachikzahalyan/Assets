@@ -28,10 +28,12 @@ export interface SpecsPanelProps {
   isServer: boolean
   /** When false the Видеокарта field is hidden. True only for computers + laptops. */
   hasGpu: boolean
+  /** Change this value to force RamSlots and StorageSlots to remount (e.g. on category change). */
+  resetKey?: string | number
 }
 
 /** Характеристики: Процессор (combobox), Видеокарта (free text), ОЗУ + Накопитель builders. */
-export function SpecsPanel({ specs, onChange, isServer, hasGpu }: SpecsPanelProps) {
+export function SpecsPanel({ specs, onChange, isServer, hasGpu, resetKey }: SpecsPanelProps) {
   const { t } = useTranslation('assets')
   const set = (patch: Partial<AssetSpecs>) => onChange({ ...specs, ...patch })
 
@@ -81,7 +83,7 @@ export function SpecsPanel({ specs, onChange, isServer, hasGpu }: SpecsPanelProp
           )}
         </span>
         <div role="group" aria-labelledby="asset-spec-ram-label">
-          <RamSlots value={specs.ram || ''} onChange={v => set({ ram: v })} isServer={isServer} />
+          <RamSlots key={`ram-${resetKey ?? 0}`} value={specs.ram || ''} onChange={v => set({ ram: v })} isServer={isServer} />
         </div>
 
         {/* B5: Storage label + count badge when > 1 slot */}
@@ -94,7 +96,7 @@ export function SpecsPanel({ specs, onChange, isServer, hasGpu }: SpecsPanelProp
           )}
         </span>
         <div role="group" aria-labelledby="asset-spec-ssd-label">
-          <StorageSlots value={specs.ssd || ''} onChange={v => set({ ssd: v })} isServer={isServer} />
+          <StorageSlots key={`ssd-${resetKey ?? 0}`} value={specs.ssd || ''} onChange={v => set({ ssd: v })} isServer={isServer} />
         </div>
       </div>
     </div>

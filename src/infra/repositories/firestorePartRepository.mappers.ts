@@ -68,8 +68,8 @@ export function toMovement(id: string, d: Record<string, unknown>): PartMovement
     assetId: (d['assetId'] as string | null) ?? null,
     assetInvCode: (d['assetInvCode'] as string | null) ?? null,
     serviceReplace: Boolean(d['serviceReplace']),
-    kindId: (d['kindId'] as string | null) ?? null,
-    kindLabel: (d['kindLabel'] as string | null) ?? null,
+    ...(d['kindId'] !== undefined ? { kindId: (d['kindId'] as string | null) ?? null } : {}),
+    ...(d['kindLabel'] !== undefined ? { kindLabel: (d['kindLabel'] as string | null) ?? null } : {}),
     note: (d['note'] as string | null) ?? null,
     reason: (d['reason'] as string | null) ?? null,
     actorUid: String(d['actorUid'] ?? ''),
@@ -88,6 +88,10 @@ export function toMovement(id: string, d: Record<string, unknown>): PartMovement
       : {}),
     ...(d['oldDisposal'] === 'kept' || d['oldDisposal'] === 'broken'
       ? { oldDisposal: d['oldDisposal'] }
+      : {}),
+    // service movements only: display name of the field technician who performed the work.
+    ...(typeof d['serviceActorName'] === 'string' && d['serviceActorName'] !== ''
+      ? { serviceActorName: d['serviceActorName'] }
       : {}),
   }
 }

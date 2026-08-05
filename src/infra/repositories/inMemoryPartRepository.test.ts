@@ -1139,6 +1139,65 @@ describe('InMemoryPartRepository', () => {
       expect(mv.broken).toBe(false)
       expect(mv.serviceReplace).toBe(false)
     })
+
+    // ---- serviceActorName persistence ----------------------------------------
+
+    it('stores serviceActorName on the movement when input.actorName is provided', async () => {
+      // Arrange
+      const { repo } = makeRepo()
+
+      // Act
+      const { value: mv } = await repo.recordService(
+        {
+          assetId: ASSET_DESKTOP_ID,
+          assetInvCode: 'INV/asset_desktop_1',
+          kindId: 'ram',
+          kindLabel: 'Замена RAM',
+          actorName: 'Артём Иванов',
+        },
+        ACTOR,
+      )
+
+      // Assert — executor name persisted on the movement
+      expect(mv.serviceActorName).toBe('Артём Иванов')
+    })
+
+    it('does NOT write the serviceActorName key when input.actorName is absent', async () => {
+      // Arrange — no actorName in input (exactOptionalPropertyTypes: key must be absent, not undefined)
+      const { repo } = makeRepo()
+
+      // Act
+      const { value: mv } = await repo.recordService(
+        {
+          assetId: ASSET_DESKTOP_ID,
+          assetInvCode: 'INV/asset_desktop_1',
+          kindId: 'ssd',
+          kindLabel: 'Диагностика SSD',
+          // actorName intentionally omitted
+        },
+        ACTOR,
+      )
+
+      // Assert — key must be absent (not present at all, not undefined)
+      expect(Object.prototype.hasOwnProperty.call(mv, 'serviceActorName')).toBe(false)
+    })
+
+    it('does NOT write the serviceActorName key when input.actorName is null/undefined', async () => {
+      // Arrange
+      const { repo } = makeRepo()
+      const input: import('@/domain/part/PartRepository').ServiceRecordInput = {
+        assetId: ASSET_DESKTOP_ID,
+        assetInvCode: 'INV/asset_desktop_1',
+        kindId: 'cooler',
+        kindLabel: 'Чистка',
+      }
+
+      // Act
+      const { value: mv } = await repo.recordService(input, ACTOR)
+
+      // Assert — absent, not undefined
+      expect(Object.prototype.hasOwnProperty.call(mv, 'serviceActorName')).toBe(false)
+    })
   })
 
   // -------------------------------------------------------------------------

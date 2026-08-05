@@ -52,22 +52,30 @@ function makeAsset(overrides: Partial<PartsAsset> = {}): PartsAsset {
 
 // ── Render helper ─────────────────────────────────────────────────────────────
 
+const DEFAULT_EMPLOYEES = [
+  { id: 'emp1', name: 'Иван Петров' },
+  { id: 'emp2', name: 'Анна Сидорова' },
+]
+
 interface RenderOpts {
   asset?: PartsAsset | null
   onConfirm?: ReturnType<typeof vi.fn>
   onClose?: ReturnType<typeof vi.fn>
+  employees?: Array<{ id: string; name: string }>
 }
 
 function renderModal({
   asset = makeAsset(),
   onConfirm = vi.fn().mockResolvedValue(undefined),
   onClose = vi.fn(),
+  employees = DEFAULT_EMPLOYEES,
 }: RenderOpts = {}) {
   render(
     <ServiceRecordModal
       open={true}
       onClose={onClose}
       asset={asset}
+      employees={employees}
       onConfirm={onConfirm}
     />,
   )
@@ -102,9 +110,9 @@ describe('ServiceRecordModal', () => {
       const confirmButtons = screen.getAllByRole('button', { name: 'serviceModal.confirm' })
       await user.click(confirmButtons[0]!)
 
-      // Assert — onConfirm was called with exactly (kindId, kindLabel, note)
+      // Assert — onConfirm was called with exactly (kindId, kindLabel, note, actorName)
       expect(onConfirm).toHaveBeenCalledTimes(1)
-      expect(onConfirm).toHaveBeenCalledWith(kindId, expectedLabel, noteText)
+      expect(onConfirm).toHaveBeenCalledWith(kindId, expectedLabel, noteText, 'Иван Петров')
     })
 
     it('passes note as null when the textarea is left empty', async () => {
@@ -121,7 +129,7 @@ describe('ServiceRecordModal', () => {
       await user.click(confirmButtons[0]!)
 
       // Assert — note arg is null (empty string trimmed to null by the component)
-      expect(onConfirm).toHaveBeenCalledWith('cleaning', 'serviceModal.kinds.cleaning', null)
+      expect(onConfirm).toHaveBeenCalledWith('cleaning', 'serviceModal.kinds.cleaning', null, 'Иван Петров')
     })
 
     it('passes note trimmed — leading/trailing whitespace is stripped', async () => {
@@ -141,7 +149,7 @@ describe('ServiceRecordModal', () => {
       await user.click(confirmButtons[0]!)
 
       // Assert — note is the trimmed value (not null, because content remains after trim)
-      expect(onConfirm).toHaveBeenCalledWith('diagnostics', 'serviceModal.kinds.diagnostics', 'trimmed note')
+      expect(onConfirm).toHaveBeenCalledWith('diagnostics', 'serviceModal.kinds.diagnostics', 'trimmed note', 'Иван Петров')
     })
   })
 
@@ -213,12 +221,33 @@ describe('ServiceRecordModal', () => {
           open={true}
           onClose={vi.fn()}
           asset={null}
+          employees={DEFAULT_EMPLOYEES}
           onConfirm={vi.fn().mockResolvedValue(undefined)}
         />,
       )
 
       // Assert — no modal title rendered
       expect(screen.queryByText('serviceModal.title')).not.toBeInTheDocument()
+    })
+  })
+
+  describe('actor selection', () => {
+    it('passes selected actor name to onConfirm', async () => {
+      const onConfirm = vi.fn().mockResolvedValue(undefined)
+      const user = userEvent.setup()
+      renderModal({ onConfirm })
+
+      // select kind
+      const selects = screen.getAllByRole('combobox')
+      await user.selectOptions(selects[0]!, 'repair')
+
+      // change actor to second employee
+      await user.selectOptions(selects[1]!, 'Анна Сидорова')
+
+      const confirmButtons = screen.getAllByRole('button', { name: 'serviceModal.confirm' })
+      await user.click(confirmButtons[0]!)
+
+      expect(onConfirm).toHaveBeenCalledWith('repair', 'serviceModal.kinds.repair', null, 'Анна Сидорова')
     })
   })
 })

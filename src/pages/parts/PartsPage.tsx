@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Icon, ErrorState } from '@/components/ui'
+import { getSharedEmployeeRepository } from '@/infra/repositories'
 import {
   StatTile,
   WarehouseTab,
@@ -106,6 +107,16 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
 
   // ServiceRecordModal: for service devices
   const [serviceAsset, setServiceAsset] = useState<PartsAsset | null>(null)
+
+  // ── Employees for ServiceRecordModal actor selector ──────────────────────────
+  const [employees, setEmployees] = useState<Array<{ id: string; name: string }>>([])
+
+  useEffect(() => {
+    const empRepo = getSharedEmployeeRepository()
+    void empRepo.listEmployees({ status: 'active' }).then(rows => {
+      setEmployees(rows.map(e => ({ id: e.id, name: `${e.firstName} ${e.lastName}` })))
+    }).catch(() => {/* best-effort */})
+  }, [])
 
   // ── Error banner (write failures) ───────────────────────────────────────────
   const [writeError, setWriteError] = useState<string | null>(null)
@@ -217,7 +228,7 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
   }, [createModelSku, t])
 
   // ── Service record handler ───────────────────────────────────────────────────
-  const handleServiceConfirm = useCallback(async (kindId: string, kindLabel: string, note: string | null) => {
+  const handleServiceConfirm = useCallback(async (kindId: string, kindLabel: string, note: string | null, actorName: string) => {
     if (!serviceAsset) return
     setWriteError(null)
     try {
@@ -227,6 +238,7 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
         kindId,
         kindLabel,
         note,
+        actorName,
       })
       setToast(t('toast.serviced', { kindLabel }))
     } catch (err) {
@@ -413,6 +425,7 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
           open={serviceAsset !== null}
           onClose={() => setServiceAsset(null)}
           asset={serviceAsset}
+          employees={employees}
           onConfirm={handleServiceConfirm}
         />
       )}

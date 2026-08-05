@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { EmptyState, SearchInput } from '@/components/ui'
 import { DeviceGridCard } from './DeviceGridCard'
@@ -72,6 +72,16 @@ export function DevicesTab({
   }, [initialAssetId, partsAssets])
 
   const [selectedId, setSelectedId] = useState<string | null>(resolvedInitialId)
+  const [userSelected, setUserSelected] = useState(false)
+
+  // Sync selectedId from resolvedInitialId when partsAssets arrive asynchronously,
+  // but only while the user hasn't made an explicit selection yet.
+  useEffect(() => {
+    if (!userSelected && resolvedInitialId !== null) {
+      setSelectedId(resolvedInitialId)
+    }
+  }, [resolvedInitialId, userSelected])
+
   const [family, setFamily] = useState<FamilyFilter>('all')
   const [mobileDetailId, setMobileDetailId] = useState<string | null>(null)
 
@@ -104,6 +114,7 @@ export function DevicesTab({
   const handleSelect = useCallback(
     (id: string) => {
       setSelectedId(id)
+      setUserSelected(true)
       if (isMobile) setMobileDetailId(id)
     },
     [isMobile],

@@ -157,6 +157,7 @@ export function BranchesPage({ repository }: BranchesPageProps) {
 
       {editing !== null && (
         <BranchFormDialog
+          key={editing === 'new' ? 'new' : editing.id}
           open
           initial={editing !== 'new' ? editing : null}
           submitting={submitting} submitError={saveError}

@@ -352,6 +352,7 @@ export class FirestoreEmployeeRepository implements EmployeeRepository {
       firstName: before.firstName, lastName: before.lastName, email: before.email,
       phone: before.phone, position: before.position,
       branchId: before.branchId, departmentId: before.departmentId,
+      ...(before.preassignedRole != null ? { preassignedRole: before.preassignedRole } : {}),
       status: 'active', terminatedAt: null,
       createdAt: before.createdAt,
       updatedBy: actor.uid, updatedAt: serverTimestamp(),

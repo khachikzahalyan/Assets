@@ -66,6 +66,9 @@ export async function fsRecordService(
         actorUid: actor.uid,
         actorRole: actor.role,
         at,
+        ...(input.actorName !== undefined && input.actorName !== null
+          ? { serviceActorName: input.actorName }
+          : {}),
       }
 
       // Write movement doc. No SKU snapshot update (stock-neutral).
@@ -85,6 +88,9 @@ export async function fsRecordService(
         actorUid: mv.actorUid,
         actorRole: mv.actorRole,
         at: serverTimestamp(),
+        ...(mv.serviceActorName !== undefined
+          ? { serviceActorName: mv.serviceActorName }
+          : {}),
       })
 
       return { value: mv }

@@ -605,6 +605,9 @@ export class InMemoryPartRepository implements PartRepository, PartWriteReposito
           actorUid: actor.uid,
           actorRole: actor.role,
           at,
+          ...(input.actorName !== undefined && input.actorName !== null
+            ? { serviceActorName: input.actorName }
+            : {}),
         }
         this.movements.push(movement)
         // No recomputeSnapshots — service is stock-neutral.

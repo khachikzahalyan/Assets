@@ -8,6 +8,7 @@ import type { NotificationRepository, NotificationAudience } from '@/domain/noti
 import { useHoldNotifications, useAppNotifications, useDismissOnOutside } from '@/hooks'
 import { useAuth } from '@/contexts/AuthContext'
 import type { HoldNotification } from '@/domain/asset'
+import { useIsMobile } from '@/hooks/useIsMobile'
 
 export interface NotificationBellProps {
   /** Injectable for tests; defaults to the Firestore repo. */
@@ -32,6 +33,7 @@ function formatShort(iso: string): string {
 export function NotificationBell({ repository, notificationRepository, onSelect, onSelectRoles }: NotificationBellProps) {
   const { t } = useTranslation('notifications')
   const { t: tNav } = useTranslation('nav')
+  const isMobile = useIsMobile()
   const kindLabel = (k: HoldNotification['tempKind']): string => {
     if (k === 'audit') return t('kindAudit')
     if (k === 'intern') return t('kindIntern')
@@ -72,11 +74,10 @@ export function NotificationBell({ repository, notificationRepository, onSelect,
 
   const updatePos = useCallback(() => {
     if (!triggerRef.current) return
-    const isMobile = window.matchMedia('(max-width: 768px)').matches
     if (isMobile) { setPos({ left: 8, right: 8, bottom: 8, width: 'auto' }); return }
     const rect = triggerRef.current.getBoundingClientRect()
     setPos({ top: rect.bottom + 6, right: Math.max(8, window.innerWidth - rect.right), width: 340 })
-  }, [])
+  }, [isMobile])
 
   useLayoutEffect(() => {
     if (!open) { setPos(null); return }

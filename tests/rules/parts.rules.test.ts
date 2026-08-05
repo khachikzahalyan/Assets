@@ -90,6 +90,35 @@ describe('/part_movements create — whitelist (bug #1 regression guard)', () =>
     )
   })
 
+  it('allows a service movement with serviceActorName', async () => {
+    const db = authedDb(env, TECH)
+    await assertSucceeds(
+      setDoc(doc(db, 'part_movements/m_svc_actor'), {
+        ...movementDoc(TECH, 'tech_admin'),
+        type: 'service',
+        skuId: '',
+        qty: 0,
+        kindId: 'ram',
+        kindLabel: 'Замена RAM',
+        serviceActorName: 'Артём Иванов',
+      }),
+    )
+  })
+
+  it('also allows a service movement WITHOUT serviceActorName (field is optional)', async () => {
+    const db = authedDb(env, TECH)
+    await assertSucceeds(
+      setDoc(doc(db, 'part_movements/m_svc_no_actor'), {
+        ...movementDoc(TECH, 'tech_admin'),
+        type: 'service',
+        skuId: '',
+        qty: 0,
+        kindId: 'ssd',
+        kindLabel: 'Диагностика SSD',
+      }),
+    )
+  })
+
   it('rejects an employee (non-admin) writing a movement', async () => {
     const db = authedDb(env, EMP)
     await assertFails(setDoc(doc(db, 'part_movements/m_emp'), movementDoc(EMP, 'employee')))

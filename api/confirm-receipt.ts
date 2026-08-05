@@ -121,6 +121,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     const getRes = await fetch(`${base}/assets/${encodeURIComponent(claim.assetId)}`, { headers: authH })
     if (!getRes.ok) { send(404, 'Актив не найден', 'Актив не найден в системе.'); return }
     const doc = (await getRes.json()) as {
+      name?: string
+      updateTime?: string
       fields?: Record<string, { stringValue?: string; mapValue?: { fields?: Record<string, { stringValue?: string }> } }>
     }
     const status = doc.fields?.['statusId']?.stringValue
@@ -130,22 +132,43 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       return
     }
 
+    // TOCTOU fix: атомарная проверка-и-запись через Firestore commit с precondition updateTime.
+    // Если второй запрос прочитал тот же статус st_pending, его commit упадёт с 409
+    // (FAILED_PRECONDITION), т.к. updateTime документа уже изменился первым запросом.
+    const assetDocName = doc.name ?? `projects/${projectId}/databases/(default)/documents/assets/${encodeURIComponent(claim.assetId)}`
+    const updateTime = doc.updateTime
     const nowIso = new Date().toISOString()
-    const patchUrl =
-      `${base}/assets/${encodeURIComponent(claim.assetId)}` +
-      `?updateMask.fieldPaths=statusId&updateMask.fieldPaths=assignmentAcceptedAt&updateMask.fieldPaths=acceptedBy`
-    const patchRes = await fetch(patchUrl, {
-      method: 'PATCH',
-      headers: { ...authH, 'content-type': 'application/json' },
-      body: JSON.stringify({
-        fields: {
-          statusId: { stringValue: 'st_assigned' },
-          assignmentAcceptedAt: { timestampValue: nowIso },
-          acceptedBy: { stringValue: 'email-link' },
+    const commitBody: Record<string, unknown> = {
+      writes: [
+        {
+          update: {
+            name: assetDocName,
+            fields: {
+              statusId: { stringValue: 'st_assigned' },
+              assignmentAcceptedAt: { timestampValue: nowIso },
+              acceptedBy: { stringValue: 'email-link' },
+            },
+          },
+          updateMask: { fieldPaths: ['statusId', 'assignmentAcceptedAt', 'acceptedBy'] },
+          ...(updateTime != null ? { currentDocument: { updateTime } } : {}),
         },
-      }),
+      ],
+    }
+    const commitUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents:commit`
+    const patchRes = await fetch(commitUrl, {
+      method: 'POST',
+      headers: { ...authH, 'content-type': 'application/json' },
+      body: JSON.stringify(commitBody),
     })
-    if (!patchRes.ok) { send(500, 'Ошибка', 'Не удалось сохранить подтверждение. Попробуйте позже.'); return }
+    if (!patchRes.ok) {
+      // 409 = FAILED_PRECONDITION — параллельный запрос уже подтвердил получение.
+      if (patchRes.status === 409) {
+        send(200, 'Уже подтверждено', 'Получение этого актива уже подтверждено. Спасибо!')
+        return
+      }
+      send(500, 'Ошибка', 'Не удалось сохранить подтверждение. Попробуйте позже.')
+      return
+    }
 
     // Best-effort audit (never blocks the confirmation result).
     try {

@@ -174,7 +174,7 @@ export class FirestoreDashboardRepository implements DashboardRepository {
       before: (x.before as AuditLog['before']) ?? null,
       after: (x.after as AuditLog['after']) ?? null,
       comment: (x.comment as string | null) ?? null,
-      actorName: (x.actorName as string | null | undefined) ?? null,
+      ...(x.actorName !== undefined ? { actorName: x.actorName as string | null } : {}),
       at: toIso(x.at),
     }
   }

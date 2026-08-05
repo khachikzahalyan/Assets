@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import ReactDOM from 'react-dom'
 import { Icon } from '@/components/ui/icon'
 import { useIsMobile } from '@/hooks/useIsMobile'
@@ -70,7 +70,7 @@ export function DatePicker({ value, onChange, min, max, disabled = false, placeh
   const maxDate = parseISO(max)
   const today = new Date(); today.setHours(0, 0, 0, 0)
 
-  const updatePos = () => {
+  const updatePos = useCallback(() => {
     const btn = triggerRef.current
     if (!btn) return
     const r = btn.getBoundingClientRect()
@@ -81,12 +81,11 @@ export function DatePicker({ value, onChange, min, max, disabled = false, placeh
     let top = r.bottom + 6
     if (top + popHeight > window.innerHeight - 8 && r.top - popHeight - 6 > 8) top = r.top - popHeight - 6
     setPos({ top, left, width: popWidth })
-  }
+  }, [])
 
+  // Effect 1: anchor positioning on open (desktop only).
   useEffect(() => {
     if (!open) { setPos(null); return }
-    setViewMonth(startOfMonth(parseISO(value) || new Date()))
-    setCalMode('days')
     // Mobile renders via MobileSheet — no anchor positioning needed.
     if (isMobile) return
     updatePos()
@@ -97,8 +96,14 @@ export function DatePicker({ value, onChange, min, max, disabled = false, placeh
       window.removeEventListener('resize', onChangeWin)
       window.removeEventListener('scroll', onChangeWin, true)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, isMobile])
+  }, [open, isMobile, updatePos])
+
+  // Effect 2: sync viewMonth with value whenever the picker is open or value changes.
+  useEffect(() => {
+    if (!open) return
+    setViewMonth(startOfMonth(parseISO(value) || new Date()))
+    setCalMode('days')
+  }, [open, value])
 
   useEffect(() => {
     if (!open) return

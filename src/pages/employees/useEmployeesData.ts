@@ -181,6 +181,8 @@ export function useEmployeesData({
         setAssetCounts(counts)
       }
 
+      const effectiveCounts = assetCountsProp ?? counts
+
       // Write snapshot to cache so the next mount can seed instantly.
       writeResourceCache(snapKey, {
         employees: activeEmps,
@@ -188,7 +190,7 @@ export function useEmployeesData({
         branches: ref.branches,
         departments: ref.departments,
         categories: fetchedCategories,
-        assetCounts: counts,
+        assetCounts: effectiveCounts,
       })
     } catch {
       setError(t('validation.saveFailed'))

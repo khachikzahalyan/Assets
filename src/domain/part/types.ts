@@ -74,6 +74,11 @@ export interface PartMovement {
   reason: string | null            // human label (matches prototype 'reason' strings)
   kindId?: string | null           // service movements only: component-kind id being serviced
   kindLabel?: string | null        // service movements only: human label for the kind
+  /** service movements only: display name of the person who performed the work.
+   *  Separate from audit actorUid/actorRole — those track the admin who recorded
+   *  the event; this is the field technician who actually carried out the service.
+   *  Absent on non-service movements. */
+  serviceActorName?: string
   /** Prototype-parity display hint ('move' rows in the journal). Not written by any
    *  current repository — toMovement() drops unknown fields, so this is always absent
    *  at runtime. Read defensively by parts history UI for future-proofing. */

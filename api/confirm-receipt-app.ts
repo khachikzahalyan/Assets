@@ -139,6 +139,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     const getRes = await fetch(`${base}/assets/${encodeURIComponent(assetId)}`, { headers: authH })
     if (!getRes.ok) { res.status(404).json({ error: 'asset_not_found' }); return }
     const doc = (await getRes.json()) as {
+      name?: string
+      updateTime?: string
       fields?: Record<string, { stringValue?: string; mapValue?: { fields?: Record<string, { stringValue?: string }> } }>
     }
     const status = doc.fields?.['statusId']?.stringValue
@@ -164,22 +166,43 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     // Idempotent: only flip while pending; anything else is treated as done.
     if (status !== 'st_pending') { res.status(200).json({ ok: true, already: true }); return }
 
+    // TOCTOU fix: атомарная проверка-и-запись через Firestore commit с precondition updateTime.
+    // Параллельный запрос, прочитавший тот же статус, получит 409 (FAILED_PRECONDITION)
+    // после того как первый запрос изменит updateTime документа.
+    const assetDocName = doc.name ?? `projects/${projectId}/databases/(default)/documents/assets/${encodeURIComponent(assetId)}`
+    const updateTime = doc.updateTime
     const nowIso = new Date().toISOString()
-    const patchUrl =
-      `${base}/assets/${encodeURIComponent(assetId)}` +
-      `?updateMask.fieldPaths=statusId&updateMask.fieldPaths=assignmentAcceptedAt&updateMask.fieldPaths=acceptedBy`
-    const patchRes = await fetch(patchUrl, {
-      method: 'PATCH',
-      headers: { ...authH, 'content-type': 'application/json' },
-      body: JSON.stringify({
-        fields: {
-          statusId: { stringValue: 'st_assigned' },
-          assignmentAcceptedAt: { timestampValue: nowIso },
-          acceptedBy: { stringValue: caller.uid },
+    const commitBody: Record<string, unknown> = {
+      writes: [
+        {
+          update: {
+            name: assetDocName,
+            fields: {
+              statusId: { stringValue: 'st_assigned' },
+              assignmentAcceptedAt: { timestampValue: nowIso },
+              acceptedBy: { stringValue: caller.uid },
+            },
+          },
+          updateMask: { fieldPaths: ['statusId', 'assignmentAcceptedAt', 'acceptedBy'] },
+          ...(updateTime != null ? { currentDocument: { updateTime } } : {}),
         },
-      }),
+      ],
+    }
+    const commitUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents:commit`
+    const patchRes = await fetch(commitUrl, {
+      method: 'POST',
+      headers: { ...authH, 'content-type': 'application/json' },
+      body: JSON.stringify(commitBody),
     })
-    if (!patchRes.ok) { res.status(500).json({ error: 'save_failed' }); return }
+    if (!patchRes.ok) {
+      // 409 = FAILED_PRECONDITION — параллельный запрос уже подтвердил получение.
+      if (patchRes.status === 409) {
+        res.status(200).json({ ok: true, already: true })
+        return
+      }
+      res.status(500).json({ error: 'save_failed' })
+      return
+    }
 
     // Best-effort audit (never blocks the confirmation result).
     try {

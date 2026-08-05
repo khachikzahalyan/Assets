@@ -95,6 +95,7 @@ export interface ServiceRecordInput {
   kindId: string                  // component-kind being serviced
   kindLabel: string               // human label (also used as movement reason)
   note?: string | null
+  actorName?: string              // display name of the employee who performed the service
 }
 
 /**

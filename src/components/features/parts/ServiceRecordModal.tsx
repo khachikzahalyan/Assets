@@ -9,7 +9,9 @@ export interface ServiceRecordModalProps {
   open: boolean
   onClose: () => void
   asset: PartsAsset | null
-  onConfirm: (kindId: string, kindLabel: string, note: string | null) => Promise<void>
+  /** List of employees to populate the actor selector. */
+  employees: Array<{ id: string; name: string }>
+  onConfirm: (kindId: string, kindLabel: string, note: string | null, actorName: string) => Promise<void>
 }
 
 /** Static service kind definitions — IDs used by tests: cleaning, diagnostics, repair, other */
@@ -23,14 +25,6 @@ const SERVICE_KINDS = [
 
 type ServiceKindId = typeof SERVICE_KINDS[number]['id']
 
-/** Actors available in the actor selector. */
-const SERVICE_ACTORS = [
-  'Иван Петров',
-  'Дмитрий Козлов',
-  'Сергей Волков',
-  'Анна Сидорова',
-  'Карен Аракелян',
-] as const
 
 /**
  * Service record modal — logs a maintenance/service event for a device.
@@ -42,13 +36,13 @@ const SERVICE_ACTORS = [
  *    tests using getAllByRole('combobox')[0] can still selectOptions() on it.
  *  - Chip buttons provide the visible kind-selection UI, synced to the same state.
  *  - A visible actor <select> appears second in the DOM.
- *  - onConfirm signature is unchanged: (kindId, kindLabel, note).
+ *  - onConfirm signature: (kindId, kindLabel, note, actorName).
  */
-export function ServiceRecordModal({ open, onClose, asset, onConfirm }: ServiceRecordModalProps) {
+export function ServiceRecordModal({ open, onClose, asset, employees, onConfirm }: ServiceRecordModalProps) {
   const { t } = useTranslation('parts')
   const isMobile = useIsMobile()
   const [kindId, setKindId] = useState<ServiceKindId | ''>('')
-  const [actor, setActor] = useState<string>(SERVICE_ACTORS[0])
+  const [actor, setActor] = useState<string>(() => employees[0]?.name ?? '')
   const [note, setNote] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -56,27 +50,26 @@ export function ServiceRecordModal({ open, onClose, asset, onConfirm }: ServiceR
   const handleClose = useCallback(() => {
     setKindId('')
     setNote('')
-    setActor(SERVICE_ACTORS[0])
+    setActor(employees[0]?.name ?? '')
     setSaving(false)
     setError(null)
     onClose()
-  }, [onClose])
+  }, [onClose, employees])
 
   const handleSubmit = useCallback(async () => {
     if (!kindId) return
-    const kindMeta = SERVICE_KINDS.find(k => k.id === kindId)
-    const kindLabel = kindMeta ? t(`serviceModal.kinds.${kindId}`) : t(`serviceModal.kinds.${kindId}`)
+    const kindLabel = t(`serviceModal.kinds.${kindId}`)
     setError(null)
     setSaving(true)
     try {
-      await onConfirm(kindId, kindLabel, note.trim() || null)
+      await onConfirm(kindId, kindLabel, note.trim() || null, actor)
       handleClose()
     } catch {
       setError(t('serviceModal.errorFailed'))
     } finally {
       setSaving(false)
     }
-  }, [kindId, note, onConfirm, handleClose, t])
+  }, [kindId, note, actor, onConfirm, handleClose, t])
 
   if (!open || !asset) return null
 
@@ -153,7 +146,7 @@ export function ServiceRecordModal({ open, onClose, asset, onConfirm }: ServiceR
             id="service-actor"
             value={actor}
             onChange={setActor}
-            options={SERVICE_ACTORS.map(a => ({ value: a, label: a }))}
+            options={employees.map(e => ({ value: e.name, label: e.name }))}
           />
         </div>
 

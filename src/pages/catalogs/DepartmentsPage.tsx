@@ -185,6 +185,7 @@ export function DepartmentsPage({ repository, employeeRepository }: DepartmentsP
 
       {editing !== null && (
         <DepartmentFormDialog
+          key={editing === 'new' ? 'new' : editing.id}
           open
           initial={editing !== 'new' ? editing : null}
           submitting={submitting} submitError={saveError}

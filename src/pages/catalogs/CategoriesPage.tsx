@@ -369,6 +369,7 @@ export function CategoriesPage({ repository, categoryGroupRepository, partCatego
 
       {editing !== null && (
         <CategoryFormDialog
+          key={editing === 'new' ? 'new' : editing.id}
           open
           initial={editing !== 'new' ? editing : null}
           submitting={submitting} submitError={saveError}
@@ -385,6 +386,7 @@ export function CategoriesPage({ repository, categoryGroupRepository, partCatego
 
       {groupEditing !== null && (
         <CategoryGroupFormDialog
+          key={groupEditing === 'new' ? 'new' : groupEditing.id}
           open
           initial={groupEditing !== 'new' ? groupEditing : null}
           submitting={groupSubmitting} submitError={groupSaveError}

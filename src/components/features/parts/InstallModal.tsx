@@ -153,6 +153,10 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
 
   const handleSubmit = useCallback(async () => {
     if (!selectedAsset || !sku) return
+    // Compute effectiveAction from current state inside the callback to avoid
+    // stale closure — effectiveAction in outer scope captures a snapshot at
+    // the time the callback was last memoised.
+    const effectiveAction = !selectedAsset ? 'install' : (actionMode === 'install' ? derivedAction : actionMode)
     setSubmitting(true)
     setError(null)
     try {
@@ -179,7 +183,7 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
     } finally {
       setSubmitting(false)
     }
-  }, [selectedAsset, sku, effectiveAction, replaceIdx, disposal, autoScrap, isService, onConfirm, handleClose, t])
+  }, [selectedAsset, sku, actionMode, derivedAction, replaceIdx, disposal, autoScrap, isService, onConfirm, handleClose, t])
 
   if (!open || !sku) return null
 
