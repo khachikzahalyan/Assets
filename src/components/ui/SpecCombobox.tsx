@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom'
 import { Icon } from '@/components/ui/icon'
 import { useExclusiveDropdown } from '@/components/ui/dropdownBus'
 import { useDismissOnOutside } from '@/hooks/useDismissOnOutside'
+import { rafThrottle } from '@/lib/rafThrottle'
 
 export interface SpecComboboxProps {
   value: string
@@ -46,10 +47,14 @@ export function SpecCombobox({ value, onChange, suggestions, placeholder, id }: 
   useEffect(() => {
     if (!open) { setPos(null); return }
     updatePos()
-    const on = () => updatePos()
-    window.addEventListener('resize', on)
-    window.addEventListener('scroll', on, true)
-    return () => { window.removeEventListener('resize', on); window.removeEventListener('scroll', on, true) }
+    const onScrollResize = rafThrottle(updatePos)
+    window.addEventListener('resize', onScrollResize)
+    window.addEventListener('scroll', onScrollResize, true)
+    return () => {
+      onScrollResize.cancel()
+      window.removeEventListener('resize', onScrollResize)
+      window.removeEventListener('scroll', onScrollResize, true)
+    }
   }, [open, updatePos])
 
   const pick = (s: string) => { onChange(s); setOpen(false); setActiveIdx(-1) }

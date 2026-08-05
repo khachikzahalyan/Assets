@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { Icon, ErrorState, Chip } from '@/components/ui'
@@ -30,12 +30,11 @@ export function PartsReceivePage({ repository }: PartsReceivePageProps = {}) {
   const { t, i18n } = useTranslation('parts')
   const navigate = useNavigate()
 
-  const defaultRepo = useMemo(
-    () => createDefaultPartRepository(),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  )
-  const repo = repository ?? defaultRepo
+  // createDefaultPartRepository() creates a new instance each call — stabilise via
+  // useRef so the hook identity (useParts key) stays constant across renders.
+  const defaultRepoRef = useRef<(PartRepository & PartWriteRepository) | null>(null)
+  if (!defaultRepoRef.current) defaultRepoRef.current = createDefaultPartRepository()
+  const repo = repository ?? defaultRepoRef.current
 
   const { ref, partCategories, loading, error, reload, receiveParts } = useParts(repo)
   const isMobile = useIsMobile()

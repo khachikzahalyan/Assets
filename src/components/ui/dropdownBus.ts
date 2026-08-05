@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 /**
  * Exclusive-dropdown coordinator: only one custom dropdown stays open at a time.
@@ -11,8 +11,9 @@ const AMS_DROPDOWN_EVENT = 'ams:dropdown-open'
 let amsDropdownSeq = 0
 
 export function useExclusiveDropdown(open: boolean, setOpen: (v: boolean) => void): void {
-  const idRef = useRef<number | null>(null)
-  if (idRef.current === null) idRef.current = ++amsDropdownSeq
+  // Lazy-init: useState initialiser runs once; the id is stable across renders.
+  const [id] = useState(() => ++amsDropdownSeq)
+  const idRef = useRef(id)
 
   useEffect(() => {
     if (open) document.dispatchEvent(new CustomEvent(AMS_DROPDOWN_EVENT, { detail: idRef.current }))

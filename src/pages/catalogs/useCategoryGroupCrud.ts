@@ -7,7 +7,7 @@ import { EntityInUseError } from '@/domain/shared'
 
 export function useCategoryGroupCrud(
   groupRepo: CategoryGroupRepository,
-  load: () => Promise<void>,
+  load: () => void,
   setPageError: (msg: string | null) => void,
 ) {
   const { t } = useTranslation('categories')

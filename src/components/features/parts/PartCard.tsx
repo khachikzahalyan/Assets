@@ -1,4 +1,4 @@
-import { memo, useEffect, useState } from 'react'
+import { memo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Icon, Chip } from '@/components/ui'
 import type { Part, PartStock } from '@/domain/part/types'
@@ -92,8 +92,10 @@ export const PartCard = memo(function PartCard({
   // `selected` so the chevron can COLLAPSE the list while the card stays
   // selected (desktop keeps its right-panel detail). Re-opens whenever the card
   // becomes selected, so a fresh selection always shows its sizes.
-  const [expanded, setExpanded] = useState(true)
-  useEffect(() => { if (selected) setExpanded(true) }, [selected])
+  // userExpanded tracks manual collapse; when the card becomes selected again it
+  // always opens (derived: expanded = selected || userExpanded while selected).
+  const [userExpanded, setUserExpanded] = useState(false)
+  const expanded = selected ? true : userExpanded
 
   const catMeta = PART_CAT_BY_ID[categoryId]
   const tint = categoryTint(categoryId)
@@ -174,7 +176,7 @@ export const PartCard = memo(function PartCard({
         // selected multi-variant card toggles its size list closed/open. Selection
         // (and the desktop right panel) is kept — only the inline list collapses.
         if (!selected) onSelect(categoryId)
-        else if (isSized && allVariants) setExpanded((v) => !v)
+        else if (isSized && allVariants) setUserExpanded((v) => !v)
       }}
       className={`
         relative bg-surface border rounded-xl overflow-hidden transition-all cursor-pointer
@@ -276,8 +278,8 @@ export const PartCard = memo(function PartCard({
               type="button"
               onClick={(e) => {
                 e.stopPropagation()
-                if (!selected) { onSelect(categoryId); setExpanded(true) }
-                else setExpanded((v) => !v)
+                if (!selected) { onSelect(categoryId); setUserExpanded(true) }
+                else setUserExpanded((v) => !v)
               }}
               aria-label={t(expanded && selected ? 'actions.collapse' : 'actions.expand')}
               aria-expanded={selected && expanded}

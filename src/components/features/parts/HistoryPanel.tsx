@@ -123,11 +123,7 @@ export function HistoryPanel({
   }, [eventFilter, metricFilter])
 
   /* Resolve the effective SKU id set */
-  const effectiveSkuIds = useMemo((): Set<string> | null => {
-    if (skuIds) return skuIds
-    if (skuIdSet) return skuIdSet
-    return null
-  }, [skuIds, skuIdSet])
+  const effectiveSkuIds: Set<string> | null = skuIds ?? skuIdSet ?? null
 
   /* Build skuById lookup */
   const skuById = useMemo(

@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback, useEffect } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
 import {
@@ -113,9 +113,6 @@ export function CategoriesPage({ repository, categoryGroupRepository, partCatego
   const pageRows = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   // ── Group CRUD (hook) ─────────────────────────────────────────────────────
-  // useCategoryGroupCrud expects `load: () => Promise<void>`.
-  // useCachedResource's `reload` returns void — wrap to satisfy the type.
-  const reloadAsync = useCallback(async () => { reload() }, [reload])
   const [pageError, setPageError] = useState<string | null>(null)
 
   const {
@@ -126,7 +123,7 @@ export function CategoriesPage({ repository, categoryGroupRepository, partCatego
     groupBlockedMsg, setGroupBlockedMsg,
     groupDelBusy,
     handleGroupSubmit, askDeleteGroup, confirmDeleteGroup,
-  } = useCategoryGroupCrud(groupRepo, reloadAsync, setPageError)
+  } = useCategoryGroupCrud(groupRepo, reload, setPageError)
 
   // ── Columns ───────────────────────────────────────────────────────────────
   const columns: CatalogColumn<Category>[] = [

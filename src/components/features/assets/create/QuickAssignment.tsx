@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@/components/ui'
 import { SearchSelect } from './SearchSelect'
@@ -72,20 +71,6 @@ export function QuickAssignment({
     if (!assignment) return
     onChange({ picked, assignment: { ...assignment, workMode } })
   }
-
-  // Snap-back: network device cannot be on branch/department.
-  useEffect(() => {
-    if (isNetwork && (picked === 'branch' || picked === 'department')) pick('warehouse')
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isNetwork])
-
-  // Snap-back: non-laptop never carries a workMode.
-  useEffect(() => {
-    if (!isLaptop && assignment?.workMode != null) {
-      onChange({ picked, assignment: { ...assignment, workMode: null } })
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLaptop])
 
   const warehouseName = statusLabel(
     { id: ASSET_STATUS.warehouse, name: statuses.find(s => s.id === ASSET_STATUS.warehouse)?.name ?? '' },

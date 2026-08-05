@@ -67,5 +67,5 @@ export function useModalA11y(open: boolean, containerRef: React.RefObject<HTMLEl
         previouslyFocused.focus()
       }
     }
-  }, [open, containerRef])
+  }, [open])
 }

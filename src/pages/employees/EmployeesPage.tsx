@@ -55,7 +55,12 @@ export function EmployeesPage({
   })
   const actions = useEmployeesActions(data)
 
-  // Apply initial props after first load
+  // Apply initial props after first load — one-shot via ref guard.
+  // handleOpenDetailRef captures the latest handleOpenDetail without adding it to
+  // deps (which would change every render and potentially re-trigger the effect).
+  const handleOpenDetailRef = useRef(actions.handleOpenDetail)
+  handleOpenDetailRef.current = actions.handleOpenDetail
+
   const initialMountDone = useRef(false)
   useEffect(() => {
     if (data.loading || initialMountDone.current) return
@@ -65,10 +70,9 @@ export function EmployeesPage({
       data.setFormOpen(true)
     }
     if (initialDetailId) {
-      void actions.handleOpenDetail(initialDetailId)
+      void handleOpenDetailRef.current(initialDetailId)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data.loading, initialModal, initialDetailId])
+  }, [data.loading, data.setFormInitial, data.setFormOpen, initialModal, initialDetailId])
 
   const {
     loading, error, sorted,
@@ -90,16 +94,18 @@ export function EmployeesPage({
   )
 
   // Stable handlers for memoized EmployeeRowMobile — avoids inline closure creation
-  // per row. Full benefit lands once useEmployeesActions memoizes its functions.
+  // per row. handleOpenDetailRef / handleRestoreRef capture the latest versions
+  // so these callbacks stay referentially stable across renders.
+  const handleRestoreRef = useRef(actions.handleRestore)
+  handleRestoreRef.current = actions.handleRestore
+
   const handleRowClick = useCallback(
-    (e: Employee) => { void actions.handleOpenDetail(e.id) },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [actions.handleOpenDetail],
+    (e: Employee) => { void handleOpenDetailRef.current(e.id) },
+    [],
   )
   const handleRestoreEmployee = useCallback(
-    (id: string) => { actions.handleRestore(id) },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [actions.handleRestore],
+    (id: string) => { handleRestoreRef.current(id) },
+    [],
   )
 
   function goTo(p: number) { setPage(Math.min(Math.max(1, p), totalPages)) }

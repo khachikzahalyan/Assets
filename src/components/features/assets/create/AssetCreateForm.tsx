@@ -149,17 +149,16 @@ export function AssetCreateForm({ referenceData: refData, onSubmit, onSubmitBatc
   const defaultCategoryInitialized = useRef(false)
   useEffect(() => {
     if (defaultCategoryInitialized.current) return
-    defaultCategoryInitialized.current = true
     const cats = refData.categories
     if (cats.length === 0) return
+    defaultCategoryInitialized.current = true
     // Prefer first category whose resolved caps include hasOemLicense.
     const oemCat = cats.find(c => categoryCapabilities(c).hasOemLicense)
     const devicesCat = cats.find(c => c.group === 'devices')
     const defaultCat = oemCat ?? devicesCat ?? cats[0]!
     setCategoryId(defaultCat.id)
     setCategoryGroupId(defaultCat.categoryGroupId)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [refData.categories])
 
   // Lazily load the free OEM pool for the picker.
   // categoryId is included in deps so the pool reloads whenever an OEM category is

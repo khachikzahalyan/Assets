@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import type {
   AuditLog, AuditLogQuery, AuditCursor, AuditLogReferenceData, AuditLogRepository,
 } from '@/domain/audit'
@@ -45,13 +45,14 @@ export function useAuditLogs(
   const queryKey = JSON.stringify(query)
   const prevQueryKey = useRef(queryKey)
 
-  // Reset pagination when the query changes.
-  useEffect(() => {
-    if (prevQueryKey.current !== queryKey) {
-      prevQueryKey.current = queryKey
-      setCursorStack([null])
-    }
-  }, [queryKey])
+  // Reset pagination when the query changes — adjust state during render
+  // (React 19 pattern, same as useCachedResource:88). No useEffect needed:
+  // setCursorStack during render schedules a synchronous re-render before
+  // the browser paints, avoiding an extra async cycle.
+  if (prevQueryKey.current !== queryKey) {
+    prevQueryKey.current = queryKey
+    setCursorStack([null])
+  }
 
   const currentCursor = cursorStack[cursorStack.length - 1] ?? null
 

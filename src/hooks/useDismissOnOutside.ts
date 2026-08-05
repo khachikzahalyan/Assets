@@ -10,6 +10,13 @@ import { useEffect, useRef, type RefObject } from 'react'
  *
  * `refs`: all elements considered "inside" (trigger + portalled popover etc.).
  * A press inside any of them does not dismiss.
+ *
+ * Contract: the `refs` array may be a new array instance each render (inline
+ * literal is fine). The hook reads only `.current` values inside the event
+ * handlers, which are always called at event time — never stale. Listeners are
+ * only re-registered when `enabled` changes. The refsRef below mirrors the latest
+ * array on every render so handlers always see the current `.current` values
+ * without re-subscribing.
  */
 export function useDismissOnOutside(
   refs: Array<RefObject<HTMLElement | null>>,
@@ -19,10 +26,15 @@ export function useDismissOnOutside(
   const dismissRef = useRef(onDismiss)
   dismissRef.current = onDismiss
 
+  // Always-current snapshot of the refs array — updated on every render so
+  // handlers read the latest .current values without triggering effect re-runs.
+  const refsRef = useRef(refs)
+  refsRef.current = refs
+
   useEffect(() => {
     if (!enabled) return
     const isInside = (target: Node) =>
-      refs.some(r => r.current !== null && r.current.contains(target))
+      refsRef.current.some(r => r.current !== null && r.current.contains(target))
     const onPointerDown = (e: PointerEvent) => {
       if (isInside(e.target as Node)) return
       if (e.pointerType === 'touch') swallowNextClick()
@@ -40,7 +52,6 @@ export function useDismissOnOutside(
       document.removeEventListener('pointerdown', onPointerDown)
       document.removeEventListener('mousedown', onMouseDown)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- refs array identity is per-render; contents are stable refs
   }, [enabled])
 }
 

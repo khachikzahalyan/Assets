@@ -252,8 +252,7 @@ export function RolesPage({ repository }: RolesPageProps) {
     })
   }, [users, roleFilter, statusFilter, search])
 
-  // Reset page to 1 when filters or search change
-  useEffect(() => { setPage(1) }, [roleFilter, statusFilter, search])
+  // page reset is handled inline in each filter/search setter below
 
   const pageRows = useMemo(
     () => filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
@@ -418,7 +417,7 @@ export function RolesPage({ repository }: RolesPageProps) {
                 <SearchInput
                   id="roles-search"
                   value={search}
-                  onChange={setSearch}
+                  onChange={v => { setSearch(v); setPage(1) }}
                   placeholder={t('search')}
                   aria-label={t('search')}
                   containerClassName="flex-1 min-w-[11.25rem] max-md:min-w-full"
@@ -429,7 +428,7 @@ export function RolesPage({ repository }: RolesPageProps) {
                     label={t('filter.role')}
                     leadingIcon="shield-check"
                     value={roleFilter}
-                    onChange={v => setRoleFilter(v as Role | 'no-role' | 'all')}
+                    onChange={v => { setRoleFilter(v as Role | 'no-role' | 'all'); setPage(1) }}
                     options={roleFilterOptions}
                     className="max-md:flex-1 max-md:justify-between"
                   />
@@ -438,7 +437,7 @@ export function RolesPage({ repository }: RolesPageProps) {
                     label={t('filter.status')}
                     leadingIcon="circle-dot"
                     value={statusFilter}
-                    onChange={v => setStatusFilter(v as 'all' | 'active' | 'no-role' | 'terminated')}
+                    onChange={v => { setStatusFilter(v as 'all' | 'active' | 'no-role' | 'terminated'); setPage(1) }}
                     options={statusFilterOptions}
                     className="max-md:flex-1 max-md:justify-between"
                   />

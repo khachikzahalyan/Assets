@@ -39,7 +39,7 @@ export function MiniDropdown({ value, onChange, options, placeholder = 'Выбе
   const selectedOption = useMemo(() => options.find(o => o.value === value) ?? null, [value, options])
   const selectedLabel = selectedOption?.label ?? null
 
-  const updatePos = useCallback(() => {
+  function updatePos() {
     const btn = triggerRef.current
     if (!btn) return
     const r = btn.getBoundingClientRect()
@@ -80,7 +80,7 @@ export function MiniDropdown({ value, onChange, options, placeholder = 'Выбе
         maxHeight: Math.min(MAX, Math.max(0, spaceBelow)),
       })
     }
-  }, [options.length])
+  }
 
   const openPanel = useCallback(() => {
     if (disabled) return
@@ -97,11 +97,13 @@ export function MiniDropdown({ value, onChange, options, placeholder = 'Выбе
   useEffect(() => {
     if (!open) { setPos(null); return }
     updatePos()
-    const on = () => updatePos()
-    window.addEventListener('resize', on)
-    window.addEventListener('scroll', on, true)
-    return () => { window.removeEventListener('resize', on); window.removeEventListener('scroll', on, true) }
-  }, [open, updatePos])
+    window.addEventListener('resize', updatePos)
+    window.addEventListener('scroll', updatePos, true)
+    return () => { window.removeEventListener('resize', updatePos); window.removeEventListener('scroll', updatePos, true) }
+    // updatePos is a stable plain function defined in render scope; re-registering
+    // on every render would be wasteful, but it only runs when open changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open])
 
   const onTriggerKey = (e: React.KeyboardEvent) => {
     if (disabled) return

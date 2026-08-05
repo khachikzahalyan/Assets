@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { PageHeader, Icon, ErrorState } from '@/components/ui'
@@ -32,25 +32,17 @@ export function AssetCreatePage({ repository, licenseRepository, onCreated, onPe
   const { user, role } = useAuth()
   const navigate = useNavigate()
 
-  // Build the default Firestore repo lazily — only when no test repo is injected.
-  // The useMemo factory only executes if repository is undefined at mount time.
-  const defaultRepo = useMemo<AssetRepository & AssetWriteRepository | null>(
-    () => (repository ? null : getSharedAssetRepositoryWithLicenses()),
-    // repository identity is stable across renders (passed from parent or undefined)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  )
-  const repo = repository ?? (defaultRepo as AssetRepository & AssetWriteRepository)
+  // Both getShared* functions return true module-level singletons — calling them
+  // inline is safe; the cost is a Map lookup, not construction.
+  // Test callers inject their own repos via props.
+  const repo: AssetRepository & AssetWriteRepository =
+    repository ?? (getSharedAssetRepositoryWithLicenses() as AssetRepository & AssetWriteRepository)
 
-  // Stable license repo for the OEM picker — mirrors defaultRepo pattern.
-  // When licenseRepository is injected (test path) use it directly; otherwise build
-  // Firestore one only when no non-Firestore asset repo is injected (production path).
-  const defaultLicenseRepo = useMemo<WorkstationLicenseRepository | null>(
-    () => (licenseRepository || repository ? null : getSharedWorkstationLicenseRepository()),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  )
-  const resolvedLicenseRepo = licenseRepository ?? (defaultLicenseRepo ?? undefined)
+  // Stable license repo for the OEM picker.
+  // When licenseRepository is injected (test path) use it directly; otherwise use
+  // the Firestore singleton only when no non-Firestore asset repo is injected.
+  const resolvedLicenseRepo: WorkstationLicenseRepository | undefined =
+    licenseRepository ?? (!repository ? getSharedWorkstationLicenseRepository() : undefined)
 
   const [refData, setRefData] = useState<AssetReferenceData | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
