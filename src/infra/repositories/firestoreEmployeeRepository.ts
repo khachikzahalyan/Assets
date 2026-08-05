@@ -1,6 +1,6 @@
 import {
   collection, doc, getDoc, getDocs, query as fsQuery, where, limit, serverTimestamp, deleteField,
-  type Firestore, type Transaction,
+  type Firestore,
 } from 'firebase/firestore'
 import type { Actor } from '@/domain/asset'
 import type {
@@ -11,6 +11,7 @@ import type {
 import { EmployeeArchiveError, EmployeeEmailTerminatedError } from '@/domain/employee'
 import { firestoreAuditContext, withAudit } from '@/lib/audit'
 import type { AuditedResult } from '@/domain/audit'
+import { toIso, stripUndefinedFs } from './firestoreUtils'
 
 /**
  * Called after a successful updateEmployee when departmentId changes.
@@ -22,14 +23,6 @@ import type { AuditedResult } from '@/domain/audit'
  * The change is already captured in the employee 'updated' audit row.
  */
 export type OnEmployeeDeptChange = (employeeId: string, newDeptId: string | null) => Promise<void>
-
-function toIso(v: unknown): string {
-  if (typeof v === 'string') return v
-  if (v && typeof (v as { toDate?: () => Date }).toDate === 'function') {
-    return (v as { toDate: () => Date }).toDate().toISOString()
-  }
-  return new Date(0).toISOString()
-}
 
 function toEmployee(id: string, d: Record<string, unknown>): Employee {
   return {
@@ -182,7 +175,7 @@ export class FirestoreEmployeeRepository implements EmployeeRepository {
         actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
         after: { id: input.id, email: input.email },
       },
-      async (txn) => { (txn as unknown as Transaction).set(ref, data); return { value: undefined as unknown as void } },
+      async (txn) => { txn.set(ref, data); return { value: undefined as unknown as void } },
     )
     const created = await this.getEmployee(input.id)
     if (!created) throw new Error('Employee create succeeded but readback failed')
@@ -214,7 +207,7 @@ export class FirestoreEmployeeRepository implements EmployeeRepository {
         before: beforeSnapshot,
         after: patch as Record<string, unknown>,
       },
-      async (txn) => { (txn as unknown as Transaction).set(ref, fields, { merge: true }); return { value: undefined as unknown as void } },
+      async (txn) => { txn.set(ref, fields, { merge: true }); return { value: undefined as unknown as void } },
     )
     const next = await this.getEmployee(id)
     if (!next) throw new Error('Employee update succeeded but readback failed')
@@ -250,8 +243,7 @@ export class FirestoreEmployeeRepository implements EmployeeRepository {
         before: { status: before.status }, after: { status: 'terminated' },
       },
       async (txn) => {
-        const t = txn as unknown as Transaction
-        t.set(ref, {
+        txn.set(ref, {
           status: 'terminated',
           terminatedAt: serverTimestamp(),
           terminatedBy: actor.uid,
@@ -302,8 +294,7 @@ export class FirestoreEmployeeRepository implements EmployeeRepository {
           after: { role: null, status: 'terminated' },
         },
         async (txn) => {
-          const t = txn as unknown as Transaction
-          t.set(
+          txn.set(
             doc(this.db, 'users', targetUid),
             { role: deleteField(), status: 'terminated', updatedAt: serverTimestamp() },
             { merge: true },
@@ -329,8 +320,7 @@ export class FirestoreEmployeeRepository implements EmployeeRepository {
           before: { status: 'terminated' }, after: { status: 'active' },
         },
         async (txn) => {
-          const t = txn as unknown as Transaction
-          t.set(ref, {
+          txn.set(ref, {
             status: 'active',
             terminatedAt: null,
             updatedBy: actor.uid,
@@ -364,9 +354,8 @@ export class FirestoreEmployeeRepository implements EmployeeRepository {
         before: { status: 'terminated' }, after: { status: 'active' },
       },
       async (txn) => {
-        const t = txn as unknown as Transaction
-        t.set(newRef, restored)
-        t.delete(oldRef)
+        txn.set(newRef, restored)
+        txn.delete(oldRef)
         return { value: undefined as unknown as void }
       },
     )
@@ -374,6 +363,3 @@ export class FirestoreEmployeeRepository implements EmployeeRepository {
   }
 }
 
-function stripUndefinedFs(o: Record<string, unknown>): Record<string, unknown> {
-  return Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined))
-}

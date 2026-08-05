@@ -159,3 +159,10 @@ export const DEFAULT_PART_CATEGORY_DEFS = [
     active: true,
   },
 ] satisfies Omit<PartCategoryDef, 'createdAt' | 'updatedAt'>[]
+
+/**
+ * DEFAULT_PART_CATEGORY_DEFS typed as PartCategoryDef[] for runtime fallback use-sites.
+ * createdAt/updatedAt are absent from the seed data but never accessed at these call sites.
+ */
+export const DEFAULT_PART_CATEGORY_DEFS_RUNTIME: PartCategoryDef[] =
+  DEFAULT_PART_CATEGORY_DEFS as unknown as PartCategoryDef[]

@@ -2,7 +2,7 @@ import { memo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Icon, Chip } from '@/components/ui'
 import type { Part, PartStock } from '@/domain/part/types'
-import { categoryTint, categoryIcon, PART_CAT_BY_ID } from './partsTokens'
+import { categoryTint, categoryIcon, PART_CAT_BY_ID, resolveVariants } from './partsTokens'
 import type { PartCategoryDef } from '@/domain/part/partCategory-types'
 import { isSizedCategory, isModelsCategory } from '@/domain/part/partCategory-types'
 
@@ -10,32 +10,6 @@ import { isSizedCategory, isModelsCategory } from '@/domain/part/partCategory-ty
 interface Variant {
   id: string
   label: string
-}
-const STORAGE_VARIANTS: Variant[] = [
-  { id: '64gb', label: '64 ГБ' },
-  { id: '128gb', label: '128 ГБ' },
-  { id: '256gb', label: '256 ГБ' },
-  { id: '512gb', label: '512 ГБ' },
-  { id: '1tb', label: '1 ТБ' },
-  { id: '2tb', label: '2 ТБ' },
-  { id: '3tb', label: '3 ТБ' },
-  { id: '4tb', label: '4 ТБ' },
-  { id: '5tb', label: '5 ТБ' },
-]
-const RAM_VARIANTS: Variant[] = [
-  { id: '4gb', label: '4 ГБ' },
-  { id: '8gb', label: '8 ГБ' },
-  { id: '16gb', label: '16 ГБ' },
-  { id: '20gb', label: '20 ГБ' },
-  { id: '32gb', label: '32 ГБ' },
-  { id: '40gb', label: '40 ГБ' },
-  { id: '64gb', label: '64 ГБ' },
-  { id: '128gb', label: '128 ГБ' },
-]
-const CATEGORY_VARIANTS: Record<string, Variant[] | null> = {
-  psu: null, cooler: null, gpu: null,
-  ssd: STORAGE_VARIANTS, hdd: STORAGE_VARIANTS, nvme: STORAGE_VARIANTS,
-  ram: RAM_VARIANTS,
 }
 
 export interface PartCardProps {
@@ -83,7 +57,7 @@ export const PartCard = memo(function PartCard({
 
   // Behavior dispatch: prefer def, fall back to id-based legacy checks
   const isModels = catDef ? isModelsCategory(catDef) : isGpuLegacy
-  const isSized = catDef ? isSizedCategory(catDef) : (CATEGORY_VARIANTS[categoryId] !== null && CATEGORY_VARIANTS[categoryId] !== undefined)
+  const isSized = catDef ? isSizedCategory(catDef) : (resolveVariants(categoryId, undefined) !== null)
   const isRamDef = catDef ? (catDef.generations !== null && catDef.generations !== undefined && catDef.generations.length > 0) : isRamLegacy
 
   const [ramDdr, setRamDdr] = useState('DDR4')
@@ -101,14 +75,8 @@ export const PartCard = memo(function PartCard({
   const tint = categoryTint(categoryId)
   const icon = categoryIcon(categoryId)
 
-  // Derive variants from def when available, else use legacy CATEGORY_VARIANTS
-  const allVariants: Variant[] | null = (() => {
-    if (catDef) {
-      if (!catDef.variants) return null
-      return catDef.variants.map(v => ({ id: v.id, label: v.label }))
-    }
-    return CATEGORY_VARIANTS[categoryId] ?? null
-  })()
+  // Derive variants from def when available, else use legacy built-in map
+  const allVariants: Variant[] | null = resolveVariants(categoryId, catDef)
 
   // DDR generation labels from def.generations when present
   const ddrGens: string[] = (() => {

@@ -31,7 +31,13 @@ export const UPGRADEABLE_CATEGORY_IDS: ReadonlySet<string> = new Set([
 
 // ---- Converters -------------------------------------------------------------
 
-export function toIso(v: unknown): string {
+/**
+ * Converts a Firestore Timestamp or string to ISO string.
+ * Fallback is the CURRENT time (not epoch) because part movement records
+ * without a timestamp should default to "now" for display ordering.
+ * Do NOT replace with the canonical firestoreUtils.toIso — different intent.
+ */
+export function toIsoOrNow(v: unknown): string {
   if (typeof v === 'string') return v
   if (v && typeof (v as { toDate?: () => Date }).toDate === 'function') {
     return (v as { toDate: () => Date }).toDate().toISOString()
@@ -51,8 +57,8 @@ export function toPart(id: string, d: Record<string, unknown>): Part {
     onHand: Number(d['onHand'] ?? 0),
     broken: Number(d['broken'] ?? 0),
     lowStockThreshold: Number(d['lowStockThreshold'] ?? 5),
-    createdAt: toIso(d['createdAt']),
-    updatedAt: toIso(d['updatedAt']),
+    createdAt: toIsoOrNow(d['createdAt']),
+    updatedAt: toIsoOrNow(d['updatedAt']),
     createdBy: String(d['createdBy'] ?? ''),
     updatedBy: String(d['updatedBy'] ?? ''),
   }
@@ -74,7 +80,7 @@ export function toMovement(id: string, d: Record<string, unknown>): PartMovement
     reason: (d['reason'] as string | null) ?? null,
     actorUid: String(d['actorUid'] ?? ''),
     actorRole: d['actorRole'] as PartMovement['actorRole'],
-    at: toIso(d['at']),
+    at: toIsoOrNow(d['at']),
     // Replace-install denormalisation (optional — conditional-spread keeps
     // exactOptionalPropertyTypes happy and old docs shape-identical).
     ...(typeof d['replacedSpec'] === 'string' && d['replacedSpec'] !== ''

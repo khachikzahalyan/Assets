@@ -1,6 +1,6 @@
 import {
   collection, doc, getDoc, getDocs, query as fsQuery, where, limit, serverTimestamp,
-  type Firestore, type Transaction,
+  type Firestore,
 } from 'firebase/firestore'
 import type { Actor } from '@/domain/asset'
 import type {
@@ -10,14 +10,7 @@ import type {
 import { EntityInUseError } from '@/domain/shared'
 import { firestoreAuditContext, withAudit } from '@/lib/audit'
 import type { AuditedResult } from '@/domain/audit'
-
-function toIso(v: unknown): string {
-  if (typeof v === 'string') return v
-  if (v && typeof (v as { toDate?: () => Date }).toDate === 'function') {
-    return (v as { toDate: () => Date }).toDate().toISOString()
-  }
-  return new Date(0).toISOString()
-}
+import { toIso, stripUndefinedFs } from './firestoreUtils'
 
 function toBranch(id: string, d: Record<string, unknown>): Branch {
   return {
@@ -29,10 +22,6 @@ function toBranch(id: string, d: Record<string, unknown>): Branch {
     createdAt: toIso(d.createdAt),
     updatedAt: toIso(d.updatedAt),
   }
-}
-
-function stripUndefinedFs(o: Record<string, unknown>): Record<string, unknown> {
-  return Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined))
 }
 
 export class FirestoreBranchRepository implements BranchRepository {
@@ -97,7 +86,7 @@ export class FirestoreBranchRepository implements BranchRepository {
         actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
         after: { id: ref.id, name: input.name.trim(), type: input.type },
       },
-      async (txn) => { (txn as unknown as Transaction).set(ref, data); return { value: undefined as unknown as void } },
+      async (txn) => { txn.set(ref, data); return { value: undefined as unknown as void } },
     )
     const created = await this.getBranch(ref.id)
     if (!created) throw new Error('Branch create succeeded but readback failed')
@@ -122,7 +111,7 @@ export class FirestoreBranchRepository implements BranchRepository {
         before: { name: before.name, type: before.type },
         after: patch as Record<string, unknown>,
       },
-      async (txn) => { (txn as unknown as Transaction).set(ref, fields, { merge: true }); return { value: undefined as unknown as void } },
+      async (txn) => { txn.set(ref, fields, { merge: true }); return { value: undefined as unknown as void } },
     )
     const next = await this.getBranch(id)
     if (!next) throw new Error('Branch update succeeded but readback failed')
@@ -141,7 +130,7 @@ export class FirestoreBranchRepository implements BranchRepository {
         actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
         before: { id, name: before.name },
       },
-      async (txn) => { (txn as unknown as Transaction).delete(ref); return { value: { id } } },
+      async (txn) => { txn.delete(ref); return { value: { id } } },
     )
   }
 }

@@ -10,7 +10,7 @@
 import type { Part } from '@/domain/part/types'
 import type { PartCategoryDef } from '@/domain/part/partCategory-types'
 import { variantRankOf } from '@/domain/part/partCategory-types'
-import { DEFAULT_PART_CATEGORY_DEFS } from '@/domain/part/partCategoryDefaults'
+import { DEFAULT_PART_CATEGORY_DEFS_RUNTIME } from '@/domain/part/partCategoryDefaults'
 
 /* ── Surface colours (prototype dark shell) ─────────────────────────────── */
 export const SURFACE = {
@@ -145,7 +145,7 @@ export function groupSkusByCategoryDef(
  * Re-derived from DEFAULT_PART_CATEGORY_DEFS so there is ONE hand-written copy of the data.
  */
 export const PART_CATEGORY_META: PartCatMeta[] = buildPartCatMeta(
-  DEFAULT_PART_CATEGORY_DEFS as unknown as PartCategoryDef[],
+  DEFAULT_PART_CATEGORY_DEFS_RUNTIME,
   (name) => name.ru,
 )
 
@@ -162,7 +162,7 @@ export const PART_CAT_BY_ID: Record<string, PartCatMeta> = {
  * @deprecated Legacy fallback — re-derived from DEFAULT_PART_CATEGORY_DEFS.
  */
 export const CATEGORY_TINT: Record<string, Tint> = buildCategoryTint(
-  DEFAULT_PART_CATEGORY_DEFS as unknown as PartCategoryDef[],
+  DEFAULT_PART_CATEGORY_DEFS_RUNTIME,
 )
 
 export const categoryTint = (cat: string): Tint => CATEGORY_TINT[cat] ?? TINT_FALLBACK
@@ -208,7 +208,7 @@ export function variantRank(categoryId: string, variantId: string | null | undef
  * @deprecated Legacy fallback — re-derived from DEFAULT_PART_CATEGORY_DEFS.
  */
 export const COMPONENT_ORDER: Record<string, number> = buildComponentOrder(
-  DEFAULT_PART_CATEGORY_DEFS as unknown as PartCategoryDef[],
+  DEFAULT_PART_CATEGORY_DEFS_RUNTIME,
 )
 
 export const componentRank = (cat: string | undefined): number =>
@@ -270,7 +270,38 @@ export function isReplacementInstall(reason: string | null | undefined): boolean
 /* ── SKU grouping helper (shared by WarehouseTab + PartsPage) ────────────── */
 /** @deprecated Use groupSkusByCategoryDef with live catalog. */
 export function groupSkusByCategory(parts: Part[]): Record<string, Part[]> {
-  return groupSkusByCategoryDef(parts, DEFAULT_PART_CATEGORY_DEFS as unknown as PartCategoryDef[])
+  return groupSkusByCategoryDef(parts, DEFAULT_PART_CATEGORY_DEFS_RUNTIME)
+}
+
+/**
+ * Resolve display variants for a part category.
+ * Prefers the live PartCategoryDef; falls back to the built-in variant list.
+ */
+export function resolveVariants(
+  categoryId: string,
+  catDef: { variants: { id: string; label: string; order: number }[] | null } | undefined,
+): { id: string; label: string }[] | null {
+  if (catDef) {
+    if (!catDef.variants) return null
+    return catDef.variants.map(v => ({ id: v.id, label: v.label }))
+  }
+  const STORAGE: { id: string; label: string }[] = [
+    { id: '64gb', label: '64 ГБ' }, { id: '128gb', label: '128 ГБ' },
+    { id: '256gb', label: '256 ГБ' }, { id: '512gb', label: '512 ГБ' },
+    { id: '1tb', label: '1 ТБ' }, { id: '2tb', label: '2 ТБ' },
+    { id: '3tb', label: '3 ТБ' }, { id: '4tb', label: '4 ТБ' }, { id: '5tb', label: '5 ТБ' },
+  ]
+  const RAM: { id: string; label: string }[] = [
+    { id: '4gb', label: '4 ГБ' }, { id: '8gb', label: '8 ГБ' },
+    { id: '16gb', label: '16 ГБ' }, { id: '20gb', label: '20 ГБ' },
+    { id: '32gb', label: '32 ГБ' }, { id: '40gb', label: '40 ГБ' },
+    { id: '64gb', label: '64 ГБ' }, { id: '128gb', label: '128 ГБ' },
+  ]
+  const map: Record<string, { id: string; label: string }[] | null> = {
+    psu: null, cooler: null, gpu: null,
+    ssd: STORAGE, hdd: STORAGE, nvme: STORAGE, ram: RAM,
+  }
+  return map[categoryId] ?? null
 }
 
 /* ── Russian pluralisation helper (компонент / компонента / компонентов) ── */

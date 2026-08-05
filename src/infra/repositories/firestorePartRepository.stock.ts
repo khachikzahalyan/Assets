@@ -18,7 +18,7 @@ import {
   getDoc,
   serverTimestamp,
   type Firestore,
-  type Transaction,
+  type DocumentSnapshot,
 } from 'firebase/firestore'
 import type { ReceiveItem, CreateModelSkuInput } from '@/domain/part/PartRepository'
 import { InvalidCategoryBehaviorError } from '@/domain/part/errors'
@@ -66,10 +66,8 @@ export async function fsReceiveParts(
       },
     },
     async (txn) => {
-      const t = txn as unknown as Transaction
-
       // Read current SKU docs inside txn for transactional snapshot update.
-      const skuSnaps = await Promise.all(skuRefs.map(r => t.get(r)))
+      const skuSnaps = await Promise.all(skuRefs.map(r => txn.get(r) as Promise<DocumentSnapshot>))
 
       // Build a per-skuId delta map: sum of all receive quantities in this batch.
       const deltaMap = new Map<string, number>()
@@ -95,7 +93,7 @@ export async function fsReceiveParts(
           actorRole: actor.role,
           at,
         }
-        t.set(mvRef, {
+        txn.set(mvRef, {
           type: mv.type, skuId: mv.skuId, qty: mv.qty, broken: mv.broken,
           assetId: mv.assetId, assetInvCode: mv.assetInvCode,
           serviceReplace: mv.serviceReplace, note: mv.note, reason: mv.reason,
@@ -113,7 +111,7 @@ export async function fsReceiveParts(
         const currentOnHand = Number(data['onHand'] ?? 0)
         const currentBroken = Number(data['broken'] ?? 0)
         const delta = deltaMap.get(skuId) ?? 0
-        t.set(skuSnap.ref, {
+        txn.set(skuSnap.ref, {
           onHand: currentOnHand + delta,
           broken: currentBroken,
           updatedAt: serverTimestamp(),
@@ -195,7 +193,6 @@ export async function fsCreateModelSku(
       after: null,
     },
     async (txn) => {
-      const t = txn as unknown as Transaction
       const skuDocRef = doc(fsDb, COL_PARTS, id)
 
       const partDoc = {
@@ -210,7 +207,7 @@ export async function fsCreateModelSku(
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       }
-      t.set(skuDocRef, partDoc)
+      txn.set(skuDocRef, partDoc)
 
       if (input.initialQty > 0) {
         const mvRef = doc(collection(fsDb, COL_MOVEMENTS))
@@ -218,7 +215,7 @@ export async function fsCreateModelSku(
         // so including it makes hasOnly() reject the write and rolls back the whole
         // create-SKU transaction (GPU/model add WITH stock failed in production).
         // Matches the receive/install/uninstall movement writes, which omit it.
-        t.set(mvRef, {
+        txn.set(mvRef, {
           type: 'receive',
           skuId: id,
           qty: input.initialQty,
@@ -232,7 +229,7 @@ export async function fsCreateModelSku(
           actorRole: actor.role,
           at: serverTimestamp(),
         })
-        t.set(skuDocRef, {
+        txn.set(skuDocRef, {
           onHand: input.initialQty,
           updatedAt: serverTimestamp(),
           updatedBy: actor.uid,

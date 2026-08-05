@@ -14,7 +14,11 @@ import { RoleLockoutError } from '@/domain/user'
 import { firestoreAuditContext, withAudit } from '@/lib/audit'
 import { FirestoreEmployeeRepository } from './firestoreEmployeeRepository'
 
-function toIso(v: unknown): string | null {
+/**
+ * Like firestoreUtils.toIso but returns null for missing/unknown values
+ * (User.createdAt is optional string | null — epoch sentinel is wrong here).
+ */
+function toIsoOrNull(v: unknown): string | null {
   if (v == null) return null
   if (typeof v === 'string') return v
   if (typeof (v as { toDate?: () => Date }).toDate === 'function') {
@@ -31,7 +35,7 @@ function toUser(id: string, d: Record<string, unknown>): User {
     displayName: String(d.displayName ?? ''),
     role: (d.role as User['role']) ?? null,
     status,
-    createdAt: toIso(d.createdAt),
+    createdAt: toIsoOrNull(d.createdAt),
     ...(typeof d.employeeId === 'string' && d.employeeId !== '' ? { employeeId: d.employeeId } : {}),
   }
 }
@@ -174,7 +178,7 @@ export class FirestoreUserRepository implements UserRepository {
           displayName: `${String(data.firstName ?? '')} ${String(data.lastName ?? '')}`.trim() || String(data.email ?? ''),
           role,
           status: 'invited' as const,
-          createdAt: toIso(data.createdAt),
+          createdAt: toIsoOrNull(data.createdAt),
         }
       })
       .sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''))
@@ -208,7 +212,7 @@ export class FirestoreUserRepository implements UserRepository {
         displayName: `${String(data.firstName ?? '')} ${String(data.lastName ?? '')}`.trim() || String(data.email ?? ''),
         role,
         status: 'invited',
-        createdAt: toIso(data.createdAt),
+        createdAt: toIsoOrNull(data.createdAt),
       },
       auditId: r.auditId,
     }

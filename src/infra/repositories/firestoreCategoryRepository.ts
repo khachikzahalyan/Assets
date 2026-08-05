@@ -1,6 +1,6 @@
 import {
   collection, doc, getDoc, getDocs, query as fsQuery, where, limit, serverTimestamp,
-  type Firestore, type Transaction,
+  type Firestore,
 } from 'firebase/firestore'
 import type { Actor } from '@/domain/asset'
 import type {
@@ -84,7 +84,7 @@ export class FirestoreCategoryRepository implements CategoryRepository {
         actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
         after: { id: ref.id, name: input.name.trim() },
       },
-      async (txn) => { (txn as unknown as Transaction).set(ref, data); return { value: undefined as unknown as void } },
+      async (txn) => { txn.set(ref, data); return { value: undefined as unknown as void } },
     )
     const created = await this.getCategory(ref.id)
     if (!created) throw new Error('Category create succeeded but readback failed')
@@ -111,7 +111,7 @@ export class FirestoreCategoryRepository implements CategoryRepository {
         before: { name: before.name },
         after: patch as Record<string, unknown>,
       },
-      async (txn) => { (txn as unknown as Transaction).set(ref, fields, { merge: true }); return { value: undefined as unknown as void } },
+      async (txn) => { txn.set(ref, fields, { merge: true }); return { value: undefined as unknown as void } },
     )
     const next = await this.getCategory(id)
     if (!next) throw new Error('Category update succeeded but readback failed')
@@ -130,7 +130,7 @@ export class FirestoreCategoryRepository implements CategoryRepository {
         actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
         before: { id, name: before.name },
       },
-      async (txn) => { (txn as unknown as Transaction).delete(ref); return { value: { id } } },
+      async (txn) => { txn.delete(ref); return { value: { id } } },
     )
   }
 }

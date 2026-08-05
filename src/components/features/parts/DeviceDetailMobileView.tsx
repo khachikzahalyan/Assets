@@ -12,23 +12,7 @@ import {
   PART_CAT_BY_ID,
   isReplacementInstall,
 } from './partsTokens'
-
-/* ── Local helpers (mirrors InstalledDetailPanel logic, mobile-only path) ── */
-
-function kindToCategory(kind: string, storageType?: string | null): string {
-  if (kind === 'ram') return 'ram'
-  if (kind === 'cooler') return 'cooler'
-  if (kind === 'battery') return 'battery'
-  if (kind === 'psu') return 'psu'
-  if (kind === 'storage') {
-    if (!storageType) return 'ssd'
-    const t = storageType.toLowerCase()
-    if (t === 'hdd') return 'hdd'
-    if (t === 'm.2' || t === 'nvme' || t.includes('m.2')) return 'nvme'
-    return 'ssd'
-  }
-  return kind
-}
+import { computeNativeRowCore } from './nativeRowHelpers'
 
 interface NativeRow {
   id: string
@@ -44,12 +28,8 @@ interface NativeRow {
 function buildNativeRows(asset: PartsAsset): NativeRow[] {
   return asset.upgradeCurrent
     .map((entry, i) => {
-      const category = kindToCategory(entry.kind, entry.storageType)
-      const specText = entry.spec || (entry.replaced ? 'Заменено' : 'Заводской')
-      let badge: string | null = entry.storageType ?? null
-      if (!badge && entry.spec && entry.replaced) badge = 'Заменено'
-      const state: NativeRow['state'] = entry.spec ? null : (entry.replaced ? 'replaced' : 'factory')
-      return { id: `__native_${entry.kind}_${i}`, name: specText || entry.kind, category, variantLabel: badge, entry, slotIdx: i, state }
+      const c = computeNativeRowCore(entry, i)
+      return { id: `__native_${entry.kind}_${i}`, name: c.nameForDeviceMobile, category: c.category, variantLabel: c.variantLabel, entry, slotIdx: i, state: c.state }
     })
     .sort((a, b) => {
       const r = componentRank(a.category) - componentRank(b.category)

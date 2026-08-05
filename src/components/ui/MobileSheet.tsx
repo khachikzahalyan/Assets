@@ -1,6 +1,6 @@
-import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useBodyScrollLock } from './useBodyScrollLock'
+import { useEscapeKey } from './useEscapeKey'
 
 export interface MobileSheetProps {
   open: boolean
@@ -28,14 +28,7 @@ export function MobileSheet({ open, onClose, title, height, children }: MobileSh
   useBodyScrollLock(open)
 
   // ESC key close
-  useEffect(() => {
-    if (!open) return
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose()
-    }
-    document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
-  }, [open, onClose])
+  useEscapeKey(open, onClose)
 
   if (!open) return null
 

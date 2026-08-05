@@ -11,32 +11,9 @@ import {
   PART_CAT_BY_ID,
   isReplacementInstall,
 } from './partsTokens'
+import { computeNativeRowCore } from './nativeRowHelpers'
 
 /* ── helpers ─────────────────────────────────────────────────────────────── */
-
-/**
- * Resolve an upgradeCurrent entry's kind + storageType to a partsTokens category key.
- * Mirrors prototype _kindToCategory (parts.html ~2776).
- */
-function kindToCategory(kind: string, storageType?: string | null): string {
-  if (kind === 'ram') return 'ram'
-  if (kind === 'cooler') return 'cooler'
-  if (kind === 'battery') return 'battery'
-  if (kind === 'psu') return 'psu'
-  if (kind === 'storage') {
-    if (!storageType) return 'ssd'
-    const t = storageType.toLowerCase()
-    if (t === 'hdd') return 'hdd'
-    if (t === 'm.2' || t === 'nvme' || t.includes('m.2')) return 'nvme'
-    return 'ssd'
-  }
-  return kind
-}
-
-/** KIND_LABEL fallback for slot with no spec text. */
-const KIND_LABEL: Record<string, string> = {
-  ram: 'ОЗУ', cooler: 'Кулер', battery: 'Аккумулятор', storage: 'Накопитель', psu: 'Блок питания',
-}
 
 interface NativeRow {
   sku: {
@@ -53,21 +30,18 @@ interface NativeRow {
 }
 
 function makeNativeRow(entry: UpgradeSlot, idx: number): NativeRow {
-  const category = kindToCategory(entry.kind, entry.storageType)
-  const specText = entry.spec || (entry.replaced ? 'Заменено' : 'Заводской')
-  let badge: string | null = entry.storageType ?? null
-  if (!badge && entry.spec && entry.replaced) badge = 'Заменено'
+  const c = computeNativeRowCore(entry, idx)
   return {
     sku: {
       id: `__native_${entry.kind}_${idx}`,
-      name: specText || KIND_LABEL[entry.kind] || entry.kind,
-      category,
-      variantLabel: badge ?? null,
+      name: c.nameForPanel,
+      category: c.category,
+      variantLabel: c.variantLabel ?? null,
     },
     qty: 1,
     native: true,
     entry,
-    state: entry.spec ? null : (entry.replaced ? 'replaced' : 'factory'),
+    state: c.state,
   }
 }
 

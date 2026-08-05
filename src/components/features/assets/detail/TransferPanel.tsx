@@ -4,6 +4,7 @@ import type { Asset, AssetReferenceData } from '@/domain/asset'
 import type { CategoryCapabilities } from '@/components/features/assets/create/CategoryPicker'
 import type { TransferPatch, TransferTarget } from '@/domain/asset/transferRules'
 import { buildTransferPatch } from '@/domain/asset/transferRules'
+import { todayISO } from '../create/warranty'
 import { Icon } from '@/components/ui'
 import { DatePicker } from '@/components/ui'
 import { SearchSelect } from '@/components/features/assets/create/SearchSelect'
@@ -42,11 +43,6 @@ interface ModeFormProps {
   tempKind: string;   setTempKind: (v: string) => void
   returnDate: string; setReturnDate: (v: string) => void
   workMode: 'office' | 'remote'; setWorkMode: (v: 'office' | 'remote') => void
-}
-
-function todayISO(): string {
-  const d = new Date()
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
 function TransferModeForm({

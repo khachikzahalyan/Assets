@@ -69,6 +69,19 @@ function MsLogo() {
   )
 }
 
+function MsLogoSmall() {
+  return (
+    <div className="w-[1.875rem] h-[1.875rem] rounded-lg bg-white flex items-center justify-center shrink-0">
+      <svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="1"  y="1"  width="10" height="10" fill="#F25022"/>
+        <rect x="13" y="1"  width="10" height="10" fill="#7FBA00"/>
+        <rect x="1"  y="13" width="10" height="10" fill="#00A4EF"/>
+        <rect x="13" y="13" width="10" height="10" fill="#FFB900"/>
+      </svg>
+    </div>
+  )
+}
+
 // ---------------------------------------------------------------------------
 // RetailKeyArea — key line + copy button for a Retail license, self-contained
 // probe/reveal (same rights and behaviour as the bound-license STATE 1 line).
@@ -251,14 +264,7 @@ export function LicenseBlock({
         <div className="flex flex-col gap-2">
           {rows.map(r => (
             <div key={r.id} className="flex items-center gap-2.5">
-              <div className="w-[1.875rem] h-[1.875rem] rounded-lg bg-white flex items-center justify-center shrink-0">
-                <svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true">
-                  <rect x="1"  y="1"  width="10" height="10" fill="#F25022"/>
-                  <rect x="13" y="1"  width="10" height="10" fill="#7FBA00"/>
-                  <rect x="1"  y="13" width="10" height="10" fill="#00A4EF"/>
-                  <rect x="13" y="13" width="10" height="10" fill="#FFB900"/>
-                </svg>
-              </div>
+              <MsLogoSmall />
               <span className="text-13 font-bold text-text-primary flex-1 truncate">{r.name}</span>
               {r.oem ? (
                 <span className="shrink-0 bg-amber-500/10 border border-amber-500/30 text-amber-300 light:text-amber-700 text-10 font-bold rounded-md px-2 py-0.5">
@@ -286,14 +292,7 @@ export function LicenseBlock({
     return (
       <div className="flex items-center gap-2.5">
         {/* White MS-logo box — 1.875rem */}
-        <div className="w-[1.875rem] h-[1.875rem] rounded-lg bg-white flex items-center justify-center shrink-0">
-          <svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true">
-            <rect x="1"  y="1"  width="10" height="10" fill="#F25022"/>
-            <rect x="13" y="1"  width="10" height="10" fill="#7FBA00"/>
-            <rect x="1"  y="13" width="10" height="10" fill="#00A4EF"/>
-            <rect x="13" y="13" width="10" height="10" fill="#FFB900"/>
-          </svg>
-        </div>
+        <MsLogoSmall />
 
         {showKeyLine ? (
           /* One line: icon + key + copy button (name/badge dropped). */

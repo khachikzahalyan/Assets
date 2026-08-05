@@ -4,8 +4,16 @@ import {
 } from 'firebase/firestore'
 import type { AuditSpec, AuditLog, AuditedResult } from '@/domain/audit'
 
-/** Minimal txn surface our mutate callbacks use. Firestore Transaction satisfies it. */
-export interface TxnLike { set(ref: unknown, data: unknown, options?: unknown): unknown }
+/**
+ * Minimal Firestore Transaction surface used by mutate callbacks.
+ * Firestore's Transaction type is structurally compatible with this interface,
+ * so repositories receive `txn: TxnLike` without any cast.
+ */
+export interface TxnLike {
+  set(ref: unknown, data: unknown, options?: unknown): unknown
+  delete(ref: unknown): unknown
+  get(ref: unknown): Promise<unknown>
+}
 
 export type MutateResult<T> = { value: T; before?: unknown; after?: unknown }
 
@@ -18,6 +26,10 @@ export interface AuditContext {
  * The single chokepoint for state-changing writes. Every mutating repository
  * method calls withAudit; there is NO path that commits a business write without
  * appending exactly one audit_logs entry in the same atomic unit.
+ *
+ * This thin wrapper over `ctx.run` exists so that `grep withAudit` reliably
+ * identifies every audited write site across the codebase — calling `ctx.run`
+ * directly would bypass that sentinel.
  */
 export function withAudit<T>(
   ctx: AuditContext, spec: AuditSpec, mutate: (txn: TxnLike) => Promise<MutateResult<T>>,
@@ -33,7 +45,11 @@ export function inMemoryAuditContext(store: InMemoryAuditStore): AuditContext {
   return {
     async run(spec, mutate) {
       const snapshot = [...store.logs] // rollback point
-      const txn: TxnLike = { set: () => undefined }
+      const txn: TxnLike = {
+        set: () => undefined,
+        delete: () => undefined,
+        get: async () => ({ exists: () => false, data: () => undefined }),
+      }
       try {
         const { value, before, after } = await mutate(txn)
         const id = `al_${++store.seq}`
@@ -102,7 +118,7 @@ export function firestoreAuditContext(db: Firestore): AuditContext {
     async run(spec, mutate) {
       let auditId = ''
       const value = await runTransaction(db, async (txn: Transaction) => {
-        const { value, before, after } = await mutate(txn as unknown as TxnLike)
+        const { value, before, after } = await mutate(txn)
         const ref = doc(collection(db, 'audit_logs'))
         auditId = ref.id
         txn.set(ref, buildAuditDocData(

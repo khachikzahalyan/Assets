@@ -1,6 +1,6 @@
 import {
   collection, doc, getDoc, getDocs, serverTimestamp,
-  type Firestore, type Transaction,
+  type Firestore,
 } from 'firebase/firestore'
 import type { Actor } from '@/domain/asset'
 import type {
@@ -102,7 +102,7 @@ export class FirestorePartCategoryRepository implements PartCategoryRepository {
         after: { id, name: input.name } as Record<string, unknown>,
       },
       async (txn) => {
-        ;(txn as unknown as Transaction).set(ref, data as Parameters<Transaction['set']>[1])
+        txn.set(ref, data)
         return { value: undefined as unknown as void }
       },
     )
@@ -146,9 +146,7 @@ export class FirestorePartCategoryRepository implements PartCategoryRepository {
         after: patch as Record<string, unknown>,
       },
       async (txn) => {
-        ;(txn as unknown as Transaction).set(
-          ref, payload as Parameters<Transaction['set']>[1], { merge: true },
-        )
+        txn.set(ref, payload, { merge: true })
         return { value: undefined as unknown as void }
       },
     )

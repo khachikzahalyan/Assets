@@ -1,6 +1,6 @@
 import {
   collection, doc, getDoc, getDocs, query as fsQuery, where, limit, serverTimestamp,
-  type Firestore, type Transaction,
+  type Firestore,
 } from 'firebase/firestore'
 import type { Actor } from '@/domain/asset'
 import type {
@@ -10,14 +10,7 @@ import type {
 import { EntityInUseError } from '@/domain/shared'
 import { firestoreAuditContext, withAudit } from '@/lib/audit'
 import type { AuditedResult } from '@/domain/audit'
-
-function toIso(v: unknown): string {
-  if (typeof v === 'string') return v
-  if (v && typeof (v as { toDate?: () => Date }).toDate === 'function') {
-    return (v as { toDate: () => Date }).toDate().toISOString()
-  }
-  return new Date(0).toISOString()
-}
+import { toIso, stripUndefinedFs } from './firestoreUtils'
 
 function toDepartment(id: string, d: Record<string, unknown>): Department {
   return {
@@ -26,10 +19,6 @@ function toDepartment(id: string, d: Record<string, unknown>): Department {
     createdAt: toIso(d.createdAt),
     updatedAt: toIso(d.updatedAt),
   }
-}
-
-function stripUndefinedFs(o: Record<string, unknown>): Record<string, unknown> {
-  return Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined))
 }
 
 export class FirestoreDepartmentRepository implements DepartmentRepository {
@@ -87,7 +76,7 @@ export class FirestoreDepartmentRepository implements DepartmentRepository {
         actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
         after: { id: ref.id, name: input.name.trim() },
       },
-      async (txn) => { (txn as unknown as Transaction).set(ref, data); return { value: undefined as unknown as void } },
+      async (txn) => { txn.set(ref, data); return { value: undefined as unknown as void } },
     )
     const created = await this.getDepartment(ref.id)
     if (!created) throw new Error('Department create succeeded but readback failed')
@@ -112,7 +101,7 @@ export class FirestoreDepartmentRepository implements DepartmentRepository {
         before: { name: before.name },
         after: patch as Record<string, unknown>,
       },
-      async (txn) => { (txn as unknown as Transaction).set(ref, fields, { merge: true }); return { value: undefined as unknown as void } },
+      async (txn) => { txn.set(ref, fields, { merge: true }); return { value: undefined as unknown as void } },
     )
     const next = await this.getDepartment(id)
     if (!next) throw new Error('Department update succeeded but readback failed')
@@ -131,7 +120,7 @@ export class FirestoreDepartmentRepository implements DepartmentRepository {
         actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
         before: { id, name: before.name },
       },
-      async (txn) => { (txn as unknown as Transaction).delete(ref); return { value: { id } } },
+      async (txn) => { txn.delete(ref); return { value: { id } } },
     )
   }
 }

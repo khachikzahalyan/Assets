@@ -24,7 +24,7 @@ import {
   doc,
   serverTimestamp,
   type Firestore,
-  type Transaction,
+  type DocumentSnapshot,
 } from 'firebase/firestore'
 import type { InstallInput } from '@/domain/part/PartRepository'
 import type { Part, PartMovement, UpgradeSlot } from '@/domain/part/types'
@@ -97,12 +97,10 @@ export async function fsInstallPart(
       after: null,
     },
     async (txn) => {
-      const t = txn as unknown as Transaction
-
       // Read SKU + asset inside txn.
       const [skuSnap, assetSnap] = await Promise.all([
-        t.get(skuRef),
-        t.get(assetRef),
+        txn.get(skuRef) as Promise<DocumentSnapshot>,
+        txn.get(assetRef) as Promise<DocumentSnapshot>,
       ])
       if (!skuSnap.exists()) throw new Error(`installPart: SKU not found: ${input.skuId}`)
       if (!assetSnap.exists()) throw new Error(`installPart: asset not found: ${input.assetId}`)
@@ -206,7 +204,7 @@ export async function fsInstallPart(
         at,
         ...(replacedFields ?? {}),
       }
-      t.set(mvRef, {
+      txn.set(mvRef, {
         type: mv.type, skuId: mv.skuId, qty: mv.qty, broken: mv.broken,
         assetId: mv.assetId, assetInvCode: mv.assetInvCode,
         serviceReplace: mv.serviceReplace, note: mv.note, reason: mv.reason,
@@ -215,7 +213,7 @@ export async function fsInstallPart(
       })
 
       // 2. Update asset.upgradeCurrent.
-      t.set(assetRef, {
+      txn.set(assetRef, {
         upgradeCurrent: ucMutated,
         updatedAt: serverTimestamp(),
         updatedBy: actor.uid,
@@ -225,7 +223,7 @@ export async function fsInstallPart(
       //    serviceReplace → snapshot unchanged (movements skipped by deriveStock too).
       //    in-house install → onHand − 1 (checked above ≥ 1 so result ≥ 0).
       if (!serviceReplace) {
-        t.set(skuRef, {
+        txn.set(skuRef, {
           onHand: currentOnHand - 1,
           broken: currentBroken,
           updatedAt: serverTimestamp(),

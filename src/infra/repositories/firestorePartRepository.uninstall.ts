@@ -20,7 +20,7 @@ import {
   doc,
   serverTimestamp,
   type Firestore,
-  type Transaction,
+  type DocumentSnapshot,
 } from 'firebase/firestore'
 import type { UninstallInput } from '@/domain/part/PartRepository'
 import type { Part, PartMovement, UpgradeSlot } from '@/domain/part/types'
@@ -77,11 +77,9 @@ export async function fsUninstallPart(
       after: null,
     },
     async (txn) => {
-      const t = txn as unknown as Transaction
-
       const [skuSnap, assetSnap] = await Promise.all([
-        t.get(skuRef),
-        t.get(assetRef),
+        txn.get(skuRef) as Promise<DocumentSnapshot>,
+        txn.get(assetRef) as Promise<DocumentSnapshot>,
       ])
       if (!skuSnap.exists()) throw new Error(`uninstallPart: SKU not found: ${input.skuId}`)
       if (!assetSnap.exists()) throw new Error(`uninstallPart: asset not found: ${input.assetId}`)
@@ -115,7 +113,7 @@ export async function fsUninstallPart(
         actorRole: actor.role,
         at,
       }
-      t.set(mvRef, {
+      txn.set(mvRef, {
         type: mv.type, skuId: mv.skuId, qty: mv.qty, broken: mv.broken,
         assetId: mv.assetId, assetInvCode: mv.assetInvCode,
         serviceReplace: mv.serviceReplace, note: mv.note, reason: mv.reason,
@@ -137,7 +135,7 @@ export async function fsUninstallPart(
       const ucAfter = ucMutated.map(s => ({ ...s }))
 
       // Write updated asset.upgradeCurrent.
-      t.set(assetRef, {
+      txn.set(assetRef, {
         upgradeCurrent: ucMutated,
         updatedAt: serverTimestamp(),
         updatedBy: actor.uid,
@@ -150,7 +148,7 @@ export async function fsUninstallPart(
       if (!serviceReplace) {
         const newOnHand = input.broken ? currentOnHand : currentOnHand + 1
         const newBroken = input.broken ? currentBroken + 1 : currentBroken
-        t.set(skuRef, {
+        txn.set(skuRef, {
           onHand: newOnHand,
           broken: newBroken,
           updatedAt: serverTimestamp(),

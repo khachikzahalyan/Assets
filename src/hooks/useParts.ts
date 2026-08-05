@@ -8,7 +8,7 @@ import type { PartMovement, Part } from '@/domain/part/types'
 import type { AuditedResult } from '@/domain/audit'
 import type { Actor } from '@/domain/asset/AssetRepository'
 import type { PartCategoryDef } from '@/domain/part/partCategory-types'
-import { DEFAULT_PART_CATEGORY_DEFS } from '@/domain/part/partCategoryDefaults'
+import { DEFAULT_PART_CATEGORY_DEFS_RUNTIME } from '@/domain/part/partCategoryDefaults'
 import { useAuth } from '@/contexts/AuthContext'
 import { useCachedResource, cacheIdentity } from './useCachedResource'
 
@@ -56,7 +56,7 @@ export function useParts(repo: PartRepository & PartWriteRepository): UsePartsRe
     () => {
       const cats = ref?.partCategories
       if (!cats || cats.length === 0) {
-        return (DEFAULT_PART_CATEGORY_DEFS as unknown as PartCategoryDef[])
+        return DEFAULT_PART_CATEGORY_DEFS_RUNTIME
       }
       return cats
     },

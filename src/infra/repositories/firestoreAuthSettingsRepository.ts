@@ -1,6 +1,6 @@
 import {
   doc, getDoc, serverTimestamp,
-  type Firestore, type Transaction,
+  type Firestore,
 } from 'firebase/firestore'
 import type { AuthSettings, AuthSettingsRepository } from '@/domain/settings'
 import { normalizeDomain, dedupeDomains } from '@/domain/settings'
@@ -65,7 +65,7 @@ export class FirestoreAuthSettingsRepository implements AuthSettingsRepository {
         after: { allowedEmailDomains: next },
       },
       async (txn) => {
-        ;(txn as unknown as Transaction).set(
+        txn.set(
           ref,
           { allowedEmailDomains: next, updatedBy: actor.uid, updatedAt: serverTimestamp() },
           { merge: true },
@@ -96,7 +96,7 @@ export class FirestoreAuthSettingsRepository implements AuthSettingsRepository {
         after: { seedSuperAdmins: next },
       },
       async (txn) => {
-        ;(txn as unknown as Transaction).set(
+        txn.set(
           ref,
           { seedSuperAdmins: next, updatedBy: actor.uid, updatedAt: serverTimestamp() },
           { merge: true },

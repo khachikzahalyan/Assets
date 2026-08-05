@@ -11,7 +11,7 @@ import { PART_CATEGORY_META, groupSkusByCategoryDef, buildCategoryTint, type Tin
 import { deriveStock } from '@/domain/part/partStock'
 import type { PartCategoryDef } from '@/domain/part/partCategory-types'
 import { isSizedCategory, isModelsCategory } from '@/domain/part/partCategory-types'
-import { DEFAULT_PART_CATEGORY_DEFS } from '@/domain/part/partCategoryDefaults'
+import { DEFAULT_PART_CATEGORY_DEFS_RUNTIME } from '@/domain/part/partCategoryDefaults'
 
 export interface WarehouseTabProps {
   parts: Part[]
@@ -59,7 +59,7 @@ export function WarehouseTab({
   categoryTints,
 }: WarehouseTabProps) {
   const { t } = useTranslation('parts')
-  const effectiveDefs = partCategories ?? (DEFAULT_PART_CATEGORY_DEFS as unknown as PartCategoryDef[])
+  const effectiveDefs = partCategories ?? DEFAULT_PART_CATEGORY_DEFS_RUNTIME
   const effectiveMeta = partCatMeta ?? PART_CATEGORY_META
 
   // Tint lookup — use passed map or build from effectiveDefs

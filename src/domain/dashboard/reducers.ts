@@ -6,7 +6,10 @@ import type { PartMovement } from '@/domain/part/types'
 import type { AssetStats, WorkstationLicenseStats, AssetGroup, DomainBoxKey, DomainBoxData } from './types'
 import { ASSET_GROUPS, EMPTY_STATUS_COUNTS } from './types'
 
-export function reduceAssetStats(assets: Asset[], ref: AssetReferenceData, topBranches: number): AssetStats {
+/** Minimal asset projection needed by reduceAssetStats. Full Asset also satisfies this. */
+type AssetForStats = Pick<Asset, 'id' | 'categoryId' | 'statusId' | 'branchId' | 'updatedAt'>
+
+export function reduceAssetStats(assets: AssetForStats[], ref: AssetReferenceData, topBranches: number): AssetStats {
   const byStatus = { ...EMPTY_STATUS_COUNTS }
   const catGroup = new Map(ref.categories.map(c => [c.id, c.group as AssetGroup]))
   const branchName = new Map(ref.branches.map(b => [b.id, b.name]))
@@ -33,7 +36,10 @@ export function reduceAssetStats(assets: Asset[], ref: AssetReferenceData, topBr
   }
 }
 
-export function reduceWorkstationLicenseStats(rows: WorkstationLicense[]): WorkstationLicenseStats {
+/** Minimal license projection needed by reduceWorkstationLicenseStats. Full WorkstationLicense also satisfies this. */
+type LicenseForStats = Pick<WorkstationLicense, 'lifecycleStatus' | 'assignmentType'>
+
+export function reduceWorkstationLicenseStats(rows: LicenseForStats[]): WorkstationLicenseStats {
   let free = 0, inUse = 0, retired = 0
   for (const l of rows) {
     if (l.lifecycleStatus === 'retired') retired += 1

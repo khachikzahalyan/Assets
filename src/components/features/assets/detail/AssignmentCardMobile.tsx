@@ -6,6 +6,7 @@ import type { TransferPatch } from '@/domain/asset/transferRules'
 import { Icon } from '@/components/ui'
 import { RoleIcon } from '@/components/ui/RoleIcon'
 import { TransferPanel } from './TransferPanel'
+import { resolveAssignment } from './assignmentHelpers'
 
 /**
  * Mobile-only Назначение card for Asset Detail (≤767px).
@@ -66,8 +67,9 @@ export function AssignmentCardMobile({
   function renderAssignee() {
     const baseCard = 'bg-bg border border-border rounded-xl flex items-center gap-2.5'
     const innerPad = 'p-[10px_13px]'
+    const resolved = resolveAssignment(ass, refData)
 
-    if (!ass || ass.mode === 'warehouse') {
+    if (resolved.mode === 'warehouse') {
       return (
         <div className={`${baseCard} ${innerPad}`}>
           <div className="w-9 h-9 rounded-[10px] bg-surface-2 text-text-tertiary flex items-center justify-center shrink-0">
@@ -83,57 +85,49 @@ export function AssignmentCardMobile({
       )
     }
 
-    if (ass.mode === 'employee') {
-      const emp = refData.employees.find(e => e.id === ass.employeeId)
-      const dept = emp?.departmentId
-        ? refData.departments.find(d => d.id === emp.departmentId)
-        : undefined
-      const empName = emp ? [emp.firstName, emp.lastName].filter(Boolean).join(' ') : '—'
-      const subline = [emp?.position, dept?.name].filter(Boolean).join(' · ')
+    if (resolved.mode === 'employee') {
       return (
         <div className={`${baseCard} ${innerPad}`}>
           <RoleIcon role="employee" size={36} className="flex-shrink-0" />
           <div className="min-w-0 flex-1">
-            <p className="text-13.5 font-bold text-text-primary truncate leading-tight">{empName}</p>
-            {subline && <p className="text-11 text-text-tertiary truncate">{subline}</p>}
+            <p className="text-13.5 font-bold text-text-primary truncate leading-tight">{resolved.primaryLabel}</p>
+            {resolved.secondaryLabel && <p className="text-11 text-text-tertiary truncate">{resolved.secondaryLabel}</p>}
           </div>
           <span className="w-[7px] h-[7px] rounded-full bg-emerald-400 shrink-0" aria-hidden="true" />
         </div>
       )
     }
 
-    if (ass.mode === 'department') {
-      const dept = refData.departments.find(d => d.id === ass.departmentId)
+    if (resolved.mode === 'department') {
       return (
         <div className={`${baseCard} ${innerPad}`}>
           <div className="w-9 h-9 rounded-[10px] bg-amber-500/15 text-amber-300 light:text-amber-700 flex items-center justify-center shrink-0">
             <Icon name="layout-list" size={16} />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-13.5 font-bold text-text-primary truncate leading-tight">{dept?.name ?? '—'}</p>
+            <p className="text-13.5 font-bold text-text-primary truncate leading-tight">{resolved.primaryLabel}</p>
             <p className="text-11 text-text-tertiary">{t('detail.location.dept')}</p>
           </div>
         </div>
       )
     }
 
-    if (ass.mode === 'branch') {
-      const br = refData.branches.find(b => b.id === ass.branchId)
+    if (resolved.mode === 'branch') {
       return (
         <div className={`${baseCard} ${innerPad}`}>
           <div className="w-9 h-9 rounded-[10px] bg-teal-500/15 text-teal-300 light:text-teal-700 flex items-center justify-center shrink-0">
             <Icon name="git-branch" size={16} />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-13.5 font-bold text-text-primary truncate leading-tight">{br?.name ?? '—'}</p>
+            <p className="text-13.5 font-bold text-text-primary truncate leading-tight">{resolved.primaryLabel}</p>
             <p className="text-11 text-text-tertiary">{t('detail.location.branch')}</p>
           </div>
         </div>
       )
     }
 
-    if (ass.mode === 'temporary') {
-      const kindLabel = ass.tempKind === 'audit'
+    if (resolved.mode === 'temporary') {
+      const kindLabel = resolved.tempKind === 'audit'
         ? t('detail.transfer.kindAudit')
         : t('detail.transfer.kindIntern')
       return (
@@ -145,10 +139,10 @@ export function AssignmentCardMobile({
             <p className="text-13.5 font-bold text-text-primary leading-tight truncate">
               {t('assignee.temp')} — {kindLabel}
             </p>
-            {ass.expiresAt && (
+            {resolved.expiresAt && (
               <p className="text-11 text-rose-300 light:text-rose-700 inline-flex items-center gap-1">
                 <Icon name="clock" size={10} />
-                {ass.expiresAt}
+                {resolved.expiresAt}
               </p>
             )}
           </div>

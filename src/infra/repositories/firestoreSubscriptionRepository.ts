@@ -1,6 +1,6 @@
 import {
   collection, doc, getDoc, getDocs, serverTimestamp,
-  type Firestore, type Transaction,
+  type Firestore,
 } from 'firebase/firestore'
 import type { Actor } from '@/domain/asset'
 import type { AuditedResult } from '@/domain/audit'
@@ -8,16 +8,9 @@ import type { Subscription, CreateSubscriptionInput } from '@/domain/subscriptio
 import type { SubscriptionRepository, SubscriptionListQuery } from '@/domain/subscription'
 import { firestoreAuditContext, withAudit } from '@/lib/audit'
 import { sanitizeLicenseAuditPayload } from '@/lib/audit'
+import { toIso, stripUndefinedFs } from './firestoreUtils'
 
 const COL = 'subscriptions'
-
-function toIso(v: unknown): string {
-  if (typeof v === 'string') return v
-  if (v && typeof (v as { toDate?: () => Date }).toDate === 'function') {
-    return (v as { toDate: () => Date }).toDate().toISOString()
-  }
-  return new Date(0).toISOString()
-}
 
 function toSubscription(id: string, d: Record<string, unknown>): Subscription {
   return {
@@ -35,10 +28,6 @@ function toSubscription(id: string, d: Record<string, unknown>): Subscription {
     createdBy: String(d.createdBy ?? ''),
     updatedBy: String(d.updatedBy ?? ''),
   }
-}
-
-function stripUndefinedFs(o: Record<string, unknown>): Record<string, unknown> {
-  return Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined))
 }
 
 export class FirestoreSubscriptionRepository implements SubscriptionRepository {
@@ -105,7 +94,7 @@ export class FirestoreSubscriptionRepository implements SubscriptionRepository {
     })
 
     const r = await withAudit(this.audit, safeSpec, async (txn) => {
-      ;(txn as unknown as Transaction).set(ref, docData)
+      txn.set(ref, docData)
       return { value: undefined as unknown as void }
     })
 
@@ -140,7 +129,7 @@ export class FirestoreSubscriptionRepository implements SubscriptionRepository {
     })
 
     const r = await withAudit(this.audit, safeSpec, async (txn) => {
-      ;(txn as unknown as Transaction).set(ref, patch, { merge: true })
+      txn.set(ref, patch, { merge: true })
       return { value: undefined as unknown as void }
     })
 

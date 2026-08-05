@@ -5,6 +5,7 @@ import { Icon } from './icon'
 import { MobileSheet } from './MobileSheet'
 import { rafThrottle } from '@/lib/rafThrottle'
 import { useDismissOnOutside } from '@/hooks/useDismissOnOutside'
+import { useIsMobile } from '@/hooks/useIsMobile'
 
 export interface SelectMiniOption {
   value: string
@@ -42,11 +43,61 @@ interface PortalPos {
   minWidth: number
 }
 
-/** Returns true when window.innerWidth ≤ 767px. Safe in jsdom (no matchMedia). */
-function getIsMobile(): boolean {
-  if (typeof window === 'undefined') return false
-  if (typeof window.matchMedia !== 'function') return false
-  return window.matchMedia('(max-width: 767px)').matches
+// ── OptionRow — shared row renderer for both sheet and dropdown ──────────────
+
+interface OptionRowProps {
+  opt: SelectMiniOption
+  isActive: boolean
+  leadingIcon?: string
+  size: 'sheet' | 'dropdown'
+  onSelect: () => void
+}
+
+function OptionRow({ opt, isActive, leadingIcon, size, onSelect }: OptionRowProps) {
+  const isSheet = size === 'sheet'
+  return (
+    <button
+      type="button"
+      role="option"
+      aria-selected={isActive}
+      onClick={onSelect}
+      className={[
+        'w-full flex items-center gap-2 px-3 text-left transition-colors duration-100',
+        isSheet ? 'py-2.5' : 'py-2',
+        isActive ? 'bg-accent text-white' : 'text-text-secondary hover:bg-bg',
+      ].join(' ')}
+    >
+      {leadingIcon && (
+        opt.iconNode ? (
+          <span className={`flex-shrink-0 inline-flex items-center justify-center ${isSheet ? 'w-[18px] h-[18px]' : 'w-4 h-4'}`}>{opt.iconNode}</span>
+        ) : opt.dotColor ? (
+          <span
+            style={{ backgroundColor: opt.dotColor }}
+            className={`rounded-full flex-shrink-0 ${isSheet ? 'w-2.5 h-2.5' : 'w-2 h-2'}`}
+          />
+        ) : (
+          <span
+            className="flex-shrink-0 inline-flex"
+            style={{ color: isActive ? '#FFFFFF' : (opt.iconColor ?? (isSheet ? '#64748B' : 'var(--color-text-subtle)')) }}
+          >
+            <Icon name={opt.icon ?? leadingIcon} size={isSheet ? 14 : 12} />
+          </span>
+        )
+      )}
+      <span
+        className={[
+          'flex-1 truncate',
+          isSheet ? 'text-15' : 'text-14.5',
+          isActive ? 'font-semibold' : '',
+        ].join(' ')}
+      >
+        {opt.label}
+      </span>
+      {isActive && (
+        <Icon name="check" size={isSheet ? 14 : 13} className="text-white" />
+      )}
+    </button>
+  )
 }
 
 /**
@@ -58,7 +109,7 @@ function getIsMobile(): boolean {
 export function SelectMini({ id, label, leadingIcon, leadingIconMobile, value, onChange, options, sheetTitle, defaultValue = 'all', className }: SelectMiniProps) {
   const [open, setOpen] = useState(false)
   const [pos, setPos] = useState<PortalPos | null>(null)
-  const [isMobile, setIsMobile] = useState(getIsMobile)
+  const isMobile = useIsMobile()
   const triggerRef = useRef<HTMLButtonElement>(null)
   const portalRef = useRef<HTMLDivElement>(null)
 
@@ -67,17 +118,8 @@ export function SelectMini({ id, label, leadingIcon, leadingIconMobile, value, o
   const current = options.find(o => o.value === value)
   const isNonDefault = value !== defaultValue
 
-  // Track mobile/desktop switches
-  useEffect(() => {
-    if (typeof window.matchMedia !== 'function') return
-    const mq = window.matchMedia('(max-width: 767px)')
-    function handler(e: MediaQueryListEvent) {
-      setIsMobile(e.matches)
-      setOpen(false)
-    }
-    mq.addEventListener('change', handler)
-    return () => mq.removeEventListener('change', handler)
-  }, [])
+  // Close when switching between mobile and desktop
+  useEffect(() => { setOpen(false) }, [isMobile])
 
   function updatePos() {
     const el = triggerRef.current
@@ -129,57 +171,19 @@ export function SelectMini({ id, label, leadingIcon, leadingIconMobile, value, o
     className,
   ].filter(Boolean).join(' ')
 
-  /** Shared option rows used in both sheet and dropdown */
-  const optionRows = (
+  /** Sheet option rows (mobile bottom-sheet) */
+  const sheetOptionRows = (
     <div className="py-1.5 max-h-[280px] overflow-y-auto" role="listbox">
-      {options.map(opt => {
-        const isActive = opt.value === value
-        return (
-          <button
-            key={opt.value}
-            type="button"
-            role="option"
-            aria-selected={isActive}
-            onClick={() => {
-              onChange(opt.value)
-              setOpen(false)
-            }}
-            className={[
-              'w-full flex items-center gap-2 px-3 py-2.5 text-left transition-colors duration-100',
-              isActive ? 'bg-accent text-white' : 'text-text-secondary hover:bg-bg',
-            ].join(' ')}
-          >
-            {leadingIcon && (
-              opt.iconNode ? (
-                <span className="flex-shrink-0 inline-flex w-[18px] h-[18px] items-center justify-center">{opt.iconNode}</span>
-              ) : opt.dotColor ? (
-                <span
-                  style={{ backgroundColor: opt.dotColor }}
-                  className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                />
-              ) : (
-                <span
-                  className="flex-shrink-0 inline-flex"
-                  style={{ color: isActive ? '#FFFFFF' : (opt.iconColor ?? '#64748B') }}
-                >
-                  <Icon name={opt.icon ?? leadingIcon} size={14} />
-                </span>
-              )
-            )}
-            <span
-              className={[
-                'flex-1 text-15 truncate',
-                isActive ? 'font-semibold' : '',
-              ].join(' ')}
-            >
-              {opt.label}
-            </span>
-            {isActive && (
-              <Icon name="check" size={14} className="text-white" />
-            )}
-          </button>
-        )
-      })}
+      {options.map(opt => (
+        <OptionRow
+          key={opt.value}
+          opt={opt}
+          isActive={opt.value === value}
+          {...(leadingIcon !== undefined ? { leadingIcon } : {})}
+          size="sheet"
+          onSelect={() => { onChange(opt.value); setOpen(false) }}
+        />
+      ))}
     </div>
   )
 
@@ -242,7 +246,7 @@ export function SelectMini({ id, label, leadingIcon, leadingIconMobile, value, o
       {/* ── Mobile branch: bottom-sheet ── */}
       {isMobile && (
         <MobileSheet open={open} onClose={() => setOpen(false)} title={sheetTitle ?? label}>
-          {optionRows}
+          {sheetOptionRows}
         </MobileSheet>
       )}
 
@@ -262,54 +266,16 @@ export function SelectMini({ id, label, leadingIcon, leadingIconMobile, value, o
             className="bg-surface border border-border rounded-xl shadow-xl shadow-black/40 light:shadow-slate-300/60 anim-fade-slide-in overflow-hidden"
           >
             <div className="py-1.5 max-h-[17.5rem] overflow-y-auto" role="listbox">
-              {options.map(opt => {
-                const isActive = opt.value === value
-                return (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    role="option"
-                    aria-selected={isActive}
-                    onClick={() => {
-                      onChange(opt.value)
-                      setOpen(false)
-                    }}
-                    className={[
-                      'w-full flex items-center gap-2 px-3 py-2 text-left transition-colors duration-100',
-                      isActive ? 'bg-accent text-white' : 'text-text-secondary hover:bg-bg',
-                    ].join(' ')}
-                  >
-                    {leadingIcon && (
-                      opt.iconNode ? (
-                        <span className="flex-shrink-0 inline-flex w-4 h-4 items-center justify-center">{opt.iconNode}</span>
-                      ) : opt.dotColor ? (
-                        <span
-                          style={{ backgroundColor: opt.dotColor }}
-                          className="w-2 h-2 rounded-full flex-shrink-0"
-                        />
-                      ) : (
-                        <span
-                          className="flex-shrink-0 inline-flex"
-                          style={{ color: isActive ? '#FFFFFF' : (opt.iconColor ?? 'var(--color-text-subtle)') }}
-                        >
-                          <Icon name={opt.icon ?? leadingIcon} size={12} />
-                        </span>
-                      )
-                    )}
-                    <span
-                      className={[
-                        'flex-1 text-14.5 truncate',
-                        isActive ? 'font-semibold' : '',
-                      ].join(' ')}
-                    >
-                      {opt.label}
-                    </span>
-                    {isActive && (
-                      <Icon name="check" size={13} className="text-white" />
-                    )}
-                  </button>
-                )
-              })}
+              {options.map(opt => (
+                <OptionRow
+                  key={opt.value}
+                  opt={opt}
+                  isActive={opt.value === value}
+                  {...(leadingIcon !== undefined ? { leadingIcon } : {})}
+                  size="dropdown"
+                  onSelect={() => { onChange(opt.value); setOpen(false) }}
+                />
+              ))}
             </div>
           </div>,
           document.body,

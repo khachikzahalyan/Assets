@@ -1,5 +1,6 @@
-import { type ReactNode, useMemo, useState, useEffect } from 'react'
+import { type ReactNode, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import { Chip, Icon, DataTable } from '@/components/ui'
 import type { DataTableColumn } from '@/components/ui'
 import type { WorkstationLicense } from '@/domain/license'
@@ -13,19 +14,7 @@ export interface WorkstationLicenseTableProps {
 
 export function WorkstationLicenseTable({ rows, renderActions }: WorkstationLicenseTableProps) {
   const { t, i18n } = useTranslation('licenses')
-
-  // ── Responsive: matchMedia so the layout is correct on first paint ───────────
-  const [isMobile, setIsMobile] = useState<boolean>(() => {
-    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false
-    return window.matchMedia('(max-width: 767px)').matches
-  })
-  useEffect(() => {
-    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return
-    const mq = window.matchMedia('(max-width: 767px)')
-    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
-    mq.addEventListener('change', handler)
-    return () => mq.removeEventListener('change', handler)
-  }, [])
+  const isMobile = useIsMobile()
 
   // ── Desktop DataTable columns ────────────────────────────────────────────────
   const columns = useMemo<DataTableColumn<WorkstationLicense>[]>(() => {

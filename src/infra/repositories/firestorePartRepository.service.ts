@@ -15,7 +15,6 @@ import {
   doc,
   serverTimestamp,
   type Firestore,
-  type Transaction,
 } from 'firebase/firestore'
 import type { ServiceRecordInput } from '@/domain/part/PartRepository'
 import type { PartMovement } from '@/domain/part/types'
@@ -48,8 +47,6 @@ export async function fsRecordService(
       },
     },
     async (txn) => {
-      const t = txn as unknown as Transaction
-
       const mv: PartMovement = {
         id: mvRef.id,
         type: 'service',
@@ -73,7 +70,7 @@ export async function fsRecordService(
 
       // Write movement doc. No SKU snapshot update (stock-neutral).
       // No asset.upgradeCurrent update (not a part swap).
-      t.set(mvRef, {
+      txn.set(mvRef, {
         type: mv.type,
         skuId: mv.skuId,
         qty: mv.qty,

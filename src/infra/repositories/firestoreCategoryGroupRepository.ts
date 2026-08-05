@@ -1,6 +1,6 @@
 import {
   collection, doc, getDoc, getDocs, query as fsQuery, where, limit, serverTimestamp,
-  type Firestore, type Transaction,
+  type Firestore,
 } from 'firebase/firestore'
 import type { Actor } from '@/domain/asset'
 import type {
@@ -83,7 +83,7 @@ export class FirestoreCategoryGroupRepository implements CategoryGroupRepository
         after: { id: ref.id, name: input.name.trim() },
       },
       async (txn) => {
-        ;(txn as unknown as Transaction).set(ref, data as Parameters<Transaction['set']>[1])
+        txn.set(ref, data)
         return { value: undefined as unknown as void }
       },
     )
@@ -117,9 +117,7 @@ export class FirestoreCategoryGroupRepository implements CategoryGroupRepository
         after: patch as Record<string, unknown>,
       },
       async (txn) => {
-        ;(txn as unknown as Transaction).set(
-          ref, fields as Parameters<Transaction['set']>[1], { merge: true },
-        )
+        txn.set(ref, fields, { merge: true })
         return { value: undefined as unknown as void }
       },
     )
@@ -143,7 +141,7 @@ export class FirestoreCategoryGroupRepository implements CategoryGroupRepository
         before: { id, name: before.name },
       },
       async (txn) => {
-        ;(txn as unknown as Transaction).delete(ref)
+        txn.delete(ref)
         return { value: { id } }
       },
     )

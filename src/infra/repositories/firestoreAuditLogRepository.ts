@@ -7,14 +7,7 @@ import type {
   AuditLog, AuditLogRepository, AuditLogQuery, AuditLogPage,
   AuditCursor, AuditLogReferenceData,
 } from '@/domain/audit'
-
-function toIso(v: unknown): string {
-  if (typeof v === 'string') return v
-  if (v && typeof (v as { toDate?: () => Date }).toDate === 'function') {
-    return (v as { toDate: () => Date }).toDate().toISOString()
-  }
-  return new Date(0).toISOString()
-}
+import { toIso } from './firestoreUtils'
 
 export function toAuditLog(id: string, d: Record<string, unknown>): AuditLog {
   // actorName: undefined when absent from doc (legacy), null when stored as null,

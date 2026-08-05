@@ -1,7 +1,7 @@
 import {
   collection, getDocs, getDoc, doc, query as fsQuery, where, orderBy, limit,
   serverTimestamp, runTransaction, onSnapshot,
-  type Firestore, type QueryConstraint, type Transaction,
+  type Firestore, type QueryConstraint, type DocumentSnapshot,
 } from 'firebase/firestore'
 import type {
   Asset, AssetListQuery, AssetSort, CategoryRow, CategoryGroupRow, StatusRow, RefRow, EmployeeRow,
@@ -23,6 +23,7 @@ import { HEAD_OFFICE_BRANCH_ID } from '@/domain/asset/transferRules'
 import { firestoreAuditContext, withAudit, buildAuditDocData } from '@/lib/audit'
 import type { AuditedResult, AuditLog } from '@/domain/audit'
 import type { WorkstationLicenseRepository } from '@/domain/license'
+import { toIso, stripUndefinedFs } from './firestoreUtils'
 
 /** Maximum number of assets allowed in a single atomic batch. 4 writes per asset
  *  (asset doc + inv_codes lock + barcodes lock + audit_logs entry) and Firestore
@@ -35,14 +36,6 @@ const SERVER_SORT: Record<AssetSort, [string, 'asc' | 'desc']> = {
   name_asc: ['brand', 'asc'],
   name_desc: ['brand', 'desc'],
   inv_asc: ['invCode', 'asc'],
-}
-
-function toIso(v: unknown): string {
-  if (typeof v === 'string') return v
-  if (v && typeof (v as { toDate?: () => Date }).toDate === 'function') {
-    return (v as { toDate: () => Date }).toDate().toISOString()
-  }
-  return new Date(0).toISOString()
 }
 
 function toAsset(id: string, d: Record<string, unknown>): Asset {
@@ -357,13 +350,12 @@ export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepo
       { entityType: 'asset', entityId: ref.id, action: 'created', actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
         after: { invCode: input.invCode, statusId } },
       async (txn) => {
-        const t = txn as unknown as Transaction
         // READ phase: check the lock atomically (prevents TOCTOU window from pre-check).
-        const lockSnap = await t.get(invLockRef)
+        const lockSnap = await txn.get(invLockRef) as DocumentSnapshot
         if (lockSnap.exists()) throw new DuplicateInvCodeError(input.invCode)
         // WRITE phase: asset doc + invCode lock (barcode lock already committed by reserveBarcode).
-        t.set(ref, data)
-        t.set(invLockRef, { assetId: ref.id, invCode: input.invCode, createdAt: serverTimestamp() })
+        txn.set(ref, data)
+        txn.set(invLockRef, { assetId: ref.id, invCode: input.invCode, createdAt: serverTimestamp() })
         return { value: undefined as unknown as void }
       })
     const created = await this.getAsset(ref.id)
@@ -538,9 +530,8 @@ export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepo
       { entityType: 'asset', entityId: id, action: 'updated', actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
         after: patch as Record<string, unknown> },
       async (txn) => {
-        const t = txn as unknown as Transaction
         // READ phase: existence + optimistic lock
-        const snap = await t.get(ref)
+        const snap = await txn.get(ref) as DocumentSnapshot
         if (!snap.exists()) throw new Error(`Asset not found: ${id}`)
         const d = snap.data() as Record<string, unknown>
         if (opts?.expectedUpdatedAt !== undefined) {
@@ -553,7 +544,7 @@ export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepo
           serial: (d.serial as Asset['serial']) ?? null,
         }
         // WRITE phase
-        t.set(ref, fields, { merge: true })
+        txn.set(ref, fields, { merge: true })
         return { value: undefined as unknown as void, before }
       })
     const next = await this.getAsset(id)
@@ -581,7 +572,7 @@ export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepo
     const r = await withAudit(this.audit,
       { entityType: 'asset', entityId: id, action: 'status_changed', actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
         before: auditBefore, after: auditAfter, comment: opts?.comment ?? null },
-      async (txn) => { ;(txn as unknown as Transaction).set(ref, patch, { merge: true }); return { value: undefined as unknown as void } })
+      async (txn) => { txn.set(ref, patch, { merge: true }); return { value: undefined as unknown as void } })
     const next = await this.getAsset(id)
     if (!next) throw new Error('Asset status change succeeded but readback failed')
     return { value: next, auditId: r.auditId }
@@ -597,12 +588,11 @@ export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepo
       { entityType: 'upgrade', entityId: id, action: 'upgrade_added', actorUid: actor.uid, actorRole: actor.role, actorName: actor.displayName ?? null,
         before: before === null ? null : { value: before }, after: { component: ev.component, value: ev.after } },
       async (txn) => {
-        const t = txn as unknown as Transaction
-        t.set(upRef, { component: ev.component, before, after: ev.after, changedBy: actor.uid, changedAt: serverTimestamp() })
+        txn.set(upRef, { component: ev.component, before, after: ev.after, changedBy: actor.uid, changedAt: serverTimestamp() })
         if (isSpecTracked(ev.component)) {
           const specs: AssetSpecs = { ...(asset.currentSpecs ?? {}) }
           specs[SPEC_KEY[ev.component]] = ev.after
-          t.set(assetRef, { currentSpecs: specs, updatedAt: serverTimestamp(), updatedBy: actor.uid }, { merge: true })
+          txn.set(assetRef, { currentSpecs: specs, updatedAt: serverTimestamp(), updatedBy: actor.uid }, { merge: true })
         }
         return { value: undefined as unknown as void }
       })
@@ -676,10 +666,6 @@ export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepo
       }
     })
   }
-}
-
-function stripUndefinedFs(o: Record<string, unknown>): Record<string, unknown> {
-  return Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined))
 }
 
 /** Throws on the first within-batch duplicate inventory code or serial (GOLDEN RULE). */

@@ -5,7 +5,7 @@ import {
   type AggregateQuerySnapshot,
   type AggregateField,
 } from 'firebase/firestore'
-import type { Asset, CategoryRow, RefRow, StatusRow, EmployeeRow } from '@/domain/asset'
+import type { CategoryRow, RefRow, StatusRow, EmployeeRow } from '@/domain/asset'
 import type { AssetReferenceData } from '@/domain/asset'
 import type { WorkstationLicense } from '@/domain/license'
 import type { AuditLog } from '@/domain/audit'
@@ -19,14 +19,7 @@ import {
   DASHBOARD_AUDIT_CAP, DASHBOARD_MOVEMENTS_CAP,
 } from '@/domain/dashboard'
 import { toMovement } from './firestorePartRepository.mappers'
-
-function toIso(v: unknown): string {
-  if (typeof v === 'string') return v
-  if (v && typeof (v as { toDate?: () => Date }).toDate === 'function') {
-    return (v as { toDate: () => Date }).toDate().toISOString()
-  }
-  return new Date(0).toISOString()
-}
+import { toIso } from './firestoreUtils'
 
 export class FirestoreDashboardRepository implements DashboardRepository {
   constructor(private readonly db: Firestore) {}
@@ -43,15 +36,8 @@ export class FirestoreDashboardRepository implements DashboardRepository {
         categoryId: String(x.categoryId ?? ''),
         statusId: String(x.statusId ?? ''),
         branchId: String(x.branchId ?? ''),
-        brand: null,
-        model: null,
-        invCode: '',
-        serial: null,
-        assignment: null,
-        deptId: null,
         updatedAt: toIso(x.updatedAt),
-        currentSpecs: null,
-      } as unknown as Asset
+      }
     })
     return reduceAssetStats(assets, ref, topBranches)
   }
@@ -81,18 +67,9 @@ export class FirestoreDashboardRepository implements DashboardRepository {
     const rows = snap.docs.map(d => {
       const x = d.data() as Record<string, unknown>
       return {
-        id: d.id,
-        lifecycleStatus: (x.lifecycleStatus as WorkstationLicense['lifecycleStatus']) ?? 'active',
-        assignmentType: (x.assignmentType as WorkstationLicense['assignmentType']) ?? 'unassigned',
-        name: '',
-        vendor: null,
-        type: 'Default' as WorkstationLicense['type'],
-        isReusable: true,
-        createdAt: toIso(x.createdAt),
-        updatedAt: toIso(x.updatedAt),
-        createdBy: String(x.createdBy ?? ''),
-        updatedBy: String(x.updatedBy ?? ''),
-      } as unknown as WorkstationLicense
+        lifecycleStatus: ((x.lifecycleStatus as WorkstationLicense['lifecycleStatus']) ?? 'active'),
+        assignmentType: ((x.assignmentType as WorkstationLicense['assignmentType']) ?? 'unassigned'),
+      }
     })
     return reduceWorkstationLicenseStats(rows)
   }

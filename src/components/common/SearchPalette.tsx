@@ -145,7 +145,7 @@ export function SearchPalette({ open, onClose, onPick }: SearchPaletteProps) {
     }
 
     // --- Departments (from ref, no per-id route — navigate to list) ---
-    if (canAccess(role, 'departments') && dataState.status === 'ready') {
+    if (canAccess(role, 'departments')) {
       const { ref } = data
       let matched = 0
       for (const d of ref.departments) {

@@ -1,5 +1,6 @@
-import { useMemo, useEffect, useState } from 'react'
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useIsMobile } from '@/hooks/useIsMobile'
 import type { Asset } from '@/domain/asset'
 import type { AssetReferenceData } from '@/domain/asset/AssetRepository'
 import { HEAD_OFFICE_BRANCH_ID } from '@/domain/asset/transferRules'
@@ -61,17 +62,7 @@ export function AssetsTable({
   const placeholderCount = Math.max(0, minRows - rows.length)
 
   // ── Responsive: show mobile cards only when viewport is < 768px ─────────────
-  const [isMobile, setIsMobile] = useState<boolean>(() => {
-    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false
-    return window.matchMedia('(max-width: 767px)').matches
-  })
-  useEffect(() => {
-    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return
-    const mq = window.matchMedia('(max-width: 767px)')
-    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
-    mq.addEventListener('change', handler)
-    return () => mq.removeEventListener('change', handler)
-  }, [])
+  const isMobile = useIsMobile()
 
   // AssigneeCell / subline translated labels
   const onShelf        = t('assignee.warehouse')

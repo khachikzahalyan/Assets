@@ -1,20 +1,13 @@
 import {
   collection, doc, getDoc, getDocs, query as fsQuery, where, orderBy, serverTimestamp,
-  type Firestore, type Transaction,
+  type Firestore, type DocumentSnapshot,
 } from 'firebase/firestore'
 import type { Actor } from '@/domain/asset'
 import { ASSET_STATUS } from '@/domain/asset'
 import type { Assignment, AssignInput, AssignmentRepository } from '@/domain/assignment'
 import { firestoreAuditContext, withAudit } from '@/lib/audit'
 import type { AuditedResult } from '@/domain/audit'
-
-function toIso(v: unknown): string {
-  if (typeof v === 'string') return v
-  if (v && typeof (v as { toDate?: () => Date }).toDate === 'function') {
-    return (v as { toDate: () => Date }).toDate().toISOString()
-  }
-  return new Date(0).toISOString()
-}
+import { toIso } from './firestoreUtils'
 
 function toAssignment(id: string, d: Record<string, unknown>): Assignment {
   return {
@@ -81,13 +74,12 @@ export class FirestoreAssignmentRepository implements AssignmentRepository {
         comment: input.transferComment ?? null,
       },
       async (txn) => {
-        const t = txn as unknown as Transaction
-        const assetSnap = await t.get(assetRef)
+        const assetSnap = await txn.get(assetRef) as DocumentSnapshot
         if (!assetSnap.exists()) throw new Error(`Asset not found: ${input.assetId}`)
         const status = String((assetSnap.data() as Record<string, unknown>).statusId ?? '')
         if (status !== ASSET_STATUS.warehouse) throw new Error(`Asset not assignable (status ${status})`)
 
-        t.set(asnRef, {
+        txn.set(asnRef, {
           assetId: input.assetId, mode: input.mode,
           assignedToEmployeeId: input.mode === 'employee' ? input.employeeId! : null,
           assignedToBranchId: input.mode === 'branch' ? input.branchId! : null,
@@ -96,7 +88,7 @@ export class FirestoreAssignmentRepository implements AssignmentRepository {
           transferComment: input.transferComment ?? null,
           createdBy: actor.uid, createdAt: serverTimestamp(),
         })
-        t.set(assetRef, {
+        txn.set(assetRef, {
           statusId: ASSET_STATUS.assigned,
           assignment: input.mode === 'employee'
             ? { mode: 'employee', employeeId: input.employeeId! }
@@ -107,7 +99,7 @@ export class FirestoreAssignmentRepository implements AssignmentRepository {
           updatedBy: actor.uid, updatedAt: serverTimestamp(),
         }, { merge: true })
         if (input.mode === 'employee' && input.employeeEmail) {
-          t.set(mailRef, {
+          txn.set(mailRef, {
             to: [input.employeeEmail],
             message: {
               subject: `Asset assigned: ${input.invCode ?? input.assetId}`,
@@ -139,17 +131,16 @@ export class FirestoreAssignmentRepository implements AssignmentRepository {
         after: { assetId, endedAt: now },
       },
       async (txn) => {
-        const t = txn as unknown as Transaction
         // Re-read asnRef INSIDE the transaction before any writes to close the
         // TOCTOU window: if a concurrent returnAsset already set endedAt, the
         // in-transaction read sees the committed value and we abort. Firestore
         // serialises the asnRef doc, so only one caller wins the contention.
-        const snap = await t.get(asnRef)
+        const snap = await txn.get(asnRef) as DocumentSnapshot
         if (!snap.exists() || (snap.data() as Record<string, unknown>).endedAt != null) {
           throw new Error(`No active assignment for asset: ${assetId}`)
         }
-        t.set(asnRef, { endedAt: serverTimestamp() }, { merge: true })
-        t.set(assetRef, { statusId: ASSET_STATUS.warehouse, assignment: null, updatedBy: actor.uid, updatedAt: serverTimestamp() }, { merge: true })
+        txn.set(asnRef, { endedAt: serverTimestamp() }, { merge: true })
+        txn.set(assetRef, { statusId: ASSET_STATUS.warehouse, assignment: null, updatedBy: actor.uid, updatedAt: serverTimestamp() }, { merge: true })
         return { value: undefined as unknown as void }
       })
 

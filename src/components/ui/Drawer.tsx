@@ -1,7 +1,8 @@
-import { useEffect, useRef } from 'react'
-import ReactDOM from 'react-dom'
+import { useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useModalA11y } from './useModalA11y'
 import { useBodyScrollLock } from './useBodyScrollLock'
+import { useEscapeKey } from './useEscapeKey'
 import { MODAL_BACKDROP_ABS } from './styles'
 
 export interface DrawerProps {
@@ -33,18 +34,11 @@ export function Drawer({ open, onClose, children, ariaLabel }: DrawerProps) {
   useBodyScrollLock(open)
 
   // ESC close — mirrors MobileSheet pattern.
-  useEffect(() => {
-    if (!open) return
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose()
-    }
-    document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
-  }, [open, onClose])
+  useEscapeKey(open, onClose)
 
   if (!open) return null
 
-  return ReactDOM.createPortal(
+  return createPortal(
     <div className="fixed inset-0 z-50">
       {/* Backdrop */}
       <div
