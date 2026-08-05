@@ -10,7 +10,9 @@ export default defineConfig({
     setupFiles: ['./src/test-utils/setup.ts'],
     // tests/rules/** require the Firestore/Storage emulators (a JVM) and run
     // only via `npm run test:rules`, never in the default `vitest run`.
-    exclude: [...configDefaults.exclude, 'tests/rules/**'],
+    // .claude/** holds harness metadata and agent worktrees (full repo copies) that
+    // must never be picked up by the root suite.
+    exclude: [...configDefaults.exclude, 'tests/rules/**', '**/.claude/**'],
   },
   resolve: {
     alias: {
