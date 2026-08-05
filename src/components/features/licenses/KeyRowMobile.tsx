@@ -11,7 +11,6 @@
  */
 import type { CSSProperties, MouseEvent } from 'react'
 import { useTranslation } from 'react-i18next'
-import { CHIP_PALETTE } from '@/components/ui/chip'
 import { Icon, MobileListRow } from '@/components/ui'
 import type { WorkstationLicense } from '@/domain/license'
 import { fmtDate } from './licenseHelpers'
@@ -60,10 +59,6 @@ export function KeyRowMobile({
   // masked. In-use rows always stay masked (attached to a live device).
   const keyDisplay = isFree && revealedKey ? revealedKey : masked
 
-  // Status pill — CHIP_PALETTE.green for free, CHIP_PALETTE.blue for in_use
-  const pillPalette = isFree ? CHIP_PALETTE.green : CHIP_PALETTE.blue
-  const statusLabel = isFree ? t('keys.statusFree') : t('keys.statusInUse')
-
   // lic.name is «{Brand Model} — Ключ продукта» — show only the DEVICE (the part
   // before the dash), not the "Ключ продукта" prefix (owner request):
   //   in_use → the assigned asset name (e.g. «DELL XPS»);
@@ -105,7 +100,10 @@ export function KeyRowMobile({
   )
 
   // For free rows: right slot shows a compact "Activate" button (no redundant pill).
-  // For in-use rows: right slot shows the "● Используется" pill + inventory code.
+  // For in-use rows: right slot shows ONLY the inventory code — the "● Используется"
+  // status pill was dropped because it merely repeated the active tab filter on
+  // every row (owner request), making the in-use tab read busier than the free
+  // tab. Both tabs now stay clean: free → activate button, in-use → invCode.
   const right = showAction ? (
     // Icon-only on mobile — text removed to give the full key room (owner request).
     <button
@@ -123,26 +121,13 @@ export function KeyRowMobile({
     >
       <Icon name="circle-check" size={15} />
     </button>
-  ) : (
-    <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
-      <span
-        className={[
-          'inline-flex items-center border rounded-[5px] px-[0.4375rem] py-0.5',
-          'text-10 font-bold whitespace-nowrap leading-none',
-          pillPalette,
-        ].join(' ')}
-      >
-        {'● '}{statusLabel}
-      </span>
-      {assetInvCode && (
-        // Inventory code is a top-priority identifier — white, larger, bold so
-        // it reads clearly against the row (owner request).
-        <span className="font-['JetBrains_Mono',ui-monospace,monospace] text-12.5 font-bold text-text-primary whitespace-nowrap">
-          {assetInvCode}
-        </span>
-      )}
-    </div>
-  )
+  ) : assetInvCode ? (
+    // Inventory code is a top-priority identifier — white, larger, bold so
+    // it reads clearly against the row (owner request).
+    <span className="font-['JetBrains_Mono',ui-monospace,monospace] text-12.5 font-bold text-text-primary whitespace-nowrap flex-shrink-0">
+      {assetInvCode}
+    </span>
+  ) : undefined
 
   return (
     <MobileListRow
