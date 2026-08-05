@@ -30,11 +30,18 @@ interface BoxMeta {
 // rows (e.g. 4+2 or 5+1 with the trailing boxes stretched to a different width).
 const BOX_GRID_CLASS = 'grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3'
 
+// iconTone mirrors KPI-strip accent per entity (owner request 2026-08-05):
+//   assets → accent (true brand orange, matches «Всего активов» StatCard)
+//   employees → amber (matches «Сотрудники» StatCard)
+//   parts → rose
+//   subscriptions → violet (matches «Лицензии» StatCard)
+//   branches → green (matches «Выдано сейчас» green family)
+//   departments → cyan (matches «На складе» blue/cyan family)
 const BOX_META: Record<DomainBoxKey, BoxMeta> = {
-  assets:        { icon: 'package',   barClass: 'bg-text-tertiary/50', routeId: 'assets',      path: '/assets' },
-  employees:     { icon: 'users',     iconTone: 'blue',   barClass: 'bg-sky-400/70',     routeId: 'employees',   path: '/employees' },
+  assets:        { icon: 'package',   iconTone: 'accent', barClass: 'bg-accent/70',      routeId: 'assets',      path: '/assets' },
+  employees:     { icon: 'users',     iconTone: 'amber',  barClass: 'bg-amber-400/70',   routeId: 'employees',   path: '/employees' },
   parts:         { icon: 'cpu',       iconTone: 'rose',   barClass: 'bg-rose-400/70',    routeId: 'parts',       path: '/parts' },
-  subscriptions: { icon: 'key-round', iconTone: 'orange', barClass: 'bg-amber-400/70',   routeId: 'licenses',    path: '/licenses' },
+  subscriptions: { icon: 'key-round', iconTone: 'violet', barClass: 'bg-violet-400/70',  routeId: 'licenses',    path: '/licenses' },
   branches:      { icon: 'building',  iconTone: 'green',  barClass: 'bg-emerald-400/70', routeId: 'branches',    path: '/branches' },
   departments:   { icon: 'network',   iconTone: 'cyan',   barClass: 'bg-cyan-400/70',    routeId: 'departments', path: '/departments' },
 }
@@ -62,9 +69,9 @@ export function DashboardPage({ repo }: DashboardPageProps) {
   if (loading) {
     return (
       <div className="space-y-5" aria-busy="true">
-        {/* ROW 1: 5 KPI card shimmers — 2-col on mobile, auto-fit on lg+ */}
+        {/* ROW 1: 6 KPI card shimmers — 2-col on mobile, auto-fit on lg+ */}
         <div className="grid grid-cols-2 gap-2 lg:gap-3 lg:[grid-template-columns:repeat(auto-fit,minmax(12rem,1fr))]">
-          {Array.from({ length: 5 }).map((_, i) => (
+          {Array.from({ length: 6 }).map((_, i) => (
             <div
               key={i}
               className={cn(
@@ -160,7 +167,7 @@ export function DashboardPage({ repo }: DashboardPageProps) {
         </div>
       )}
 
-      {/* ROW 1 — 5 KPI stat cards: 2-col on mobile, auto-fit KPI_GRID on lg+ */}
+      {/* ROW 1 — 6 KPI stat cards: 2-col on mobile, auto-fit KPI_GRID on lg+ */}
       <div className="grid grid-cols-2 gap-2 lg:gap-3 lg:[grid-template-columns:repeat(auto-fit,minmax(12rem,1fr))]">
         {assets && (
           <StatCard
@@ -221,6 +228,16 @@ export function DashboardPage({ repo }: DashboardPageProps) {
             {...(canAccess(role, 'employees') ? { to: '/employees' } : {})}
             accent="amber"
             testId="section-people"
+          />
+        )}
+        {assets && (
+          <StatCard
+            icon="archive-x"
+            label={t('kpi.writtenOff')}
+            value={assets.byStatus[ASSET_STATUS.disposed]}
+            to="/assets"
+            accent="rose"
+            testId="section-written-off"
           />
         )}
       </div>

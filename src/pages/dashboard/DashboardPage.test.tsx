@@ -23,6 +23,7 @@ import { InMemoryDashboardRepository } from '@/infra/repositories'
 import type { Asset } from '@/domain/asset'
 import type { AssetReferenceData } from '@/domain/asset'
 import type { WorkstationLicense } from '@/domain/license'
+import type { EmployeeForStats } from '@/domain/dashboard'
 import { DashboardPage } from './DashboardPage'
 
 // ── Firebase mocks ────────────────────────────────────────────────────────────
@@ -51,7 +52,7 @@ vi.mock('@/infra/repositories', async (importOriginal) => {
     constructor() {}
     loadAssetStats() { return Promise.resolve(undefined as never) }
     loadWorkstationLicenseStats() { return Promise.resolve({ total: 0, free: 0, inUse: 0, retired: 0 }) }
-    loadPeopleStats() { return Promise.resolve({ employeeCount: 0 }) }
+    loadPeopleStats() { return Promise.resolve({ employeeCount: 0, activeEmployeeIds: [] }) }
     loadRecentEvents() { return Promise.resolve([]) }
     loadRecentPartInstalls() { return Promise.resolve([]) }
     loadDomainCounts() { return Promise.resolve({ counts: { partsUnits: 0, branches: 0, departments: 0, subscriptions: 0 }, partNames: {} }) }
@@ -101,6 +102,12 @@ function makeLicense(id: string, lifecycle: 'active' | 'retired', assignment: 'e
   }
 }
 
+// 42 active employees (same intent as the previous employeeCount: 42 seed)
+const employees42: EmployeeForStats[] = Array.from({ length: 42 }, (_, i) => ({
+  id: `emp_seed_${i + 1}`,
+  status: 'active' as const,
+}))
+
 function makeRepo() {
   return new InMemoryDashboardRepository({
     assets: [
@@ -115,7 +122,7 @@ function makeRepo() {
       makeLicense('l_2', 'active',  'device'),
       makeLicense('l_3', 'retired', 'unassigned'),
     ],
-    employeeCount: 42,
+    employees: employees42,
     auditLogs: [],
   })
 }
@@ -307,5 +314,59 @@ describe('DashboardPage domain boxes', () => {
     )
     const subsBox = screen.getByTestId('domain-box-subscriptions')
     expect(within(subsBox).getByText('—')).toBeInTheDocument()
+  })
+})
+
+// ── Written-off tile (section-written-off, accent='rose') ─────────────────────
+
+describe('DashboardPage written-off tile', () => {
+  // (a) tile renders with correct count for super_admin
+  it('shows value "1" for section-written-off — seed has exactly 1 disposed asset (a_4)', async () => {
+    // Arrange — default makeRepo() has a_4 with st_disposed
+    renderPage('super_admin')
+
+    // Act / Assert
+    await waitFor(() =>
+      expect(within(screen.getByTestId('section-written-off')).getByText('1')).toBeInTheDocument(),
+    )
+  })
+
+  // (b) tile label matches the ru translation key kpi.writtenOff = «Списанные активы»
+  it('renders the ru label «Списанные активы» for the written-off tile', async () => {
+    // Arrange — i18n forced to 'ru' in beforeAll
+    renderPage('super_admin')
+
+    // Act / Assert
+    await waitFor(() =>
+      expect(screen.getByTestId('section-written-off')).toBeInTheDocument(),
+    )
+    expect(within(screen.getByTestId('section-written-off')).getByText('Списанные активы')).toBeInTheDocument()
+  })
+
+  // (c) counter reacts: extra disposed asset → tile shows 2; total-assets still counts it
+  it('shows "2" when repo has 2 disposed assets, and section-total-assets shows "5"', async () => {
+    // Arrange — local repo with an additional disposed asset (a_5)
+    const extendedRepo = new InMemoryDashboardRepository({
+      assets: [
+        makeAsset('a_1', 'st_assigned',  'cat_laptop', 'br_1'),
+        makeAsset('a_2', 'st_warehouse', 'cat_laptop', 'br_1'),
+        makeAsset('a_3', 'st_repair',    'cat_router', 'br_2'),
+        makeAsset('a_4', 'st_disposed',  'cat_desk',   'br_2'),
+        makeAsset('a_5', 'st_disposed',  'cat_laptop', 'br_1'),  // extra disposed
+      ],
+      ref,
+      workstationLicenses: [],
+      employees: employees42,
+      auditLogs: [],
+    })
+
+    renderPage('super_admin', extendedRepo)
+
+    // Act / Assert — written-off tile shows 2
+    await waitFor(() =>
+      expect(within(screen.getByTestId('section-written-off')).getByText('2')).toBeInTheDocument(),
+    )
+    // Disposed assets are included in the grand total (5 assets total)
+    expect(within(screen.getByTestId('section-total-assets')).getByText('5')).toBeInTheDocument()
   })
 })

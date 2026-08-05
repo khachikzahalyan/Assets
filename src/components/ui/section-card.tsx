@@ -6,13 +6,17 @@ import { Icon } from './icon'
  * `project_section_icon_colors` memory). Each entity icon has ONE tone:
  *   blue   → person / user / employee / assignment (user-check)
  *   green  → location / branch (map-pin)
- *   orange → license / key (key-round)
+ *   orange → license / key (key-round) — amber family, historical name
+ *   accent → assets (true brand orange, mirrors the KPI-strip «Всего активов»)
+ *   amber  → employees (mirrors the KPI-strip «Сотрудники» warning tone)
  * `undefined` = the default muted tone.
  */
 const ICON_TONES: Record<string, string> = {
   blue:   'bg-sky-500/15 text-sky-300 light:text-sky-700',
   green:  'bg-emerald-500/15 text-emerald-300 light:text-emerald-700',
   orange: 'bg-amber-500/15 text-amber-300 light:text-amber-700',
+  accent: 'bg-accent/15 text-accent',
+  amber:  'bg-amber-500/15 text-amber-300 light:text-amber-700',
   violet: 'bg-violet-500/15 text-violet-300 light:text-violet-700',
   cyan:   'bg-cyan-500/15 text-cyan-300 light:text-cyan-700',
   rose:   'bg-rose-500/15 text-rose-300 light:text-rose-700',

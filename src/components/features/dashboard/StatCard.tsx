@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { Icon } from '@/components/ui/icon'
 import { cn } from '@/lib/utils'
 
-export type StatCardAccent = 'orange' | 'green' | 'blue' | 'violet' | 'amber'
+export type StatCardAccent = 'orange' | 'green' | 'blue' | 'violet' | 'amber' | 'rose'
 
 export interface StatCardHeroStat {
   value: number | null
@@ -86,6 +86,15 @@ const ACCENT: Record<
     cardBg:      'from-warning/15 to-warning/[0.06]',
     cardBorder:  'border-warning/30',
     glow:        'bg-warning/20',
+  },
+  rose: {
+    iconBox:     'bg-rose-500/15 text-rose-300 light:text-rose-700',
+    number:      'text-rose-300 light:text-rose-700',
+    label:       'text-rose-300 light:text-rose-700',
+    hoverBorder: 'hover:border-rose-500/50',
+    cardBg:      'from-rose-500/15 to-rose-500/[0.06]',
+    cardBorder:  'border-rose-500/30',
+    glow:        'bg-rose-500/20',
   },
 }
 

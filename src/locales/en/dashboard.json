@@ -24,7 +24,8 @@
     "inWarehouse": "In warehouse",
     "licenses": "Licenses",
     "serverLicenses": "Server licenses",
-    "totalAssets": "Total assets"
+    "totalAssets": "Total assets",
+    "writtenOff": "Written-off assets"
   },
   "title": "Dashboard"
 }

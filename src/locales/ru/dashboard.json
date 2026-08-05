@@ -24,7 +24,8 @@
     "inWarehouse": "На складе",
     "licenses": "Лицензии",
     "serverLicenses": "Серверные лицензии",
-    "totalAssets": "Всего активов"
+    "totalAssets": "Всего активов",
+    "writtenOff": "Списанные активы"
   },
   "title": "Панель управления"
 }
