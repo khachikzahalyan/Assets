@@ -194,6 +194,7 @@
     "serviceChip": "Сервис",
     "history": "ИСТОРИЯ",
     "pickSizeTitle": "Выберите размер",
+    "pickSkuTitle": "Выберите запчасть",
     "historyAdded": "Добавлено",
     "historyEmpty": "Движений пока нет",
     "historyEmptyFilter": "По фильтру ничего не найдено",

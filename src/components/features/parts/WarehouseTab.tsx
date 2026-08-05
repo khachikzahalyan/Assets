@@ -3,13 +3,12 @@ import { useTranslation } from 'react-i18next'
 import { Chip, Icon } from '@/components/ui'
 import { PartCard } from './PartCard'
 import { HistoryPanel } from './HistoryPanel'
-import { WarehouseHistorySection } from './WarehouseHistorySection'
 import { WarehouseSizedDetail } from './WarehouseSizedDetail'
 import { WarehouseMobileDetail } from './WarehouseMobileDetail'
 import { WarehouseSkuList, AGG_CATS } from './WarehouseSkuList'
 import type { Part, PartMovement, PartStock, PartsAsset } from '@/domain/part/types'
 import { PART_CATEGORY_META, groupSkusByCategoryDef, buildCategoryTint, type Tint, type PartCatMeta } from './partsTokens'
-import { deriveStock, workingStock } from '@/domain/part/partStock'
+import { deriveStock } from '@/domain/part/partStock'
 import type { PartCategoryDef } from '@/domain/part/partCategory-types'
 import { isSizedCategory, isModelsCategory } from '@/domain/part/partCategory-types'
 import { DEFAULT_PART_CATEGORY_DEFS } from '@/domain/part/partCategoryDefaults'
@@ -176,47 +175,33 @@ export function WarehouseTab({
             partsAssets={partsAssets}
           />
         ) : isModelsCat ? (
-          /* Models (GPU): shared История section with TWO header actions —
-             «Добавить видеокарту» (create a model) + «Установить» (install a model
-             with stock). Same layout as every other category (chips + история). */
-          <WarehouseHistorySection
+          /* Models (GPU): route through WarehouseMobileDetail so the install button
+             gets the same 0/1/>1 picker logic. The green «Добавить видеокарту» chip
+             is injected as extraHeaderAction — it always renders regardless of stock. */
+          <WarehouseMobileDetail
             catId={selectedCatId}
+            skus={selectedSkus}
+            stockOf={stockOf}
+            catMeta={selectedCatMeta}
+            onInstall={onInstall}
             movements={movements}
             skuIds={selectedSkuIds}
             parts={parts}
             remainingAfterMap={remainingAfterMap}
             partsAssets={partsAssets}
-            headerAction={(() => {
-              const installSku = selectedSkus.find(s => workingStock(stockOf(s.id)) > 0) ?? null
-              return (
-                <>
-                  <button
-                    type="button"
-                    onClick={onAddGpu}
-                    aria-label={t('gpu.addBtn')}
-                    className="focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 rounded-md"
-                  >
-                    <Chip color="green" size="sm">
-                      <Icon name="plus" size={10} />
-                      {selectedCatMeta?.label ?? t('gpu.addBtn')}
-                    </Chip>
-                  </button>
-                  {installSku && (
-                    <button
-                      type="button"
-                      onClick={() => onInstall(installSku)}
-                      aria-label={t('actions.install')}
-                      className="focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 rounded-md"
-                    >
-                      <Chip color="orange" size="sm">
-                        <Icon name="wrench" size={10} />
-                        {t('actions.install')}
-                      </Chip>
-                    </button>
-                  )}
-                </>
-              )
-            })()}
+            extraHeaderAction={
+              <button
+                type="button"
+                onClick={onAddGpu}
+                aria-label={t('gpu.addBtn')}
+                className="focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 rounded-md"
+              >
+                <Chip color="green" size="sm">
+                  <Icon name="plus" size={10} />
+                  {selectedCatMeta?.label ?? t('gpu.addBtn')}
+                </Chip>
+              </button>
+            }
           />
         ) : (
           /* Single-pos: PSU / Cooler — header + HistoryPanel full-bleed */

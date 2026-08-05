@@ -194,6 +194,7 @@
     "serviceChip": "Service",
     "history": "HISTORY",
     "pickSizeTitle": "Choose size",
+    "pickSkuTitle": "Choose part",
     "historyAdded": "Added",
     "historyEmpty": "No movements yet",
     "historyEmptyFilter": "No results for this filter",
