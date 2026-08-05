@@ -32,8 +32,9 @@ export interface CategoryCapabilities {
 }
 
 /**
- * Category ids whose RAM may be ECC (servers only). Re-homed here (the domain) so
- * the capability taxonomy is self-contained; specSuggestions.ts re-exports these.
+ * Category ids treated as servers — they get the extended RAM/storage size lists
+ * (SERVER_RAM_SIZES / SERVER_STORAGE_*). Re-homed here (the domain) so the
+ * capability taxonomy is self-contained; specSuggestions.ts re-exports these.
  */
 export const SERVER_CATEGORY_IDS: ReadonlySet<string> = new Set([
   'cat_server', 'cat_rack_server', 'cat_blade_server', 'cat_tower_server', 'cat_mainframe',

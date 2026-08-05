@@ -8,22 +8,21 @@ describe('RAM parse/serialize', () => {
   it('round-trips a multi-slot DDR4 value', () => {
     const p = parseRamValue('16 ГБ + 32 ГБ DDR4')
     expect(p.ddrType).toBe('DDR4')
-    expect(p.ecc).toBe(false)
     expect(p.slots.map(s => s.size)).toEqual(['16 ГБ', '32 ГБ'])
-    expect(serializeRam(p.slots, p.ddrType, p.ecc)).toBe('16 ГБ + 32 ГБ DDR4')
+    expect(serializeRam(p.slots, p.ddrType)).toBe('16 ГБ + 32 ГБ DDR4')
   })
 
-  it('parses trailing ECC independent of DDR generation', () => {
-    const p = parseRamValue('64 ГБ DDR4 ECC')
-    expect(p.ecc).toBe(true)
-    expect(p.ddrType).toBe('DDR4')
-    expect(serializeRam(p.slots, p.ddrType, p.ecc)).toBe('64 ГБ DDR4 ECC')
+  it('round-trips a server-size single-slot value', () => {
+    const p = parseRamValue('256 ГБ DDR5')
+    expect(p.ddrType).toBe('DDR5')
+    expect(p.slots.map(s => s.size)).toEqual(['256 ГБ'])
+    expect(serializeRam(p.slots, p.ddrType)).toBe('256 ГБ DDR5')
   })
 
   it('empty value yields a single empty slot, serializes to empty string', () => {
     const p = parseRamValue('')
     expect(p.slots).toHaveLength(1)
-    expect(serializeRam(p.slots, p.ddrType, p.ecc)).toBe('')
+    expect(serializeRam(p.slots, p.ddrType)).toBe('')
   })
 })
 

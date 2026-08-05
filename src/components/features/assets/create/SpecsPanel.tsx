@@ -94,7 +94,7 @@ export function SpecsPanel({ specs, onChange, isServer, hasGpu }: SpecsPanelProp
           )}
         </span>
         <div role="group" aria-labelledby="asset-spec-ssd-label">
-          <StorageSlots value={specs.ssd || ''} onChange={v => set({ ssd: v })} />
+          <StorageSlots value={specs.ssd || ''} onChange={v => set({ ssd: v })} isServer={isServer} />
         </div>
       </div>
     </div>

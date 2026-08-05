@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Icon } from '@/components/ui'
 import { MiniDropdown } from '@/components/ui'
-import { RAM_SIZES, RAM_TYPES, parseRamValue, serializeRam, type RamSlot } from './ramStorage'
+import { RAM_SIZES, RAM_TYPES, SERVER_RAM_SIZES, parseRamValue, serializeRam, type RamSlot } from './ramStorage'
 
 export interface RamSlotsProps {
   value: string
   onChange: (v: string) => void
-  /** Servers may flag ECC; non-servers drop it. */
+  /** Servers get the extended size list (SERVER_RAM_SIZES). */
   isServer?: boolean
 }
 
@@ -20,35 +20,27 @@ const COL_GRID = 'grid grid-cols-[6.5rem_1.5rem_1fr_2rem] gap-x-2 items-center'
 export function RamSlots({ value, onChange, isServer = false }: RamSlotsProps) {
   const initial = parseRamValue(value)
   const [ddrType, setDdrType] = useState(initial.ddrType)
-  const [ecc, setEcc] = useState(initial.ecc)
   const [slots, setSlots] = useState<RamSlot[]>(initial.slots)
 
-  const emit = (s: RamSlot[], t: string, e: boolean) => onChange(serializeRam(s, t, e))
+  const emit = (s: RamSlot[], t: string) => onChange(serializeRam(s, t))
 
-  const setType = (t: string) => { const next = ddrType === t ? '' : t; setDdrType(next); emit(slots, next, ecc) }
+  const setType = (t: string) => { const next = ddrType === t ? '' : t; setDdrType(next); emit(slots, next) }
   const addSlot = () => {
     if (slots.some(s => !s.size)) return
     const next = [...slots, { _id: `r${Math.random().toString(36).slice(2, 7)}`, size: '' }]
-    setSlots(next); emit(next, ddrType, ecc)
+    setSlots(next); emit(next, ddrType)
   }
   const removeSlot = (id: string) => {
     if (slots.length <= 1) return
     const next = slots.filter(s => s._id !== id)
-    setSlots(next); emit(next, ddrType, ecc)
+    setSlots(next); emit(next, ddrType)
   }
   const editSlot = (id: string, size: string) => {
     const next = slots.map(s => s._id === id ? { ...s, size } : s)
-    setSlots(next); emit(next, ddrType, ecc)
+    setSlots(next); emit(next, ddrType)
   }
 
-  // Drop ECC when the asset is no longer a server. Reads the latest slots/ddrType
-  // (included in deps) so the emitted value never goes stale.
-  useEffect(() => {
-    if (!isServer && ecc) { setEcc(false); emit(slots, ddrType, false) }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isServer, ecc, ddrType, slots])
-
-  const sizeOptions = RAM_SIZES.map(s => ({ value: s, label: s }))
+  const sizeOptions = (isServer ? SERVER_RAM_SIZES : RAM_SIZES).map(s => ({ value: s, label: s }))
   const typeOptions = RAM_TYPES.map(t => ({ value: t, label: t }))
   const hasEmptySlot = slots.some(s => !s.size)
 

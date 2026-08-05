@@ -1,15 +1,17 @@
 import { useState } from 'react'
 import { Icon } from '@/components/ui'
 import { MiniDropdown } from '@/components/ui'
-import { STORAGE_SIZES, STORAGE_TYPES, parseStorageValue, serializeStorage, type StorageRow } from './ramStorage'
+import { SERVER_STORAGE_SIZES, SERVER_STORAGE_TYPES, STORAGE_SIZES, STORAGE_TYPES, parseStorageValue, serializeStorage, type StorageRow } from './ramStorage'
 
 export interface StorageSlotsProps {
   value: string
   onChange: (v: string) => void
+  /** Servers get the extended type (NVMe/SAS) and size (4–16 ТБ) lists. */
+  isServer?: boolean
 }
 
 /** Storage list builder: [type] + [size] rows + «Добавить». Serializes "SSD 256 ГБ + HDD 1 ТБ". */
-export function StorageSlots({ value, onChange }: StorageSlotsProps) {
+export function StorageSlots({ value, onChange, isServer = false }: StorageSlotsProps) {
   const [rows, setRows] = useState<StorageRow[]>(() => parseStorageValue(value))
 
   const update = (next: StorageRow[]) => { setRows(next); onChange(serializeStorage(next)) }
@@ -20,8 +22,8 @@ export function StorageSlots({ value, onChange }: StorageSlotsProps) {
   const removeRow = (id: string) => update(rows.filter(r => r._id !== id))
   const editRow = (id: string, patch: Partial<StorageRow>) => update(rows.map(r => r._id === id ? { ...r, ...patch } : r))
 
-  const typeOptions = STORAGE_TYPES.map(t => ({ value: t, label: t }))
-  const sizeOptions = STORAGE_SIZES.map(s => ({ value: s, label: s }))
+  const typeOptions = (isServer ? SERVER_STORAGE_TYPES : STORAGE_TYPES).map(t => ({ value: t, label: t }))
+  const sizeOptions = (isServer ? SERVER_STORAGE_SIZES : STORAGE_SIZES).map(s => ({ value: s, label: s }))
   const hasEmptyRow = rows.some(r => !r.size)
 
   return (

@@ -8,6 +8,18 @@ export const RAM_TYPES = ['DDR3', 'DDR4', 'DDR5']
 export const STORAGE_SIZES = ['64 ГБ', '128 ГБ', '256 ГБ', '512 ГБ', '1 ТБ', '2 ТБ']
 export const STORAGE_TYPES = ['HDD', 'SSD', 'M.2']
 
+// Server variants — supersets of the base lists; non-servers keep the base lists as-is.
+export const SERVER_RAM_SIZES = [...RAM_SIZES, '256 ГБ']
+export const SERVER_STORAGE_TYPES = ['SSD', 'HDD', 'NVMe', 'SAS', 'M.2']
+export const SERVER_STORAGE_SIZES = [...STORAGE_SIZES, '4 ТБ', '8 ТБ', '16 ТБ']
+
+/**
+ * Union of base + server storage types used ONLY for parsing/matching, so a
+ * saved server value ("NVMe 512 ГБ") round-trips without losing its type.
+ * Serialization and non-server dropdown options are unaffected.
+ */
+const STORAGE_TYPE_MATCH = Array.from(new Set([...STORAGE_TYPES, ...SERVER_STORAGE_TYPES]))
+
 let _seq = 0
 const newId = () => `r${(++_seq).toString(36)}${Math.random().toString(36).slice(2, 5)}`
 
@@ -20,7 +32,7 @@ export function parseStorageRow(seg: string): { type: string; size: string } | n
   const trimmed = (seg || '').trim()
   if (!trimmed) return null
   let type = ''
-  for (const t of STORAGE_TYPES) {
+  for (const t of STORAGE_TYPE_MATCH) {
     const safe = t.replace(/\./g, '\\.')
     if (new RegExp(`(^|[\\s,])${safe}(?=[\\s,]|$)`).test(trimmed)) { type = t; break }
   }
@@ -44,18 +56,15 @@ export function serializeStorage(rows: { type: string; size: string }[]): string
 }
 
 // ---------------------------------------------------------------------------
-// RAM: one global DDR type + ECC flag + auto-numbered size slots
-//   "16 ГБ + 32 ГБ DDR4 ECC"
+// RAM: one global DDR type + auto-numbered size slots
+//   "16 ГБ + 32 ГБ DDR4"
 // ---------------------------------------------------------------------------
 export interface RamSlot { _id: string; size: string }
-export interface ParsedRam { ddrType: string; ecc: boolean; slots: RamSlot[] }
+export interface ParsedRam { ddrType: string; slots: RamSlot[] }
 
 export function parseRamValue(s: string | null | undefined): ParsedRam {
-  if (!s) return { ddrType: '', ecc: false, slots: [{ _id: newId(), size: '' }] }
+  if (!s) return { ddrType: '', slots: [{ _id: newId(), size: '' }] }
   let rest = s.trim()
-  const eccMatch = rest.match(/\bECC\s*$/i)
-  const ecc = !!eccMatch
-  if (eccMatch) rest = rest.slice(0, eccMatch.index).trim()
   const ddrMatch = rest.match(/\b(DDR3|DDR4|DDR5)\s*$/i)
   const ddrType = ddrMatch ? ddrMatch[1]!.toUpperCase() : ''
   if (ddrMatch) rest = rest.slice(0, ddrMatch.index).trim()
@@ -63,15 +72,14 @@ export function parseRamValue(s: string | null | undefined): ParsedRam {
   const slots: RamSlot[] = parts.length > 0
     ? parts.map(p => ({ _id: newId(), size: p.trim() }))
     : [{ _id: newId(), size: '' }]
-  return { ddrType, ecc, slots }
+  return { ddrType, slots }
 }
 
-export function serializeRam(slots: { size: string }[], ddrType: string, ecc: boolean): string {
+export function serializeRam(slots: { size: string }[], ddrType: string): string {
   const filled = slots.map(s => s.size).filter(Boolean)
   if (filled.length === 0) return ''
   let out = filled.join(' + ')
   if (ddrType) out += ' ' + ddrType
-  if (ecc) out += ' ECC'
   return out
 }
 
