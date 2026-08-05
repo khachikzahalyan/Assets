@@ -31,7 +31,7 @@ export async function fetchUserProfile(uid: string): Promise<UserProfile> {
   const snap = await getDoc(doc(db(), 'users', uid))
   if (!snap.exists()) return { role: null, employeeId: null }
   const data = snap.data() as { role?: string; employeeId?: string }
-  const role = data.role && ROLE_IDS_SET.has(data.role as Role) ? (data.role as Role) : null
+  const role = typeof data.role === 'string' && ROLE_IDS_SET.has(data.role as Role) ? (data.role as Role) : null
   const employeeId = typeof data.employeeId === 'string' && data.employeeId !== '' ? data.employeeId : null
   return { role, employeeId }
 }

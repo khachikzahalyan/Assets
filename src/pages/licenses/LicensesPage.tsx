@@ -162,8 +162,7 @@ export function LicensesPage({
       )
       const map: Record<string, AuditLog[]> = {}
       for (const entry of page.rows) {
-        if (!map[entry.entityId]) map[entry.entityId] = []
-        map[entry.entityId]!.push(entry)
+        ;(map[entry.entityId] ??= []).push(entry)
       }
       setAuditMap(prev => ({ ...prev, ...map }))
     } catch {
@@ -266,7 +265,7 @@ export function LicensesPage({
         id: a.id,
         assetName,
         invCode: a.invCode,
-        catName: cat.name ?? '',
+        catName: cat.name, // CategoryRow.name: string (non-optional, from RefRow)
         ...(keyState.source === 'manual' && keyState.licenseId
           ? { currentKey: { licenseId: keyState.licenseId, maskedKey: maskedKeys[keyState.licenseId] ?? '—' } }
           : {}),

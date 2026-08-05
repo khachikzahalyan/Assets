@@ -66,7 +66,8 @@ export function useAssetPicker(
       .filter((a) => a.group === groupId)
       .forEach((a) => {
         if (!map.has(a.cat)) map.set(a.cat, { name: a.cat, icon: a.icon, count: 0 })
-        map.get(a.cat)!.count += 1
+        const entry = map.get(a.cat)
+        if (entry) entry.count += 1
       })
     return Array.from(map.values())
   }, [stock, groupId])
@@ -93,7 +94,8 @@ export function useAssetPicker(
     const map = new Map<string, { name: string; icon: string; rows: PickerStockRow[] }>()
     cartRows.forEach((a) => {
       if (!map.has(a.cat)) map.set(a.cat, { name: a.cat, icon: a.icon, rows: [] })
-      map.get(a.cat)!.rows.push(a)
+      const entry = map.get(a.cat)
+      if (entry) entry.rows.push(a)
     })
     return Array.from(map.values())
   }, [cartRows])

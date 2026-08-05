@@ -310,7 +310,7 @@ function HistoryBody({ movements, parts, t }: HistoryBodyProps) {
 
   return (
     <ul className="divide-y divide-border">
-      {sorted.map((mv, i) => {
+      {sorted.map((mv) => {
         const dt = histDisplayType(mv)
         const isBroken = !!mv.broken
         const isFactory = !!mv.factory && dt === 'install'
@@ -365,7 +365,7 @@ function HistoryBody({ movements, parts, t }: HistoryBodyProps) {
 
         return (
           <li
-            key={mv.id || i}
+            key={mv.id}
             className="flex items-center gap-3 px-5 py-3 hover:bg-[#111315]/60 light:hover:bg-black/[0.03] transition-colors"
           >
             <span className={`w-2 h-2 rounded-full flex-shrink-0 ${dotColor}`} />

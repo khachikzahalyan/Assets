@@ -68,13 +68,13 @@ export const AuditRowMobile = memo(function AuditRowMobile({ log, refData, expan
       </div>
       <div className="mt-0.5">
         {link != null ? (
-          <span
-            role="link"
+          <button
+            type="button"
             onClick={(e) => { e.stopPropagation(); navigate(link) }}
-            className="font-mono text-11 text-accent-light underline cursor-pointer"
+            className="font-mono text-11 text-accent-light underline cursor-pointer bg-transparent border-0 p-0 m-0"
           >
             {log.entityId}
-          </span>
+          </button>
         ) : (
           <span className="font-mono text-11 text-text-subtle">{log.entityId}</span>
         )}

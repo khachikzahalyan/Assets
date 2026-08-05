@@ -61,8 +61,8 @@ export function ImportReport({ result, onToAssets, onImportMore }: ImportReportP
                 </tr>
               </thead>
               <tbody>
-                {result.skipped.map((s, i) => (
-                  <tr key={i} className="border-b border-border/40">
+                {result.skipped.map((s) => (
+                  <tr key={`${s.sheet}-${s.rowNumber}`} className="border-b border-border/40">
                     <td className="py-1.5 px-2 text-text-secondary">{s.sheet}</td>
                     <td className="py-1.5 px-2 text-text-secondary tabular-nums">{s.rowNumber}</td>
                     <td className="py-1.5 px-2 text-rose-400 light:text-rose-700">{s.reason}</td>

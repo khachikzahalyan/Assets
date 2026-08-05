@@ -265,10 +265,11 @@ export function AssetsPage({ repository }: AssetsPageProps) {
         />
       )
     }
+    if (!ref) return null
     return (
       <AssetsTable
         rows={pageRows}
-        ref={ref!}
+        ref={ref}
         canMutate={canMutate}
         onRowClick={handleRowClick}
         minRows={PAGE_SIZE}

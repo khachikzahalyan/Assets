@@ -1,8 +1,28 @@
-export interface InputProps {
+import type { InputHTMLAttributes, KeyboardEvent } from 'react'
+
+export interface InputProps extends Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  // Override with our higher-level signatures:
+  | 'onChange'
+  | 'onBlur'
+  | 'onKeyDown'
+  // We expose these via top-level props so callers don't need to touch InputHTMLAttributes:
+  | 'className'
+  | 'disabled'
+  | 'autoFocus'
+  | 'id'
+  | 'type'
+  | 'value'
+  | 'placeholder'
+  // aria-label is re-exposed as ariaLabel (camelCase convenience alias) below:
+  | 'aria-label'
+> {
   value?: string
+  /** Fires with the raw string value (not the event) — keeps call sites clean. */
   onChange?: (v: string) => void
   placeholder?: string
   type?: string
+  /** When true renders in font-mono + tracking-tight (for inventory codes, etc.). */
   mono?: boolean
   className?: string
   disabled?: boolean
@@ -10,7 +30,7 @@ export interface InputProps {
   /** HTML id forwarded to the underlying <input> — required for <label htmlFor> association. */
   id?: string
   /** Optional keydown handler (e.g. Enter-to-confirm in the group stepper). */
-  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void
+  onKeyDown?: (e: KeyboardEvent<HTMLInputElement>) => void
   /** Optional blur handler — used to mark a field as touched for validation timing. */
   onBlur?: () => void
   /** Optional aria-label when no visible <label> is associated. */

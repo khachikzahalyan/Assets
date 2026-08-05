@@ -142,12 +142,12 @@ export function useAssetDetail({ id, repo, repoAsn, licenseRepo, onPersistOemSec
 
   const acts: ActRecord[] = useMemo(() => {
     return assignments
-      .filter(a => Boolean((a as { actStoragePath?: string | null }).actStoragePath))
+      .filter(a => Boolean(a.actStoragePath))
       .map((a, i) => ({
         id: a.id ?? String(i),
         name: t('detail.docs.actName', { n: String(i + 1) }),
         date: a.startedAt ?? a.createdAt ?? '',
-        path: (a as { actStoragePath?: string | null }).actStoragePath ?? '',
+        path: a.actStoragePath ?? '',
       }))
   }, [assignments, t])
 
