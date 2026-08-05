@@ -22,7 +22,8 @@ export interface WorkstationLicenseStats {
 }
 
 export interface PeopleStats {
-  employeeCount: number
+  employeeCount: number                 // только active
+  activeEmployeeIds: readonly string[]  // whitelist для фида бокса
 }
 
 export interface DashboardData {

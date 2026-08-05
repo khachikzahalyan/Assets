@@ -82,6 +82,7 @@ export function useDashboard(repo: DashboardRepository, role: Role): UseDashboar
           auditLogs: events.value,
           partInstalls: installs.status === 'fulfilled' ? installs.value : [],
           partNames: countsRes.status === 'fulfilled' ? countsRes.value.partNames : {},
+          ...(people.status === 'fulfilled' ? { activeEmployeeIds: people.value.activeEmployeeIds } : {}),
         })
       } else {
         anyError = true

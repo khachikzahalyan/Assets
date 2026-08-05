@@ -3,7 +3,7 @@ import { isAssetStatusId } from '@/domain/asset'
 import type { WorkstationLicense } from '@/domain/license'
 import type { AuditLog } from '@/domain/audit'
 import type { PartMovement } from '@/domain/part/types'
-import type { AssetStats, WorkstationLicenseStats, AssetGroup, DomainBoxKey, DomainBoxData } from './types'
+import type { AssetStats, WorkstationLicenseStats, PeopleStats, AssetGroup, DomainBoxKey, DomainBoxData } from './types'
 import { ASSET_GROUPS, EMPTY_STATUS_COUNTS } from './types'
 
 /** Minimal asset projection needed by reduceAssetStats. Full Asset also satisfies this. */
@@ -47,6 +47,16 @@ export function reduceWorkstationLicenseStats(rows: LicenseForStats[]): Workstat
     else inUse += 1
   }
   return { total: rows.length, free, inUse, retired }
+}
+
+export type EmployeeForStats = { id: string; status: 'active' | 'terminated' }
+
+export function reducePeopleStats(rows: readonly EmployeeForStats[]): PeopleStats {
+  const activeEmployeeIds: string[] = []
+  for (const row of rows) {
+    if (row.status === 'active') activeEmployeeIds.push(row.id)
+  }
+  return { employeeCount: activeEmployeeIds.length, activeEmployeeIds }
 }
 
 // ── Domain boxes (dashboard redesign 2026-07-31) ──────────────────────────────
@@ -117,6 +127,10 @@ export interface GroupDomainEventsInput {
   partInstalls: readonly PartMovement[] // 7-дневное окно, type==='install'
   partNames: Record<string, string>     // skuId → имя SKU
   now?: Date
+  /** Whitelist of active employee entity ids. When provided, employee box events
+   *  are filtered to this set. When absent (loadPeopleStats failed), no filtering
+   *  is applied — graceful degradation. */
+  activeEmployeeIds?: readonly string[]
 }
 
 const LIST_ROUTE: Record<Exclude<DomainBoxKey, 'assets'>, string> = {
@@ -134,6 +148,11 @@ const LIST_ROUTE: Record<Exclude<DomainBoxKey, 'assets'>, string> = {
  */
 export function groupDomainEvents(input: GroupDomainEventsInput): Record<DomainBoxKey, DomainBoxData> {
   const now = input.now ?? new Date()
+
+  // Build the active-employee Set once. undefined = no filtering (graceful degradation).
+  const activeSet = input.activeEmployeeIds !== undefined
+    ? new Set(input.activeEmployeeIds)
+    : null
 
   function fromAudit(
     key: Exclude<DomainBoxKey, 'parts'>,
@@ -167,7 +186,12 @@ export function groupDomainEvents(input: GroupDomainEventsInput): Record<DomainB
 
   return {
     assets: fromAudit('assets', l => l.entityType === 'asset' && l.action === 'created', assetEventLabel),
-    employees: fromAudit('employees', l => l.entityType === 'employee' && l.action === 'created', employeeEventLabel),
+    employees: fromAudit(
+      'employees',
+      l => l.entityType === 'employee' && l.action === 'created'
+        && (activeSet === null || activeSet.has(l.entityId)),
+      employeeEventLabel,
+    ),
     parts,
     subscriptions: fromAudit('subscriptions', isSubscriptionEvent, namedEntityEventLabel),
     branches: fromAudit('branches', l => l.entityType === 'branch' && l.action === 'created', namedEntityEventLabel),

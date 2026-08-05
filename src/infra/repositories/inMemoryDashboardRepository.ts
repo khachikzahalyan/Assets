@@ -8,15 +8,16 @@ import type {
   AssetStats, WorkstationLicenseStats, PeopleStats, DomainCountsResult,
 } from '@/domain/dashboard'
 import {
-  reduceAssetStats, reduceWorkstationLicenseStats,
+  reduceAssetStats, reduceWorkstationLicenseStats, reducePeopleStats,
   DASHBOARD_AUDIT_CAP, DASHBOARD_MOVEMENTS_CAP,
 } from '@/domain/dashboard'
+import type { EmployeeForStats } from '@/domain/dashboard'
 
 export interface InMemoryDashboardSeed {
   assets: Asset[]
   ref: AssetReferenceData
   workstationLicenses: WorkstationLicense[]
-  employeeCount: number
+  employees: EmployeeForStats[]
   auditLogs: AuditLog[]
   parts?: Part[]
   partMovements?: PartMovement[]
@@ -37,7 +38,7 @@ export class InMemoryDashboardRepository implements DashboardRepository {
   }
 
   async loadPeopleStats(): Promise<PeopleStats> {
-    return { employeeCount: this.seed.employeeCount }
+    return reducePeopleStats(this.seed.employees)
   }
 
   async loadRecentEvents(sinceIso: string, cap = DASHBOARD_AUDIT_CAP): Promise<AuditLog[]> {

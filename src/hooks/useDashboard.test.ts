@@ -13,7 +13,7 @@ function fakeRepo(overrides: Partial<DashboardRepository> = {}): DashboardReposi
   return {
     loadAssetStats: vi.fn().mockResolvedValue(emptyAssetStats()),
     loadWorkstationLicenseStats: vi.fn().mockResolvedValue({ total: 0, free: 0, inUse: 0, retired: 0 }),
-    loadPeopleStats: vi.fn().mockResolvedValue({ employeeCount: 0 }),
+    loadPeopleStats: vi.fn().mockResolvedValue({ employeeCount: 0, activeEmployeeIds: [] }),
     loadRecentEvents: vi.fn().mockResolvedValue([]),
     loadRecentPartInstalls: vi.fn().mockResolvedValue([]),
     loadDomainCounts: vi.fn().mockResolvedValue(emptyCountsRes),

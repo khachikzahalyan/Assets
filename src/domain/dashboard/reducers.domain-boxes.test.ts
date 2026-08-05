@@ -20,7 +20,9 @@ import {
   partInstallLabel,
   isSubscriptionEvent,
   DASHBOARD_EVENTS_PER_BOX,
+  reducePeopleStats,
 } from './reducers'
+import type { EmployeeForStats } from './reducers'
 
 // ─── Fixed reference point ────────────────────────────────────────────────────
 // 2026-07-31 noon local.  Buckets: [25th, 26th, 27th, 28th, 29th, 30th, 31st]
@@ -539,5 +541,119 @@ describe('groupDomainEvents', () => {
       const total = Object.values(result).reduce((sum, box) => sum + box.delta7d, 0)
       expect(total).toBe(0)
     })
+  })
+})
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// reducePeopleStats
+// ═══════════════════════════════════════════════════════════════════════════════
+
+describe('reducePeopleStats', () => {
+  it('counts only active employees and collects their ids', () => {
+    const rows: EmployeeForStats[] = [
+      { id: 'e1', status: 'active' },
+      { id: 'e2', status: 'terminated' },
+    ]
+    const result = reducePeopleStats(rows)
+    expect(result.employeeCount).toBe(1)
+    expect(result.activeEmployeeIds).toEqual(['e1'])
+  })
+
+  it('empty array → { employeeCount: 0, activeEmployeeIds: [] }', () => {
+    expect(reducePeopleStats([])).toEqual({ employeeCount: 0, activeEmployeeIds: [] })
+  })
+
+  it('all active → all ids in activeEmployeeIds', () => {
+    const rows: EmployeeForStats[] = [
+      { id: 'a', status: 'active' },
+      { id: 'b', status: 'active' },
+    ]
+    const result = reducePeopleStats(rows)
+    expect(result.employeeCount).toBe(2)
+    expect(result.activeEmployeeIds).toEqual(['a', 'b'])
+  })
+
+  it('all terminated → employeeCount 0, empty activeEmployeeIds', () => {
+    const rows: EmployeeForStats[] = [
+      { id: 'x', status: 'terminated' },
+    ]
+    const result = reducePeopleStats(rows)
+    expect(result.employeeCount).toBe(0)
+    expect(result.activeEmployeeIds).toEqual([])
+  })
+})
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// groupDomainEvents — activeEmployeeIds whitelist
+// ═══════════════════════════════════════════════════════════════════════════════
+
+describe('groupDomainEvents — activeEmployeeIds whitelist', () => {
+  // Two employee 'created' events in the 7-day window:
+  //   e1 → active (in whitelist), e2 → terminated (not in whitelist)
+  const empLogActive = makeLog({
+    id: 'emp-a', entityType: 'employee', action: 'created', entityId: 'e1',
+    at: localIso(2026, 7, 31), after: { lastName: 'Active', firstName: 'Alice' },
+  })
+  const empLogTerminated = makeLog({
+    id: 'emp-t', entityType: 'employee', action: 'created', entityId: 'e2',
+    at: localIso(2026, 7, 30), after: { lastName: 'Terminated', firstName: 'Bob' },
+  })
+  const auditLogs = [empLogActive, empLogTerminated]
+
+  it('with activeEmployeeIds provided → only active employee in delta7d/events/days', () => {
+    const result = groupDomainEvents({
+      auditLogs,
+      partInstalls: [],
+      partNames: {},
+      now: NOW,
+      activeEmployeeIds: ['e1'],
+    })
+    expect(result.employees.delta7d).toBe(1)
+    expect(result.employees.events).toHaveLength(1)
+    expect(result.employees.events[0]!.id).toBe('emp-a')
+    // days buckets must sum to 1 (only the active employee event counts)
+    const daySum = result.employees.days.reduce((s, n) => s + n, 0)
+    expect(daySum).toBe(1)
+  })
+
+  it('without activeEmployeeIds → no filtering, both employees in delta7d', () => {
+    const result = groupDomainEvents({
+      auditLogs,
+      partInstalls: [],
+      partNames: {},
+      now: NOW,
+      // activeEmployeeIds intentionally omitted (undefined)
+    })
+    expect(result.employees.delta7d).toBe(2)
+    const daySum = result.employees.days.reduce((s, n) => s + n, 0)
+    expect(daySum).toBe(2)
+  })
+
+  it('activeEmployeeIds=[] → employees box is empty (no ids in whitelist)', () => {
+    const result = groupDomainEvents({
+      auditLogs,
+      partInstalls: [],
+      partNames: {},
+      now: NOW,
+      activeEmployeeIds: [],
+    })
+    expect(result.employees.delta7d).toBe(0)
+    expect(result.employees.events).toHaveLength(0)
+  })
+
+  it('whitelist does not affect other boxes (assets unaffected)', () => {
+    const assetLog = makeLog({
+      id: 'asset-1', entityType: 'asset', action: 'created', entityId: 'a1',
+      at: localIso(2026, 7, 31), after: { brand: 'Dell', model: 'XPS' },
+    })
+    const result = groupDomainEvents({
+      auditLogs: [...auditLogs, assetLog],
+      partInstalls: [],
+      partNames: {},
+      now: NOW,
+      activeEmployeeIds: ['e1'],
+    })
+    expect(result.assets.delta7d).toBe(1)
+    expect(result.employees.delta7d).toBe(1)
   })
 })

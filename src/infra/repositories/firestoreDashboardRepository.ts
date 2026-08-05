@@ -15,9 +15,10 @@ import type {
   AssetStats, WorkstationLicenseStats, PeopleStats, DomainCountsResult,
 } from '@/domain/dashboard'
 import {
-  reduceAssetStats, reduceWorkstationLicenseStats,
+  reduceAssetStats, reduceWorkstationLicenseStats, reducePeopleStats,
   DASHBOARD_AUDIT_CAP, DASHBOARD_MOVEMENTS_CAP,
 } from '@/domain/dashboard'
+import type { EmployeeForStats } from '@/domain/dashboard'
 import { toMovement } from './firestorePartRepository.mappers'
 import { toIso } from './firestoreUtils'
 
@@ -76,7 +77,14 @@ export class FirestoreDashboardRepository implements DashboardRepository {
 
   async loadPeopleStats(): Promise<PeopleStats> {
     const employeesSnap = await getDocs(collection(this.db, 'employees'))
-    return { employeeCount: employeesSnap.size }
+    const rows: EmployeeForStats[] = employeesSnap.docs.map(d => {
+      const x = d.data() as Record<string, unknown>
+      return {
+        id: d.id,
+        status: ((x.status as 'active' | 'terminated') ?? 'active'),
+      }
+    })
+    return reducePeopleStats(rows)
   }
 
   async loadRecentEvents(sinceIso: string, cap = DASHBOARD_AUDIT_CAP): Promise<AuditLog[]> {

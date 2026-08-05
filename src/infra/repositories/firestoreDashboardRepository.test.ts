@@ -397,17 +397,36 @@ describe('FirestoreDashboardRepository', () => {
   })
 
   describe('loadPeopleStats', () => {
-    it('counts employees and does NOT query users', async () => {
+    it('counts employees with no status field as active, does NOT query users', async () => {
       mockGetDocs.mockResolvedValueOnce(makeSnap(employeeDocs))
 
       const repo = new FirestoreDashboardRepository(fakeDb)
       const stats = await repo.loadPeopleStats()
 
-      expect(stats).toEqual({ employeeCount: 42 })
+      // All 42 docs have no status field → all treated as active
+      expect(stats.employeeCount).toBe(42)
+      expect(stats.activeEmployeeIds).toHaveLength(42)
       expect(mockGetDocs).toHaveBeenCalledTimes(1)
       expect(mockCollection).toHaveBeenCalledWith(fakeDb, 'employees')
       const collectionNames = (mockCollection.mock.calls as unknown[][]).map(c => c[1] as string)
       expect(collectionNames).not.toContain('users')
+    })
+
+    it('counts only active employees; terminated excluded; missing status = active', async () => {
+      const mixedDocs = [
+        { id: 'emp_active_1', data: { email: 'a1@test.com', status: 'active' } },
+        { id: 'emp_terminated', data: { email: 'term@test.com', status: 'terminated' } },
+        { id: 'emp_no_status', data: { email: 'nostat@test.com' } },  // no status field → active
+      ]
+      mockGetDocs.mockResolvedValueOnce(makeSnap(mixedDocs))
+
+      const repo = new FirestoreDashboardRepository(fakeDb)
+      const stats = await repo.loadPeopleStats()
+
+      expect(stats.employeeCount).toBe(2)
+      expect(stats.activeEmployeeIds).toContain('emp_active_1')
+      expect(stats.activeEmployeeIds).toContain('emp_no_status')
+      expect(stats.activeEmployeeIds).not.toContain('emp_terminated')
     })
   })
 })

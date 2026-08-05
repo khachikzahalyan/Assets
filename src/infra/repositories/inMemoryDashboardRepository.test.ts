@@ -4,6 +4,7 @@ import type { Asset } from '@/domain/asset'
 import type { AssetReferenceData } from '@/domain/asset'
 import type { WorkstationLicense } from '@/domain/license'
 import type { AuditLog } from '@/domain/audit'
+import type { EmployeeForStats } from '@/domain/dashboard'
 
 function asset(
   id: string,
@@ -65,6 +66,12 @@ const auditRows: AuditLog[] = [
     comment: null, at: '2026-06-08T00:00:00.000Z' },
 ]
 
+// 42 active employees (matches the previous employeeCount: 42 behaviour)
+const employees42: EmployeeForStats[] = Array.from({ length: 42 }, (_, i) => ({
+  id: `emp_seed_${i + 1}`,
+  status: 'active' as const,
+}))
+
 function makeRepo() {
   return new InMemoryDashboardRepository({
     assets: [
@@ -80,7 +87,7 @@ function makeRepo() {
       lic('l_2', 'active', 'device'),
       lic('l_3', 'retired', 'unassigned'),
     ],
-    employeeCount: 42,
+    employees: employees42,
     auditLogs: auditRows,
   })
 }
@@ -106,8 +113,10 @@ describe('InMemoryDashboardRepository', () => {
     expect(s).toEqual({ total: 3, free: 1, inUse: 1, retired: 1 })
   })
 
-  it('loadPeopleStats returns the employee count', async () => {
-    expect(await makeRepo().loadPeopleStats()).toEqual({ employeeCount: 42 })
+  it('loadPeopleStats returns the active employee count and their ids', async () => {
+    const result = await makeRepo().loadPeopleStats()
+    expect(result.employeeCount).toBe(42)
+    expect(result.activeEmployeeIds).toHaveLength(42)
   })
 
   it('loadRecentEvents filters by sinceIso and sorts desc', async () => {
@@ -130,7 +139,7 @@ describe('InMemoryDashboardRepository', () => {
     const repo = new InMemoryDashboardRepository({
       assets: [], ref,
       workstationLicenses: [],
-      employeeCount: 0,
+      employees: [],
       auditLogs: [],
       partMovements: [
         { id: 'mv_1', type: 'install', skuId: 'sku_1', qty: 1, broken: false,
@@ -159,7 +168,7 @@ describe('InMemoryDashboardRepository', () => {
     const repo = new InMemoryDashboardRepository({
       assets: [], ref,
       workstationLicenses: [],
-      employeeCount: 0,
+      employees: [],
       auditLogs: [],
       parts: [
         { id: 'p1', name: 'RAM 8GB', category: 'ram', variantId: null, variantLabel: null,
@@ -177,5 +186,20 @@ describe('InMemoryDashboardRepository', () => {
     expect(res.counts.branches).toBe(2)   // ref.branches.length
     expect(res.counts.departments).toBe(0) // ref.departments.length
     expect(res.counts.subscriptions).toBe(3) // subscriptionCount=3, no sub-type licenses
+  })
+
+  it('loadPeopleStats: 1 active + 1 terminated → employeeCount 1, only active id in activeEmployeeIds', async () => {
+    const repo = new InMemoryDashboardRepository({
+      assets: [], ref,
+      workstationLicenses: [],
+      employees: [
+        { id: 'emp_active', status: 'active' },
+        { id: 'emp_terminated', status: 'terminated' },
+      ],
+      auditLogs: [],
+    })
+    const result = await repo.loadPeopleStats()
+    expect(result.employeeCount).toBe(1)
+    expect(result.activeEmployeeIds).toEqual(['emp_active'])
   })
 })
