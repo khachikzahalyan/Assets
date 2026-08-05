@@ -1,12 +1,24 @@
 {
   "app": { "name": "AMS", "title": "Asset Management System" },
   "actions": { "retry": "Повторить", "signOut": "Выйти", "profile": "Профиль", "settings": "Настройки", "openMenu": "Открыть меню", "close": "Закрыть", "edit": "Изменить", "delete": "Удалить" },
-  "search": { "placeholder": "Поиск...", "empty": "Ничего не найдено", "loading": "Загрузка…", "hint": "Введите запрос для поиска", "navigate": "навигация", "select": "выбрать", "kindAsset": "Актив", "kindEmployee": "Сотрудник", "kindBranch": "Филиал", "kindDepartment": "Отдел" },
-  "lang": { "title": "Язык интерфейса", "ru": "Русский", "en": "English", "hy": "Հայերեն" },
-  "theme": { "toLight": "Светлая тема", "toDark": "Тёмная тема" },
-  "states": { "emptyTitle": "Здесь пока пусто", "errorTitle": "Что-то пошло не так", "errorDesc": "Попробуйте обновить страницу или повторите действие через несколько секунд." },
   "breadcrumb": { "root": "AMS", "personal": "Личный кабинет" },
+  "calendar": {
+    "months": ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"],
+    "weekdays": ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"],
+    "clear": "Очистить",
+    "today": "Сегодня",
+    "plusYear": "На 1 год",
+    "prev": "Назад",
+    "next": "Вперёд",
+    "placeholder": "дд.мм.гггг",
+    "selectDate": "Выберите дату"
+  },
+  "loading": "Загрузка…",
+  "lang": { "title": "Язык интерфейса", "ru": "Русский", "en": "English", "hy": "Հայերեն" },
+  "pagination": { "prev": "Предыдущая страница", "next": "Следующая страница", "shown": "Показано {{from}}–{{to}} из {{total}}", "shownBold": "Показано <0>{{from}}–{{to}}</0> из <1>{{total}}</1>" },
   "roleSwitcher": { "label": "Просмотр как…", "dev": "DEV" },
+  "search": { "placeholder": "Поиск...", "empty": "Ничего не найдено", "loading": "Загрузка…", "hint": "Введите запрос для поиска", "navigate": "навигация", "select": "выбрать", "kindAsset": "Актив", "kindEmployee": "Сотрудник", "kindBranch": "Филиал", "kindDepartment": "Отдел" },
+  "states": { "emptyTitle": "Здесь пока пусто", "errorTitle": "Что-то пошло не так", "errorDesc": "Попробуйте обновить страницу или повторите действие через несколько секунд." },
   "status": { "st_warehouse": "На складе", "st_pending": "Ожидание", "st_assigned": "Выдано", "st_repair": "В ремонте", "st_disposed": "Списано" },
-  "pagination": { "prev": "Предыдущая страница", "next": "Следующая страница", "shown": "Показано {{from}}–{{to}} из {{total}}", "shownBold": "Показано <0>{{from}}–{{to}}</0> из <1>{{total}}</1>" }
+  "theme": { "toLight": "Светлая тема", "toDark": "Тёмная тема" }
 }

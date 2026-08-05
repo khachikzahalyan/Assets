@@ -11,10 +11,10 @@
  *   - no delete button exists
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeAll, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import '@/lib/i18n'
+import i18n from '@/lib/i18n'
 import { CategoriesPage } from './CategoriesPage'
 import {
   InMemoryCategoryRepository,
@@ -60,6 +60,8 @@ async function openPartsTab(partCatRepo: InstanceType<typeof InMemoryPartCategor
   fireEvent.click(partsTab)
   return partsTab
 }
+
+beforeAll(async () => { await i18n.changeLanguage('ru') })
 
 describe('CategoriesPage — Parts tab', () => {
   beforeEach(() => {

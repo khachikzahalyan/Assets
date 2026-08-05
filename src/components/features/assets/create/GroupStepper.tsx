@@ -1,7 +1,8 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Field, Input } from './ui'
 import { Btn, Chip, Icon } from '@/components/ui'
-import { nextInvFromBatch, pluralAssets } from './ramStorage'
+import { nextInvFromBatch } from './ramStorage'
 
 export interface GroupRow { invCode: string; serial: string }
 
@@ -24,6 +25,7 @@ export interface GroupStepperProps {
  * Confirmed rows can be pulled back into the active form (edit) or deleted.
  */
 export function GroupStepper({ requiresSerial, quantity, setQuantity, rows, setRows, invPlaceholder = '460/00007', seedInvCode = '' }: GroupStepperProps) {
+  const { t } = useTranslation('assets')
   const [activeInv, setActiveInv] = useState(seedInvCode)
   const [activeSerial, setActiveSerial] = useState('')
 
@@ -73,19 +75,19 @@ export function GroupStepper({ requiresSerial, quantity, setQuantity, rows, setR
     <div className="rounded-xl ring-1 ring-border/70 bg-bg/60 p-3.5 space-y-2.5 anim-fade-slide-in">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="text-14 font-semibold text-text-primary flex items-center gap-1.5 tracking-tight">
-          <Icon name="copy-plus" size={13} className="text-text-subtle" />Партия активов
+          <Icon name="copy-plus" size={13} className="text-text-subtle" />{t('groupMode.title')}
         </div>
         {/* B8: indigo instead of orange */}
         <Chip color="indigo">{done} / {total}</Chip>
       </div>
 
       <div className="grid grid-cols-3 max-md:grid-cols-2 gap-2 items-end">
-        <Field label="Количество" required {...(done > 0 ? { hint: `Не меньше ${done}` } : {})}>
+        <Field label={t('groupMode.quantity')} required {...(done > 0 ? { hint: t('groupMode.minHint', { min: done }) } : {})}>
           <Input type="number" value={String(quantity)} onChange={onQuantityChange} className="tabular-nums" />
         </Field>
         <div className="col-span-2 max-md:col-span-1">
           <div className="text-13 text-text-primary mb-1.5 flex items-center justify-between">
-            <span>Прогресс</span><span className="tabular-nums font-medium">{progress}%</span>
+            <span>{t('groupMode.progress')}</span><span className="tabular-nums font-medium">{progress}%</span>
           </div>
           <div className="h-1.5 bg-border rounded-full overflow-hidden">
             <div className="h-full bg-gradient-to-r from-accent to-[#E29772] transition-all duration-300" style={{ width: `${progress}%` }} />
@@ -106,8 +108,8 @@ export function GroupStepper({ requiresSerial, quantity, setQuantity, rows, setR
                 </>
               )}
               <div className="ml-auto flex items-center gap-0.5 shrink-0">
-                <button type="button" onClick={() => pullBackRow(i)} className="w-6 h-6 rounded text-text-subtle hover:text-accent hover:bg-[rgba(249,115,22,0.12)] flex items-center justify-center transition-colors" title="Редактировать" aria-label={`Редактировать строку ${i + 1}`}><Icon name="pencil" size={12} /></button>
-                <button type="button" onClick={() => deleteRow(i)} className="w-6 h-6 rounded text-text-subtle hover:text-rose-300 light:hover:text-rose-700 hover:bg-rose-500/10 flex items-center justify-center transition-colors" title="Удалить" aria-label={`Удалить строку ${i + 1}`}><Icon name="trash-2" size={12} /></button>
+                <button type="button" onClick={() => pullBackRow(i)} className="w-6 h-6 rounded text-text-subtle hover:text-accent hover:bg-[rgba(249,115,22,0.12)] flex items-center justify-center transition-colors" title={t('groupMode.editRow', { n: i + 1 })} aria-label={t('groupMode.editRow', { n: i + 1 })}><Icon name="pencil" size={12} /></button>
+                <button type="button" onClick={() => deleteRow(i)} className="w-6 h-6 rounded text-text-subtle hover:text-rose-300 light:hover:text-rose-700 hover:bg-rose-500/10 flex items-center justify-center transition-colors" title={t('groupMode.deleteRow', { n: i + 1 })} aria-label={t('groupMode.deleteRow', { n: i + 1 })}><Icon name="trash-2" size={12} /></button>
               </div>
             </div>
           ))}
@@ -117,15 +119,15 @@ export function GroupStepper({ requiresSerial, quantity, setQuantity, rows, setR
       {allDone ? (
         <div className="bg-emerald-500/10 ring-1 ring-emerald-500/30 rounded-lg px-3 py-2.5 flex items-center gap-2">
           <Icon name="circle-check" size={14} className="text-emerald-300 light:text-emerald-700 shrink-0" />
-          <span className="text-14 font-medium text-emerald-300 light:text-emerald-700">Все {total} {pluralAssets(total)} добавлены — нажмите «Создать»</span>
+          <span className="text-14 font-medium text-emerald-300 light:text-emerald-700">{t('groupMode.allDone', { count: total })}</span>
         </div>
       ) : (
         <div key={done} className="bg-surface ring-1 ring-border/70 rounded-lg p-2.5 space-y-2">
           <div className="flex items-center gap-2 text-14 font-semibold text-text-primary tracking-tight">
-            <span className="w-5 h-5 rounded bg-accent/[0.12] border border-accent/50 text-accent-hover text-12 font-bold flex items-center justify-center tabular-nums shrink-0">{done + 1}</span>Текущая запись
+            <span className="w-5 h-5 rounded bg-accent/[0.12] border border-accent/50 text-accent-hover text-12 font-bold flex items-center justify-center tabular-nums shrink-0">{done + 1}</span>{t('groupMode.current')}
           </div>
           <div className={`grid gap-2 ${requiresSerial ? 'grid-cols-2 max-md:grid-cols-1' : 'grid-cols-1'}`}>
-            <Field label="Инвентарный код" required {...(invDup ? { hint: 'Этот код уже добавлен в партию' } : {})}>
+            <Field label={t('form.invCode')} required {...(invDup ? { hint: t('groupMode.dupInvCode') } : {})}>
               <Input
                 autoFocus
                 value={activeInv}
@@ -137,7 +139,7 @@ export function GroupStepper({ requiresSerial, quantity, setQuantity, rows, setR
               />
             </Field>
             {requiresSerial && (
-              <Field label="Серийный номер" required {...(serDup ? { hint: 'Этот серийный уже добавлен в партию' } : {})}>
+              <Field label={t('form.serial')} required {...(serDup ? { hint: t('groupMode.dupSerial') } : {})}>
                 <Input
                   value={activeSerial}
                   onChange={setActiveSerial}
@@ -152,7 +154,7 @@ export function GroupStepper({ requiresSerial, quantity, setQuantity, rows, setR
           <div className="flex items-center justify-end">
             {/* B8: size="sm" → default md */}
             <Btn variant="primary" onClick={confirmActive} disabled={!canConfirm}>
-              <Icon name="check" size={14} /> Подтвердить
+              <Icon name="check" size={14} /> {t('groupMode.confirmBtn')}
             </Btn>
           </div>
         </div>

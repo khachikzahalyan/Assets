@@ -1,14 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import ReactDOM from 'react-dom'
+import { useTranslation } from 'react-i18next'
 import { Icon } from '@/components/ui/icon'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { useExclusiveDropdown } from '@/components/ui/dropdownBus'
 import { DPPortal } from '@/components/ui/DatePickerPortal'
 import { MobileSheet } from '@/components/ui/MobileSheet'
 import { useDismissOnOutside } from '@/hooks/useDismissOnOutside'
-
-const RU_MONTHS = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь']
-const RU_WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
 
 const parseISO = (s?: string): Date | null => {
   if (!s) return null
@@ -52,7 +50,11 @@ export interface DatePickerProps {
 }
 
 /** Themed calendar (dark/orange) matching the AMS brand. Ported from the prototype. */
-export function DatePicker({ value, onChange, min, max, disabled = false, placeholder = 'дд.мм.гггг', showPlusYear = false, id, variant = 'field', ariaLabel }: DatePickerProps) {
+export function DatePicker({ value, onChange, min, max, disabled = false, placeholder, showPlusYear = false, id, variant = 'field', ariaLabel }: DatePickerProps) {
+  const { t } = useTranslation('common')
+  const MONTHS = t('calendar.months', { returnObjects: true }) as string[]
+  const WEEKDAYS = t('calendar.weekdays', { returnObjects: true }) as string[]
+  const resolvedPlaceholder = placeholder ?? t('calendar.placeholder')
   const [open, setOpen] = useState(false)
   useExclusiveDropdown(open, setOpen)
   const isMobile = useIsMobile()
@@ -155,7 +157,7 @@ export function DatePicker({ value, onChange, min, max, disabled = false, placeh
           onClick={() => setCalMode(m => m === 'days' ? 'months' : m === 'months' ? 'years' : 'days')}
           className="px-2 py-1 text-15 font-semibold text-text-primary hover:bg-surface-2 rounded-md transition-colors flex items-center gap-1"
         >
-          {calMode === 'days' && <>{RU_MONTHS[viewMonth.getMonth()]} {viewMonth.getFullYear()}</>}
+          {calMode === 'days' && <>{MONTHS[viewMonth.getMonth()]} {viewMonth.getFullYear()}</>}
           {calMode === 'months' && <>{viewMonth.getFullYear()}</>}
           {calMode === 'years' && <>{yearStart}—{yearStart + 11}</>}
           <Icon name="chevron-down" size={12} className="text-text-subtle" />
@@ -169,7 +171,7 @@ export function DatePicker({ value, onChange, min, max, disabled = false, placeh
               if (calMode === 'years') setViewMonth(new Date(viewMonth.getFullYear() - 12, viewMonth.getMonth(), 1))
             }}
             className={`${navBtnSize} flex items-center justify-center rounded-md text-text-tertiary hover:bg-surface-2 hover:text-text-primary transition-colors`}
-            aria-label="Назад"
+            aria-label={t('calendar.prev')}
           ><Icon name="chevron-left" size={14} /></button>
           <button
             type="button"
@@ -179,7 +181,7 @@ export function DatePicker({ value, onChange, min, max, disabled = false, placeh
               if (calMode === 'years') setViewMonth(new Date(viewMonth.getFullYear() + 12, viewMonth.getMonth(), 1))
             }}
             className={`${navBtnSize} flex items-center justify-center rounded-md text-text-tertiary hover:bg-surface-2 hover:text-text-primary transition-colors`}
-            aria-label="Вперёд"
+            aria-label={t('calendar.next')}
           ><Icon name="chevron-right" size={14} /></button>
         </div>
       </div>
@@ -188,7 +190,7 @@ export function DatePicker({ value, onChange, min, max, disabled = false, placeh
         {calMode === 'days' && (
           <>
             <div className="grid grid-cols-7 gap-0.5 mb-1">
-              {RU_WEEKDAYS.map((wd, i) => (
+              {WEEKDAYS.map((wd, i) => (
                 <div key={wd} className={`text-center text-12 font-semibold uppercase tracking-wide py-1 ${i >= 5 ? 'text-accent/70' : 'text-text-subtle'}`}>{wd}</div>
               ))}
             </div>
@@ -218,7 +220,7 @@ export function DatePicker({ value, onChange, min, max, disabled = false, placeh
         )}
         {calMode === 'months' && (
           <div className="grid grid-cols-3 gap-1 py-1">
-            {RU_MONTHS.map((m, i) => (
+            {MONTHS.map((m, i) => (
               <button key={m} type="button"
                 onClick={() => { setViewMonth(new Date(viewMonth.getFullYear(), i, 1)); setCalMode('days') }}
                 className={`h-10 text-14 rounded-md transition-colors font-medium ${i === viewMonth.getMonth() ? 'bg-accent text-white shadow-sm' : 'text-text-primary hover:bg-surface-2'}`}
@@ -239,11 +241,11 @@ export function DatePicker({ value, onChange, min, max, disabled = false, placeh
       </div>
 
       <div className="flex items-center justify-between px-3 py-2 border-t border-border bg-bg/40 light:bg-surface-sunken">
-        <button type="button" onClick={handleClear} className="text-13 font-semibold text-text-subtle hover:text-text-primary transition-colors px-2 py-1 rounded">Очистить</button>
+        <button type="button" onClick={handleClear} className="text-13 font-semibold text-text-subtle hover:text-text-primary transition-colors px-2 py-1 rounded">{t('calendar.clear')}</button>
         {showPlusYear && (
-          <button type="button" onClick={handleOneYear} className="text-13 font-semibold text-accent hover:bg-[rgba(249,115,22,0.12)] transition-colors px-2 py-1 rounded">На 1 год</button>
+          <button type="button" onClick={handleOneYear} className="text-13 font-semibold text-accent hover:bg-[rgba(249,115,22,0.12)] transition-colors px-2 py-1 rounded">{t('calendar.plusYear')}</button>
         )}
-        <button type="button" onClick={handleToday} className="text-13 font-semibold text-accent hover:bg-[rgba(249,115,22,0.12)] transition-colors px-2 py-1 rounded">Сегодня</button>
+        <button type="button" onClick={handleToday} className="text-13 font-semibold text-accent hover:bg-[rgba(249,115,22,0.12)] transition-colors px-2 py-1 rounded">{t('calendar.today')}</button>
       </div>
     </>
   )
@@ -264,7 +266,7 @@ export function DatePicker({ value, onChange, min, max, disabled = false, placeh
           : `w-full px-0 py-2.5 text-15 border-b bg-transparent rounded-none flex items-center gap-2 outline-none shadow-none transition-[border-color,box-shadow] duration-200 text-left ${open ? 'border-accent shadow-[0_2px_8px_rgba(217,119,87,0.1)]' : 'border-border hover:border-border-strong'} disabled:opacity-50 disabled:cursor-not-allowed`}
       >
         <span className={selected ? 'text-text-primary' : 'text-text-subtle'}>
-          {selected ? formatDisplay(selected) : placeholder}
+          {selected ? formatDisplay(selected) : resolvedPlaceholder}
         </span>
         <Icon name="calendar" size={variant === 'chip' ? 13 : 14} className={`ml-auto shrink-0 transition-colors ${open ? 'text-accent' : 'text-text-subtle'}`} />
       </button>
@@ -279,7 +281,7 @@ export function DatePicker({ value, onChange, min, max, disabled = false, placeh
 
       {/* Mobile: own MobileSheet above parent modals (z-9000) */}
       {isMobile && (
-        <MobileSheet open={open} onClose={() => setOpen(false)} title={ariaLabel ?? 'Выберите дату'}>
+        <MobileSheet open={open} onClose={() => setOpen(false)} title={ariaLabel ?? t('calendar.selectDate')}>
           <div className="px-3 pb-2">
             {calendarContent}
           </div>

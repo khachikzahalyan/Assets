@@ -16,6 +16,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { localize } from '@/lib/i18n/localize'
 import { useAuth } from '@/contexts/AuthContext'
 import {
   Chip, Icon,
@@ -54,7 +55,7 @@ export interface PartCategoriesSectionProps {
 export function PartCategoriesSection({
   repository, canMutate, page, onPage, onTotalChange, openCreate, onCreateHandled,
 }: PartCategoriesSectionProps) {
-  const { t } = useTranslation('categories')
+  const { t, i18n } = useTranslation('categories')
   const { user, role } = useAuth()
   const isMobile = useIsMobile()
 
@@ -158,7 +159,7 @@ export function PartCategoriesSection({
             >
               <Icon name={def.icon} size={12} />
             </span>
-            <span className="truncate text-13 text-text-primary">{def.name.ru}</span>
+            <span className="truncate text-13 text-text-primary">{localize(def.name, i18n.language)}</span>
             {!def.active && (
               <Chip color="gray" size="sm">{t('parts.status.inactive')}</Chip>
             )}

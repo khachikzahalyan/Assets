@@ -147,7 +147,7 @@ function ProgressBlock({
         )}
         {redirectedCount > 0 && (
           <span className="ams-handover-progress-breakdown text-13 text-text-tertiary tabular-nums">
-            · → {t('dest.warehouse')}: {warehouseCount} · Перенаправлено: {redirectedCount}
+            · → {t('dest.warehouse')}: {warehouseCount} · {t('handover.redirected')} {redirectedCount}
           </span>
         )}
       </div>
@@ -285,8 +285,9 @@ export function HandoverModal({
               {t('handover.title')}
             </div>
             <div className="text-15.5 font-semibold text-text-primary leading-snug truncate">
-              {empName} · {total} активов ·{' '}
-              {step === 'receive' ? 'отметьте полученные' : 'выберите назначение'}
+              {empName} · {step === 'receive'
+                ? t('handover.subtitleReceive', { total })
+                : t('handover.subtitleRoute', { total })}
             </div>
             {(emp.position || emp.departmentName) && (
               <div className="text-13.5 text-text-secondary leading-snug truncate">
@@ -331,7 +332,7 @@ export function HandoverModal({
                 role="button"
                 tabIndex={0}
                 aria-pressed={row.received}
-                aria-label={`${row.received ? 'Снять отметку приёма' : 'Отметить как принят'}: ${row.title}`}
+                aria-label={`${row.received ? t('handover.ariaUnreceive') : t('handover.ariaReceive')}: ${row.title}`}
                 onClick={() => toggleRow(idx)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {

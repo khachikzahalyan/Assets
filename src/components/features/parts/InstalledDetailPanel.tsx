@@ -110,7 +110,7 @@ export function InstalledDetailPanel({ asset, onUninstall, movements = [], parts
   /* Component count with Russian plural */
   const n = nativeRows.length
   const componentCountLabel = n === 0
-    ? t('device.noComponents', 'Нет компонентов')
+    ? t('device.noComponents')
     : `${n} ${plural(n, 'компонент', 'компонента', 'компонентов')}`
 
   /* History for this asset (filter by assetId) */
@@ -158,7 +158,7 @@ export function InstalledDetailPanel({ asset, onUninstall, movements = [], parts
               : 'text-text-tertiary border-transparent hover:text-text-primary hover:border-[#3A3F46] light:hover:border-border-strong'
           }`}
         >
-          {t('device.tabInstalled', 'Установлено')}
+          {t('device.tabInstalled')}
           <span
             className={`ml-1.5 px-1.5 rounded text-12.5 tabular-nums ${
               innerTab === 'installed'
@@ -178,7 +178,7 @@ export function InstalledDetailPanel({ asset, onUninstall, movements = [], parts
               : 'text-text-tertiary border-transparent hover:text-text-primary hover:border-[#3A3F46] light:hover:border-border-strong'
           }`}
         >
-          {t('device.tabHistory', 'История')}
+          {t('device.tabHistory')}
           <span
             className={`ml-1.5 px-1.5 rounded text-12.5 tabular-nums ${
               innerTab === 'history'
@@ -273,7 +273,7 @@ function InstalledBody({ rows, onUninstall, t }: InstalledBodyProps) {
                 className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md text-13.5 font-semibold text-sky-300 border border-sky-500/30 bg-sky-500/10 hover:bg-sky-500/15 transition-colors flex-shrink-0 light:text-sky-700 light:border-sky-500/40"
               >
                 <Icon name="rotate-ccw" size={11} />
-                {t('device.uninstallBtn', 'Снять')}
+                {t('device.uninstallBtn')}
               </button>
             )}
           </li>
@@ -296,7 +296,7 @@ function HistoryBody({ movements, parts, t }: HistoryBodyProps) {
     return (
       <div className="h-full flex items-center justify-center p-6">
         <div className="text-14 text-text-tertiary text-center">
-          {t('device.historyEmpty', 'На этом устройстве пока нет истории')}
+          {t('device.historyEmpty')}
         </div>
       </div>
     )

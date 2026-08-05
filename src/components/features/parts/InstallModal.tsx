@@ -99,8 +99,8 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
 
   // Auto-scrap caption per category
   const autoScrapCaption =
-    sku?.category === 'cooler' ? 'Старый кулер будет списан'
-    : sku?.category === 'psu' ? 'Старый блок питания будет списан'
+    sku?.category === 'cooler' ? t('installModal.autoScrapCooler')
+    : sku?.category === 'psu' ? t('installModal.autoScrapPsu')
     : null
 
   // Derive recommended action when asset changes
@@ -195,10 +195,10 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
       {/* Header — single title (the sheet's own title bar is removed to avoid duplication) */}
       <div className="px-5 pt-5 pb-3 border-b border-border">
         <h2 className="text-17 font-bold text-text-primary leading-tight">
-          Установить {sku.name}{sku.variantLabel ? ` · ${sku.variantLabel}` : ''}
+          {t('installModal.titleInstall', { name: `${sku.name}${sku.variantLabel ? ` · ${sku.variantLabel}` : ''}` })}
         </h2>
         <p className="mt-0.5 text-14.5 text-text-tertiary">
-          Остаток: <span className="font-semibold text-text-secondary">{workingStock(sku)} шт</span>
+          {t('installModal.remainingLabel')} <span className="font-semibold text-text-secondary">{workingStock(sku)} {t('installModal.remainingUnit')}</span>
         </p>
       </div>
 
@@ -245,7 +245,7 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
               <div className="px-3 py-2.5 flex items-center gap-2 border-t border-border bg-[#161A1F] light:bg-surface-sunken">
                 <Icon name="info" size={13} className="text-text-subtle flex-shrink-0" />
                 <span className="text-13.5 text-text-subtle leading-snug">
-                  Слот «{slotLabel}» пуст — будет выполнена установка
+                  {t('installModal.emptySlot', { label: slotLabel })}
                 </span>
               </div>
             )}
@@ -287,8 +287,8 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
                         )}
                         <div className="min-w-0 flex-1">
                           <div className="text-15 font-semibold text-text-primary leading-tight">
-                            <span>Заменить: </span>
-                            <span>{slot.spec || ('Заводской ' + slotLabel.toLowerCase())}</span>
+                            <span>{t('installModal.replacePrefix')} </span>
+                            <span>{slot.spec || t('installModal.replaceFactory', { label: slotLabel.toLowerCase() })}</span>
                             {slot.storageType ? <span> · {slot.storageType}</span> : null}
                           </div>
                           {/* autoScrap amber banner — FIX: show when replace is active and autoScrap, NOT inside !autoScrap block */}
@@ -305,7 +305,7 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
                       {(isPicked || forcedReplace) && !autoScrap && !isService && (
                         <div className="ml-4 mt-1.5 mb-1 border border-border border-l-2 border-l-[#F97316]/30 bg-[#161A1F] rounded-lg px-3 py-2.5 light:bg-surface-sunken">
                           <div className="text-12 uppercase tracking-wide text-text-subtle mb-2 leading-tight">
-                            Что делать со старой деталью?
+                            {t('installModal.disposalQuestion')}
                           </div>
                           <div className="grid grid-cols-2 gap-2">
                             <label
@@ -355,7 +355,7 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
                               </span>
                               <Icon name="x-circle" size={12} className={`flex-shrink-0 ${disposal === 'broken' ? 'text-red-400 light:text-red-700' : 'text-text-subtle'}`} />
                               <span className={`text-13 leading-tight ${disposal === 'broken' ? 'text-red-300 light:text-red-700' : 'text-text-secondary'}`}>
-                                Списать
+                                {t('installModal.disposalScrap')}
                               </span>
                             </label>
                           </div>
@@ -381,10 +381,10 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
                     />
                     <div className="min-w-0 flex-1">
                       <div className="text-14 font-semibold text-text-primary leading-tight">
-                        Добавить рядом — поставить ещё один {sku.name}{sku.variantLabel ? ` · ${sku.variantLabel}` : ''}
+                        {t('installModal.addAlongside', { name: `${sku.name}${sku.variantLabel ? ` · ${sku.variantLabel}` : ''}` })}
                       </div>
                       <div className="text-13 text-emerald-300 mt-0.5 leading-snug light:text-emerald-700">
-                        Старая запчасть остаётся в активе
+                        {t('installModal.addAlongsideStay')}
                       </div>
                     </div>
                   </label>
@@ -422,7 +422,7 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
           {submitting ? (
             <><Icon name="loader-2" size={14} className="animate-spin" />{t('installModal.saving')}</>
           ) : (
-            <><Icon name="wrench" size={14} />Установить</>
+            <><Icon name="wrench" size={14} />{t('installModal.confirmBtn')}</>
           )}
         </Btn>
       </div>

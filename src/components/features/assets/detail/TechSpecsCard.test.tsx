@@ -111,9 +111,9 @@ describe('TechSpecsCard', () => {
     expect(screen.getByText('Видеокарта')).toBeInTheDocument()
   })
 
-  it('renders the Оперативная память tile label', () => {
+  it('renders the ОЗУ tile label', () => {
     renderCard()
-    expect(screen.getByText('Оперативная память')).toBeInTheDocument()
+    expect(screen.getByText('ОЗУ')).toBeInTheDocument()
   })
 
   it('renders the Накопитель tile label', () => {

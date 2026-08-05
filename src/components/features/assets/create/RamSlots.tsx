@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Icon } from '@/components/ui'
 import { MiniDropdown } from '@/components/ui'
 import { RAM_SIZES, RAM_TYPES, SERVER_RAM_SIZES, parseRamValue, serializeRam, type RamSlot } from './ramStorage'
@@ -18,6 +19,7 @@ const COL_GRID = 'grid grid-cols-[6.5rem_1.5rem_1fr_2rem] gap-x-2 items-center'
 
 /** RAM list builder: one global DDR type + auto-numbered size slots + «Добавить». */
 export function RamSlots({ value, onChange, isServer = false }: RamSlotsProps) {
+  const { t } = useTranslation('assets')
   const initial = parseRamValue(value)
   const [ddrType, setDdrType] = useState(initial.ddrType)
   const [slots, setSlots] = useState<RamSlot[]>(initial.slots)
@@ -49,16 +51,16 @@ export function RamSlots({ value, onChange, isServer = false }: RamSlotsProps) {
       {slots.map((s, idx) => (
         <div key={s._id} className={`${COL_GRID} anim-fade-slide-in`}>
           {idx === 0 ? (
-            <MiniDropdown value={ddrType} onChange={setType} options={typeOptions} placeholder="DDR" ariaLabel="Тип памяти DDR" />
+            <MiniDropdown value={ddrType} onChange={setType} options={typeOptions} placeholder={t('form.specRamDdrPlaceholder')} ariaLabel={t('form.specRamDdrAriaLabel')} />
           ) : <div aria-hidden="true" />}
           <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-surface-2 text-text-tertiary text-13 font-semibold ring-1 ring-border" aria-hidden="true">{idx + 1}</span>
-          <MiniDropdown value={s.size} onChange={v => editSlot(s._id, v)} options={sizeOptions} placeholder="Размер модуля" ariaLabel={`Размер модуля ${idx + 1}`} />
+          <MiniDropdown value={s.size} onChange={v => editSlot(s._id, v)} options={sizeOptions} placeholder={t('form.specRamSizePlaceholder')} ariaLabel={t('form.specRamSizeAriaLabel', { n: idx + 1 })} />
           <button
             type="button"
             onClick={() => removeSlot(s._id)}
             disabled={slots.length <= 1}
             className="w-8 h-8 inline-flex items-center justify-center text-text-subtle hover:text-rose-300 light:hover:text-rose-700 hover:bg-rose-500/10 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-            aria-label={`Удалить слот ${idx + 1}`}
+            aria-label={t('form.specRamRemoveSlot', { n: idx + 1 })}
           ><Icon name="x" size={14} /></button>
         </div>
       ))}
@@ -67,7 +69,7 @@ export function RamSlots({ value, onChange, isServer = false }: RamSlotsProps) {
         onClick={addSlot}
         disabled={hasEmptySlot}
         className="inline-flex items-center gap-1.5 text-14 font-medium text-accent hover:text-accent-hover hover:bg-[rgba(249,115,22,0.12)] px-2 py-1 rounded-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-      ><Icon name="plus" size={13} />Добавить</button>
+      ><Icon name="plus" size={13} />{t('form.specRamAddSlot')}</button>
     </div>
   )
 }

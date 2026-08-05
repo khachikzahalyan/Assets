@@ -115,7 +115,7 @@ export function GpuAddModal({ open, onClose, onConfirm }: GpuAddModalProps) {
               ? 'bg-accent text-white hover:bg-[#EA6C0C] shadow-sm shadow-[#FB923C]/40 light:shadow-[#F97316]/20'
               : 'bg-surface-2 text-text-subtle cursor-not-allowed border border-border'}`}
         >
-          {submitting ? t('gpuModal.saving') : 'Создать'}
+          {submitting ? t('gpuModal.saving') : t('gpuModal.create')}
         </button>
       </div>
     </div>

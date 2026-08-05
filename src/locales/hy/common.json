@@ -1,12 +1,24 @@
 {
   "app": { "name": "AMS", "title": "Asset Management System" },
   "actions": { "retry": "Retry", "signOut": "Sign out", "profile": "Profile", "settings": "Settings", "openMenu": "Open menu", "close": "Close", "edit": "Խմբագրել", "delete": "Ջնջել" },
-  "search": { "placeholder": "Որոնում...", "empty": "Nothing found", "loading": "Loading…", "hint": "Type to search", "navigate": "navigate", "select": "select", "kindAsset": "Asset", "kindEmployee": "Employee", "kindBranch": "Branch", "kindDepartment": "Department" },
-  "lang": { "title": "Interface language", "ru": "Русский", "en": "English", "hy": "Հայերեն" },
-  "theme": { "toLight": "Բաց թեմա", "toDark": "Մուգ թեմա" },
-  "states": { "emptyTitle": "Nothing here yet", "errorTitle": "Something went wrong", "errorDesc": "Try refreshing the page or repeat the action in a few seconds." },
   "breadcrumb": { "root": "AMS", "personal": "My workspace" },
+  "calendar": {
+    "months": ["Հունվար", "Փետրվար", "Մարտ", "Ապրիլ", "Մայիս", "Հունիս", "Հուլիս", "Օգոստոս", "Սեպտեմբեր", "Հոկտեմբեր", "Նոյեմբեր", "Դեկտեմբեր"],
+    "weekdays": ["Երկ", "Երե", "Չոր", "Հնգ", "Ուրբ", "Շաբ", "Կիր"],
+    "clear": "Մաքրել",
+    "today": "Այսօր",
+    "plusYear": "+1 տարի",
+    "prev": "Հետ",
+    "next": "Առաջ",
+    "placeholder": "օօ.ամ.տտտտ",
+    "selectDate": "Ընտրեք ամսաթիվ"
+  },
+  "lang": { "title": "Interface language", "ru": "Русский", "en": "English", "hy": "Հայերեն" },
+  "loading": "Բեռնում…",
+  "pagination": { "prev": "Նախորդ էջ", "next": "Հաջորդ էջ", "shown": "Ցուցադրված {{from}}–{{to}} / {{total}}", "shownBold": "Ցուցադրված <0>{{from}}–{{to}}</0> / <1>{{total}}</1>" },
   "roleSwitcher": { "label": "View as…", "dev": "DEV" },
+  "search": { "placeholder": "Որոնում...", "empty": "Nothing found", "loading": "Loading…", "hint": "Type to search", "navigate": "navigate", "select": "select", "kindAsset": "Asset", "kindEmployee": "Employee", "kindBranch": "Branch", "kindDepartment": "Department" },
+  "states": { "emptyTitle": "Nothing here yet", "errorTitle": "Something went wrong", "errorDesc": "Try refreshing the page or repeat the action in a few seconds." },
   "status": { "st_warehouse": "Պահեստում", "st_pending": "Սպասման մեջ", "st_assigned": "Հանձնված", "st_repair": "Վերանորոգման մեջ", "st_disposed": "Դուրս գրված" },
-  "pagination": { "prev": "Նախորդ էջ", "next": "Հաջորդ էջ", "shown": "Ցուցադրված {{from}}–{{to}} / {{total}}", "shownBold": "Ցուցադրված <0>{{from}}–{{to}}</0> / <1>{{total}}</1>" }
+  "theme": { "toLight": "Բաց թեմա", "toDark": "Մուգ թեմա" }
 }

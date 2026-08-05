@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next'
+
 export interface AppLoaderProps {
   /** When true, wrapper fills the full viewport on the shell bg; default false (fills parent). */
   fullScreen?: boolean
@@ -12,6 +14,10 @@ export interface AppLoaderProps {
  * Used by RequireAuth while auth state resolves.
  */
 export function AppLoader({ fullScreen = false }: AppLoaderProps) {
+  // useTranslation is safe here — AppLoader may render before i18next is fully
+  // initialized, but the hook returns an empty string in that case. The
+  // sr-only fallback text handles the undefined case gracefully.
+  const { t, ready } = useTranslation('common', { useSuspense: false })
   /* Non-fullScreen: h-full collapses on the mobile body-scroll shell (ancestors
      size via min-height, so percentage heights resolve to auto) and the mark
      jumped to the top of the content area. The dvh min-height keeps it centered
@@ -38,7 +44,7 @@ export function AppLoader({ fullScreen = false }: AppLoaderProps) {
       </span>
 
       {/* Accessible-only label — visually hidden */}
-      <span className="sr-only">Загрузка…</span>
+      <span className="sr-only">{ready ? t('loading') : 'Загрузка…'}</span>
     </div>
   )
 }

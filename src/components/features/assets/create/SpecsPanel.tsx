@@ -6,22 +6,6 @@ import { StorageSlots } from './StorageSlots'
 import { CPU_SUGGESTIONS, SERVER_CPU_SUGGESTIONS } from './specSuggestions'
 import { parseRamValue, parseStorageValue } from './ramStorage'
 
-/** Russian plural for «модуль»: 1 модуль · 2 модуля · 5 модулей. */
-function pluralModule(n: number): string {
-  const mod10 = n % 10, mod100 = n % 100
-  if (mod10 === 1 && mod100 !== 11) return 'модуль'
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return 'модуля'
-  return 'модулей'
-}
-
-/** Russian plural for «диск»: 1 диск · 2 диска · 5 дисков. */
-function pluralDisk(n: number): string {
-  const mod10 = n % 10, mod100 = n % 100
-  if (mod10 === 1 && mod100 !== 11) return 'диск'
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return 'диска'
-  return 'дисков'
-}
-
 export interface SpecsPanelProps {
   specs: AssetSpecs
   onChange: (next: AssetSpecs) => void
@@ -44,10 +28,10 @@ export function SpecsPanel({ specs, onChange, isServer, hasGpu, resetKey }: Spec
   return (
     <div className="space-y-4">
       {/* B4: section header text-13 */}
-      <div className="text-13 font-semibold text-text-tertiary tracking-[0.06em] uppercase">Характеристики</div>
+      <div className="text-13 font-semibold text-text-tertiary tracking-[0.06em] uppercase">{t('form.specs')}</div>
       <div className="grid grid-cols-[8rem_1fr] max-md:grid-cols-1 gap-x-4 gap-y-5 max-md:gap-y-4 items-start">
         {/* B4: spec row labels text-16; B4: CPU placeholder from t() */}
-        <label htmlFor="asset-spec-cpu" className="text-16 font-medium text-text-tertiary pt-2 max-md:pt-0 max-md:text-13 max-md:font-semibold max-md:text-text-tertiary max-md:tracking-[0.06em] max-md:uppercase max-md:pb-0">Процессор</label>
+        <label htmlFor="asset-spec-cpu" className="text-16 font-medium text-text-tertiary pt-2 max-md:pt-0 max-md:text-13 max-md:font-semibold max-md:text-text-tertiary max-md:tracking-[0.06em] max-md:uppercase max-md:pb-0">{t('form.specCpu')}</label>
         <SpecCombobox
           id="asset-spec-cpu"
           value={specs.cpu || ''}
@@ -57,7 +41,7 @@ export function SpecsPanel({ specs, onChange, isServer, hasGpu, resetKey }: Spec
         />
 
         {hasGpu && (
-          <label htmlFor="asset-spec-gpu" className="text-16 font-medium text-text-tertiary pt-2 max-md:pt-0 max-md:text-13 max-md:font-semibold max-md:tracking-[0.06em] max-md:uppercase max-md:pb-0">Видеокарта</label>
+          <label htmlFor="asset-spec-gpu" className="text-16 font-medium text-text-tertiary pt-2 max-md:pt-0 max-md:text-13 max-md:font-semibold max-md:tracking-[0.06em] max-md:uppercase max-md:pb-0">{t('form.specGpu')}</label>
         )}
         {hasGpu && (
           /* Underline style — matches SpecCombobox for visual consistency */
@@ -67,7 +51,7 @@ export function SpecsPanel({ specs, onChange, isServer, hasGpu, resetKey }: Spec
               type="text"
               value={specs.gpu || ''}
               onChange={e => set({ gpu: e.target.value })}
-              placeholder="Встроенная"
+              placeholder={t('placeholders.gpu')}
               className="flex-1 min-w-0 px-0 py-2.5 text-15 bg-transparent text-text-primary outline-none placeholder:text-text-subtle"
             />
           </div>
@@ -75,10 +59,10 @@ export function SpecsPanel({ specs, onChange, isServer, hasGpu, resetKey }: Spec
 
         {/* B5: RAM label + count badge when > 1 slot */}
         <span id="asset-spec-ram-label" className="text-16 font-medium text-text-tertiary pt-2 max-md:pt-0 max-md:text-13 max-md:font-semibold max-md:tracking-[0.06em] max-md:uppercase flex flex-wrap items-center gap-1.5">
-          ОЗУ
+          {t('form.specRam')}
           {ramSlotCount > 1 && (
             <span className="inline-flex items-center whitespace-nowrap px-1.5 py-0.5 rounded-md bg-accent/10 border border-accent/30 text-accent text-11 font-semibold tabular-nums">
-              {ramSlotCount} {pluralModule(ramSlotCount)}
+              {t('form.specRamModule', { count: ramSlotCount })}
             </span>
           )}
         </span>
@@ -88,10 +72,10 @@ export function SpecsPanel({ specs, onChange, isServer, hasGpu, resetKey }: Spec
 
         {/* B5: Storage label + count badge when > 1 slot */}
         <span id="asset-spec-ssd-label" className="text-16 font-medium text-text-tertiary pt-2 max-md:pt-0 max-md:text-13 max-md:font-semibold max-md:tracking-[0.06em] max-md:uppercase flex flex-wrap items-center gap-1.5">
-          Накопитель
+          {t('form.specSsd')}
           {storageSlotCount > 1 && (
             <span className="inline-flex items-center whitespace-nowrap px-1.5 py-0.5 rounded-md bg-accent/10 border border-accent/30 text-accent text-11 font-semibold tabular-nums">
-              {storageSlotCount} {pluralDisk(storageSlotCount)}
+              {t('form.specSsdDisk', { count: storageSlotCount })}
             </span>
           )}
         </span>

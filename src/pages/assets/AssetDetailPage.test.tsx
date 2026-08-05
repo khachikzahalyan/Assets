@@ -514,7 +514,7 @@ describe('AssetDetailPage', () => {
     // cat_laptop assets include Cooling and Battery status-only lines after the spec fields.
     await waitFor(() => {
       expect(writeText).toHaveBeenCalledWith(
-        'Процессор: Intel i7\nОперативная память: 8 ГБ\nОхлаждение: Заводское\nАккумулятор: Заводская',
+        'Процессор: Intel i7\nОЗУ: 8 ГБ\nОхлаждение: Заводское\nАккумулятор: Заводская',
       )
     })
   }, 10000)

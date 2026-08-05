@@ -277,9 +277,9 @@ describe('InstallModal — slot-decision rendering', () => {
   })
 
   describe('replace payload integrity — replaceUcIndex is always resolved (silent-append bug fix)', () => {
-    /** Click the desktop copy of the submit button («Установить»). */
+    /** Click the desktop copy of the submit button («Установить» / key when mocked). */
     async function clickSubmit(user: ReturnType<typeof userEvent.setup>) {
-      const buttons = screen.getAllByRole('button', { name: /Установить/ })
+      const buttons = screen.getAllByRole('button', { name: /Установить|installModal\.confirmBtn/i })
       await user.click(buttons[0]!)
     }
 

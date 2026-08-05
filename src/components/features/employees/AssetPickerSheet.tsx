@@ -70,7 +70,7 @@ export function AssetPickerSheet({
     crumbs.push({ label: t('picker.review'), onClick: () => {}, active: true })
   } else {
     crumbs.push({
-      label: 'Категория',
+      label: t('picker.categoryBreadcrumb'),
       onClick: goToGroupStep,
       active: step === 'group',
     })
@@ -187,9 +187,8 @@ export function AssetPickerSheet({
         <div className="text-13.5 text-text-primary min-w-0 truncate">
           {step === 'items' && count > 0 ? (
             <>
-              В корзине:{' '}
-              <span className="font-semibold text-text-primary tabular-nums">{count}</span> · статус
-              станет <span className="font-semibold text-text-primary">Выдано</span>
+              {t('picker.cartHint')}{' '}
+              <span className="font-semibold text-text-primary tabular-nums">{count}</span> · {t('picker.cartStatus')}
             </>
           ) : step === 'review' && count > 0 ? (
             <>
@@ -223,7 +222,7 @@ export function AssetPickerSheet({
             </Btn>
           )}
           <Btn variant="ghost" onClick={requestClose}>
-            Отмена
+            {t('picker.cancel')}
           </Btn>
           {(step === 'group' || step === 'category') && count > 0 && (
             <Btn variant="primary" onClick={goToReviewStep}>
@@ -263,10 +262,9 @@ export function AssetPickerSheet({
                   {t('picker.cancelTitle')}
                 </div>
                 <div className="text-14.5 text-text-tertiary mt-1 leading-relaxed">
-                  В корзине{' '}
+                  {t('picker.cartHint')}{' '}
                   <span className="font-semibold text-text-primary tabular-nums">{count}</span>{' '}
-                  {count === 1 ? 'актив' : count < 5 ? 'актива' : 'активов'}. Без подтверждения
-                  они не будут привязаны.
+                  {t('picker.cartAsset', { count })}. {t('picker.cartStatus')}.
                 </div>
               </div>
             </div>
