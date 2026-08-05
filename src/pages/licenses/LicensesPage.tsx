@@ -342,13 +342,14 @@ export function LicensesPage({
         <div className={`max-md:bg-surface max-md:border max-md:border-border max-md:rounded-t-xl max-md:overflow-hidden ${
           activeTab === 'keys' ? 'max-md:border-b-0' : 'max-md:rounded-b-xl'
         }`}>
-        <div className="flex items-center justify-between gap-3 max-md:bg-surface-2 max-md:border-b max-md:border-border max-md:px-3.5">
+        <div className="flex items-center justify-between gap-3 max-md:items-end max-md:bg-surface-2 max-md:border-b max-md:border-border max-md:px-3.5">
           {/* Tab buttons — scrollable on mobile */}
           <TabStrip<ActiveTab>
             tabs={tabItems}
             active={activeTab}
             onChange={setActiveTab}
             size="md"
+            className="max-md:pt-[5px]"
           />
 
           {/* Right cluster — search (keys tab, desktop) + add button, one line.
@@ -385,7 +386,7 @@ export function LicensesPage({
                 onClick={() => { setAddError(null); setAddOpen(true) }}
                 aria-label={t('actions.addLicense')}
                 data-testid="add-subscription-btn-mobile"
-                className="md:hidden w-[var(--ctl-h-md)] h-[var(--ctl-h-md)] min-w-[var(--ctl-h-md)] flex-shrink-0 rounded-[9px] bg-accent text-white inline-flex items-center justify-center shadow-[0_2px_10px] shadow-accent/35 transition-colors duration-150 hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+                className="md:hidden w-[var(--ctl-h-md)] h-[var(--ctl-h-md)] min-w-[var(--ctl-h-md)] flex-shrink-0 rounded-[9px] bg-accent text-white inline-flex items-center justify-center shadow-[0_2px_10px] shadow-accent/35 transition-colors duration-150 hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 max-md:my-[3px]"
               >
                 <Icon name="plus" size={15} />
               </button>

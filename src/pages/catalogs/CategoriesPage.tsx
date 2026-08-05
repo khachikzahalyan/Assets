@@ -240,7 +240,7 @@ export function CategoriesPage({ repository, categoryGroupRepository, partCatego
               {/* Tab strip — add button sits in the SAME row, right-aligned
                   (licenses-page pattern: tabs left, primary action right) */}
               {canMutate && (
-                <div className="flex items-center justify-between gap-3 px-5 max-md:px-3.5 max-md:bg-surface-2 border-b border-border">
+                <div className="flex items-center justify-between gap-3 px-5 max-md:px-3.5 max-md:items-end max-md:bg-surface-2 border-b border-border">
                   <TabStrip<CategoriesTab>
                     tabs={[
                       { id: 'assets' as CategoriesTab, label: t('tabs.assets') },
@@ -249,6 +249,7 @@ export function CategoriesPage({ repository, categoryGroupRepository, partCatego
                     active={activeTab}
                     onChange={setActiveTab}
                     size="md"
+                    className="max-md:pt-[5px]"
                   />
                   <div className="shrink-0">
                     {isMobile ? (
@@ -257,6 +258,7 @@ export function CategoriesPage({ repository, categoryGroupRepository, partCatego
                           ? () => { setSaveError(null); setEditing('new') }
                           : () => setPartAddRequested(true)}
                         ariaLabel={activeTab === 'assets' ? t('createSubcategory') : t('parts.createBtn')}
+                        className="max-md:my-[3px] self-center"
                       />
                     ) : (
                       <Btn

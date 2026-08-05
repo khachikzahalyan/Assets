@@ -71,13 +71,16 @@ export function PartsTabsHeader({
       {/* ── Tab strip ─────────────────────────────────────────────────────────
           Mobile: items-end so the active-tab underline sits flush ON the header's
           bottom border (the 36px «+» no longer centers the shorter tabs off it);
-          pt-[5px] gives top breathing room. Desktop keeps items-center. ── */}
-      <div className="flex items-end md:items-center justify-between border-b border-border max-md:bg-surface-2 max-md:px-3.5 max-md:pt-[5px]">
+          the pt-[5px] breathing room lives on the TabStrip itself — NOT on this
+          container — so the self-center «+» is equidistant from the header's top
+          and bottom edges (owner request 2026-08-05). Desktop keeps items-center. ── */}
+      <div className="flex items-end md:items-center justify-between border-b border-border max-md:bg-surface-2 max-md:px-3.5">
         <TabStrip<ActiveTab>
           tabs={tabItems}
           active={activeTab}
           onChange={onTabChange}
           size="md"
+          className="max-md:pt-[5px]"
         />
 
         {/* Desktop «Получить» button — hidden on mobile; shared Btn (assets etalon) */}
