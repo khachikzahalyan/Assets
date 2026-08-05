@@ -3,7 +3,7 @@ import type { AssetSpecs } from '@/domain/asset'
 import { SpecCombobox } from '@/components/ui'
 import { RamSlots } from './RamSlots'
 import { StorageSlots } from './StorageSlots'
-import { CPU_SUGGESTIONS } from './specSuggestions'
+import { CPU_SUGGESTIONS, SERVER_CPU_SUGGESTIONS } from './specSuggestions'
 import { parseRamValue, parseStorageValue } from './ramStorage'
 
 /** Russian plural for «модуль»: 1 модуль · 2 модуля · 5 модулей. */
@@ -50,7 +50,7 @@ export function SpecsPanel({ specs, onChange, isServer, hasGpu }: SpecsPanelProp
           id="asset-spec-cpu"
           value={specs.cpu || ''}
           onChange={v => set({ cpu: v })}
-          suggestions={CPU_SUGGESTIONS}
+          suggestions={isServer ? SERVER_CPU_SUGGESTIONS : CPU_SUGGESTIONS}
           placeholder={t('placeholders.cpu')}
         />
 
