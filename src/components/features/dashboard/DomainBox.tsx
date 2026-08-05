@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { SectionCard } from '@/components/ui/section-card'
 import type { SectionCardProps } from '@/components/ui/section-card'
-import { EmptyState } from '@/components/ui/empty-state'
+import { Icon } from '@/components/ui/icon'
 import type { DomainEventVM } from '@/domain/dashboard'
 import { MiniBarChart } from './MiniBarChart'
 import { relativeTime } from './relativeTime'
@@ -79,19 +79,30 @@ export function DomainBox({
             {t('boxes.delta7d', { n: delta7d })}
           </span>
         </div>
-        {totalCaption !== undefined && totalCaption !== '' && (
-          <p className="text-11 text-text-subtle mt-0.5 leading-tight">{totalCaption}</p>
-        )}
+        {/* Always render the caption line (non-breaking space when absent) so the
+            total block has identical height across boxes — otherwise the box with
+            a caption (parts) is taller and its footer link misaligns. */}
+        <p className="text-11 text-text-subtle mt-0.5 leading-tight">
+          {totalCaption !== undefined && totalCaption !== '' ? totalCaption : ' '}
+        </p>
 
         {/* Divider */}
         <hr className="border-border my-3" />
 
-        {/* Event feed */}
+        {/* Event feed — fixed height = 5 × min-h-11 rows (2.75rem each = 13.75rem).
+            Every box occupies identical vertical space regardless of event count.
+            Events capped at 5 so no row ever overflows the reserved region.
+            Empty state is inline/compact so it fits the fixed region cleanly.    */}
         {events.length === 0 ? (
-          <EmptyState icon="history" title={emptyLabel} />
+          <div className="h-[13.75rem] flex flex-col items-center justify-center gap-2 text-center">
+            <span className="w-9 h-9 rounded-xl bg-surface-2 text-text-subtle inline-flex items-center justify-center">
+              <Icon name="history" size={16} />
+            </span>
+            <span className="text-12 text-text-subtle">{emptyLabel}</span>
+          </div>
         ) : (
-          <div className="flex flex-col gap-0.5">
-            {events.map((ev) => {
+          <div className="h-[13.75rem] flex flex-col gap-0.5 overflow-hidden">
+            {events.slice(0, 5).map((ev) => {
               const rowContent = (
                 <div className="flex items-center gap-3 px-2 py-2.5 min-h-11">
                   <div className="flex-1 min-w-0">

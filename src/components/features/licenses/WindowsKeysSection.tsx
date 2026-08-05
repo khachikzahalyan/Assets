@@ -9,7 +9,7 @@
  */
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Chip, Icon, DataTable, TabStrip } from '@/components/ui'
+import { Chip, Icon, DataTable, TabStrip, MobileListPlaceholders } from '@/components/ui'
 import type { DataTableColumn, TabStripItem } from '@/components/ui'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import type { WorkstationLicense } from '@/domain/license'
@@ -336,10 +336,12 @@ export function WindowsKeysSection({
         ) : (
           <div className="flex flex-col flex-1 min-h-0">
             {isMobile ? (
-              /* ── Mobile card list — same fill contract as AssetsTable mobile:
-                    rows + dashed placeholder slots pad to PAGE_SIZE, every slot
-                    flexGrow:1 so the block fills the card and the paginator
-                    stays pinned at a constant position. ── */
+              /* ── Mobile card list — IDENTICAL fill contract to AssetsTable mobile:
+                    real rows AND blank placeholder slots each flexGrow:1 flexShrink:0
+                    so all PAGE_SIZE slots distribute the card height evenly. The last
+                    real row's own border-b closes the list; fillers stay blank (no
+                    guide lines — owner request). This keeps the paginator pinned at
+                    the SAME position on every filter tab, regardless of row count. ── */
               <div className="flex-1 min-h-0 flex flex-col overflow-y-auto">
                 {pageRows.map(lic => {
                   const isFree = licenseStatus(lic) === 'free'
@@ -358,25 +360,16 @@ export function WindowsKeysSection({
                       showAction={showAction}
                       onRowClick={() => setDetailsId(lic.id)}
                       onActivate={e => { e.stopPropagation(); setActivatingId(lic.id) }}
+                      outerStyle={{ flexGrow: 1, flexShrink: 0 }}
                     />
                   )
                 })}
-                {/* Fill the rest of the page with faint EMPTY TABLE ROWS down to the
-                    pagination bar — real rows stay natural height (no stretch); the
-                    list reads as a full PAGE_SIZE table, not a dead blank gap.
-                    3.5rem line interval ≈ KeyRowMobile row height. */}
-                {pageRows.length < PAGE_SIZE && (
-                  <div
-                    aria-hidden="true"
-                    data-testid="key-card-placeholder"
-                    style={{
-                      flexGrow: 1,
-                      flexShrink: 0,
-                      backgroundImage:
-                        'repeating-linear-gradient(to bottom, transparent 0, transparent calc(3.5rem - 1px), var(--color-border) calc(3.5rem - 1px), var(--color-border) 3.5rem)',
-                    }}
-                  />
-                )}
+                {/* Blank filler slots pad the list to PAGE_SIZE — shared with the
+                    assets etalon so both lists (and both filter tabs) look identical. */}
+                <MobileListPlaceholders
+                  count={PAGE_SIZE - pageRows.length}
+                  dataTestId="key-card-placeholder"
+                />
               </div>
             ) : (
               /* ── Desktop DataTable — fillHeight: rows flex-stretch to fill the

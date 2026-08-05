@@ -33,10 +33,10 @@ const BOX_GRID_CLASS = 'grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3'
 const BOX_META: Record<DomainBoxKey, BoxMeta> = {
   assets:        { icon: 'package',   barClass: 'bg-text-tertiary/50', routeId: 'assets',      path: '/assets' },
   employees:     { icon: 'users',     iconTone: 'blue',   barClass: 'bg-sky-400/70',     routeId: 'employees',   path: '/employees' },
-  parts:         { icon: 'wrench',    iconTone: 'rose',   barClass: 'bg-rose-400/70',    routeId: 'parts',       path: '/parts' },
+  parts:         { icon: 'cpu',       iconTone: 'rose',   barClass: 'bg-rose-400/70',    routeId: 'parts',       path: '/parts' },
   subscriptions: { icon: 'key-round', iconTone: 'orange', barClass: 'bg-amber-400/70',   routeId: 'licenses',    path: '/licenses' },
-  branches:      { icon: 'map-pin',   iconTone: 'green',  barClass: 'bg-emerald-400/70', routeId: 'branches',    path: '/branches' },
-  departments:   { icon: 'building',  iconTone: 'cyan',   barClass: 'bg-cyan-400/70',    routeId: 'departments', path: '/departments' },
+  branches:      { icon: 'building',  iconTone: 'green',  barClass: 'bg-emerald-400/70', routeId: 'branches',    path: '/branches' },
+  departments:   { icon: 'network',   iconTone: 'cyan',   barClass: 'bg-cyan-400/70',    routeId: 'departments', path: '/departments' },
 }
 
 /** Aggregated total for a box header; null renders as «—». */
@@ -125,9 +125,11 @@ export function DashboardPage({ repo }: DashboardPageProps) {
                   <div className="h-8 w-16 rounded anim-skeleton" />
                   <div className="h-4 w-20 rounded-full anim-skeleton" />
                 </div>
+                {/* Reserved caption line — mirrors the real box's always-rendered caption */}
+                <p className="text-11 mt-0.5 leading-tight">&nbsp;</p>
                 <hr className="border-border my-3" />
-                {/* Feed shimmer — one stripe per row */}
-                <div className="flex flex-col gap-0.5">
+                {/* Feed shimmer — 5 stripes at fixed h-[13.75rem] (matches real feed) */}
+                <div className="h-[13.75rem] flex flex-col gap-0.5 overflow-hidden">
                   {Array.from({ length: 5 }).map((_, i) => (
                     <div key={i} className="min-h-11 flex items-center px-2">
                       <div className="h-3.5 w-full rounded anim-skeleton" />
