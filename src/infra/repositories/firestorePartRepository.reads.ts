@@ -19,6 +19,13 @@
  *   can trigger a one-time recalculation via a Cloud Function (deferred to Phase 2).
  *   The domain helper deriveStock() is still used by components for display from
  *   already-loaded movements — it is NOT called here.
+ *
+ * P0 quota fix (2026-08-05): the movements query in fsLoadReferenceData is now
+ * bounded by PARTS_MOVEMENTS_CAP (limit 1 000, desc). Without this limit every
+ * Parts page load performed a full collection scan, rapidly exhausting the Spark
+ * plan's 50 k daily read quota. Journal-derived display niceties (running stock
+ * labels, installed counter, replace-stats) silently cover only the most recent
+ * CAP movements; authoritative stock remains the SKU doc snapshot.
  */
 
 import {
@@ -27,13 +34,14 @@ import {
   query as fsQuery,
   where,
   orderBy,
+  limit as fsLimit,
   type Firestore,
 } from 'firebase/firestore'
 import type { PartReferenceData } from '@/domain/part/PartRepository'
 import type { Part, PartMovement, PartsAsset } from '@/domain/part/types'
 import { SERVER_FAMILY_KIND_LABEL } from '@/domain/part/types'
 import type { AssetSpecs } from '@/domain/asset/types'
-import { assetFamilyOf, resolveUpgradeCurrent } from '@/domain/part/partStock'
+import { assetFamilyOf, resolveUpgradeCurrent, PARTS_MOVEMENTS_CAP } from '@/domain/part/partStock'
 import type { PartCategoryDef, PartCategoryBehavior, PartCategoryVariant } from '@/domain/part/partCategory-types'
 import { DEFAULT_PART_CATEGORY_DEFS } from '@/domain/part/partCategoryDefaults'
 import { toIso } from './firestoreUtils'
@@ -81,7 +89,7 @@ export async function fsLoadReferenceData(fsDb: Firestore): Promise<PartReferenc
   // do NOT re-derive stock from them; we trust the SKU doc snapshot instead.
   const [partsSnap, movementsSnap, assetsSnap, categoriesSnap, partCategoriesSnap] = await Promise.all([
     getDocs(collection(fsDb, COL_PARTS)),
-    getDocs(fsQuery(collection(fsDb, COL_MOVEMENTS), orderBy('at', 'desc'))),
+    getDocs(fsQuery(collection(fsDb, COL_MOVEMENTS), orderBy('at', 'desc'), fsLimit(PARTS_MOVEMENTS_CAP))),
     getDocs(collection(fsDb, COL_ASSETS)),
     getDocs(collection(fsDb, COL_CATEGORIES)),
     getDocs(collection(fsDb, COL_PART_CATEGORIES)),

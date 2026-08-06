@@ -101,11 +101,13 @@ interface RenderInstallModalOpts {
   partsAssets: PartsAsset[]
   onConfirm?: ReturnType<typeof vi.fn>
   onClose?: ReturnType<typeof vi.fn>
+  replaceStatsFor?: (assetInternalId: string, sku: Part) => { count: number; lastAt: string | null }
 }
 
 function renderInstallModal({
   sku, partsAssets,
   onConfirm = vi.fn(), onClose = vi.fn(),
+  replaceStatsFor,
 }: RenderInstallModalOpts) {
   return render(
     <InstallModal
@@ -114,6 +116,7 @@ function renderInstallModal({
       sku={sku}
       partsAssets={partsAssets}
       onConfirm={onConfirm}
+      {...(replaceStatsFor !== undefined ? { replaceStatsFor } : {})}
     />,
   )
 }
@@ -330,6 +333,121 @@ describe('InstallModal — slot-decision rendering', () => {
         action: 'replace',
         replaceUcIndex: 0,
         oldIsBroken: true,
+      })
+    })
+  })
+})
+
+// ── Replacement history panel ────────────────────────────────────────────────
+
+describe('InstallModal — replacement history panel', () => {
+  /**
+   * A previously-replaced single-slot part has replaced:true but spec:'' in upgradeCurrent.
+   * currentPartsForSkuCategory returns it with isEmpty:true (spec is empty), so hasOccupied
+   * is false → falls into the !hasOccupied branch. The history panel must appear.
+   */
+  describe('(a) previously-replaced cooler shows history panel instead of empty-slot message', () => {
+    it('shows «replacedTimes» key and NOT «emptySlot» when slot was previously replaced', async () => {
+      const sku = makeCoolerSku()
+      // replaced:true + spec:'' = single-slot that was replaced (collapsed)
+      const asset = makeDesktopAsset([
+        { kind: 'cooler', spec: '', replaced: true, installedAt: '2025-03-10T10:00:00Z' },
+      ])
+      const replaceStatsFor = vi.fn().mockReturnValue({ count: 2, lastAt: '2025-03-10T10:00:00Z' })
+      const user = userEvent.setup()
+
+      renderInstallModal({ sku, partsAssets: [asset], replaceStatsFor })
+      await selectAsset(user, asset)
+
+      // Should show the replacement history key text (mocked t() returns key name)
+      expect(screen.getAllByText(/installModal\.replacedTimes/).length).toBeGreaterThan(0)
+      // Should NOT show the emptySlot message
+      expect(screen.queryByText(/installModal\.emptySlot/)).not.toBeInTheDocument()
+    })
+
+    it('shows the last-replaced date when stats.lastAt is available', async () => {
+      const sku = makeCoolerSku()
+      const asset = makeDesktopAsset([
+        { kind: 'cooler', spec: '', replaced: true, installedAt: '2025-01-15T00:00:00Z' },
+      ])
+      const replaceStatsFor = vi.fn().mockReturnValue({ count: 1, lastAt: '2025-01-15T00:00:00Z' })
+      const user = userEvent.setup()
+
+      renderInstallModal({ sku, partsAssets: [asset], replaceStatsFor })
+      await selectAsset(user, asset)
+
+      // replacedLast key should appear (date shown)
+      expect(screen.getAllByText(/installModal\.replacedLast/).length).toBeGreaterThan(0)
+    })
+
+    it('shows replacedAnother note', async () => {
+      const sku = makeCoolerSku()
+      const asset = makeDesktopAsset([
+        { kind: 'cooler', spec: '', replaced: true, installedAt: '2025-01-15T00:00:00Z' },
+      ])
+      const user = userEvent.setup()
+
+      renderInstallModal({ sku, partsAssets: [asset] })
+      await selectAsset(user, asset)
+
+      expect(screen.getAllByText(/installModal\.replacedAnother/).length).toBeGreaterThan(0)
+    })
+  })
+
+  describe('(b) never-replaced slot still shows empty-slot message', () => {
+    it('shows emptySlot when slot has replaced:false (factory)', async () => {
+      const sku = makeCoolerSku()
+      const asset = makeDesktopAsset([
+        { kind: 'cooler', spec: '', replaced: false },
+      ])
+      const user = userEvent.setup()
+
+      renderInstallModal({ sku, partsAssets: [asset] })
+      await selectAsset(user, asset)
+
+      // emptySlot message should appear; replacedTimes should NOT
+      expect(screen.queryByText(/installModal\.replacedTimes/)).not.toBeInTheDocument()
+      expect(screen.getAllByText(/installModal\.emptySlot/).length).toBeGreaterThan(0)
+    })
+
+    it('shows emptySlot when upgradeCurrent has no cooler slot at all', async () => {
+      const sku = makeCoolerSku()
+      const asset = makeDesktopAsset([])
+      const user = userEvent.setup()
+
+      renderInstallModal({ sku, partsAssets: [asset] })
+      await selectAsset(user, asset)
+
+      expect(screen.queryByText(/installModal\.replacedTimes/)).not.toBeInTheDocument()
+      expect(screen.getAllByText(/installModal\.emptySlot/).length).toBeGreaterThan(0)
+    })
+  })
+
+  describe('(c) modal still submits an install correctly after replacement history is shown', () => {
+    async function clickSubmit(user: ReturnType<typeof userEvent.setup>) {
+      const buttons = screen.getAllByRole('button', { name: /Установить|installModal\.confirmBtn/i })
+      await user.click(buttons[0]!)
+    }
+
+    it('submits install action when the previously-replaced single-slot is selected', async () => {
+      const sku = makeCoolerSku()
+      const asset = makeDesktopAsset([
+        { kind: 'cooler', spec: '', replaced: true, installedAt: '2025-03-10T10:00:00Z' },
+      ])
+      const onConfirm = vi.fn().mockResolvedValue(undefined)
+      const replaceStatsFor = vi.fn().mockReturnValue({ count: 1, lastAt: '2025-03-10T10:00:00Z' })
+      const user = userEvent.setup()
+
+      renderInstallModal({ sku, partsAssets: [asset], onConfirm, replaceStatsFor })
+      await selectAsset(user, asset)
+      await clickSubmit(user)
+
+      // No occupied slot (isEmpty:true), so action is 'install' not 'replace'
+      expect(onConfirm).toHaveBeenCalledTimes(1)
+      expect(onConfirm.mock.calls[0]![0]).toMatchObject({
+        action: 'install',
+        skuId: sku.id,
+        assetId: asset.assetId,
       })
     })
   })

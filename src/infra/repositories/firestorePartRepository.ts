@@ -96,47 +96,64 @@ export class FirestorePartRepository implements PartRepository, PartWriteReposit
     items: ReceiveItem[],
     actor: Actor,
   ): Promise<AuditedResult<PartMovement[]>> {
-    return fsReceiveParts(this.fsDb, items, actor)
+    // Invalidate refCache on SUCCESS so useParts' post-write reload() fetches
+    // fresh data instead of the 60s TTL-cached snapshot (stale-after-write bug).
+    const r = await fsReceiveParts(this.fsDb, items, actor)
+    this.invalidateRefCache()
+    return r
   }
 
   async installPart(
     input: InstallInput,
     actor: Actor,
   ): Promise<AuditedResult<PartMovement>> {
-    return fsInstallPart(this.fsDb, input, actor)
+    // Invalidate refCache on SUCCESS only (stale-after-write bug fix).
+    const r = await fsInstallPart(this.fsDb, input, actor)
+    this.invalidateRefCache()
+    return r
   }
 
   async uninstallPart(
     input: UninstallInput,
     actor: Actor,
   ): Promise<AuditedResult<PartMovement>> {
-    return fsUninstallPart(this.fsDb, input, actor)
+    // Invalidate refCache on SUCCESS only (stale-after-write bug fix).
+    const r = await fsUninstallPart(this.fsDb, input, actor)
+    this.invalidateRefCache()
+    return r
   }
 
   async recordService(
     input: ServiceRecordInput,
     actor: Actor,
   ): Promise<AuditedResult<PartMovement>> {
-    return fsRecordService(this.fsDb, input, actor)
+    // Invalidate refCache on SUCCESS only (stale-after-write bug fix).
+    const r = await fsRecordService(this.fsDb, input, actor)
+    this.invalidateRefCache()
+    return r
   }
 
   async createModelSku(
     input: CreateModelSkuInput,
     actor: Actor,
   ): Promise<AuditedResult<Part>> {
-    return fsCreateModelSku(this.fsDb, input, actor)
+    // Invalidate refCache on SUCCESS only (stale-after-write bug fix).
+    const r = await fsCreateModelSku(this.fsDb, input, actor)
+    this.invalidateRefCache()
+    return r
   }
 
   /**
    * @deprecated Use createModelSku({ categoryId: 'gpu', name, initialQty }, actor).
-   * Legacy alias delegating to fsCreateModelSku with categoryId 'gpu'.
+   * Legacy alias delegating to createModelSku (via this.) so the refCache
+   * invalidation in createModelSku fires here too.
    * Kept for call-site compatibility until Phase-2 UI task migrates all callers.
    */
   async createGpu(
     input: CreateGpuInput,
     actor: Actor,
   ): Promise<AuditedResult<Part>> {
-    return fsCreateModelSku(this.fsDb, { categoryId: 'gpu', ...input }, actor)
+    return this.createModelSku({ categoryId: 'gpu', ...input }, actor)
   }
 
   /**

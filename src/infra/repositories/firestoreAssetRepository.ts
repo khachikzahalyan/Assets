@@ -13,7 +13,7 @@ import type {
   SelfServiceRefData,
 } from '@/domain/asset'
 import type { UpgradeComponent, UpgradeEvent } from '@/domain/asset'
-import { deriveCreateStatus, isSpecTracked, SPEC_KEY, ASSET_STATUS } from '@/domain/asset'
+import { deriveCreateStatus, isSpecTracked, SPEC_KEY, ASSET_STATUS, matchesAssetSearch } from '@/domain/asset'
 import {
   DuplicateInvCodeError, ConcurrentEditError, BatchTooLargeError, BatchLicenseUnsupportedError,
   invCodeLockId,
@@ -158,11 +158,9 @@ export class FirestoreAssetRepository implements AssetRepository, AssetWriteRepo
       const catGroup = new Map(ref.categories.map(c => [c.id, c.group]))
       rows = rows.filter(a => catGroup.get(a.categoryId) === query.group)
     }
-    const search = (query.search ?? '').trim().toLowerCase()
-    if (search) {
-      rows = rows.filter(a =>
-        [a.invCode, a.brand, a.model, a.serial].filter(Boolean).join(' ').toLowerCase().includes(search),
-      )
+    const search = query.search ?? ''
+    if (search.trim()) {
+      rows = rows.filter(a => matchesAssetSearch(a, search))
     }
     return rows
   }

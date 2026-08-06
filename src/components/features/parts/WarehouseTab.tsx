@@ -8,7 +8,6 @@ import { WarehouseMobileDetail } from './WarehouseMobileDetail'
 import { WarehouseSkuList, AGG_CATS } from './WarehouseSkuList'
 import type { Part, PartMovement, PartStock, PartsAsset } from '@/domain/part/types'
 import { PART_CATEGORY_META, groupSkusByCategoryDef, buildCategoryTint, type Tint, type PartCatMeta } from './partsTokens'
-import { deriveStock } from '@/domain/part/partStock'
 import type { PartCategoryDef } from '@/domain/part/partCategory-types'
 import { isSizedCategory, isModelsCategory } from '@/domain/part/partCategory-types'
 import { DEFAULT_PART_CATEGORY_DEFS_RUNTIME } from '@/domain/part/partCategoryDefaults'
@@ -68,10 +67,13 @@ export function WarehouseTab({
     [categoryTints, effectiveDefs],
   )
 
-  /* ── Derived stock map (from movements, authoritative) ── */
+  /* ── Stock map from the SKU doc snapshot (authoritative since P1.1) ──
+     NOT deriveStock(movements): the journal arrives capped at
+     PARTS_MOVEMENTS_CAP, so movement-derived stock silently undercounts
+     once the journal outgrows the cap. */
   const stockMap = useMemo<Record<string, PartStock>>(
-    () => deriveStock(movements),
-    [movements],
+    () => Object.fromEntries(parts.map(p => [p.id, { onHand: p.onHand, broken: p.broken }])),
+    [parts],
   )
 
   /* ── stockOf helper ── */
@@ -98,7 +100,10 @@ export function WarehouseTab({
   /* ── Running-stock snapshot per movement id (for "Осталось N шт") ──
      Walk ALL category movements in chronological order, track per-SKU
      running warehouse stock, record post-event stock keyed by movement id.
-     Logic mirrors prototype lines 3888-3911. */
+     Logic mirrors prototype lines 3888-3911.
+     Movements arrive capped at PARTS_MOVEMENTS_CAP (most recent first), so
+     these running labels cover only that horizon — display nicety, not
+     authoritative stock (that's the SKU snapshot above). */
   const remainingAfterMap = useMemo<Record<string, number>>(() => {
     const catMovements = movements
       .filter((m) => selectedSkuIds.has(m.skuId))

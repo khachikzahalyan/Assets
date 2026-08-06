@@ -16,8 +16,9 @@ import {
 import { useParts } from '@/hooks/useParts'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import type { Part, PartsAsset, UpgradeSlot } from '@/domain/part/types'
-import { workingStock, deriveStock } from '@/domain/part/partStock'
+import { workingStock, assetFamilyOf, slotKindForSku, slotReplacementStats } from '@/domain/part/partStock'
 import type { PartRepository, PartWriteRepository } from '@/domain/part/PartRepository'
+import { isQuotaExceededError } from '@/domain/shared/errors'
 import { getSharedPartRepository } from '@/infra/repositories'
 import { buildPartCatMeta, buildCategoryTint, buildComponentOrder, groupSkusByCategoryDef } from '@/components/features/parts/partsTokens'
 import { PartsPageSkeleton } from './PartsPageSkeleton'
@@ -131,20 +132,24 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
   }, [toast])
 
   // ── Derived stats ────────────────────────────────────────────────────────────
+  // onHand/broken come from the SKU doc snapshot (authoritative since P1.1) —
+  // NOT from deriveStock(movements): the movements journal is fetched capped at
+  // PARTS_MOVEMENTS_CAP, so journal-derived stock would silently undercount once
+  // the journal outgrows the cap.
   const stats = useMemo(() => {
     if (!ref) return { onHand: 0, installed: 0, broken: 0, devices: 0 }
 
-    const stockMap = deriveStock(ref.movements)
     let totalOnHand = 0
     let totalBroken = 0
-
     for (const sku of ref.parts) {
-      const s = stockMap[sku.id] ?? { onHand: 0, broken: 0 }
-      totalOnHand += workingStock(s)
-      totalBroken += s.broken
+      totalOnHand += workingStock({ onHand: sku.onHand, broken: sku.broken })
+      totalBroken += sku.broken
     }
 
-    // Installed = sum of install movements - uninstall movements (net installed count)
+    // Installed = net install − uninstall over the fetched journal. Movements
+    // are capped at PARTS_MOVEMENTS_CAP (most recent first), so this counter
+    // covers only that horizon once the journal outgrows the cap — display
+    // nicety, not authoritative stock.
     const installMap: Record<string, number> = {}
     for (const m of ref.movements) {
       if (m.serviceReplace) continue
@@ -163,8 +168,11 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
   }, [ref])
 
   // ── Stock map for UninstallModal flow preview ────────────────────────────────
+  // Built from the SKU snapshot for the same cap-horizon reason as `stats`.
   const stockMap = useMemo(
-    () => (ref ? deriveStock(ref.movements) : {}),
+    () => (ref
+      ? Object.fromEntries(ref.parts.map(p => [p.id, { onHand: p.onHand, broken: p.broken }]))
+      : {}),
     [ref],
   )
 
@@ -180,17 +188,31 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
     setInstallModalSku(sku)
   }, [])
 
+  // Classify a write rejection into a user-facing message. Firestore quota
+  // exhaustion (resource-exhausted) is surfaced by the SDK as a raw
+  // «Quota exceeded.» — map it to a localized, actionable string instead of
+  // leaking the raw message; otherwise fall back to the per-modal errorFailed.
+  const writeErrorMessage = useCallback(
+    (err: unknown, fallbackKey: string): string =>
+      isQuotaExceededError(err)
+        ? t('errors.quotaExceeded')
+        : err instanceof Error
+          ? err.message
+          : t(fallbackKey),
+    [t],
+  )
+
   const handleInstallConfirm = useCallback(async (input: Parameters<typeof installPart>[0]) => {
     setWriteError(null)
     try {
       await installPart(input)
       setToast(t('toast.installed', { name: installModalSku?.name ?? input.skuId, assetCode: input.assetInvCode }))
     } catch (err) {
-      setWriteError(err instanceof Error ? err.message : t('installModal.errorFailed'))
+      setWriteError(writeErrorMessage(err, 'installModal.errorFailed'))
     } finally {
       setInstallModalSku(null)
     }
-  }, [installPart, t, installModalSku])
+  }, [installPart, t, installModalSku, writeErrorMessage])
 
   // ── Uninstall handler ────────────────────────────────────────────────────────
   const handleUninstall = useCallback((asset: PartsAsset, slot: UpgradeSlot, _slotIdx: number) => {
@@ -207,11 +229,11 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
       await uninstallPart(input)
       setToast(t('toast.uninstalled', { name: uninstallTarget.sku?.name ?? input.skuId, assetCode: input.assetInvCode }))
     } catch (err) {
-      setWriteError(err instanceof Error ? err.message : t('uninstallModal.errorFailed'))
+      setWriteError(writeErrorMessage(err, 'uninstallModal.errorFailed'))
     } finally {
       setUninstallTarget({ sku: null, asset: null, slot: null })
     }
-  }, [uninstallPart, t, uninstallTarget.sku])
+  }, [uninstallPart, t, uninstallTarget.sku, writeErrorMessage])
 
   // ── GPU modal open handler (stable for PartCard.memo GPU card) ──────────────
   const handleOpenGpuModal = useCallback(() => setGpuModalOpen(true), [])
@@ -223,9 +245,9 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
       await createModelSku({ categoryId: 'gpu', name, initialQty: qty })
       setToast(t('toast.gpuCreated', { name, qty }))
     } catch (err) {
-      setWriteError(err instanceof Error ? err.message : t('gpuModal.errorFailed'))
+      setWriteError(writeErrorMessage(err, 'gpuModal.errorFailed'))
     }
-  }, [createModelSku, t])
+  }, [createModelSku, t, writeErrorMessage])
 
   // ── Service record handler ───────────────────────────────────────────────────
   const handleServiceConfirm = useCallback(async (kindId: string, kindLabel: string, note: string | null, actorName: string) => {
@@ -242,11 +264,29 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
       })
       setToast(t('toast.serviced', { kindLabel }))
     } catch (err) {
-      setWriteError(err instanceof Error ? err.message : t('serviceModal.errorFailed'))
+      setWriteError(writeErrorMessage(err, 'serviceModal.errorFailed'))
     } finally {
       setServiceAsset(null)
     }
-  }, [recordService, serviceAsset, t])
+  }, [recordService, serviceAsset, t, writeErrorMessage])
+
+  // ── Replace-stats helpers for InstallModal ──────────────────────────────────
+  // Defined BEFORE the early return (Rules of Hooks) but use ref directly so
+  // they gracefully return zeros when data is not yet loaded.
+  const skuCategoryOf = useCallback(
+    (id: string) => ref?.parts.find(p => p.id === id)?.category ?? null,
+    [ref],
+  )
+  const replaceStatsFor = useCallback(
+    (assetInternalId: string, sku: Part) => {
+      const asset = ref?.partsAssets.find(a => a.assetId === assetInternalId)
+      const family = asset ? assetFamilyOf(asset.categoryId) : 'desktop'
+      const slotKind = slotKindForSku(sku.category, family)
+      if (!slotKind) return { count: 0, lastAt: null }
+      return slotReplacementStats(ref?.movements ?? [], skuCategoryOf, assetInternalId, slotKind, family)
+    },
+    [ref, skuCategoryOf],
+  )
 
   if (error && !ref) {
     return (
@@ -402,6 +442,7 @@ export function PartsPage({ repository }: PartsPageProps = {}) {
         sku={installModalSku}
         partsAssets={partsAssets}
         onConfirm={handleInstallConfirm}
+        replaceStatsFor={replaceStatsFor}
       />
 
       <UninstallModal

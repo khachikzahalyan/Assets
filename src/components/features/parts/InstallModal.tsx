@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useEffect } from 'react'
 import ReactDOM from 'react-dom'
 import { useTranslation } from 'react-i18next'
-import { Btn, Icon, MobileSheet } from '@/components/ui'
+import { Btn, Chip, Icon, MobileSheet } from '@/components/ui'
 import { SearchSelect } from '@/components/features/assets/create/SearchSelect'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import type { Part, PartsAsset } from '@/domain/part/types'
@@ -15,6 +15,7 @@ import {
   currentPartsForSkuCategory,
   workingStock,
 } from '@/domain/part/partStock'
+import { fmtPartsDate, categoryIcon, categoryTint } from './partsTokens'
 import { isInsufficientStockError } from '@/domain/part/errors'
 
 export interface InstallModalProps {
@@ -23,6 +24,7 @@ export interface InstallModalProps {
   sku: Part | null
   partsAssets: PartsAsset[]
   onConfirm: (input: InstallInput) => Promise<void>
+  replaceStatsFor?: (assetInternalId: string, sku: Part) => { count: number; lastAt: string | null }
 }
 
 /**
@@ -54,7 +56,7 @@ type ActionMode = 'install' | 'replace' | 'add'
  * MobileSheet (with search) on mobile. Tests drive it by clicking the trigger
  * (role="combobox") then the option row.
  */
-export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: InstallModalProps) {
+export function InstallModal({ open, onClose, sku, partsAssets, onConfirm, replaceStatsFor }: InstallModalProps) {
   const { t } = useTranslation('parts')
   const isMobile = useIsMobile()
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null)
@@ -190,19 +192,34 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
   // For single-slot with exactly 1 current: action is forced (no radio needed)
   const forcedReplace = isSingle && occupiedSlots.length === 1
 
+  // Resolve icon + tint for the SKU's category (used in header chip)
+  const catIconName = categoryIcon(sku.category)
+  const catTint = categoryTint(sku.category)
+
   const content = (
     <div className="flex flex-col gap-0 max-md:flex-1 max-md:min-h-0">
-      {/* Header — single title (the sheet's own title bar is removed to avoid duplication) */}
-      <div className="px-5 pt-5 pb-3 border-b border-border">
-        <h2 className="text-17 font-bold text-text-primary leading-tight">
-          {t('installModal.titleInstall', { name: `${sku.name}${sku.variantLabel ? ` · ${sku.variantLabel}` : ''}` })}
-        </h2>
-        <p className="mt-0.5 text-14.5 text-text-tertiary">
-          {t('installModal.remainingLabel')} <span className="font-semibold text-text-secondary">{workingStock(sku)} {t('installModal.remainingUnit')}</span>
-        </p>
+      {/* Header */}
+      <div className="px-5 pt-4 pb-3 border-b border-border">
+        <div className="flex items-start gap-3">
+          {/* Category icon plaque */}
+          <span className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 ${catTint.iconBg}`}>
+            <Icon name={catIconName} size={15} className={catTint.iconText} />
+          </span>
+          <div className="min-w-0 flex-1">
+            <h2 className="text-15 font-bold text-text-primary leading-snug">
+              {t('installModal.titleInstall', { name: `${sku.name}${sku.variantLabel ? ` · ${sku.variantLabel}` : ''}` })}
+            </h2>
+            <div className="mt-1 flex items-center gap-1.5">
+              <span className="text-12.5 text-text-subtle">{t('installModal.remainingLabel')}</span>
+              <Chip color={workingStock(sku) > 0 ? 'green' : 'red'} size="sm">
+                {workingStock(sku)} {t('installModal.remainingUnit')}
+              </Chip>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div className="overflow-y-auto flex flex-col gap-4 px-5 py-4 max-md:flex-1 max-md:min-h-0" style={{ maxHeight: '60dvh' }}>
+      <div className="overflow-y-auto flex flex-col gap-3 px-5 py-3.5 max-md:flex-1 max-md:min-h-0" style={{ maxHeight: '60dvh' }}>
         {/* Stock warning */}
         {!isService && !stockOk && (
           <div className="flex items-center gap-2 bg-rose-950/30 border border-rose-800/40 rounded-lg px-3 py-2 text-12.5 text-rose-300 light:bg-rose-50 light:border-rose-200 light:text-rose-700">
@@ -213,9 +230,9 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
 
         {/* Asset selector — shared <SearchSelect>: searchable, opens its own list
             surface (portal dropdown on desktop, MobileSheet with search on mobile). */}
-        <div className="flex flex-col gap-1.5">
-          <span className="text-12.5 font-medium text-text-tertiary">
-            {t('installModal.labelAsset')} <span className="text-rose-400 light:text-rose-600">*</span>
+        <div className="flex flex-col gap-2">
+          <span className="text-12.5 font-semibold uppercase tracking-wide text-text-subtle">
+            {t('installModal.labelAsset')} <span className="text-rose-400 light:text-rose-600 normal-case">*</span>
           </span>
           <SearchSelect
             value={selectedAssetId ?? ''}
@@ -238,29 +255,64 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
 
         {/* Contextual panel — shown when asset is selected */}
         {selectedAsset && (
-          <div className="rounded-lg border border-border bg-bg overflow-hidden">
+          <div className="rounded-xl border border-border bg-bg overflow-hidden" style={{ boxShadow: 'var(--shadow-card)' }}>
             {/* Slot state (asset row removed — the chosen asset is already shown in the selector above) */}
-            {!hasOccupied && (
-              /* Empty slot — straight install */
-              <div className="px-3 py-2.5 flex items-center gap-2 border-t border-border bg-[#161A1F] light:bg-surface-sunken">
-                <Icon name="info" size={13} className="text-text-subtle flex-shrink-0" />
-                <span className="text-13.5 text-text-subtle leading-snug">
-                  {t('installModal.emptySlot', { label: slotLabel })}
-                </span>
-              </div>
-            )}
+            {!hasOccupied && (() => {
+              // Check if this single-slot kind was previously replaced
+              const priorReplaced = existingSlots.find(c => c.slot.replaced) ?? null
+              if (priorReplaced && isSingle && selectedAsset && sku) {
+                // Show replacement history panel instead of the generic empty-slot message
+                const stats = replaceStatsFor?.(selectedAsset.assetId, sku)
+                const shownCount = Math.max(stats?.count ?? 0, 1)
+                const lastAtRaw = stats?.lastAt ?? priorReplaced.slot.installedAt ?? null
+                const lastAtFormatted = lastAtRaw ? fmtPartsDate(lastAtRaw) : null
+                return (
+                  <div className="px-3 py-2.5 flex items-start gap-2.5 bg-amber-500/10 ring-1 ring-amber-500/30 rounded-xl light:bg-amber-50/80">
+                    <span className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 bg-amber-500/20 mt-0.5">
+                      <Icon name="history" size={12} className="text-amber-400 light:text-amber-700" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-13 font-semibold text-amber-300 leading-tight light:text-amber-700">
+                        {t('installModal.replacedTimes', { count: shownCount })}
+                      </div>
+                      {lastAtFormatted && (
+                        <div className="text-12 text-amber-300/70 mt-0.5 leading-snug light:text-amber-600">
+                          {t('installModal.replacedLast', { date: lastAtFormatted })}
+                        </div>
+                      )}
+                      <div className="text-11.5 text-amber-300/60 mt-0.5 leading-snug light:text-amber-500">
+                        {t('installModal.replacedAnother')}
+                      </div>
+                    </div>
+                  </div>
+                )
+              }
+              // Plain empty slot — straight install
+              return (
+                <div className="px-3 py-2 flex items-center gap-2 bg-[#161A1F] light:bg-surface-sunken">
+                  <span className="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 bg-surface-2">
+                    <Icon name="info" size={11} className="text-text-subtle" />
+                  </span>
+                  <span className="text-13 text-text-subtle leading-snug">
+                    {t('installModal.emptySlot', { label: slotLabel })}
+                  </span>
+                </div>
+              )
+            })()}
 
             {hasOccupied && (
               /* Slot occupied — replace options (+ add alongside for multi-slot) */
-              <div className="px-3 pt-3 pb-2.5 space-y-1.5">
+              <div className="px-2.5 pt-2.5 pb-2.5 flex flex-col gap-1.5">
                 {occupiedSlots.map(({ slot, idx }) => {
                   const isPicked = effectiveAction === 'replace' && (replaceIdx === idx || (forcedReplace && occupiedSlots.length === 1))
 
                   return (
-                    <div key={idx} className="space-y-0">
+                    <div key={idx} className="flex flex-col gap-1">
                       <label
-                        className={`flex items-start gap-2 px-3 py-2 rounded transition-colors border ${forcedReplace ? 'cursor-default' : 'cursor-pointer'}
-                          ${isPicked || forcedReplace ? 'bg-rose-500/10 border-rose-500/60' : 'bg-surface border-transparent hover:bg-surface-2'}`}
+                        className={`flex items-center gap-2.5 px-3 py-2 rounded-xl transition-colors border ${forcedReplace ? 'cursor-default' : 'cursor-pointer'}
+                          ${isPicked || forcedReplace
+                            ? 'bg-rose-500/10 border-rose-500/50 ring-1 ring-rose-500/20'
+                            : 'bg-surface border-border hover:bg-surface-2 hover:border-border-strong'}`}
                       >
                         {/* Always render the radio input (required for tests getAllByDisplayValue('replace')).
                             For forced-replace (single-slot), it is visually hidden and pre-checked. */}
@@ -277,42 +329,50 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
                             setReplaceIdx(idx)
                             setDisposal('keep')
                           }}
-                          className={forcedReplace ? 'sr-only' : 'mt-1 accent-rose-500'}
+                          className={forcedReplace ? 'sr-only' : 'accent-rose-500 flex-shrink-0'}
                         />
                         {/* Show visible rose checkmark for forced replace */}
                         {forcedReplace && (
-                          <span className="w-4 h-4 rounded-full inline-flex items-center justify-center flex-shrink-0 mt-0.5 bg-rose-500/80">
-                            <Icon name="check" size={10} className="text-white" />
+                          <span className="w-4 h-4 rounded-full inline-flex items-center justify-center flex-shrink-0 bg-rose-500">
+                            <Icon name="check" size={9} className="text-white" />
                           </span>
                         )}
                         <div className="min-w-0 flex-1">
-                          <div className="text-15 font-semibold text-text-primary leading-tight">
-                            <span>{t('installModal.replacePrefix')} </span>
-                            <span>{slot.spec || t('installModal.replaceFactory', { label: slotLabel.toLowerCase() })}</span>
-                            {slot.storageType ? <span> · {slot.storageType}</span> : null}
+                          {/* Inline prefix + spec on one line for a tighter row */}
+                          <div className="flex items-baseline gap-1.5 leading-none">
+                            <span className="text-10.5 font-semibold uppercase tracking-wide text-rose-400 light:text-rose-600 flex-shrink-0">
+                              {t('installModal.replacePrefix')}
+                            </span>
+                            <span className="text-13.5 font-semibold text-text-primary leading-snug">
+                              {/* The spec label already carries the storage subtype
+                                  (e.g. «SSD 512 ГБ», «M.2 / NVMe 256 ГБ») — no redundant
+                                  « · SSD» suffix. Each disk is its own storage slot. */}
+                              {slot.spec || t('installModal.replaceFactory', { label: slotLabel.toLowerCase() })}
+                            </span>
                           </div>
                           {/* autoScrap amber banner — FIX: show when replace is active and autoScrap, NOT inside !autoScrap block */}
                           {(isPicked || forcedReplace) && autoScrap && autoScrapCaption && (
-                            <div className="mt-2 ml-1 flex items-center gap-1.5 bg-amber-500/10 ring-1 ring-amber-500/30 rounded-md px-2.5 py-2">
-                              <Icon name="triangle-alert" size={12} className="text-amber-400 flex-shrink-0 light:text-amber-700" />
-                              <span className="text-13 text-amber-300 leading-snug light:text-amber-700">{autoScrapCaption}</span>
+                            <div className="mt-1.5 flex items-center gap-1.5 bg-amber-500/10 ring-1 ring-amber-500/30 rounded-lg px-2.5 py-1.5">
+                              <Icon name="triangle-alert" size={11} className="text-amber-400 flex-shrink-0 light:text-amber-700" />
+                              <span className="text-12.5 text-amber-300 leading-snug light:text-amber-700">{autoScrapCaption}</span>
                             </div>
                           )}
                         </div>
                       </label>
 
-                      {/* Disposal sub-radios — only when this replace picked AND not autoScrap AND not service */}
+                      {/* Disposal segmented control — only when this replace picked AND not autoScrap AND not service */}
                       {(isPicked || forcedReplace) && !autoScrap && !isService && (
-                        <div className="ml-4 mt-1.5 mb-1 border border-border border-l-2 border-l-[#F97316]/30 bg-[#161A1F] rounded-lg px-3 py-2.5 light:bg-surface-sunken">
-                          <div className="text-12 uppercase tracking-wide text-text-subtle mb-2 leading-tight">
+                        <div className="ml-2.5 mr-0.5 border border-border rounded-xl bg-[#161A1F] px-3 pt-2.5 pb-3 light:bg-surface-sunken">
+                          <div className="text-11 font-semibold uppercase tracking-widest text-text-subtle mb-2 leading-tight">
                             {t('installModal.disposalQuestion')}
                           </div>
-                          <div className="grid grid-cols-2 gap-2">
+                          {/* Segmented control: two equal pills */}
+                          <div className="grid grid-cols-2 gap-1.5 p-1 rounded-lg bg-surface border border-border">
                             <label
-                              className={`flex items-center justify-center gap-2 px-2 py-2 rounded-md cursor-pointer transition-colors min-h-[var(--ctl-h-md)] border
+                              className={`relative flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-md cursor-pointer transition-all
                                 ${disposal === 'keep'
-                                  ? 'bg-emerald-500/10 ring-1 ring-emerald-500/30 border-emerald-500/40'
-                                  : 'border-border hover:bg-surface-2'}`}
+                                  ? 'bg-emerald-500/15 ring-1 ring-emerald-500/40 shadow-sm'
+                                  : 'hover:bg-surface-2'}`}
                             >
                               <input
                                 type="radio"
@@ -322,22 +382,17 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
                                 onChange={() => setDisposal('keep')}
                                 className="sr-only"
                               />
-                              <span className={`w-3.5 h-3.5 rounded-full border flex-shrink-0 flex items-center justify-center transition-colors
-                                ${disposal === 'keep' ? 'bg-emerald-500 border-emerald-500' : 'bg-border border-border-strong'}`}>
-                                {disposal === 'keep' && (
-                                  <span className="w-1.5 h-1.5 rounded-full bg-white inline-block" />
-                                )}
-                              </span>
-                              <Icon name="package" size={12} className={`flex-shrink-0 ${disposal === 'keep' ? 'text-emerald-400 light:text-emerald-700' : 'text-text-subtle'}`} />
-                              <span className={`text-13 leading-tight ${disposal === 'keep' ? 'text-emerald-300 light:text-emerald-700' : 'text-text-secondary'}`}>
+                              <span className={`w-2 h-2 rounded-full flex-shrink-0 transition-colors
+                                ${disposal === 'keep' ? 'bg-emerald-400 light:bg-emerald-600' : 'bg-border'}`} />
+                              <span className={`text-12.5 font-medium leading-tight ${disposal === 'keep' ? 'text-emerald-300 light:text-emerald-700' : 'text-text-tertiary'}`}>
                                 {t('installModal.disposalKeep')}
                               </span>
                             </label>
                             <label
-                              className={`flex items-center justify-center gap-2 px-2 py-2 rounded-md cursor-pointer transition-colors min-h-[var(--ctl-h-md)] border
+                              className={`relative flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-md cursor-pointer transition-all
                                 ${disposal === 'broken'
-                                  ? 'bg-red-500/10 ring-1 ring-red-500/30 border-red-500/40'
-                                  : 'border-border hover:bg-surface-2'}`}
+                                  ? 'bg-red-500/15 ring-1 ring-red-500/40 shadow-sm'
+                                  : 'hover:bg-surface-2'}`}
                             >
                               <input
                                 type="radio"
@@ -347,14 +402,9 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
                                 onChange={() => setDisposal('broken')}
                                 className="sr-only"
                               />
-                              <span className={`w-3.5 h-3.5 rounded-full border flex-shrink-0 flex items-center justify-center transition-colors
-                                ${disposal === 'broken' ? 'bg-red-500 border-red-500' : 'bg-border border-border-strong'}`}>
-                                {disposal === 'broken' && (
-                                  <span className="w-1.5 h-1.5 rounded-full bg-white inline-block" />
-                                )}
-                              </span>
-                              <Icon name="x-circle" size={12} className={`flex-shrink-0 ${disposal === 'broken' ? 'text-red-400 light:text-red-700' : 'text-text-subtle'}`} />
-                              <span className={`text-13 leading-tight ${disposal === 'broken' ? 'text-red-300 light:text-red-700' : 'text-text-secondary'}`}>
+                              <span className={`w-2 h-2 rounded-full flex-shrink-0 transition-colors
+                                ${disposal === 'broken' ? 'bg-red-400 light:bg-red-600' : 'bg-border'}`} />
+                              <span className={`text-12.5 font-medium leading-tight ${disposal === 'broken' ? 'text-red-300 light:text-red-700' : 'text-text-tertiary'}`}>
                                 {t('installModal.disposalScrap')}
                               </span>
                             </label>
@@ -368,8 +418,10 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
                 {/* "Add alongside" card — only for multi-slot categories */}
                 {!isSingle && (
                   <label
-                    className={`flex items-start gap-2 px-2 py-1.5 rounded cursor-pointer transition-colors border
-                      ${effectiveAction === 'add' ? 'bg-emerald-500/10 border-emerald-500/60' : 'bg-surface border-transparent hover:bg-surface-2'}`}
+                    className={`flex items-center gap-2.5 px-3 py-2 rounded-xl cursor-pointer transition-all border
+                      ${effectiveAction === 'add'
+                        ? 'bg-emerald-500/10 border-emerald-500/50 ring-1 ring-emerald-500/20'
+                        : 'border-dashed border-border hover:border-emerald-500/40 hover:bg-emerald-500/5'}`}
                   >
                     <input
                       type="radio"
@@ -377,14 +429,20 @@ export function InstallModal({ open, onClose, sku, partsAssets, onConfirm }: Ins
                       value="add"
                       checked={effectiveAction === 'add'}
                       onChange={() => { setActionMode('add'); setDisposal('keep') }}
-                      className="mt-1 accent-emerald-500"
+                      className="sr-only"
                     />
+                    <span className={`w-5 h-5 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors
+                      ${effectiveAction === 'add' ? 'bg-emerald-500/20 text-emerald-400 light:text-emerald-700' : 'bg-surface-2 text-text-subtle'}`}>
+                      <Icon name="plus" size={11} />
+                    </span>
                     <div className="min-w-0 flex-1">
-                      <div className="text-14 font-semibold text-text-primary leading-tight">
-                        {t('installModal.addAlongside', { name: `${sku.name}${sku.variantLabel ? ` · ${sku.variantLabel}` : ''}` })}
-                      </div>
-                      <div className="text-13 text-emerald-300 mt-0.5 leading-snug light:text-emerald-700">
-                        {t('installModal.addAlongsideStay')}
+                      {/* Concise «Добавить <накопитель/ОЗУ>» — the verbose two-line
+                          variant was cut per owner request. Label is lowercased
+                          unless it is an all-caps acronym (ОЗУ). */}
+                      <div className={`text-13.5 font-semibold leading-tight ${effectiveAction === 'add' ? 'text-emerald-300 light:text-emerald-700' : 'text-text-secondary'}`}>
+                        {t('installModal.addAlongside', {
+                          label: slotLabel === slotLabel.toUpperCase() ? slotLabel : slotLabel.toLowerCase(),
+                        })}
                       </div>
                     </div>
                   </label>

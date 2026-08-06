@@ -12,7 +12,7 @@ import type { AssetRepository } from '@/domain/asset/AssetRepository'
 import { getSharedAssetRepository } from '@/infra/repositories'
 import type { ExportRow } from '@/lib/exportXlsx'
 import { deriveDisplayStatusId, isTemporaryAssignment } from '@/components/features/assets/assetFormat'
-import { resolveCategoryCapabilities } from '@/domain/asset'
+import { resolveCategoryCapabilities, matchesAssetSearch } from '@/domain/asset'
 
 const PAGE_SIZE = 10
 
@@ -52,23 +52,34 @@ export function AssetsPage({ repository }: AssetsPageProps) {
     setPage(1)
   }, [])
 
-  // ── Single fetch: group:'all' + statusId:'all' (branch/search/sort applied by repo).
+  // ── Single fetch: group:'all' + statusId:'all' + search:'' (branch/sort by repo).
   // The old two-hook shape (display query + count query) issued TWO full collection
   // reads per mount/filter change that differed ONLY in `group` — and the repo's
   // group filter is client-side anyway. Fetch the superset once; derive both the
   // group-filtered display list and the tab counts from it below.
+  // search is pinned to '' so typing does NOT change the (value-based) SWR key —
+  // each keystroke used to trigger a full `assets` collection re-scan (quota
+  // exhaustion defect D2); the search predicate applies client-side below.
   const fetchQuery = useMemo<AssetListQuery>(
-    () => ({ ...query, group: 'all', statusId: 'all' }),
+    () => ({ ...query, group: 'all', statusId: 'all', search: '' }),
     [query],
   )
   const { assets: allGroupsAssets, ref, loading, error, reload } = useAssets(repo, fetchQuery)
 
+  // Client-side search over the fetched superset — same predicate the repo used
+  // server-side (matchesAssetSearch), so semantics are unchanged. Feeds BOTH the
+  // display list and the group tab counts (search has always affected counts).
+  const searched = useMemo<Asset[]>(
+    () => (query.search ? allGroupsAssets.filter(a => matchesAssetSearch(a, query.search ?? '')) : allGroupsAssets),
+    [allGroupsAssets, query.search],
+  )
+
   // Group-filtered set (same category→group lookup the repo used to apply server-side)
   const assets = useMemo<Asset[]>(() => {
-    if ((query.group ?? 'all') === 'all') return allGroupsAssets
+    if ((query.group ?? 'all') === 'all') return searched
     const catGroupMap = new Map((ref?.categories ?? []).map(c => [c.id, c.group]))
-    return allGroupsAssets.filter(a => catGroupMap.get(a.categoryId) === query.group)
-  }, [allGroupsAssets, ref, query.group])
+    return searched.filter(a => catGroupMap.get(a.categoryId) === query.group)
+  }, [searched, ref, query.group])
 
   // ── Group counts over the all-groups set ────────────────────────────────────
   const groupCounts = useMemo(() => {
@@ -76,8 +87,8 @@ export function AssetsPage({ repository }: AssetsPageProps) {
       (ref?.categories ?? []).map(c => [c.id, c.group]),
     )
     const tempFiltered = showTemp
-      ? allGroupsAssets.filter(a => isTemporaryAssignment(a))
-      : allGroupsAssets
+      ? searched.filter(a => isTemporaryAssignment(a))
+      : searched
     const statusFiltered =
       (query.statusId ?? 'all') === 'all'
         ? tempFiltered
@@ -92,7 +103,7 @@ export function AssetsPage({ repository }: AssetsPageProps) {
       }
     }
     return counts
-  }, [allGroupsAssets, ref, query.statusId, showTemp])
+  }, [searched, ref, query.statusId, showTemp])
 
   // ── Client-side status + temp filter over the display list ─────────────────
   const displayed = useMemo<Asset[]>(() => {

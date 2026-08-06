@@ -31,3 +31,24 @@ export class PrefixLockedError extends CatalogError {
 export function isCatalogError(e: unknown): e is CatalogError {
   return e instanceof CatalogError
 }
+
+/**
+ * Returns true when `e` represents a Firestore quota-exhausted (resource-exhausted)
+ * error. No firebase/firestore import — structural check only so this predicate is
+ * safe to call from the domain layer and from React error boundaries.
+ *
+ * Matches:
+ *   · Firebase FirebaseError objects whose `code` property equals
+ *     `'resource-exhausted'` (the v9 SDK sets this verbatim on quota failures).
+ *   · Any Error whose message matches the /quota exceeded|resource.?exhausted/i
+ *     pattern (covers wrapped errors and plain Error("Quota exceeded.") toasts).
+ */
+export function isQuotaExceededError(e: unknown): boolean {
+  if (e !== null && typeof e === 'object' && 'code' in e) {
+    if ((e as { code: unknown }).code === 'resource-exhausted') return true
+  }
+  if (e instanceof Error) {
+    return /quota exceeded|resource.?exhausted/i.test(e.message)
+  }
+  return false
+}

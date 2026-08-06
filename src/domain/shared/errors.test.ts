@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { EntityInUseError, SystemEntityProtectedError, PrefixLockedError, isCatalogError } from './errors'
+import { EntityInUseError, SystemEntityProtectedError, PrefixLockedError, isCatalogError, isQuotaExceededError } from './errors'
 
 describe('catalog errors', () => {
   it('EntityInUseError carries the reference count and a stable code', () => {
@@ -23,5 +23,48 @@ describe('catalog errors', () => {
   })
   it('isCatalogError is false for a plain Error', () => {
     expect(isCatalogError(new Error('x'))).toBe(false)
+  })
+})
+
+describe('isQuotaExceededError', () => {
+  // (a) FirebaseError-shaped object with code 'resource-exhausted' → true
+  it('returns true for an object with code "resource-exhausted"', () => {
+    expect(isQuotaExceededError({ code: 'resource-exhausted', message: 'Quota exceeded.' })).toBe(true)
+  })
+
+  // (b) Error with message 'Quota exceeded.' → true
+  it('returns true for an Error with message "Quota exceeded."', () => {
+    expect(isQuotaExceededError(new Error('Quota exceeded.'))).toBe(true)
+  })
+
+  // (c) Error whose message contains 'RESOURCE_EXHAUSTED' (case-insensitive) → true
+  it('returns true for an Error whose message contains RESOURCE_EXHAUSTED (case-insensitive)', () => {
+    expect(isQuotaExceededError(new Error('gRPC error: RESOURCE_EXHAUSTED'))).toBe(true)
+    expect(isQuotaExceededError(new Error('resource_exhausted details here'))).toBe(true)
+  })
+
+  // (d) Error with unrelated code or message → false
+  it('returns false for an object with code "permission-denied"', () => {
+    expect(isQuotaExceededError({ code: 'permission-denied', message: 'Denied.' })).toBe(false)
+  })
+  it('returns false for an Error with an unrelated message', () => {
+    expect(isQuotaExceededError(new Error('Network error'))).toBe(false)
+  })
+
+  // (e) non-Error primitives → false
+  it('returns false for null', () => {
+    expect(isQuotaExceededError(null)).toBe(false)
+  })
+  it('returns false for undefined', () => {
+    expect(isQuotaExceededError(undefined)).toBe(false)
+  })
+  it('returns false for a plain string', () => {
+    expect(isQuotaExceededError('resource-exhausted')).toBe(false)
+  })
+
+  // (f) object with code 'permission-denied' (no message match) → false
+  it('returns false for a plain object with code "permission-denied" and no matching message', () => {
+    const e = { code: 'permission-denied' }
+    expect(isQuotaExceededError(e)).toBe(false)
   })
 })

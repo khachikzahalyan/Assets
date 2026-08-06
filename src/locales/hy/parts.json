@@ -68,6 +68,9 @@
     "familyServer": "Սերվերներ",
     "searchPlaceholder": "Որոնում..."
   },
+  "errors": {
+    "quotaExceeded": "Տվյալների բազայի օրական սահմանաչափը սպառված է։ Փորձեք ավելի ուշ կամ թարմացրեք Firebase-ի սակագնային պլանը։"
+  },
   "gpu": {
     "addBtn": "Ավելացնել տեսաքարտ"
   },
@@ -88,8 +91,7 @@
   "installModal": {
     "actionAdd": "Ավելացնել կողքին",
     "actionReplace": "Փոխարինել",
-    "addAlongside": "Ավելացնել կողքին — տեղադրել ևս մեկ {{name}}",
-    "addAlongsideStay": "Հին մասը մնում է ակտիվում",
+    "addAlongside": "Ավելացնել {{label}}",
     "assetPlaceholder": "Ընտրեք ակտիվ",
     "assetSearchPlaceholder": "Որոնում...",
     "autoScrapCooler": "Հին սառնարանը կդուրս գրվի",
@@ -100,7 +102,7 @@
     "confirm": "Տեղադրել",
     "confirmBtn": "Տեղադրել",
     "disposalBroken": "Դուրս գրել (անսարք)",
-    "disposalKeep": "Պահել որպես սարքին",
+    "disposalKeep": "Պահեստ",
     "disposalQuestion": "Ի՞նչ անել հին մասի հետ",
     "disposalScrap": "Դուրս գրել",
     "emptySlot": "«{{label}}» բնիկը դատարկ է — կատարվելու է տեղադրում",
@@ -117,6 +119,9 @@
     "remainingUnit": "հատ",
     "replaceFactory": "Գործ. {{label}}",
     "replacePrefix": "Փոխարինել՝",
+    "replacedAnother": "Կգրանցվի ևս մեկ փոխարինում",
+    "replacedLast": "վերջին փոխարինումը՝ {{date}}",
+    "replacedTimes": "Փոխարինվել է {{count}}×",
     "saving": "Պահպանում…",
     "serviceNotice": "Սպասարկման սարք — պաշարը չի նվազում",
     "title": "Տեղադրել մաս",

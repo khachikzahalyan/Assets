@@ -13,6 +13,24 @@
 // (LAPTOP_CATEGORY_IDS, SERVER_CATEGORY_IDS from categoryCapabilities.ts) so the
 // taxonomy can never drift between the asset module and the parts module.
 
+/**
+ * Maximum number of part_movements journal entries fetched from Firestore
+ * per loadReferenceData() call (applied as a server-side limit in the adapter).
+ *
+ * Rationale (P0 quota fix, 2026-08-05): the journal grows without bound as
+ * installs/uninstalls accumulate. Without a limit, every Parts page load burns
+ * O(journal size) reads and quickly exhausts the Spark plan's 50 k daily read
+ * quota. A cap of 1 000 covers several years of typical usage per device while
+ * keeping each page load well under 1 k billed reads.
+ *
+ * Impact on display: journal-derived display niceties — running «Осталось N шт»
+ * labels, the header «installed» counter, replace-stats — silently cover only
+ * the most recent CAP movements once the journal exceeds it. These are display
+ * niceties only; the authoritative onHand/broken stock is the SKU doc snapshot
+ * (P1.1 decision) and is never affected by the cap.
+ */
+export const PARTS_MOVEMENTS_CAP = 1_000
+
 import { LAPTOP_CATEGORY_IDS, SERVER_CATEGORY_IDS } from '@/domain/asset/categoryCapabilities'
 import type { AssetSpecs } from '@/domain/asset/types'
 import type { PartCategory, PartStock, UpgradeSlot } from './types'
@@ -255,6 +273,52 @@ export function resolveReplaceTargetIndex(
 }
 
 /**
+ * Detect the storage subtype token in a single-disk spec label. NVMe is folded
+ * to 'M.2' to match this system's SKU_TO_STORAGE_TYPE mapping (nvme → 'M.2').
+ * Returns null when no known token is present.
+ */
+const STORAGE_TYPE_MATCHERS: ReadonlyArray<readonly [RegExp, string]> = [
+  [/(^|[\s,/])M\.2(?=[\s,/]|$)/i, 'M.2'],
+  [/(^|[\s,/])NVMe(?=[\s,/]|$)/i, 'M.2'],
+  [/(^|[\s,/])SAS(?=[\s,/]|$)/i, 'SAS'],
+  [/(^|[\s,/])SSD(?=[\s,/]|$)/i, 'SSD'],
+  [/(^|[\s,/])HDD(?=[\s,/]|$)/i, 'HDD'],
+]
+
+function detectStorageType(label: string): string | null {
+  for (const [re, type] of STORAGE_TYPE_MATCHERS) if (re.test(label)) return type
+  return null
+}
+
+/**
+ * A storage slot must represent ONE physical disk. The create form serializes
+ * multiple disks into a single `ssd` spec joined by " + " (e.g.
+ * "SSD 512 ГБ + HDD 1 ТБ"), and older part installs also persisted that combined
+ * string into one upgradeCurrent slot. Split any such storage slot into one slot
+ * per disk so each drive is shown and replaced independently (SSD / HDD / M.2 are
+ * distinct parts). Non-storage slots and single-disk storage slots pass through
+ * unchanged. Applied to BOTH the synthesized base and the stored explicit slots so
+ * assets built under the old combined behaviour self-heal on read.
+ */
+export function expandStorageSlots(slots: ReadonlyArray<UpgradeSlot>): UpgradeSlot[] {
+  const out: UpgradeSlot[] = []
+  for (const s of slots) {
+    if (s.kind === 'storage' && typeof s.spec === 'string' && s.spec.includes('+')) {
+      const disks = s.spec.split(/\s*\+\s*/).map(d => d.trim()).filter(Boolean)
+      if (disks.length > 1) {
+        for (const disk of disks) {
+          const t = detectStorageType(disk)
+          out.push({ ...s, spec: disk, ...(t ? { storageType: t } : {}) })
+        }
+        continue
+      }
+    }
+    out.push({ ...s })
+  }
+  return out
+}
+
+/**
  * Synthesize the installed-component slots for an asset from its create-form
  * specs (`currentSpecs`: ram / ssd / gpu) plus factory defaults (cooler, and
  * psu for desktop/server or battery for laptop).
@@ -292,7 +356,9 @@ export function synthesizeInstalledSlots(
   // Battery — laptops only (factory).
   if (family === 'laptop') slots.push({ kind: 'battery', spec: '' })
 
-  return slots
+  // Storage is entered as one combined `ssd` string; split it into per-disk slots
+  // so SSD / HDD / M.2 each show and replace independently.
+  return expandStorageSlots(slots)
 }
 
 /**
@@ -320,9 +386,14 @@ export function resolveUpgradeCurrent(
   const base = synthesizeInstalledSlots(categoryId, specs)
   if (!Array.isArray(explicit) || explicit.length === 0) return base
 
+  // Split any combined storage slot the same way the base is split, so per-disk
+  // ranks line up on overlay (else a stored "SSD 512 + HDD 1 ТБ" slot would
+  // recombine the base's two disks into one).
+  const explicitSlots = expandStorageSlots(explicit)
+
   // Group explicit slots by kind so we can overlay them in order onto the base.
   const byKind = new Map<string, UpgradeSlot[]>()
-  for (const s of explicit) {
+  for (const s of explicitSlots) {
     const arr = byKind.get(s.kind)
     if (arr) arr.push(s)
     else byKind.set(s.kind, [s])
@@ -366,4 +437,43 @@ export function resolveUpgradeCurrent(
     out.push({ kind: slot.kind, spec: '', replaced: true, ...(installedAt ? { installedAt } : {}) })
   }
   return out
+}
+
+// ---------------------------------------------------------------------------
+// slotReplacementStats
+// ---------------------------------------------------------------------------
+
+export interface SlotReplacementStats { count: number; lastAt: string | null }
+
+/**
+ * How many times the given slot KIND was installed/replaced on an asset, plus the
+ * most-recent install date — derived from the movement journal, since the collapsed
+ * single-slot upgradeCurrent keeps no counter. Each install movement whose SKU resolves
+ * to `slotKind` (via skuCategoryOf + slotKindForSku) counts once; the factory→first
+ * install is replacement #1 (matches the «Заменено 1×» tile). serviceReplace installs
+ * (e.g. laptop battery) are included.
+ */
+export function slotReplacementStats(
+  movements: ReadonlyArray<{ type?: string; skuId?: string | null; assetId?: string | null; at?: string | null }>,
+  skuCategoryOf: (skuId: string) => PartCategory | null,
+  assetInternalId: string,
+  slotKind: string,
+  family: AssetFamily,
+): SlotReplacementStats {
+  const matches = movements.filter(m =>
+    m.type === 'install' &&
+    m.assetId === assetInternalId &&
+    m.skuId &&
+    slotKindForSku(skuCategoryOf(m.skuId) ?? '', family) === slotKind,
+  )
+
+  if (matches.length === 0) return { count: 0, lastAt: null }
+
+  let lastAt: string | null = null
+  for (const m of matches) {
+    const at = m.at ?? null
+    if (at && (!lastAt || at > lastAt)) lastAt = at
+  }
+
+  return { count: matches.length, lastAt }
 }

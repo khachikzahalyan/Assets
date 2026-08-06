@@ -68,6 +68,9 @@
     "familyServer": "Серверы",
     "searchPlaceholder": "Поиск..."
   },
+  "errors": {
+    "quotaExceeded": "Превышена дневная квота базы данных. Попробуйте позже или обновите тарифный план Firebase."
+  },
   "gpu": {
     "addBtn": "Добавить видеокарту"
   },
@@ -88,8 +91,7 @@
   "installModal": {
     "actionAdd": "Добавить рядом",
     "actionReplace": "Заменить",
-    "addAlongside": "Добавить рядом — поставить ещё один {{name}}",
-    "addAlongsideStay": "Старая запчасть остаётся в активе",
+    "addAlongside": "Добавить {{label}}",
     "assetPlaceholder": "Выберите актив",
     "assetSearchPlaceholder": "Поиск...",
     "autoScrapCooler": "Старый кулер будет списан",
@@ -100,7 +102,7 @@
     "confirm": "Установить",
     "confirmBtn": "Установить",
     "disposalBroken": "Списать (неисправна)",
-    "disposalKeep": "Оставить исправной",
+    "disposalKeep": "На склад",
     "disposalQuestion": "Что делать со старой деталью?",
     "disposalScrap": "Списать",
     "emptySlot": "Слот «{{label}}» пуст — будет выполнена установка",
@@ -117,6 +119,9 @@
     "remainingUnit": "шт",
     "replacePrefix": "Заменить:",
     "replaceFactory": "Заводской {{label}}",
+    "replacedAnother": "Будет записана ещё одна замена",
+    "replacedLast": "последняя замена: {{date}}",
+    "replacedTimes": "Заменено {{count}}×",
     "saving": "Сохранение…",
     "serviceNotice": "Сервисное устройство — запас не расходуется",
     "title": "Установить запчасть",

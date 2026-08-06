@@ -15,8 +15,20 @@ import {
   assetFamilyOf,
   synthesizeInstalledSlots,
   resolveUpgradeCurrent,
+  slotReplacementStats,
+  expandStorageSlots,
+  PARTS_MOVEMENTS_CAP,
 } from './partStock'
 import type { UpgradeSlot } from './types'
+
+// ---------------------------------------------------------------------------
+// PARTS_MOVEMENTS_CAP
+// ---------------------------------------------------------------------------
+describe('PARTS_MOVEMENTS_CAP', () => {
+  it('is exported and equals 1000', () => {
+    expect(PARTS_MOVEMENTS_CAP).toBe(1_000)
+  })
+})
 
 // ---------------------------------------------------------------------------
 // assetFamilyOf
@@ -518,8 +530,66 @@ describe('synthesizeInstalledSlots', () => {
   })
 })
 
+describe('expandStorageSlots', () => {
+  it('splits a combined storage slot into one slot per disk with detected subtypes', () => {
+    const out = expandStorageSlots([
+      { kind: 'storage', spec: 'SSD 512 ГБ + HDD 1 ТБ', storageType: 'SSD' },
+    ])
+    expect(out).toEqual([
+      { kind: 'storage', spec: 'SSD 512 ГБ', storageType: 'SSD' },
+      { kind: 'storage', spec: 'HDD 1 ТБ', storageType: 'HDD' },
+    ])
+  })
+
+  it('folds NVMe / M.2 disks to the M.2 subtype', () => {
+    const out = expandStorageSlots([
+      { kind: 'storage', spec: 'SSD 256 ГБ + M.2 / NVMe 512 ГБ', storageType: 'SSD' },
+    ])
+    expect(out.map(s => s.storageType)).toEqual(['SSD', 'M.2'])
+  })
+
+  it('passes single-disk storage and non-storage slots through unchanged', () => {
+    const slots: UpgradeSlot[] = [
+      { kind: 'storage', spec: 'SSD 512 ГБ', storageType: 'SSD' },
+      { kind: 'ram', spec: '8 ГБ + 8 ГБ DDR4' },      // ram '+' must NOT be split
+      { kind: 'cooler', spec: '' },
+    ]
+    expect(expandStorageSlots(slots)).toEqual(slots)
+  })
+
+  it('preserves replaced / installedAt on each split disk', () => {
+    const out = expandStorageSlots([
+      { kind: 'storage', spec: 'SSD 512 ГБ + HDD 1 ТБ', replaced: true, installedAt: '2024-02-02T00:00:00Z' },
+    ])
+    expect(out).toHaveLength(2)
+    expect(out.every(s => s.replaced === true && s.installedAt === '2024-02-02T00:00:00Z')).toBe(true)
+  })
+})
+
+describe('synthesizeInstalledSlots — storage split', () => {
+  it('splits a combined create-form ssd into separate SSD / HDD storage slots', () => {
+    const storage = synthesizeInstalledSlots('cat_desktop', { ssd: 'SSD 512 ГБ + HDD 1 ТБ' })
+      .filter(s => s.kind === 'storage')
+    expect(storage.map(s => s.spec)).toEqual(['SSD 512 ГБ', 'HDD 1 ТБ'])
+    expect(storage.map(s => s.storageType)).toEqual(['SSD', 'HDD'])
+  })
+})
+
 describe('resolveUpgradeCurrent', () => {
   const specs = { ram: '16 ГБ DDR5', ssd: '1 ТБ' }
+
+  it('does not recombine: a stored combined-storage slot + a later M.2 install yields 3 separate storage slots', () => {
+    // Asset created with ssd="SSD 512 ГБ + HDD 1 ТБ"; a prior Parts install
+    // persisted [combined-storage, NVMe]. The read must expand to 3 disks.
+    const combinedSpecs = { ssd: 'SSD 512 ГБ + HDD 1 ТБ' }
+    const explicit: UpgradeSlot[] = [
+      { kind: 'storage', spec: 'SSD 512 ГБ + HDD 1 ТБ', storageType: 'SSD' },
+      { kind: 'storage', spec: 'M.2 / NVMe 256 ГБ', storageType: 'M.2', replaced: false },
+    ]
+    const storage = resolveUpgradeCurrent('cat_desktop', combinedSpecs, explicit)
+      .filter(s => s.kind === 'storage')
+    expect(storage.map(s => s.spec)).toEqual(['SSD 512 ГБ', 'HDD 1 ТБ', 'M.2 / NVMe 256 ГБ'])
+  })
 
   it('no explicit → full synthesized set (fresh asset)', () => {
     const slots = resolveUpgradeCurrent('cat_laptop', specs, null)
@@ -583,5 +653,83 @@ describe('resolveUpgradeCurrent', () => {
       { kind: 'psu', spec: 'PSU B', replaced: false },
     ]).filter(s => s.kind === 'psu')
     expect(psus.length).toBeGreaterThanOrEqual(2)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// slotReplacementStats
+// ---------------------------------------------------------------------------
+describe('slotReplacementStats', () => {
+  // Simple category lookup helper for tests
+  const skuCategoryOf = (skuId: string): string | null => {
+    if (skuId === 'sku_cooler_a' || skuId === 'sku_cooler_b') return 'cooler'
+    if (skuId === 'sku_psu_500w') return 'psu'
+    if (skuId === 'sku_ram_8gb') return 'ram'
+    return null
+  }
+
+  it('0 installs → count:0, lastAt:null', () => {
+    const result = slotReplacementStats([], skuCategoryOf, 'asset_1', 'cooler', 'desktop')
+    expect(result).toEqual({ count: 0, lastAt: null })
+  })
+
+  it('1 install → count:1, lastAt = that movement\'s date', () => {
+    const movements = [
+      { type: 'install', skuId: 'sku_cooler_a', assetId: 'asset_1', at: '2024-03-10T12:00:00Z' },
+    ]
+    const result = slotReplacementStats(movements, skuCategoryOf, 'asset_1', 'cooler', 'desktop')
+    expect(result).toEqual({ count: 1, lastAt: '2024-03-10T12:00:00Z' })
+  })
+
+  it('2 installs → count:2, lastAt = the later date', () => {
+    const movements = [
+      { type: 'install', skuId: 'sku_cooler_a', assetId: 'asset_1', at: '2024-01-01T00:00:00Z' },
+      { type: 'install', skuId: 'sku_cooler_b', assetId: 'asset_1', at: '2024-06-15T00:00:00Z' },
+    ]
+    const result = slotReplacementStats(movements, skuCategoryOf, 'asset_1', 'cooler', 'desktop')
+    expect(result).toEqual({ count: 2, lastAt: '2024-06-15T00:00:00Z' })
+  })
+
+  it('laptop battery via psu-category serviceReplace → counts correctly', () => {
+    // On a laptop, psu SKU maps to 'battery' slot kind via slotKindForSku
+    const movements = [
+      { type: 'install', skuId: 'sku_psu_500w', assetId: 'laptop_1', at: '2024-05-20T10:00:00Z' },
+    ]
+    const result = slotReplacementStats(movements, skuCategoryOf, 'laptop_1', 'battery', 'laptop')
+    expect(result).toEqual({ count: 1, lastAt: '2024-05-20T10:00:00Z' })
+  })
+
+  it('movements for a different asset are excluded', () => {
+    const movements = [
+      { type: 'install', skuId: 'sku_cooler_a', assetId: 'asset_OTHER', at: '2024-03-10T12:00:00Z' },
+      { type: 'install', skuId: 'sku_cooler_b', assetId: 'asset_1', at: '2024-04-01T00:00:00Z' },
+    ]
+    const result = slotReplacementStats(movements, skuCategoryOf, 'asset_1', 'cooler', 'desktop')
+    expect(result).toEqual({ count: 1, lastAt: '2024-04-01T00:00:00Z' })
+  })
+
+  it('movements of a different kind (ram) are excluded from cooler count', () => {
+    const movements = [
+      { type: 'install', skuId: 'sku_ram_8gb', assetId: 'asset_1', at: '2024-03-10T12:00:00Z' },
+    ]
+    const result = slotReplacementStats(movements, skuCategoryOf, 'asset_1', 'cooler', 'desktop')
+    expect(result).toEqual({ count: 0, lastAt: null })
+  })
+
+  it('non-install movement types are excluded', () => {
+    const movements = [
+      { type: 'receive', skuId: 'sku_cooler_a', assetId: 'asset_1', at: '2024-03-10T12:00:00Z' },
+      { type: 'uninstall', skuId: 'sku_cooler_a', assetId: 'asset_1', at: '2024-04-01T00:00:00Z' },
+    ]
+    const result = slotReplacementStats(movements, skuCategoryOf, 'asset_1', 'cooler', 'desktop')
+    expect(result).toEqual({ count: 0, lastAt: null })
+  })
+
+  it('null/missing at fields are guarded — lastAt stays null if all at are null', () => {
+    const movements = [
+      { type: 'install', skuId: 'sku_cooler_a', assetId: 'asset_1', at: null },
+    ]
+    const result = slotReplacementStats(movements, skuCategoryOf, 'asset_1', 'cooler', 'desktop')
+    expect(result).toEqual({ count: 1, lastAt: null })
   })
 })
