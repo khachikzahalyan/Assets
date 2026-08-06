@@ -1,10 +1,16 @@
 {
-  "groups": { "main": "Main", "ops": "Assets & operations", "org": "Organization", "catalogs": "Catalogs", "system": "System" },
+  "groups": {
+    "main":     "Գլխավոր",
+    "ops":      "Ակտիվներ և գործողություններ",
+    "org":      "Կազմակերպություն",
+    "catalogs": "Տեղեկատուներ",
+    "system":   "Համակարգ"
+  },
   "items": {
-    "dashboard": "Dashboard", "assets": "Assets",
-    "licenses": "Licenses", "parts": "Parts", "employees": "Employees", "branches": "Branches",
-    "departments": "Departments", "categories": "Categories", "roles": "Roles & access",
-    "audit": "Audit log", "settings": "Settings", "pending-users": "Pending access",
+    "dashboard": "Վահանակ", "assets": "Ակտիվներ",
+    "licenses": "Լիցենզիաներ", "parts": "Պահեստամասեր", "employees": "Աշխատակիցներ", "branches": "Մասնաճյուղեր",
+    "departments": "Բաժիններ", "categories": "Կատեգորիաներ", "roles": "Դերեր և հասանելիություն",
+    "audit": "Աուդիտի մատյան", "settings": "Կարգավորումներ", "pending-users": "Pending access",
     "my-assets": "Իմ ակտիվները", "my-acts": "My acts", "profile": "Profile", "scan": "Սկան"
   },
   "roles": { "super_admin": "Super Admin", "asset_admin": "Asset Admin", "tech_admin": "Tech Admin", "employee": "Employee" }

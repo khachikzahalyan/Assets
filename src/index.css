@@ -140,7 +140,7 @@
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
 
   /* ── LAYOUT ── */
-  --sidebar-width:          16.25rem;   /* 260px at the 1440px reference */
+  --sidebar-width:          17rem;       /* 272px at the 1440px reference — spec 2026-08-06 */
   --topbar-height:          4rem;
   --topbar-height-mobile:   3.25rem;    /* 52px/16; used by mobile block + any JS that needs it */
   --bottomnav-height:       64px;       /* px intentional (fixed mobile pattern) — single source for
@@ -618,6 +618,8 @@ html.light .app-shell-bg {
 .app-shell-sidebar {
   width: var(--sidebar-width);
   flex-shrink: 0;
+  /* Owner swatch 2026-08-06: sidebar bg = the card surface tone (#1B1F24),
+     lighter than the page bg — matches the provided color sample exactly. */
   background: var(--color-surface);
   border-right: 1px solid var(--color-border);
   display: flex;
@@ -626,6 +628,136 @@ html.light .app-shell-bg {
   top: 0;
   height: 100vh;
   overflow: hidden;
+  padding: 1.375rem 1rem;      /* 22px 16px — spec */
+  gap: 1.625rem;               /* 26px between brand row and nav — spec */
+  box-sizing: border-box;
+}
+/* Light mode inherits background: var(--color-surface) from the base rule
+   (white — same sidebar-equals-card-surface relationship as dark mode). */
+
+/* ── Sidebar brand row ─────────────────────────────────────────────────────── */
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+.sidebar-brand-logo {
+  width: 2rem;               /* 32px */
+  height: 2rem;
+  border-radius: 0.5625rem;  /* 9px */
+  background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dark) 100%);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(249,115,22,0.30);
+}
+html.light .sidebar-brand-logo {
+  box-shadow: 0 2px 8px rgba(249,115,22,0.20);
+}
+
+/* ── Sidebar nav wrapper ───────────────────────────────────────────────────── */
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 0;
+  padding: 0;
+}
+
+/* ── Nav group ─────────────────────────────────────────────────────────────── */
+.sidebar-nav-group {
+  margin-top: 1.5rem;  /* 24px between groups — spec */
+}
+.sidebar-nav-group--first,
+.sidebar-nav-group:first-child {
+  margin-top: 0;
+}
+
+/* ── Group label ───────────────────────────────────────────────────────────── */
+.sidebar-group-label {
+  font-size: var(--fs-10p5);   /* 10.5px — spec */
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #7c8a9e;              /* приглушённый, но читаемый — между text-subtle и text-muted */
+  padding: 0 0.5rem 0.5rem;   /* 0 8px 8px — spec */
+}
+html.light .sidebar-group-label {
+  color: #6b7789;             /* тёмнее на светлом фоне для чёткого контраста */
+}
+
+/* ── Sidebar item ──────────────────────────────────────────────────────────── */
+.sidebar-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.6875rem;              /* 11px — spec */
+  padding: 0.5rem 0.625rem;   /* 8px 10px — spec */
+  border-radius: 0.5rem;      /* 8px — spec */
+  border: 1px solid var(--nav-accent-border, transparent);
+  background-color: var(--nav-accent-bg, transparent);
+  font-size: var(--fs-13p5);  /* 13.5px — spec */
+  font-weight: 500;
+  color: #c2c6d1;             /* spec inactive text */
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+  user-select: none;
+  margin-bottom: 0.125rem;    /* 2px gap between items — spec */
+}
+.sidebar-item:last-child {
+  margin-bottom: 0;
+}
+.sidebar-item:hover:not(.is-active) {
+  /* One step lighter than the sidebar's surface bg so hover stays visible. */
+  background-color: var(--color-surface-2);
+  border-color: transparent;
+  color: #e2e5ec;
+}
+html.light .sidebar-item:hover:not(.is-active) {
+  background-color: #e8eaee;
+  /* The dark branch lightens the label on hover (#e2e5ec) — on a light bg
+     that made the text vanish; darken it instead (existing text token). */
+  color: var(--color-text-secondary);
+}
+.sidebar-item.is-active {
+  /* bg and border driven by inline --nav-accent-bg / --nav-accent-border.
+     Text keeps the normal label colour — owner 2026-08-06: clicking must
+     not recolour the text; the accent lives in the icon chip and bg tint. */
+  color: #f2f3f5;
+  font-weight: 600;
+}
+html.light .sidebar-item {
+  color: #5b6b80;
+}
+html.light .sidebar-item.is-active {
+  color: #2b3442;
+}
+
+/* ── Icon chip ─────────────────────────────────────────────────────────────── */
+.sidebar-item-icon-chip {
+  width: 1.625rem;            /* 26px — spec */
+  height: 1.625rem;
+  border-radius: 0.4375rem;  /* 7px — spec */
+  background-color: var(--nav-icon-bg, rgba(224,153,94,0.13));
+  /* Owner 2026-08-06: EVERY icon (active or not) uses the EXISTING light
+     accent token (--color-accent-light #FB923C) — lighter than the accent,
+     no invented colors. The chip block bg itself is untouched. */
+  color: var(--color-accent-light);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+/* Light mode: #FDBA74 washes out on a light background — use the full accent
+   for contrast; the chip's 13% tint still reads as the block. */
+html.light .sidebar-item-icon-chip {
+  color: var(--color-accent);
 }
 
 .app-shell-main {
@@ -723,48 +855,22 @@ html.light .sidebar-overlay {
   left: 0;
   bottom: 0;
   width: var(--sidebar-width);
-  background: var(--color-surface, #1B1F24);
+  background: #101218;
   border-right: 1px solid var(--color-border, #2A2F36);
   z-index: calc(var(--z-overlay) + 1);
   display: flex;
   flex-direction: column;
   box-shadow: var(--shadow-2xl);
+  padding: 1.375rem 1rem;
+  gap: 1.625rem;
+  box-sizing: border-box;
+}
+html.light .sidebar-drawer {
+  background: #f5f6f8;
 }
 
-.sidebar-section-label {
-  font-size: var(--fs-13);
-  font-weight: 700;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  color: var(--color-text-subtle, #64748B);
-  padding: 0.875rem 1.125rem 0.5rem;
-}
-
-.sidebar-item {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  height: 2.875rem;
-  margin: 0 0.625rem;
-  padding: 0 0.75rem;
-  border-radius: var(--radius-md);
-  font-size: 1.03125rem; /* 16.5px — no token for 16.5; exact rem literal */
-  font-weight: 500;
-  color: var(--color-text-secondary, #CBD5E1);
-  cursor: pointer;
-  transition: background-color 120ms ease, color 120ms ease;
-  user-select: none;
-}
-.sidebar-item:hover {
-  background-color: var(--color-surface-2, #22272E);
-  color: var(--color-text, #F8FAFC);
-}
-.sidebar-item.is-active {
-  background-color: var(--color-accent-soft, rgba(249,115,22,0.12));
-  color: var(--color-accent-light, #FB923C);
-  font-weight: 600;
-}
+/* .sidebar-section-label — replaced by .sidebar-group-label (see sidebar brand/nav block above) */
+/* .sidebar-item — replaced by new accent-aware .sidebar-item block above */
 
 .sidebar-item-badge {
   margin-left: auto;
@@ -968,8 +1074,9 @@ html.light .sidebar-overlay {
 
   /* ── Sidebar nav items: 44px min touch target ── */
   .sidebar-item {
-    height: 48px;
     min-height: 44px;
+    padding-top: 0.6875rem;
+    padding-bottom: 0.6875rem;
   }
 
   /* ── LanguageToggle button: compact 28px chip ── */
