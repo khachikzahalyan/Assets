@@ -1,13 +1,16 @@
 import type { Asset, AssetReferenceData } from '@/domain/asset'
-import { isAssetStatusId } from '@/domain/asset'
+import { isAssetStatusId, ASSET_STATUS } from '@/domain/asset'
 import type { WorkstationLicense } from '@/domain/license'
 import type { AuditLog } from '@/domain/audit'
 import type { PartMovement } from '@/domain/part/types'
-import type { AssetStats, WorkstationLicenseStats, PeopleStats, AssetGroup, DomainBoxKey, DomainBoxData } from './types'
+import type { AssetStats, WorkstationLicenseStats, PeopleStats, AssetGroup, DomainBoxKey, DomainBoxData, DomainEventKind } from './types'
 import { ASSET_GROUPS, EMPTY_STATUS_COUNTS } from './types'
 
-/** Minimal asset projection needed by reduceAssetStats. Full Asset also satisfies this. */
+/** Minimal asset projection needed by reduceAssetStats. Full Asset also satisfies this.
+ *  invCode/brand/model are optional (Partial) so lean projections stay valid; the
+ *  Firestore adapter carries all three through its existing getDocs map (ноль новых чтений). */
 type AssetForStats = Pick<Asset, 'id' | 'categoryId' | 'statusId' | 'branchId' | 'updatedAt'>
+  & Partial<Pick<Asset, 'invCode' | 'brand' | 'model'>>
 
 export function reduceAssetStats(assets: AssetForStats[], ref: AssetReferenceData, topBranches: number): AssetStats {
   const byStatus = { ...EMPTY_STATUS_COUNTS }
@@ -15,12 +18,25 @@ export function reduceAssetStats(assets: AssetForStats[], ref: AssetReferenceDat
   const branchName = new Map(ref.branches.map(b => [b.id, b.name]))
   const groupCounts = new Map<AssetGroup, number>(ASSET_GROUPS.map(g => [g, 0]))
   const branchCounts = new Map<string, number>()
+  const labelById: Record<string, string> = {}
 
   for (const a of assets) {
     if (isAssetStatusId(a.statusId)) byStatus[a.statusId] += 1
     const g = catGroup.get(a.categoryId)
     if (g) groupCounts.set(g, (groupCounts.get(g) ?? 0) + 1)
     branchCounts.set(a.branchId, (branchCounts.get(a.branchId) ?? 0) + 1)
+
+    // Build first-line label «{invCode} · {brand model}», keyed by asset DOC ID.
+    // The assets-box feed joins on the asset document id (audit entityId /
+    // assignment after.assetId are both ref.id), so the map MUST be id-keyed —
+    // keying by invCode would never match and the label would silently vanish.
+    // Only assets with a non-empty invCode get an entry (invCode is the label's
+    // primary token; label-less assets fall back to the feed's own fallback).
+    const invCode = str(a.invCode)
+    if (invCode) {
+      const bm = [str(a.brand), str(a.model)].filter(Boolean).join(' ')
+      labelById[a.id] = [invCode, bm].filter(Boolean).join(' · ')
+    }
   }
 
   const topB = [...branchCounts.entries()]
@@ -33,6 +49,7 @@ export function reduceAssetStats(assets: AssetForStats[], ref: AssetReferenceDat
     byStatus,
     byGroup: ASSET_GROUPS.map(group => ({ group, count: groupCounts.get(group) ?? 0 })),
     topBranches: topB,
+    labelById,
   }
 }
 
@@ -90,6 +107,46 @@ function str(v: unknown): string {
   return typeof v === 'string' ? v.trim() : ''
 }
 
+/**
+ * Классифицирует audit-запись в тип события ленты бокса «АКТИВЫ» (или null — не в фиде).
+ *
+ * Дизъюнктность путей `asset/status_changed` и `assignment/*` гарантирована на уровне
+ * репозиториев: assign()/returnAsset() пишут ОДИН audit-док и флипают статус в той же
+ * транзакции БЕЗ отдельного status_changed. Магик-линк подтверждения пишет
+ * `receipt_confirmed` (не status_changed) → исключён здесь → второго «выдан» не возникает.
+ *
+ * NB: `receipt_confirmed` не входит в AuditAction-юнион (пишется сервером и приезжает через
+ * cast адаптера). Свитч по строке безопасно возвращает null для любых неизвестных action.
+ */
+export function classifyAssetEvent(l: AuditLog): DomainEventKind | null {
+  const action: string = l.action
+  if (l.entityType === 'asset') {
+    if (action === 'created') return 'created'
+    if (action === 'status_changed') {
+      switch (str(l.after?.statusId)) {
+        case ASSET_STATUS.assigned:
+        case ASSET_STATUS.pending:
+          return 'issued'
+        case ASSET_STATUS.warehouse:
+          return 'returned'
+        case ASSET_STATUS.disposed:
+          return 'disposed'
+        case ASSET_STATUS.repair:
+          return 'repair'
+        default:
+          return null
+      }
+    }
+    return null
+  }
+  if (l.entityType === 'assignment') {
+    if (action === 'assigned') return 'issued'
+    if (action === 'returned') return 'returned'
+    return null
+  }
+  return null
+}
+
 /** Активы: «{brand} {model}» → invCode → entityId. */
 export function assetEventLabel(log: AuditLog): string {
   const a = log.after
@@ -131,6 +188,10 @@ export interface GroupDomainEventsInput {
    *  are filtered to this set. When absent (loadPeopleStats failed), no filtering
    *  is applied — graceful degradation. */
   activeEmployeeIds?: readonly string[]
+  /** assetId → «{invCode} · {brand model}» label map (from AssetStats.labelById).
+   *  Used to enrich the assets-box event first line. Absent → fallback chain in
+   *  groupDomainEvents. Keyed by the join id (asset entityId / assignment after.assetId). */
+  assetLabels?: Record<string, string>
 }
 
 const LIST_ROUTE: Record<Exclude<DomainBoxKey, 'assets'>, string> = {
@@ -140,11 +201,15 @@ const LIST_ROUTE: Record<Exclude<DomainBoxKey, 'assets'>, string> = {
 
 /**
  * Раскладка 7-дневного окна по 6 боксам:
- *   assets: entityType==='asset' && action==='created'
+ *   assets: typed events (classifyAssetEvent !== null) — created/issued/returned/disposed/repair
  *   employees: 'employee'+'created' · branches: 'branch'+'created'
  *   departments: 'department'+'created' · subscriptions: isSubscriptionEvent
  *   parts: partInstalls (уже отфильтрованы адаптером до type==='install')
  * Дельта = все события окна; лента = первые 6 desc; days = bucketByDay(все).
+ *
+ * ИСКЛЮЧЕНИЕ для assets: delta7d и days считаются ТОЛЬКО по «created», чтобы чип
+ * «+N за 7 дней» сохранял смысл прироста (иначе «+» суммировал бы списания/возвраты).
+ * Лента же показывает все 5 типов событий.
  */
 export function groupDomainEvents(input: GroupDomainEventsInput): Record<DomainBoxKey, DomainBoxData> {
   const now = input.now ?? new Date()
@@ -154,8 +219,47 @@ export function groupDomainEvents(input: GroupDomainEventsInput): Record<DomainB
     ? new Set(input.activeEmployeeIds)
     : null
 
+  /** Assets box: typed feed (all 5 kinds), but growth metrics count only 'created'. */
+  function buildAssetsBox(): DomainBoxData {
+    const matched = input.auditLogs
+      .filter(l => classifyAssetEvent(l) !== null)
+      .sort((a, b) => b.at.localeCompare(a.at))
+
+    const events = matched.slice(0, DASHBOARD_EVENTS_PER_BOX).map(l => {
+      const kind = classifyAssetEvent(l)! // non-null: matched was filtered on this
+      // Join id: assignment events carry the assetId in after/before; else it's the entityId.
+      const joinId = l.entityType === 'assignment'
+        ? (str(l.after?.assetId) || str(l.before?.assetId))
+        : l.entityId
+      // primary fallback chain: assetLabels[joinId] → assetEventLabel (asset events only) → joinId → entityId.
+      const labelHit = joinId ? input.assetLabels?.[joinId] : undefined
+      const primary = labelHit
+        || (l.entityType === 'asset' ? assetEventLabel(l) : '')
+        || joinId
+        || l.entityId
+      return {
+        id: l.id,
+        primary,
+        secondary: l.actorName?.trim() || null,
+        at: l.at,
+        linkTo: joinId ? `/assets/${joinId}` : '/assets',
+        kind, // present on every assets-box event
+      }
+    })
+
+    // Growth semantics: delta7d / days derived from 'created' events only.
+    const created = matched.filter(l => l.entityType === 'asset' && l.action === 'created')
+    return {
+      key: 'assets',
+      delta7d: created.length,
+      days: bucketByDay(created.map(l => l.at), now),
+      events,
+    }
+  }
+
+  // assets is built by buildAssetsBox() (typed feed); fromAudit serves the other 4 audit boxes.
   function fromAudit(
-    key: Exclude<DomainBoxKey, 'parts'>,
+    key: Exclude<DomainBoxKey, 'parts' | 'assets'>,
     match: (l: AuditLog) => boolean,
     label: (l: AuditLog) => string,
   ): DomainBoxData {
@@ -165,7 +269,7 @@ export function groupDomainEvents(input: GroupDomainEventsInput): Record<DomainB
       primary: label(l),
       secondary: l.actorName?.trim() || null,
       at: l.at,
-      linkTo: key === 'assets' ? `/assets/${l.entityId}` : LIST_ROUTE[key],
+      linkTo: LIST_ROUTE[key],
     }))
     return { key, delta7d: matched.length, days: bucketByDay(matched.map(l => l.at), now), events }
   }
@@ -185,7 +289,7 @@ export function groupDomainEvents(input: GroupDomainEventsInput): Record<DomainB
   }
 
   return {
-    assets: fromAudit('assets', l => l.entityType === 'asset' && l.action === 'created', assetEventLabel),
+    assets: buildAssetsBox(),
     employees: fromAudit(
       'employees',
       l => l.entityType === 'employee' && l.action === 'created'

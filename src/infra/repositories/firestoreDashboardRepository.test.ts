@@ -79,9 +79,9 @@ const fakeDb = {} as Firestore
 // ---------------------------------------------------------------------------
 
 const assetDocs = [
-  { id: 'a_1', data: { categoryId: 'cat_laptop', statusId: 'st_assigned',  branchId: 'br_1' } },
+  { id: 'a_1', data: { categoryId: 'cat_laptop', statusId: 'st_assigned',  branchId: 'br_1', invCode: 'INV/001', brand: 'Dell',  model: 'XPS 15' } },
   { id: 'a_2', data: { categoryId: 'cat_laptop', statusId: 'st_warehouse', branchId: 'br_1' } },
-  { id: 'a_3', data: { categoryId: 'cat_router', statusId: 'st_repair',    branchId: 'br_2' } },
+  { id: 'a_3', data: { categoryId: 'cat_router', statusId: 'st_repair',    branchId: 'br_2', invCode: 'INV/003', brand: 'Cisco', model: null } },
   { id: 'a_4', data: { categoryId: 'cat_desk',   statusId: 'st_disposed',  branchId: 'br_2' } },
 ]
 
@@ -382,6 +382,27 @@ describe('FirestoreDashboardRepository', () => {
         { branchId: 'br_1', name: 'HQ',   count: 2 },
         { branchId: 'br_2', name: 'West', count: 2 },
       ])
+    })
+
+    it('populates labelById from invCode/brand/model; docs without invCode contribute no entry', async () => {
+      // Same single getDocs call — no new reads added.
+      mockGetDocs
+        .mockResolvedValueOnce(makeSnap(assetDocs))    // assets
+        .mockResolvedValueOnce(makeSnap(branchDocs))   // branches
+        .mockResolvedValueOnce(makeSnap(categoryDocs)) // categories
+
+      const repo = new FirestoreDashboardRepository(fakeDb)
+      const s = await repo.loadAssetStats(5)
+
+      // labelById is keyed by asset DOC ID (the feed's join key), value carries invCode.
+      // a_1: invCode='INV/001', brand='Dell', model='XPS 15'  → 'INV/001 · Dell XPS 15'
+      expect(s.labelById['a_1']).toBe('INV/001 · Dell XPS 15')
+      // a_3: invCode='INV/003', brand='Cisco', model=null      → brand only, no trailing space
+      expect(s.labelById['a_3']).toBe('INV/003 · Cisco')
+      // a_2, a_4: no invCode field → no entry in labelById
+      expect(Object.keys(s.labelById)).toHaveLength(2)
+      // confirm getDocs was called exactly 3 times (assets + branches + categories) — zero new reads
+      expect(mockGetDocs).toHaveBeenCalledTimes(3)
     })
   })
 

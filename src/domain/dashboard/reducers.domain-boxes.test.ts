@@ -19,10 +19,12 @@ import {
   namedEntityEventLabel,
   partInstallLabel,
   isSubscriptionEvent,
+  classifyAssetEvent,
   DASHBOARD_EVENTS_PER_BOX,
   reducePeopleStats,
 } from './reducers'
 import type { EmployeeForStats } from './reducers'
+import { ASSET_STATUS } from '@/domain/asset'
 
 // ─── Fixed reference point ────────────────────────────────────────────────────
 // 2026-07-31 noon local.  Buckets: [25th, 26th, 27th, 28th, 29th, 30th, 31st]
@@ -535,11 +537,18 @@ describe('groupDomainEvents', () => {
       expect(result.branches.delta7d).toBe(0)
     })
 
-    it('assignment created event does NOT land in any box', () => {
-      const log = makeLog({ id: 'nc4', entityType: 'assignment', action: 'assigned', entityId: 'asgn-1', after: {} })
+    it('assignment assigned event does NOT increment assets delta7d (growth = created only) but appears in the feed', () => {
+      // assignment/assigned now classifies as 'issued' and shows in the assets feed,
+      // but delta7d counts only 'created' events — so the growth metric stays 0.
+      const log = makeLog({ id: 'nc4', entityType: 'assignment', action: 'assigned', entityId: 'asgn-1', after: { assetId: 'asset-9' } })
       const result = groupDomainEvents({ auditLogs: [log], partInstalls: [], partNames: {}, now: NOW })
-      const total = Object.values(result).reduce((sum, box) => sum + box.delta7d, 0)
-      expect(total).toBe(0)
+      expect(result.assets.delta7d).toBe(0)                 // growth semantic: created only
+      expect(result.assets.events).toHaveLength(1)          // but it IS in the feed
+      expect(result.assets.events[0]?.kind).toBe('issued')
+      // no OTHER box receives it
+      const nonAssetTotal = (['employees', 'parts', 'subscriptions', 'branches', 'departments'] as const)
+        .reduce((sum, k) => sum + result[k].delta7d, 0)
+      expect(nonAssetTotal).toBe(0)
     })
   })
 })
@@ -655,5 +664,203 @@ describe('groupDomainEvents — activeEmployeeIds whitelist', () => {
     })
     expect(result.assets.delta7d).toBe(1)
     expect(result.employees.delta7d).toBe(1)
+  })
+})
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// classifyAssetEvent — typed asset events for the «АКТИВЫ» feed
+// ═══════════════════════════════════════════════════════════════════════════════
+
+describe('classifyAssetEvent', () => {
+  it('asset + created → "created"', () => {
+    const log = makeLog({ entityType: 'asset', action: 'created', after: { invCode: 'LAP/00001' } })
+    expect(classifyAssetEvent(log)).toBe('created')
+  })
+
+  it('asset + status_changed → st_assigned → "issued"', () => {
+    const log = makeLog({ entityType: 'asset', action: 'status_changed', after: { statusId: ASSET_STATUS.assigned } })
+    expect(classifyAssetEvent(log)).toBe('issued')
+  })
+
+  it('asset + status_changed → st_pending → "issued"', () => {
+    const log = makeLog({ entityType: 'asset', action: 'status_changed', after: { statusId: ASSET_STATUS.pending } })
+    expect(classifyAssetEvent(log)).toBe('issued')
+  })
+
+  it('asset + status_changed → st_warehouse → "returned"', () => {
+    const log = makeLog({ entityType: 'asset', action: 'status_changed', after: { statusId: ASSET_STATUS.warehouse } })
+    expect(classifyAssetEvent(log)).toBe('returned')
+  })
+
+  it('asset + status_changed → st_disposed → "disposed"', () => {
+    const log = makeLog({ entityType: 'asset', action: 'status_changed', after: { statusId: ASSET_STATUS.disposed } })
+    expect(classifyAssetEvent(log)).toBe('disposed')
+  })
+
+  it('asset + status_changed → st_repair → "repair"', () => {
+    const log = makeLog({ entityType: 'asset', action: 'status_changed', after: { statusId: ASSET_STATUS.repair } })
+    expect(classifyAssetEvent(log)).toBe('repair')
+  })
+
+  it('assignment + assigned → "issued"', () => {
+    const log = makeLog({ entityType: 'assignment', action: 'assigned', after: { assetId: 'asset-1' } })
+    expect(classifyAssetEvent(log)).toBe('issued')
+  })
+
+  it('assignment + returned → "returned"', () => {
+    const log = makeLog({ entityType: 'assignment', action: 'returned', after: { assetId: 'asset-1' } })
+    expect(classifyAssetEvent(log)).toBe('returned')
+  })
+
+  it('asset + updated → null (not in feed)', () => {
+    const log = makeLog({ entityType: 'asset', action: 'updated', after: { brand: 'Dell' } })
+    expect(classifyAssetEvent(log)).toBeNull()
+  })
+
+  it('asset + receipt_confirmed (server-written, not in AuditAction union) → null', () => {
+    // receipt_confirmed arrives via adapter cast; the classifier must guard unknown actions.
+    const log = makeLog({ entityType: 'asset', action: 'receipt_confirmed' as unknown as AuditLog['action'], after: {} })
+    expect(classifyAssetEvent(log)).toBeNull()
+  })
+
+  it('asset + status_changed with unknown after.statusId → null', () => {
+    const log = makeLog({ entityType: 'asset', action: 'status_changed', after: { statusId: 'st_future_unknown' } })
+    expect(classifyAssetEvent(log)).toBeNull()
+  })
+
+  it('asset + status_changed with missing after → null', () => {
+    const log = makeLog({ entityType: 'asset', action: 'status_changed', after: null })
+    expect(classifyAssetEvent(log)).toBeNull()
+  })
+})
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// groupDomainEvents — assets box typed feed
+// ═══════════════════════════════════════════════════════════════════════════════
+
+describe('groupDomainEvents — assets typed feed', () => {
+  it('no issuance duplicate: pending transfer + receipt_confirmed for same asset → exactly one "issued"', () => {
+    // Physical event = one hand-off. status_changed→st_pending writes the «выдан».
+    // The subsequent magic-link click writes receipt_confirmed (excluded) — no second issued.
+    const transfer = makeLog({
+      id: 'tr1', entityType: 'asset', action: 'status_changed', entityId: 'asset-42',
+      at: localIso(2026, 7, 31, 10), after: { statusId: ASSET_STATUS.pending },
+    })
+    const confirm = makeLog({
+      id: 'cf1', entityType: 'asset', action: 'receipt_confirmed' as unknown as AuditLog['action'],
+      entityId: 'asset-42', at: localIso(2026, 7, 31, 11), after: {},
+    })
+    const result = groupDomainEvents({ auditLogs: [transfer, confirm], partInstalls: [], partNames: {}, now: NOW })
+    const issued = result.assets.events.filter(e => e.kind === 'issued')
+    expect(issued).toHaveLength(1)
+    expect(result.assets.events).toHaveLength(1)
+  })
+
+  it('assignment assigned: kind "issued", joins by after.assetId, primary from assetLabels, linkTo /assets/<assetId>', () => {
+    const log = makeLog({
+      id: 'as1', entityType: 'assignment', action: 'assigned', entityId: 'asgn-1',
+      at: localIso(2026, 7, 31), after: { assetId: 'asset-xyz', mode: 'employee' },
+    })
+    const result = groupDomainEvents({
+      auditLogs: [log], partInstalls: [], partNames: {}, now: NOW,
+      assetLabels: { 'asset-xyz': 'LAP/00007 · Dell XPS 13' },
+    })
+    const ev = result.assets.events[0]
+    expect(ev?.kind).toBe('issued')
+    expect(ev?.primary).toBe('LAP/00007 · Dell XPS 13')
+    expect(ev?.linkTo).toBe('/assets/asset-xyz')
+  })
+
+  it('assignment returned: kind "returned", joins by after.assetId', () => {
+    const log = makeLog({
+      id: 'ret1', entityType: 'assignment', action: 'returned', entityId: 'asgn-2',
+      at: localIso(2026, 7, 31), after: { assetId: 'asset-ret', endedAt: localIso(2026, 7, 31) },
+    })
+    const result = groupDomainEvents({ auditLogs: [log], partInstalls: [], partNames: {}, now: NOW })
+    const ev = result.assets.events[0]
+    expect(ev?.kind).toBe('returned')
+    expect(ev?.linkTo).toBe('/assets/asset-ret')
+  })
+
+  it('delta7d/days count only created; feed carries all typed events with correct kinds', () => {
+    const created = makeLog({
+      id: 'c1', entityType: 'asset', action: 'created', entityId: 'a-created',
+      at: localIso(2026, 7, 31, 9), after: { invCode: 'LAP/00001' },
+    })
+    const issued = makeLog({
+      id: 'i1', entityType: 'asset', action: 'status_changed', entityId: 'a-issued',
+      at: localIso(2026, 7, 31, 8), after: { statusId: ASSET_STATUS.assigned },
+    })
+    const disposed = makeLog({
+      id: 'd1', entityType: 'asset', action: 'status_changed', entityId: 'a-disposed',
+      at: localIso(2026, 7, 31, 7), after: { statusId: ASSET_STATUS.disposed },
+    })
+    const repair = makeLog({
+      id: 'r1', entityType: 'asset', action: 'status_changed', entityId: 'a-repair',
+      at: localIso(2026, 7, 31, 6), after: { statusId: ASSET_STATUS.repair },
+    })
+    const result = groupDomainEvents({
+      auditLogs: [created, issued, disposed, repair], partInstalls: [], partNames: {}, now: NOW,
+    })
+    // Growth metric: only the created event.
+    expect(result.assets.delta7d).toBe(1)
+    expect(result.assets.days.reduce((s, n) => s + n, 0)).toBe(1)
+    // Feed: all four, sorted desc by at.
+    expect(result.assets.events).toHaveLength(4)
+    const kindsInOrder = result.assets.events.map(e => e.kind)
+    expect(kindsInOrder).toEqual(['created', 'issued', 'disposed', 'repair'])
+  })
+
+  it('assetLabels miss on created event → falls back to invCode from after (assetEventLabel)', () => {
+    const log = makeLog({
+      id: 'm1', entityType: 'asset', action: 'created', entityId: 'a-nolabel',
+      at: localIso(2026, 7, 31), after: { invCode: 'LAP/00099' },
+    })
+    const result = groupDomainEvents({ auditLogs: [log], partInstalls: [], partNames: {}, now: NOW })
+    expect(result.assets.events[0]?.primary).toBe('LAP/00099')
+    expect(result.assets.events[0]?.linkTo).toBe('/assets/a-nolabel')
+  })
+
+  it('assetLabels miss on assignment event → falls back to the after.assetId string', () => {
+    const log = makeLog({
+      id: 'm2', entityType: 'assignment', action: 'assigned', entityId: 'asgn-9',
+      at: localIso(2026, 7, 31), after: { assetId: 'asset-fallback' },
+    })
+    const result = groupDomainEvents({ auditLogs: [log], partInstalls: [], partNames: {}, now: NOW })
+    // No label, assignment event → assetEventLabel not used → falls back to joinId (assetId).
+    expect(result.assets.events[0]?.primary).toBe('asset-fallback')
+    expect(result.assets.events[0]?.linkTo).toBe('/assets/asset-fallback')
+  })
+
+  it('assetLabels hit takes precedence over assetEventLabel for a created event', () => {
+    const log = makeLog({
+      id: 'h1', entityType: 'asset', action: 'created', entityId: 'LAP/00001',
+      at: localIso(2026, 7, 31), after: { invCode: 'LAP/00001', brand: 'Dell', model: 'XPS' },
+    })
+    const result = groupDomainEvents({
+      auditLogs: [log], partInstalls: [], partNames: {}, now: NOW,
+      assetLabels: { 'LAP/00001': 'LAP/00001 · Dell XPS 13' },
+    })
+    expect(result.assets.events[0]?.primary).toBe('LAP/00001 · Dell XPS 13')
+  })
+
+  it('regression: employees/branches/departments/subscriptions events carry NO kind property', () => {
+    const emp = makeLog({ id: 'reg-e', entityType: 'employee', action: 'created', entityId: 'e1', after: { lastName: 'A', firstName: 'B' } })
+    const br = makeLog({ id: 'reg-b', entityType: 'branch', action: 'created', entityId: 'b1', after: { name: 'HQ' } })
+    const dep = makeLog({ id: 'reg-d', entityType: 'department', action: 'created', entityId: 'd1', after: { name: 'IT' } })
+    const sub = makeLog({ id: 'reg-s', entityType: 'license', action: 'created', entityId: 's1', after: { type: 'Subscription', name: 'M365' } })
+    const result = groupDomainEvents({ auditLogs: [emp, br, dep, sub], partInstalls: [], partNames: {}, now: NOW })
+    for (const box of ['employees', 'branches', 'departments', 'subscriptions'] as const) {
+      for (const ev of result[box].events) {
+        expect('kind' in ev).toBe(false)
+      }
+    }
+  })
+
+  it('regression: subscriptions/parts boxes still function (delta7d unaffected by asset typing)', () => {
+    const mv = makeMovement({ id: 'reg-mv', skuId: 'sku-a', qty: 1, assetInvCode: null })
+    const result = groupDomainEvents({ auditLogs: [], partInstalls: [mv], partNames: {}, now: NOW })
+    expect(result.parts.delta7d).toBe(1)
+    expect('kind' in (result.parts.events[0] ?? {})).toBe(false)
   })
 })

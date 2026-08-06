@@ -83,6 +83,7 @@ export function useDashboard(repo: DashboardRepository, role: Role): UseDashboar
           partInstalls: installs.status === 'fulfilled' ? installs.value : [],
           partNames: countsRes.status === 'fulfilled' ? countsRes.value.partNames : {},
           ...(people.status === 'fulfilled' ? { activeEmployeeIds: people.value.activeEmployeeIds } : {}),
+          ...(assets.status === 'fulfilled' ? { assetLabels: assets.value.labelById } : {}),
         })
       } else {
         anyError = true

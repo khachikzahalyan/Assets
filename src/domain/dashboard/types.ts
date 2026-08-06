@@ -12,6 +12,11 @@ export interface AssetStats {
   byStatus: Record<AssetStatusId, number>
   byGroup: GroupCount[]
   topBranches: BranchCount[]
+  /** assetId → «{invCode} · {brand model}» display label. Built by reduceAssetStats
+   *  from the already-loaded assets collection (ноль новых чтений). Keyed by asset
+   *  DOC ID so the assets-box event first-line join (which uses entityId /
+   *  after.assetId) matches. Only assets with a non-empty invCode appear. */
+  labelById: Record<string, string>
 }
 
 export interface WorkstationLicenseStats {
@@ -46,6 +51,7 @@ export function emptyAssetStats(): AssetStats {
     byStatus: { ...EMPTY_STATUS_COUNTS },
     byGroup: ASSET_GROUPS.map(group => ({ group, count: 0 })),
     topBranches: [],
+    labelById: {},
   }
 }
 
@@ -57,6 +63,13 @@ export const DOMAIN_BOX_KEYS: readonly DomainBoxKey[] = [
   'assets', 'employees', 'parts', 'subscriptions', 'branches', 'departments',
 ]
 
+/**
+ * Тип физического события актива, отображаемого в ленте бокса «АКТИВЫ».
+ * Устанавливается ТОЛЬКО на событиях assets-бокса (см. classifyAssetEvent).
+ * Остальные 5 боксов kind не имеют.
+ */
+export type DomainEventKind = 'created' | 'issued' | 'returned' | 'disposed' | 'repair'
+
 /** Одна строка ленты бокса. */
 export interface DomainEventVM {
   id: string                  // auditId | movementId
@@ -64,6 +77,8 @@ export interface DomainEventVM {
   secondary: string | null    // actorName (у part_movements всегда null)
   at: string                  // ISO
   linkTo?: string             // маршрут; страница убирает при отсутствии canAccess
+  /** Только события assets-бокса. Управляет цветом буллета и меткой типа в UI. */
+  kind?: DomainEventKind
 }
 
 export interface DomainBoxData {

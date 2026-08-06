@@ -266,7 +266,11 @@ describe('DashboardPage domain boxes', () => {
     )
     const boxes = Array.from(
       document.querySelectorAll('[data-testid^="domain-box-"]'),
-    ).map(el => el.getAttribute('data-testid')!.replace('domain-box-', ''))
+    )
+      .map(el => el.getAttribute('data-testid')!.replace('domain-box-', ''))
+      // Exclude the assets-box exception chip row (domain-box-alerts) which
+      // shares the domain-box- prefix but is not one of the six domain boxes.
+      .filter(key => (EXPECTED_ORDER as string[]).includes(key))
     expect(boxes).toEqual(EXPECTED_ORDER)
   })
 
@@ -378,5 +382,53 @@ describe('DashboardPage written-off tile', () => {
     )
     // Disposed assets are included in the grand total (5 assets total)
     expect(within(screen.getByTestId('section-total-assets')).getByText('5')).toBeInTheDocument()
+  })
+})
+
+// ── Assets-box exception chips (alerts row) ───────────────────────────────────
+
+describe('DashboardPage assets-box alerts', () => {
+  it('renders the alerts row inside domain-box-assets with both labels when st_pending>0 and st_repair>0', async () => {
+    // Seed 2 pending + 1 repair (a_3 in default seed is st_repair; add two pending).
+    const repo = new InMemoryDashboardRepository({
+      assets: [
+        makeAsset('a_1', 'st_assigned',  'cat_laptop', 'br_1'),
+        makeAsset('a_2', 'st_pending',   'cat_laptop', 'br_1'),
+        makeAsset('a_3', 'st_pending',   'cat_router', 'br_2'),
+        makeAsset('a_4', 'st_repair',    'cat_desk',   'br_2'),
+      ],
+      ref,
+      workstationLicenses: [],
+      employees: employees42,
+      auditLogs: [],
+    })
+
+    renderPage('super_admin', repo)
+
+    const assetsBox = await screen.findByTestId('domain-box-assets')
+    const alertsRow = within(assetsBox).getByTestId('domain-box-alerts')
+    // ru: «Ожидают подтверждения: 2» / «В ремонте: 1»
+    expect(within(alertsRow).getByText('Ожидают подтверждения: 2')).toBeInTheDocument()
+    expect(within(alertsRow).getByText('В ремонте: 1')).toBeInTheDocument()
+  })
+
+  it('does NOT render the alerts row when both st_pending and st_repair are 0', async () => {
+    // Default seed: a_3 is st_repair — replace it so both counts are 0.
+    const repo = new InMemoryDashboardRepository({
+      assets: [
+        makeAsset('a_1', 'st_assigned',  'cat_laptop', 'br_1'),
+        makeAsset('a_2', 'st_warehouse', 'cat_laptop', 'br_1'),
+        makeAsset('a_4', 'st_disposed',  'cat_desk',   'br_2'),
+      ],
+      ref,
+      workstationLicenses: [],
+      employees: employees42,
+      auditLogs: [],
+    })
+
+    renderPage('super_admin', repo)
+
+    const assetsBox = await screen.findByTestId('domain-box-assets')
+    expect(within(assetsBox).queryByTestId('domain-box-alerts')).toBeNull()
   })
 })

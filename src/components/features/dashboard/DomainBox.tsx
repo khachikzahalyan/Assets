@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@/components/ui/icon'
 import { cn } from '@/lib/utils'
-import type { DomainEventVM } from '@/domain/dashboard'
+import type { DomainEventVM, DomainEventKind } from '@/domain/dashboard'
 import { relativeTime } from './relativeTime'
 
 /**
@@ -53,6 +53,14 @@ const LINK_TONE_CLASSES: Record<string, string> = {
   rose:   'text-rose-300 light:text-rose-700',
 }
 
+/** A compact chip in the standard-variant exception row (assets box only). */
+export interface DomainBoxAlert {
+  id: string
+  label: string
+  chipClass: string
+  to?: string
+}
+
 export interface DomainBoxProps {
   icon: string
   /** Color tone key — drives bare icon color, link color, bullet dot color. */
@@ -79,6 +87,12 @@ export interface DomainBoxProps {
   fillHeight?: boolean
   variant?: DomainBoxVariant
   testId?: string
+  /**
+   * Exception chips rendered between the header and the feed (standard variant
+   * only). When non-empty the feed slices to 3 rows instead of 4. Used by the
+   * АКТИВЫ box for «awaiting confirmation» / «in repair» counts.
+   */
+  alerts?: DomainBoxAlert[]
 }
 
 // Shared card base classes for standard + parts + slim.
@@ -86,6 +100,15 @@ export interface DomainBoxProps {
 // visible in light mode; hover mirrors the row-1 KPI cards (owner request:
 // every dashboard block gets a border + hover highlight).
 const CARD_BASE = 'bg-surface border border-border rounded-[1.125rem] overflow-hidden transition-colors duration-150 hover:border-text-tertiary/40'
+
+// Per-kind bullet-dot colour override for the АКТИВЫ feed. 'created' is
+// intentionally absent → falls back to the box tone (barClass / accent).
+const EVENT_KIND_DOT: Partial<Record<DomainEventKind, string>> = {
+  issued:   'bg-emerald-400/70',
+  returned: 'bg-sky-400/70',
+  disposed: 'bg-rose-400/70',
+  repair:   'bg-amber-400/70',
+}
 
 // Bullet dot for feed rows — uses a Tailwind bg class derived from the box tone.
 function BulletDot({ barClass }: { barClass: string }) {
@@ -114,6 +137,7 @@ export function DomainBox({
   fillHeight = false,
   variant = 'standard',
   testId,
+  alerts,
 }: DomainBoxProps) {
   const { t } = useTranslation('dashboard')
 
@@ -299,16 +323,20 @@ export function DomainBox({
 
                   const rowContent = (
                     <div
-                      className="flex items-start"
+                      // items-center — the dot and the time sit at the VERTICAL
+                      // middle of the two-line block (mockup), not at its top.
+                      className="flex items-center"
                       style={{
-                        gap: '0.625rem',
+                        gap: '0.75rem',
                         paddingTop: '0.8125rem',
                         paddingBottom: '0.8125rem',
+                        paddingLeft: '0.375rem',
+                        paddingRight: '0.375rem',
                         // border-top on all except first
                         ...(idx > 0 ? { borderTop: '1px solid rgb(255 255 255 / 0.04)' } : {}),
                       }}
                     >
-                      <BulletDot barClass={barClass} />
+                      <BulletDot barClass={(ev.kind && EVENT_KIND_DOT[ev.kind]) || barClass} />
                       <div className="flex-1 min-w-0">
                         <div
                           className="text-text-primary truncate leading-snug font-semibold"
@@ -327,7 +355,7 @@ export function DomainBox({
                       </div>
                       <span
                         className="text-text-subtle tabular-nums flex-shrink-0"
-                        style={{ fontSize: '0.78125rem', marginTop: '0.125rem' }}
+                        style={{ fontSize: '0.78125rem' }}
                       >
                         {relativeTime(ev.at, t)}
                       </span>
@@ -433,10 +461,45 @@ export function DomainBox({
           )}
         </div>
 
+        {/* Exception chip row (assets box): between header and feed. */}
+        {alerts && alerts.length > 0 && (
+          <div
+            data-testid="domain-box-alerts"
+            className="flex flex-wrap flex-shrink-0"
+            style={{ padding: '0 1.625rem', marginTop: '1.125rem', marginBottom: '0.5rem', gap: '0.5rem' }}
+          >
+            {alerts.map((alert) => {
+              const chip = (
+                <span
+                  className={cn(
+                    'inline-flex items-center rounded-full font-medium tabular-nums',
+                    alert.chipClass,
+                  )}
+                  style={{ fontSize: '0.75rem', paddingTop: '0.1875rem', paddingBottom: '0.1875rem', paddingLeft: '0.5625rem', paddingRight: '0.5625rem' }}
+                >
+                  {alert.label}
+                </span>
+              )
+              if (alert.to !== undefined) {
+                return (
+                  <Link
+                    key={alert.id}
+                    to={alert.to}
+                    className="rounded-full hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent"
+                  >
+                    {chip}
+                  </Link>
+                )
+              }
+              return <span key={alert.id}>{chip}</span>
+            })}
+          </div>
+        )}
+
         {/* Body */}
         <div
           className={cn('flex flex-col', fillHeight ? 'flex-1 min-h-0' : '')}
-          style={{ padding: '0 1.625rem 1.5rem', marginTop: '1.125rem' }}
+          style={{ padding: '0 1.625rem 1.5rem', marginTop: alerts && alerts.length > 0 ? '0' : '1.125rem' }}
         >
           {events.length === 0 ? (
             /* Empty state: centered, circle 36px border white/10 */
@@ -450,15 +513,19 @@ export function DomainBox({
               <span className="text-13 text-text-subtle">{emptyLabel}</span>
             </div>
           ) : (
-            /* Feed: 4 rows, py 13px px 6px, border-bottom white/4% */
+            /* Feed: 4 rows (3 when alerts present), py 13px px 6px, border-bottom white/4% */
+            (() => {
+              const feedCount = alerts && alerts.length > 0 ? 3 : 4
+              const lastIdx = Math.min(feedCount - 1, events.length - 1)
+              return (
             <div className={cn('flex flex-col', fillHeight && 'flex-1 min-h-0 overflow-hidden')}>
-              {events.slice(0, 4).map((ev, idx) => {
-                const isLast = idx === Math.min(3, events.length - 1)
+              {events.slice(0, feedCount).map((ev, idx) => {
+                const isLast = idx === lastIdx
                 const rowContent = (
                   <div
                     className="flex items-center"
                     style={{
-                      gap: '0.625rem',
+                      gap: '0.75rem',
                       paddingTop: '0.8125rem',
                       paddingBottom: '0.8125rem',
                       paddingLeft: '0.375rem',
@@ -466,7 +533,7 @@ export function DomainBox({
                       ...(!isLast ? { borderBottom: '1px solid rgb(255 255 255 / 0.04)' } : {}),
                     }}
                   >
-                    <BulletDot barClass={barClass} />
+                    <BulletDot barClass={(ev.kind && EVENT_KIND_DOT[ev.kind]) || barClass} />
                     <div className="flex-1 min-w-0">
                       <div
                         className="text-text-primary truncate leading-snug font-semibold"
@@ -474,13 +541,22 @@ export function DomainBox({
                       >
                         {ev.primary}
                       </div>
-                      {ev.secondary !== null && (
+                      {ev.kind ? (
                         <div
                           className="text-text-subtle truncate"
                           style={{ fontSize: '0.78125rem', marginTop: '0.125rem' }}
                         >
-                          {ev.secondary}
+                          {[t('boxes.events.' + ev.kind), ev.secondary].filter(Boolean).join(' · ')}
                         </div>
+                      ) : (
+                        ev.secondary !== null && (
+                          <div
+                            className="text-text-subtle truncate"
+                            style={{ fontSize: '0.78125rem', marginTop: '0.125rem' }}
+                          >
+                            {ev.secondary}
+                          </div>
+                        )
                       )}
                     </div>
                     <span
@@ -506,6 +582,8 @@ export function DomainBox({
                 return <div key={ev.id}>{rowContent}</div>
               })}
             </div>
+              )
+            })()
           )}
 
           {/* Footer: Row 4 boxes only (no headerLink), mt 14px, tone link */}

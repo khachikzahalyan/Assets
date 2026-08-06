@@ -38,6 +38,9 @@ export class FirestoreDashboardRepository implements DashboardRepository {
         statusId: String(x.statusId ?? ''),
         branchId: String(x.branchId ?? ''),
         updatedAt: toIso(x.updatedAt),
+        invCode: String(x.invCode ?? ''),
+        brand: (x.brand as string | null) ?? null,
+        model: (x.model as string | null) ?? null,
       }
     })
     return reduceAssetStats(assets, ref, topBranches)

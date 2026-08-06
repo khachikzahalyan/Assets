@@ -12,18 +12,27 @@ import type { Asset } from '@/domain/asset'
 import type { AssetReferenceData } from '@/domain/asset'
 import { ASSET_STATUS } from '@/domain/asset'
 import { reduceAssetStats } from './reducers'
+import { emptyAssetStats } from './types'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 type AssetForStats = Pick<Asset, 'id' | 'categoryId' | 'statusId' | 'branchId' | 'updatedAt'>
+  & Partial<Pick<Asset, 'invCode' | 'brand' | 'model'>>
 
-function makeAsset(id: string, statusId: string, opts: { categoryId?: string; branchId?: string } = {}): AssetForStats {
+function makeAsset(
+  id: string,
+  statusId: string,
+  opts: { categoryId?: string; branchId?: string; invCode?: string; brand?: string | null; model?: string | null } = {},
+): AssetForStats {
   return {
     id,
     categoryId: opts.categoryId ?? 'cat_laptop',
     statusId,
     branchId: opts.branchId ?? 'br_1',
     updatedAt: '2026-06-01T00:00:00.000Z',
+    ...(opts.invCode !== undefined ? { invCode: opts.invCode } : {}),
+    ...(opts.brand !== undefined ? { brand: opts.brand } : {}),
+    ...(opts.model !== undefined ? { model: opts.model } : {}),
   }
 }
 
@@ -227,5 +236,75 @@ describe('reduceAssetStats — topBranches', () => {
 
     // Assert
     expect(stats.topBranches).toHaveLength(1)
+  })
+})
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// reduceAssetStats — labelById (assets-box first-line join map)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+describe('reduceAssetStats — labelById', () => {
+  it('composes «INV · Brand Model» when invCode + brand + model present (keyed by asset id)', () => {
+    const assets: AssetForStats[] = [
+      makeAsset('a1', ASSET_STATUS.assigned, { invCode: 'LAP/00001', brand: 'Dell', model: 'XPS 13' }),
+    ]
+    const stats = reduceAssetStats(assets, EMPTY_REF, 5)
+    expect(stats.labelById['a1']).toBe('LAP/00001 · Dell XPS 13')
+  })
+
+  it('invCode-only asset → label is just the invCode (no separator)', () => {
+    const assets: AssetForStats[] = [
+      makeAsset('a1', ASSET_STATUS.warehouse, { invCode: 'DT/00099', brand: null, model: null }),
+    ]
+    const stats = reduceAssetStats(assets, EMPTY_REF, 5)
+    expect(stats.labelById['a1']).toBe('DT/00099')
+  })
+
+  it('invCode + brand only (model absent) → «INV · Brand»', () => {
+    const assets: AssetForStats[] = [
+      makeAsset('a1', ASSET_STATUS.warehouse, { invCode: 'MON/00003', brand: 'LG', model: null }),
+    ]
+    const stats = reduceAssetStats(assets, EMPTY_REF, 5)
+    expect(stats.labelById['a1']).toBe('MON/00003 · LG')
+  })
+
+  it('asset without invCode gets NO entry', () => {
+    const assets: AssetForStats[] = [
+      makeAsset('a1', ASSET_STATUS.assigned, { brand: 'Dell', model: 'XPS' }),
+    ]
+    const stats = reduceAssetStats(assets, EMPTY_REF, 5)
+    expect(Object.keys(stats.labelById)).toHaveLength(0)
+  })
+
+  it('asset with blank/whitespace invCode gets NO entry', () => {
+    const assets: AssetForStats[] = [
+      makeAsset('a1', ASSET_STATUS.assigned, { invCode: '   ', brand: 'Dell', model: 'XPS' }),
+    ]
+    const stats = reduceAssetStats(assets, EMPTY_REF, 5)
+    expect(Object.keys(stats.labelById)).toHaveLength(0)
+  })
+
+  it('builds entries for multiple assets keyed by asset id', () => {
+    const assets: AssetForStats[] = [
+      makeAsset('a1', ASSET_STATUS.assigned, { invCode: 'LAP/00001', brand: 'Dell', model: 'XPS' }),
+      makeAsset('a2', ASSET_STATUS.warehouse, { invCode: 'DT/00002' }),
+    ]
+    const stats = reduceAssetStats(assets, EMPTY_REF, 5)
+    expect(stats.labelById).toEqual({
+      a1: 'LAP/00001 · Dell XPS',
+      a2: 'DT/00002',
+    })
+  })
+
+  it('lean projection without invCode/brand/model fields → empty labelById (no crash)', () => {
+    const assets: AssetForStats[] = [
+      { id: 'a1', categoryId: 'cat_laptop', statusId: ASSET_STATUS.assigned, branchId: 'br_1', updatedAt: '2026-06-01T00:00:00.000Z' },
+    ]
+    const stats = reduceAssetStats(assets, EMPTY_REF, 5)
+    expect(stats.labelById).toEqual({})
+  })
+
+  it('emptyAssetStats().labelById is {}', () => {
+    expect(emptyAssetStats().labelById).toEqual({})
   })
 })

@@ -12,6 +12,8 @@
     "subscriptions": { "title": "Subscriptions", "viewAll": "All subscriptions" },
     "branches":      { "title": "Branches",      "viewAll": "All branches" },
     "departments":   { "title": "Departments",   "viewAll": "All departments" },
+    "events": { "created": "Created", "issued": "Issued", "returned": "Returned", "disposed": "Disposed", "repair": "Repair" },
+    "alerts": { "pending": "Awaiting confirmation: {{n}}", "repair": "In repair: {{n}}" },
     "delta7d": "+{{n}} in 7 days",
     "delta7dShort": "+{{n}} in 7d",
     "empty": "No events in the last 7 days",

@@ -9,7 +9,7 @@
  */
 
 import { describe, it, expect, beforeAll, afterEach } from 'vitest'
-import { render, screen, act } from '@testing-library/react'
+import { render, screen, act, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { I18nextProvider } from 'react-i18next'
 import i18n from '@/lib/i18n'
@@ -262,6 +262,99 @@ describe('MiniBarChart', () => {
 // it also triggers React subscriber callbacks that cause state updates.  Wrapping
 // the render in act() keeps Testing Library happy and avoids the "not wrapped
 // in act" console warning.
+
+// ── 10. typed events: kind → bullet dot colour + kind label ──────────────────
+
+describe('DomainBox — typed event kind (bullet dot + label)', () => {
+  it('applies the emerald override dot for kind "issued"', () => {
+    const ev: DomainEventVM = { id: 'k1', primary: 'Dell', secondary: 'Khach', at: new Date().toISOString(), kind: 'issued' }
+    const { container } = wrap(<DomainBox {...BASE_PROPS} events={[ev]} />)
+    // BulletDot splits on '/', so the applied class is 'bg-emerald-400'.
+    expect(container.querySelector('.bg-emerald-400')).not.toBeNull()
+  })
+
+  it('applies the rose override dot for kind "disposed"', () => {
+    const ev: DomainEventVM = { id: 'k2', primary: 'Old laptop', secondary: null, at: new Date().toISOString(), kind: 'disposed' }
+    const { container } = wrap(<DomainBox {...BASE_PROPS} events={[ev]} />)
+    expect(container.querySelector('.bg-rose-400')).not.toBeNull()
+  })
+
+  it('falls back to the barClass-derived dot when kind is absent', () => {
+    const ev: DomainEventVM = { id: 'k3', primary: 'Something', secondary: null, at: new Date().toISOString() }
+    // barClass 'bg-sky-400/70' → BulletDot base 'bg-sky-400'; no kind overrides.
+    const { container } = wrap(<DomainBox {...BASE_PROPS} events={[ev]} barClass="bg-sky-400/70" />)
+    expect(container.querySelector('.bg-sky-400')).not.toBeNull()
+    expect(container.querySelector('.bg-emerald-400')).toBeNull()
+  })
+
+  it('renders «kind · actor» on the second line when kind and actor are present', () => {
+    const ev: DomainEventVM = { id: 'k4', primary: 'Dell', secondary: 'Khach', at: new Date().toISOString(), kind: 'issued' }
+    wrap(<DomainBox {...BASE_PROPS} events={[ev]} />)
+    // ru: boxes.events.issued = «Выдан»
+    expect(screen.getByText('Выдан · Khach')).toBeInTheDocument()
+  })
+
+  it('renders the kind label alone when kind is present but actor is null', () => {
+    const ev: DomainEventVM = { id: 'k5', primary: 'Old laptop', secondary: null, at: new Date().toISOString(), kind: 'disposed' }
+    wrap(<DomainBox {...BASE_PROPS} events={[ev]} />)
+    // ru: boxes.events.disposed = «Списан»
+    expect(screen.getByText('Списан')).toBeInTheDocument()
+  })
+})
+
+// ── 11. alerts prop: exception chip row + feed slice 3 vs 4 ───────────────────
+
+describe('DomainBox — alerts (exception chip row)', () => {
+  const FIVE_EVENTS: DomainEventVM[] = Array.from({ length: 5 }, (_, i) => ({
+    id: `fe-${i}`,
+    primary: `Event ${i}`,
+    secondary: null,
+    at: new Date(Date.now() - i * 60 * 1000).toISOString(),
+  }))
+
+  const ALERTS = [
+    { id: 'pending', label: 'Ожидают подтверждения: 2', chipClass: 'text-warning bg-warning/15', to: '/assets' },
+    { id: 'repair', label: 'В ремонте: 1', chipClass: 'text-info bg-info/15', to: '/assets' },
+  ]
+
+  it('renders the alerts row with both chips when alerts is non-empty', () => {
+    wrap(<DomainBox {...BASE_PROPS} events={FIVE_EVENTS} alerts={ALERTS} />)
+    const row = screen.getByTestId('domain-box-alerts')
+    expect(row).toBeInTheDocument()
+    expect(within(row).getByText('Ожидают подтверждения: 2')).toBeInTheDocument()
+    expect(within(row).getByText('В ремонте: 1')).toBeInTheDocument()
+  })
+
+  it('shows at most 3 feed rows when alerts are present (seed 5 events)', () => {
+    wrap(<DomainBox {...BASE_PROPS} events={FIVE_EVENTS} alerts={ALERTS} />)
+    expect(screen.getByText('Event 0')).toBeInTheDocument()
+    expect(screen.getByText('Event 2')).toBeInTheDocument()
+    expect(screen.queryByText('Event 3')).not.toBeInTheDocument()
+    expect(screen.queryByText('Event 4')).not.toBeInTheDocument()
+  })
+
+  it('shows 4 feed rows when alerts are absent (seed 5 events)', () => {
+    wrap(<DomainBox {...BASE_PROPS} events={FIVE_EVENTS} />)
+    expect(screen.getByText('Event 0')).toBeInTheDocument()
+    expect(screen.getByText('Event 3')).toBeInTheDocument()
+    expect(screen.queryByText('Event 4')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('domain-box-alerts')).not.toBeInTheDocument()
+  })
+
+  it('regression: no alerts + no kinds renders exactly 4 rows with plain secondary', () => {
+    const events: DomainEventVM[] = Array.from({ length: 5 }, (_, i) => ({
+      id: `r-${i}`,
+      primary: `Row ${i}`,
+      secondary: `Actor ${i}`,
+      at: new Date(Date.now() - i * 60 * 1000).toISOString(),
+    }))
+    wrap(<DomainBox {...BASE_PROPS} events={events} />)
+    expect(screen.getByText('Row 3')).toBeInTheDocument()
+    expect(screen.queryByText('Row 4')).not.toBeInTheDocument()
+    // secondary rendered verbatim, no kind label prefix / separator.
+    expect(screen.getByText('Actor 0')).toBeInTheDocument()
+  })
+})
 
 // delta chip is rendered by 'parts' and 'slim' variants.
 // Use variant='parts' here (same localisation path for all variants that show the chip).

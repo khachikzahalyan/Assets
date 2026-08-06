@@ -12,6 +12,8 @@
     "subscriptions": { "title": "Подписки",   "viewAll": "Все подписки" },
     "branches":      { "title": "Филиалы",    "viewAll": "Все филиалы" },
     "departments":   { "title": "Отделы",     "viewAll": "Все отделы" },
+    "events": { "created": "Создан", "issued": "Выдан", "returned": "Возвращён", "disposed": "Списан", "repair": "Ремонт" },
+    "alerts": { "pending": "Ожидают подтверждения: {{n}}", "repair": "В ремонте: {{n}}" },
     "delta7d": "+{{n}} за 7 дней",
     "delta7dShort": "+{{n}} за 7д",
     "empty": "Нет событий за 7 дней",

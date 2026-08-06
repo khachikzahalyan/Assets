@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/contexts/AuthContext'
 import { ErrorState } from '@/components/ui'
 import { StatCard, DomainBox } from '@/components/features/dashboard'
+import type { DomainBoxAlert } from '@/components/features/dashboard'
 import { useDashboard } from '@/hooks'
 import type { DashboardRepository, DashboardData, DomainBoxKey } from '@/domain/dashboard'
 import { ASSET_STATUS } from '@/domain/asset'
@@ -240,7 +241,7 @@ export function DashboardPage({ repo }: DashboardPageProps) {
     <div className="space-y-[1rem]">
       {error && (
         <div data-testid="dashboard-error">
-          <ErrorState onRetry={reload} />
+          <ErrorState onRetry={reload} compact />
         </div>
       )}
 
@@ -352,6 +353,16 @@ export function DashboardPage({ repo }: DashboardPageProps) {
             const box = data.boxes[key]
             const linked = canAccess(role, meta.routeId)
             const events = resolveEvents(key)
+            const pending = data.assets?.byStatus.st_pending ?? 0
+            const inRepair = data.assets?.byStatus.st_repair ?? 0
+            const assetAlerts: DomainBoxAlert[] = [
+              ...(pending > 0
+                ? [{ id: 'pending', label: t('boxes.alerts.pending', { n: pending }), chipClass: 'text-warning bg-warning/15', ...(linked ? { to: '/assets' } : {}) }]
+                : []),
+              ...(inRepair > 0
+                ? [{ id: 'repair', label: t('boxes.alerts.repair', { n: inRepair }), chipClass: 'text-info bg-info/15', ...(linked ? { to: '/assets' } : {}) }]
+                : []),
+            ]
             return (
               <DomainBox
                 key={key}
@@ -364,6 +375,7 @@ export function DashboardPage({ repo }: DashboardPageProps) {
                 barClass={meta.barClass}
                 headerLink={linked}
                 fillHeight
+                {...(assetAlerts.length > 0 ? { alerts: assetAlerts } : {})}
                 {...(linked ? { viewAllTo: meta.path } : {})}
                 viewAllLabel={t(`boxes.${key}.viewAll`)}
                 emptyLabel={t('boxes.empty')}
