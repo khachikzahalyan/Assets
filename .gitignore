@@ -56,3 +56,6 @@ lerna-debug.log*
 
 # Local verification artifacts (Playwright screenshots)
 docs/screenshots/
+
+# Claude Code session artifacts (agent worktrees, caches)
+.claude/
