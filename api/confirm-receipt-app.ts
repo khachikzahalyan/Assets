@@ -41,8 +41,13 @@ async function getCerts(): Promise<Record<string, string>> {
   return certs
 }
 
-/** Verify a Firebase ID token's signature + claims. Returns the caller uid, or null. */
-async function verifyIdToken(idToken: string, projectId: string): Promise<{ uid: string } | null> {
+/** Verify a Firebase ID token's signature + claims. Returns the caller uid plus
+ *  the token's email / email_verified (extra data for ownership checks — NOT gates
+ *  on the token itself), or null on any verification failure. */
+async function verifyIdToken(
+  idToken: string,
+  projectId: string,
+): Promise<{ uid: string; email: string | null; emailVerified: boolean } | null> {
   if (!idToken || !projectId) return null
   const parts = idToken.split('.')
   if (parts.length !== 3) return null
@@ -59,6 +64,8 @@ async function verifyIdToken(idToken: string, projectId: string): Promise<{ uid:
     if (typeof iat !== 'number' || iat > nowSec + 300) return null
     const uid = String(payload['sub'] ?? payload['user_id'] ?? '')
     if (!uid) return null
+    const email = typeof payload['email'] === 'string' ? (payload['email'] as string) : null
+    const emailVerified = payload['email_verified'] === true
 
     const certs = await getCerts()
     const certPem = certs[kid]
@@ -68,7 +75,7 @@ async function verifyIdToken(idToken: string, projectId: string): Promise<{ uid:
     verifier.update(`${parts[0]}.${parts[1]}`)
     verifier.end()
     if (!verifier.verify(publicKey, b64urlToBuffer(parts[2]!))) return null
-    return { uid }
+    return { uid, email, emailVerified }
   } catch {
     return null
   }
@@ -149,13 +156,37 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     // Authorize: caller must be the assignee. Invited employees have an HR doc id
     // distinct from their uid — resolve users/{uid}.employeeId and accept either
     // (mirrors the isSelfEmployee() firestore rule: uid OR userDoc.employeeId).
+    //
+    // Defense-in-depth: users/{uid}.employeeId is self-writable, so we do NOT
+    // trust it blindly. A linked employeeId that differs from the caller's uid is
+    // only honoured when the referenced employees doc's email equals the caller's
+    // VERIFIED token email (case-insensitive) — the same ownership proof the
+    // tightened firestore.rules enforce. Any failure falls back to uid-only match
+    // (fail-closed; never 500s).
     let callerEmployeeId = caller.uid
     try {
       const uRes = await fetch(`${base}/users/${encodeURIComponent(caller.uid)}`, { headers: authH })
       if (uRes.ok) {
         const uDoc = (await uRes.json()) as { fields?: { employeeId?: { stringValue?: string } } }
         const eid = uDoc.fields?.employeeId?.stringValue
-        if (eid) callerEmployeeId = eid
+        if (eid && eid !== caller.uid) {
+          const eRes = await fetch(`${base}/employees/${encodeURIComponent(eid)}`, { headers: authH })
+          if (eRes.ok) {
+            const eDoc = (await eRes.json()) as { fields?: { email?: { stringValue?: string } } }
+            const empEmail = eDoc.fields?.email?.stringValue
+            if (
+              typeof empEmail === 'string' && empEmail.length > 0
+              && typeof caller.email === 'string' && caller.email.length > 0
+              && caller.emailVerified === true
+              && empEmail.trim().toLowerCase() === caller.email.trim().toLowerCase()
+            ) {
+              callerEmployeeId = eid
+            }
+          }
+        } else if (eid) {
+          // eid === caller.uid: linkage is the uid itself, no cross-record proof needed.
+          callerEmployeeId = eid
+        }
       }
     } catch { /* fall back to uid-only match */ }
 

@@ -88,6 +88,11 @@ vi.mock('@/infra/repositories', async () => {
     async countSuperAdmins() { return 1 }
   }
 
+  class StubDashboardRepo {
+    async loadSummary() { return { totalAssets: 0, assignedAssets: 0, pendingAssets: 0, writtenOffAssets: 0 } }
+    async loadRecentActivity() { return [] }
+  }
+
   // Singleton stub instances — must be stable references so hook dependency
   // arrays (useMemo/useCallback) see the same object across renders and do not
   // trigger infinite re-render loops.
@@ -95,6 +100,7 @@ vi.mock('@/infra/repositories', async () => {
   const stubAssignmentRepo = new StubAssignmentRepo()
   const stubEmployeeRepo   = new StubEmployeeRepo()
   const stubUserRepo       = new StubUserRepo()
+  const stubDashboardRepo  = new StubDashboardRepo()
 
   return {
     ...actual,
@@ -155,9 +161,7 @@ vi.mock('@/infra/repositories', async () => {
     getSharedEmployeeRepository:           () => stubEmployeeRepo,
     getSharedEmployeeRepositoryWithGuard:  () => stubEmployeeRepo,
     getSharedUserRepository:               () => stubUserRepo,
-    // getSharedDashboardRepository — intentionally NOT overridden:
-    //   test 4 ("asset_admin hitting /my-assets is bounced to /dashboard") depends
-    //   on the real dashboard repo failing over db()={} to produce `dashboard-error`.
+    getSharedDashboardRepository:          () => stubDashboardRepo,
   }
 })
 
@@ -246,16 +250,16 @@ describe('AppRoutes — cross-role redirects via RoleGate', () => {
     expect(screen.queryByText('Сотрудников пока нет')).toBeNull()
   })
 
-  it('asset_admin hitting /my-assets is bounced to /dashboard (my-assets content absent)', async () => {
+  it('asset_admin at /my-assets renders MyAssetsPage (my-assets now open to all roles)', async () => {
     // Arrange + Act
     renderAt('/my-assets', 'asset_admin')
 
-    // Assert — RoleGate for /my-assets only allows 'employee', so asset_admin is
-    // redirected to /dashboard (defaultRouteForRole('asset_admin') = 'dashboard').
-    // DashboardPage mounted → confirm via its own dashboard-error marker (the
-    // dashboard repo is unmocked here, so the load fails and this dashboard-only
-    // testid renders). The page title header was removed, so we no longer assert it.
-    expect(await screen.findByTestId('dashboard-error')).toBeInTheDocument()
-    expect(screen.queryByText(/не закреплены активы/i)).toBeNull()
+    // Assert — MY_ASSETS_ALLOW now includes asset_admin, so RoleGate no longer
+    // redirects. MyAssetsPage mounts and shows its empty state (no assets assigned
+    // to the stub user). The stub asset repo returns [] for listAssetsForEmployee.
+    expect(await screen.findByText(/не закреплены активы/i, undefined, { timeout: 5000 })).toBeInTheDocument()
+
+    // Dashboard content must be absent — we did NOT navigate away.
+    expect(screen.queryByTestId('dashboard-error')).toBeNull()
   })
 })

@@ -50,6 +50,32 @@ describe('Icon — newly registered tech-spec names', () => {
   }
 })
 
+describe('Icon — backpack nav icon', () => {
+  let warnSpy: ReturnType<typeof vi.spyOn>
+
+  beforeEach(() => {
+    warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+  })
+
+  afterEach(() => {
+    warnSpy.mockRestore()
+  })
+
+  it('name="backpack" renders an <svg> and does NOT emit [Icon] unknown-name warn', () => {
+    // Arrange + Act
+    const { container } = render(<Icon name="backpack" />)
+
+    // Assert: SVG is present
+    expect(container.querySelector('svg')).not.toBeNull()
+
+    // Assert: no unknown-name warning
+    const unknownWarns = warnSpy.mock.calls.filter(
+      (args) => typeof args[0] === 'string' && args[0].includes('[Icon] unknown name'),
+    )
+    expect(unknownWarns).toHaveLength(0)
+  })
+})
+
 describe('Icon — unknown name fallback guard', () => {
   let warnSpy: ReturnType<typeof vi.spyOn>
 

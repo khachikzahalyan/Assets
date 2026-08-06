@@ -72,8 +72,9 @@ function ShellLayout() {
  * Cross-redirect behaviour:
  *   - employee hits /dashboard → RoleGate checks routeRoles('dashboard') = [super_admin, asset_admin, tech_admin]
  *     → 'employee' not in list → Navigate to /my-assets
- *   - admin hits /my-assets → RoleGate checks routeRoles('my-assets') = [employee]
- *     → admin not in list → Navigate to /dashboard
+ *   - employee hits /employees → RoleGate checks routeRoles('employees') = [super_admin, asset_admin]
+ *     → 'employee' not in list → Navigate to /my-assets
+ *   Note: /my-assets is now open to all 4 roles (MY_ASSETS_ALLOW) — no role bounce occurs there.
  */
 export function AppRoutes() {
   return (

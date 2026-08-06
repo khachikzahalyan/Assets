@@ -1,7 +1,8 @@
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback, type KeyboardEvent } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 import {
-  PageHeader, SectionCard, Chip, ErrorState, EmptyState,
+  PageHeader, SectionCard, Chip, ErrorState, EmptyState, Icon,
 } from '@/components/ui'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
@@ -11,6 +12,8 @@ import { statusLabel } from '@/components/features/assets/assetFormat'
 import type { ChipColor } from '@/components/ui/chip'
 import { getSharedAssetRepository } from '@/infra/repositories'
 import { confirmReceipt } from '@/lib/notifications/confirmReceipt'
+import { resolveCategoryColor } from '@/components/common/categoryColors'
+import { canAccess } from '@/config/access'
 
 const VALID_CHIP_COLORS: ReadonlySet<string> = new Set<ChipColor>([
   'gray', 'green', 'blue', 'red', 'amber', 'orange', 'indigo', 'violet', 'teal', 'cyan',
@@ -25,8 +28,10 @@ export interface MyAssetsPageProps {
 
 export function MyAssetsPage({ repository }: MyAssetsPageProps) {
   const { t } = useTranslation('employees')
-  const { user } = useAuth()
+  const { user, role } = useAuth()
   const { showToast } = useToast()
+  const navigate = useNavigate()
+  const canOpenAsset = canAccess(role, 'assets')
   // Invited employees: HR record id differs from uid — server-provisioned link wins.
   const employeeDocId = user.employeeId ?? user.id
 
@@ -113,7 +118,7 @@ export function MyAssetsPage({ repository }: MyAssetsPageProps) {
         <SectionCard title={t('self.myAssets')} icon="package">
           <div className="space-y-2">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-3 rounded-md border border-border bg-bg px-3 py-2 min-h-[44px]">
+              <div key={i} className="flex items-center gap-3 rounded-md border border-border bg-bg px-3 py-2 min-h-[var(--ctl-h-xs)]">
                 <div className="h-[0.75rem] w-[5rem] rounded anim-skeleton flex-shrink-0" />
                 <div className="h-[0.8125rem] flex-1 rounded anim-skeleton" style={{ maxWidth: `${40 + (i % 4) * 10}%` }} />
                 <div className="h-[1.25rem] w-[3.75rem] rounded-md anim-skeleton flex-shrink-0" />
@@ -150,13 +155,38 @@ export function MyAssetsPage({ repository }: MyAssetsPageProps) {
               const color     = toChipColor(status?.color ?? 'gray')
               const isPending = a.statusId === ASSET_STATUS.pending
               const isBusy    = confirmingId === a.id
+              const catColor  = resolveCategoryColor(a.categoryId, category?.lucideIcon)
               return (
                 <li
                   key={a.id}
                   className="rounded-md border border-border bg-bg px-3 py-2"
                 >
-                  <div className="flex items-center gap-3 min-h-[var(--ctl-h-xs)]">
-                    <span className="font-mono text-12 text-text-tertiary min-w-[80px]">{a.invCode}</span>
+                  <div
+                    className={[
+                      'flex items-center gap-3 min-h-[var(--ctl-h-xs)]',
+                      canOpenAsset ? 'cursor-pointer hover:bg-surface-2 transition-colors rounded' : '',
+                    ].join(' ')}
+                    {...(canOpenAsset ? {
+                      role: 'button',
+                      tabIndex: 0,
+                      'aria-label': [a.brand, a.model].filter(Boolean).join(' ') || category?.name || a.invCode,
+                      onClick: () => navigate('/assets/' + a.id),
+                      onKeyDown: (e: KeyboardEvent<HTMLDivElement>) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          navigate('/assets/' + a.id)
+                        }
+                      },
+                    } : {})}
+                  >
+                    {/* Category icon box — matches AssetsTable pattern */}
+                    <span
+                      className="w-9 h-9 rounded-lg bg-surface-2 border border-border text-text-tertiary inline-flex items-center justify-center flex-shrink-0 transition-colors duration-[180ms]"
+                      style={catColor ? { backgroundColor: catColor.bg, color: catColor.icon, borderColor: catColor.icon } : undefined}
+                    >
+                      <Icon name={category?.lucideIcon ?? 'box'} size={16} />
+                    </span>
+                    <span className="font-mono text-12 text-text-tertiary min-w-[5rem]">{a.invCode}</span>
                     <span className="flex-1 text-13 text-text-primary">
                       {[a.brand, a.model].filter(Boolean).join(' ') || category?.name || '—'}
                     </span>
@@ -170,11 +200,11 @@ export function MyAssetsPage({ repository }: MyAssetsPageProps) {
                     <div className="mt-2 flex justify-end">
                       <button
                         type="button"
-                        onClick={() => void handleConfirm(a.id)}
+                        onClick={(e) => { e.stopPropagation(); void handleConfirm(a.id) }}
                         disabled={isBusy}
                         className="inline-flex items-center gap-1.5 h-8 max-md:h-11 px-3 rounded-lg text-13 font-semibold text-accent light:text-accent bg-accent/10 border border-accent/30 hover:bg-accent/15 hover:border-accent/50 transition-colors disabled:opacity-60 disabled:pointer-events-none"
                       >
-                        <span aria-hidden="true">✓</span>
+                        <Icon name="check" size={14} />
                         {t('self.confirmReceipt')}
                       </button>
                     </div>

@@ -44,8 +44,8 @@ function makeEmployee(over: Partial<Employee> = {}): Employee {
 }
 
 const STOCK = [
-  { id: 'a1', title: 'Dell XPS', invCode: '450/100', cat: 'Ноутбук', icon: 'laptop', group: 'devices' },
-  { id: 'a2', title: 'HP LaserJet', invCode: '460/200', cat: 'Принтер', icon: 'printer', group: 'devices' },
+  { id: 'a1', categoryId: 'cat_laptop', title: 'Dell XPS', invCode: '450/100', cat: 'Ноутбук', icon: 'laptop', group: 'devices' },
+  { id: 'a2', categoryId: 'cat_printer', title: 'HP LaserJet', invCode: '460/200', cat: 'Принтер', icon: 'printer', group: 'devices' },
 ]
 
 function makeBag(pickerTarget: Employee, over: Record<string, unknown> = {}) {
@@ -68,6 +68,7 @@ function makeBag(pickerTarget: Employee, over: Record<string, unknown> = {}) {
     assetCountOf: () => 0, headOfficeBranchId: 'br_main',
     detailId: null, setDetailId: vi.fn(),
     detailLinkedAssets: [], setDetailLinkedAssets: vi.fn(),
+    detailAssetsLoading: false, setDetailAssetsLoading: vi.fn(), detailReqRef: { current: 0 },
     setFormOpen: vi.fn(), setFormInitial: vi.fn(),
     handoverAssets: [], setHandoverTarget: vi.fn(), setHandoverAssets: vi.fn(),
     setPickerTarget: vi.fn(), setPickerStock: vi.fn(),
@@ -145,7 +146,7 @@ describe('useEmployeesActions — handleTransferAssets handover email', () => {
 
   const TARGET = makeEmployee({ id: 'emp_2', firstName: 'Пето', lastName: 'Петян', email: 'peto@example.test' })
   const LINKED = [
-    { id: 'a1', icon: 'laptop', title: 'Lenovo Thinkpad 5', invCode: '450/2930192', cat: 'Компьютер', transferredAt: '' },
+    { id: 'a1', categoryId: 'cat_thinkpad', icon: 'laptop', title: 'Lenovo Thinkpad 5', invCode: '450/2930192', cat: 'Компьютер', transferredAt: '' },
   ]
 
   it('transfer to another employee → email to the receiving employee with asset label/code', async () => {
@@ -204,7 +205,7 @@ describe('useEmployeesActions — handleHandoverConfirm handover email', () => {
 
   const TARGET = makeEmployee({ id: 'emp_2', firstName: 'Пето', lastName: 'Петян', email: 'peto@example.test' })
   const HAND = [
-    { id: 'a1', icon: 'monitor', title: 'Asus H510', invCode: '450/2939192', sn: 'SN-K231L' },
+    { id: 'a1', categoryId: 'cat_monitor', icon: 'monitor', title: 'Asus H510', invCode: '450/2939192', sn: 'SN-K231L' },
   ]
 
   it('asset redirected to another employee during приёмка → email to that employee', async () => {

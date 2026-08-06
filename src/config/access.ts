@@ -10,6 +10,10 @@ const ROUTE_ROLES: Record<string, Role[]> = (() => {
     for (const item of group.items) map[item.id] = item.allow
   }
   // dashboard is also the admin landing; profile is employee self-service.
+  // my-assets appears in BOTH ADMIN_NAV and EMPLOYEE_NAV with the SAME shared
+  // MY_ASSETS_ALLOW constant (['super_admin','asset_admin','tech_admin','employee']),
+  // so the last-write-wins flatten is intentionally harmless — both writes produce
+  // the identical allow array for that route.
   return map
 })()
 

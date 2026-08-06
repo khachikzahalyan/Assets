@@ -1,5 +1,8 @@
 import type { Role } from './roles'
 
+/** Shared allow list: "My assets" is visible to ALL roles — admins can personally hold assets. */
+export const MY_ASSETS_ALLOW: Role[] = ['super_admin', 'asset_admin', 'tech_admin', 'employee']
+
 export type RouteId =
   | 'dashboard' | 'assets' | 'licenses' | 'parts'
   | 'employees' | 'branches' | 'departments' | 'categories' | 'roles'
@@ -22,6 +25,7 @@ export interface NavGroup {
 export const ADMIN_NAV: NavGroup[] = [
   { id: 'main', labelKey: 'groups.main', items: [
     { id: 'dashboard', labelKey: 'items.dashboard', icon: 'layout-dashboard', allow: ['super_admin', 'asset_admin', 'tech_admin'] },
+    { id: 'my-assets', labelKey: 'items.my-assets', icon: 'backpack', allow: MY_ASSETS_ALLOW },
   ]},
   { id: 'ops', labelKey: 'groups.ops', items: [
     { id: 'assets',      labelKey: 'items.assets',      icon: 'package',          allow: ['super_admin', 'asset_admin', 'tech_admin'] },
@@ -46,7 +50,7 @@ export const ADMIN_NAV: NavGroup[] = [
 
 export const EMPLOYEE_NAV: NavGroup[] = [
   { id: 'employee', labelKey: null, items: [
-    { id: 'my-assets', labelKey: 'items.my-assets', icon: 'package',     allow: ['employee'] },
+    { id: 'my-assets', labelKey: 'items.my-assets', icon: 'backpack',    allow: MY_ASSETS_ALLOW },
     { id: 'my-acts',   labelKey: 'items.my-acts',   icon: 'file-text',   allow: ['employee'] },
     { id: 'profile',   labelKey: 'items.profile',   icon: 'user-circle', allow: ['employee'] },
   ]},

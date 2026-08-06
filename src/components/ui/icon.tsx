@@ -172,6 +172,8 @@ import {
   // Theme toggle icons
   Sun,
   Moon,
+  // Nav icons
+  Backpack,
   type LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -350,6 +352,8 @@ const REGISTRY: Record<string, LucideIcon> = {
   barcode: Barcode,
   wifi: Wifi,
   briefcase: Briefcase,
+  // Nav icons
+  backpack: Backpack,
 }
 
 export interface IconProps {

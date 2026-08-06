@@ -48,8 +48,15 @@ service cloud.firestore {
     }
 
     // True when `id` identifies the CALLER's employee record (either linkage).
+    // A revoked/terminated account loses all self-scoped reads: the caller's own
+    // users doc status must not be 'terminated'. Uses the Map .get('status','')
+    // form so a legacy users doc lacking status resolves to '' (!= 'terminated' →
+    // pass); a caller with NO users doc at all already errors inside userDoc()/
+    // myEmployeeId() → deny (unchanged). Same userDoc() get() as role() — deduped.
     function isSelfEmployee(id) {
-      return isSignedIn() && (id == request.auth.uid || id == myEmployeeId());
+      return isSignedIn()
+        && userDoc().get('status', '') != 'terminated'
+        && (id == request.auth.uid || id == myEmployeeId());
     }
 
     // Whenever a `role` field is present in the written data it must be one of the
@@ -104,6 +111,26 @@ service cloud.firestore {
           && get(empPath).data.preassignedRole == request.resource.data.role;
       }
 
+      // A self-written employeeId must point at the CALLER'S OWN employees record:
+      // the target doc's email must equal the caller's VERIFIED token email
+      // (case-insensitive — employees.email may be stored mixed-case while
+      // token.email is normalized, or vice versa). employeeId == null (unlink)
+      // is allowed without a get(). Terminated records cannot be linked.
+      // Fail-closed: a missing employees doc, missing email field, or missing
+      // token email makes the expression error/false -> deny.
+      function selfEmployeeIdOk() {
+        let e = request.resource.data.employeeId;
+        return e == null
+          || (
+            e is string
+            && request.auth.token.email_verified == true
+            && exists(/databases/$(database)/documents/employees/$(e))
+            && get(/databases/$(database)/documents/employees/$(e)).data.email.lower()
+                 == request.auth.token.email.lower()
+            && get(/databases/$(database)/documents/employees/$(e)).data.get('status', '') != 'terminated'
+          );
+      }
+
       // Offboarding revocation: an admin who can terminate employees (super | asset)
       // may REVOKE a login account — drop its role and set status 'terminated' so it
       // no longer grants access. Pure de-escalation (role is removed, never granted
@@ -114,7 +141,11 @@ service cloud.firestore {
           && resource != null
           && resource.data.role != 'super_admin'
           && !('role' in request.resource.data)
-          && request.resource.data.status == 'terminated';
+          && request.resource.data.status == 'terminated'
+          // Revocation must NEVER touch the HR linkage — otherwise this de-escalation
+          // arm (which has no key whitelist) would let an admin plant a foreign
+          // employeeId in the same write, bypassing selfEmployeeIdOk().
+          && !('employeeId' in request.resource.data.diff(resource.data).affectedKeys());
       }
 
       // Create: super_admin (any shape) OR a self-claim of a no-role record that
@@ -126,6 +157,7 @@ service cloud.firestore {
             && request.auth.uid == uid
             && !('role' in request.resource.data)
             && request.resource.data.status == 'no-role'
+            && (!('employeeId' in request.resource.data) || selfEmployeeIdOk())
           )
           || claimsPreassignedRole()
         );
@@ -140,6 +172,7 @@ service cloud.firestore {
             && request.auth.uid == uid
             && !('role' in request.resource.data.diff(resource.data).affectedKeys())
             && request.resource.data.status == resource.data.status
+            && (!('employeeId' in request.resource.data.diff(resource.data).affectedKeys()) || selfEmployeeIdOk())
           )
           || claimsPreassignedRole()
           || revokesAccount()
@@ -253,7 +286,7 @@ service cloud.firestore {
       // unique per employee, so this exposes only the caller's own record.
       allow read: if isAnyAdmin()
         || isSelfEmployee(id)
-        || (isSignedIn() && resource.data.email == request.auth.token.email);
+        || (isSignedIn() && resource.data.email.lower() == request.auth.token.email.lower());
       // preassignedRole (the role granted to a person BEFORE first sign-in) is a
       // privilege grant, so it must be a valid role AND may only be introduced by
       // a super_admin. Helper reused by create + update.

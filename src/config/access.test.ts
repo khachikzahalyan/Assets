@@ -9,8 +9,17 @@ describe('access map', () => {
   it('assets is allowed for the three admin roles', () => {
     expect(routeRoles('assets').sort()).toEqual(['asset_admin', 'super_admin', 'tech_admin'])
   })
-  it('employee routes allow only employee', () => {
-    expect(routeRoles('my-assets')).toEqual(['employee'])
+  it('my-assets is allowed for all 4 roles', () => {
+    expect(routeRoles('my-assets').sort()).toEqual(['asset_admin', 'employee', 'super_admin', 'tech_admin'])
+  })
+  it('all 4 roles can access my-assets', () => {
+    expect(canAccess('super_admin', 'my-assets')).toBe(true)
+    expect(canAccess('asset_admin', 'my-assets')).toBe(true)
+    expect(canAccess('tech_admin', 'my-assets')).toBe(true)
+    expect(canAccess('employee', 'my-assets')).toBe(true)
+  })
+  it('my-acts stays employee-only', () => {
+    expect(routeRoles('my-acts')).toEqual(['employee'])
   })
   it('canAccess respects the matrix', () => {
     expect(canAccess('super_admin', 'categories')).toBe(true)

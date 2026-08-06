@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, it } from 'vitest'
 import { assertFails, assertSucceeds, type RulesTestEnvironment } from '@firebase/rules-unit-testing'
-import { doc, setDoc, updateDoc, deleteField, serverTimestamp } from 'firebase/firestore'
+import { doc, getDoc, setDoc, updateDoc, deleteField, serverTimestamp } from 'firebase/firestore'
 import { authedDb, makeTestEnv, seedDoc, seedUser } from './helpers'
 
 /**
@@ -118,6 +118,111 @@ describe('/users preassigned-role self-claim', () => {
   })
 })
 
+describe('/users self-service employeeId linking', () => {
+  const CALLER = 'linkUid'
+  const CALLER_EMAIL = 'linkUid@ams.test'
+  // An employees record whose email matches the caller's own token.
+  const OWN_EMP = 'emp_own'
+  // A foreign employees record the attacker tries to smuggle in.
+  const FOREIGN_EMP = 'emp_foreign'
+  const FOREIGN_EMAIL = 'victim@ams.test'
+
+  beforeEach(async () => {
+    await env.clearFirestore()
+    await seedUser(env, SUPER, 'super_admin')
+    // The caller is an ordinary employee-role account.
+    await seedUser(env, CALLER, 'employee', { email: CALLER_EMAIL })
+    // Own record — email equals the caller's token email.
+    await seedDoc(env, `employees/${OWN_EMP}`, {
+      firstName: 'Link', lastName: 'Self', email: CALLER_EMAIL, status: 'active',
+    })
+    // Foreign record — belongs to someone else.
+    await seedDoc(env, `employees/${FOREIGN_EMP}`, {
+      firstName: 'Vic', lastName: 'Tim', email: FOREIGN_EMAIL, status: 'active',
+    })
+  })
+
+  it('DENIES linking a foreign employees doc (email != caller token) — the attack', async () => {
+    const db = authedWithEmail(CALLER, CALLER_EMAIL)
+    await assertFails(updateDoc(doc(db, `users/${CALLER}`),
+      { employeeId: FOREIGN_EMP, updatedAt: serverTimestamp() }))
+  })
+
+  it('ALLOWS linking an employees doc whose email equals the caller token', async () => {
+    const db = authedWithEmail(CALLER, CALLER_EMAIL)
+    await assertSucceeds(updateDoc(doc(db, `users/${CALLER}`),
+      { employeeId: OWN_EMP, updatedAt: serverTimestamp() }))
+  })
+
+  it('ALLOWS case-insensitive email match', async () => {
+    await seedDoc(env, 'employees/emp_case', {
+      firstName: 'Case', lastName: 'Test', email: 'Case.Test@ams.test', status: 'active',
+    })
+    const db = authedWithEmail(CALLER, 'case.test@ams.test')
+    await assertSucceeds(updateDoc(doc(db, `users/${CALLER}`),
+      { employeeId: 'emp_case', updatedAt: serverTimestamp() }))
+  })
+
+  it('ALLOWS unlink (employeeId: null)', async () => {
+    await seedUser(env, CALLER, 'employee', { email: CALLER_EMAIL, employeeId: OWN_EMP })
+    const db = authedWithEmail(CALLER, CALLER_EMAIL)
+    await assertSucceeds(updateDoc(doc(db, `users/${CALLER}`),
+      { employeeId: null, updatedAt: serverTimestamp() }))
+  })
+
+  it('DENIES linking a terminated employees doc even when the email matches', async () => {
+    await seedDoc(env, `employees/${OWN_EMP}`, {
+      firstName: 'Link', lastName: 'Self', email: CALLER_EMAIL, status: 'terminated',
+    })
+    const db = authedWithEmail(CALLER, CALLER_EMAIL)
+    await assertFails(updateDoc(doc(db, `users/${CALLER}`),
+      { employeeId: OWN_EMP, updatedAt: serverTimestamp() }))
+  })
+
+  it('DENIES linking with an UNVERIFIED token email even when the email matches', async () => {
+    const db = authedWithEmail(CALLER, CALLER_EMAIL, false)
+    await assertFails(updateDoc(doc(db, `users/${CALLER}`),
+      { employeeId: OWN_EMP, updatedAt: serverTimestamp() }))
+  })
+
+  it('DENIES CREATE of a no-role doc smuggling a foreign employeeId (second vector)', async () => {
+    const FRESH = 'freshUid'
+    const db = authedWithEmail(FRESH, `${FRESH}@ams.test`)
+    await assertFails(setDoc(doc(db, `users/${FRESH}`), {
+      email: `${FRESH}@ams.test`, displayName: 'Fresh',
+      status: 'no-role', createdAt: serverTimestamp(), employeeId: FOREIGN_EMP,
+    }))
+  })
+
+  it('ALLOWS CREATE of a plain no-role doc WITHOUT employeeId (claimPendingUser regression)', async () => {
+    const FRESH = 'freshUid2'
+    const db = authedWithEmail(FRESH, `${FRESH}@ams.test`)
+    await assertSucceeds(setDoc(doc(db, `users/${FRESH}`), {
+      email: `${FRESH}@ams.test`, displayName: 'Fresh',
+      status: 'no-role', createdAt: serverTimestamp(),
+    }))
+  })
+
+  it('DENIES a regular user changing their own role or status (regression)', async () => {
+    const db = authedWithEmail(CALLER, CALLER_EMAIL)
+    await assertFails(updateDoc(doc(db, `users/${CALLER}`), { role: 'super_admin' }))
+    await assertFails(updateDoc(doc(db, `users/${CALLER}`), { status: 'terminated' }))
+  })
+
+  it('ALLOWS a self-update NOT touching employeeId (untouched-key regression)', async () => {
+    const db = authedWithEmail(CALLER, CALLER_EMAIL)
+    await assertSucceeds(updateDoc(doc(db, `users/${CALLER}`), { displayName: 'New Name' }))
+  })
+
+  it('ALLOWS a non-admin to getDoc the employees doc whose email differs only by case (Change 2)', async () => {
+    await seedDoc(env, 'employees/emp_case_read', {
+      firstName: 'Case', lastName: 'Read', email: 'Case.Read@ams.test', status: 'active',
+    })
+    const db = authedWithEmail(CALLER, 'case.read@ams.test')
+    await assertSucceeds(getDoc(doc(db, 'employees/emp_case_read')))
+  })
+})
+
 describe('/users offboarding revocation (archiveEmployee)', () => {
   const ASSET = 'asset1'
   const TECH = 'tech1'
@@ -154,5 +259,54 @@ describe('/users offboarding revocation (archiveEmployee)', () => {
     // Keeps a role instead of removing it → revokesAccount() fails, and asset_admin
     // is not super, so the whole update is denied.
     await assertFails(updateDoc(doc(db, `users/${TARGET}`), { role: 'super_admin', status: 'terminated' }))
+  })
+
+  it('REJECTS a revocation that ALSO plants a foreign employeeId (linkage bypass)', async () => {
+    await seedUser(env, TARGET, 'employee')
+    // A foreign HR record the attacker tries to smuggle onto the victim in the
+    // same revocation write, bypassing selfEmployeeIdOk().
+    await seedDoc(env, 'employees/emp_foreign', {
+      firstName: 'Vic', lastName: 'Tim', email: 'victim@ams.test', status: 'active',
+    })
+    const db = authedDb(env, ASSET)
+    // revokesAccount() must reject any write touching employeeId; asset_admin is not
+    // super, so the whole update is denied.
+    await assertFails(updateDoc(doc(db, `users/${TARGET}`),
+      { role: deleteField(), status: 'terminated', employeeId: 'emp_foreign' }))
+  })
+})
+
+describe('/users isSelfEmployee terminated-account gate', () => {
+  const EMPLOYEE_UID = 'termUid'
+  const EMP_LINK = 'emp_x'
+
+  beforeEach(async () => {
+    await env.clearFirestore()
+    // Linked HR record for the caller.
+    await seedDoc(env, `employees/${EMP_LINK}`, {
+      firstName: 'Term', lastName: 'Inated', email: `${EMPLOYEE_UID}@ams.test`, status: 'active',
+    })
+    // An asset assigned to the caller's employeeId — self-scoped read target.
+    await seedDoc(env, 'assets/a1', {
+      name: 'Laptop', assignment: { mode: 'employee', employeeId: EMP_LINK },
+    })
+  })
+
+  it('DENIES a TERMINATED account the self-scoped asset read', async () => {
+    await seedUser(env, EMPLOYEE_UID, 'employee', { status: 'terminated', employeeId: EMP_LINK })
+    const db = authedDb(env, EMPLOYEE_UID)
+    await assertFails(getDoc(doc(db, 'assets/a1')))
+  })
+
+  it('ALLOWS the SAME read once the account is flipped back to active (gate keys on status)', async () => {
+    await seedUser(env, EMPLOYEE_UID, 'employee', { status: 'active', employeeId: EMP_LINK })
+    const db = authedDb(env, EMPLOYEE_UID)
+    await assertSucceeds(getDoc(doc(db, 'assets/a1')))
+  })
+
+  it('ALLOWS an active linked employee to read their OWN employees doc via isSelfEmployee', async () => {
+    await seedUser(env, EMPLOYEE_UID, 'employee', { status: 'active', employeeId: EMP_LINK })
+    const db = authedDb(env, EMPLOYEE_UID)
+    await assertSucceeds(getDoc(doc(db, `employees/${EMP_LINK}`)))
   })
 })

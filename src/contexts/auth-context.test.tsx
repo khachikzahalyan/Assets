@@ -4,15 +4,20 @@ import { AuthProvider, useAuth } from './AuthContext'
 
 const onAuthStateChanged = vi.fn()
 const fetchUserRole = vi.fn(async () => 'asset_admin' as string | null)
+/** Separate spy for fetchUserProfile so tests can override role AND employeeId independently. */
+const fetchUserProfileSpy = vi.fn(async (_uid: string) => ({
+  role: 'asset_admin' as string | null,
+  employeeId: null as string | null,
+}))
 const claimSpy = vi.fn().mockResolvedValue(undefined)
 const preassignSpy = vi.fn(async () => null as { role: string; employeeId: string } | null)
 const linkSpy = vi.fn(async () => null as string | null)
 vi.mock('@/lib/firebase', () => ({ auth: () => ({}) }))
 vi.mock('@/lib/auth', () => ({
   fetchUserRole: (...a: unknown[]) => fetchUserRole(...(a as [])),
-  // AuthContext reads role + employeeId via fetchUserProfile; route it to the
-  // same fetchUserRole spy so existing role-driving tests keep working.
-  fetchUserProfile: async (...a: unknown[]) => ({ role: await fetchUserRole(...(a as [])), employeeId: null }),
+  // fetchUserProfile is now a standalone spy, allowing per-test control of both
+  // role and employeeId (e.g. to simulate "already has employeeId" → no self-heal).
+  fetchUserProfile: (...a: unknown[]) => fetchUserProfileSpy(...(a as [string])),
   linkEmployeeByEmail: (...a: unknown[]) => linkSpy(...(a as [])),
   signOutUser: vi.fn(),
   // AuthContext subscribes via this wrapper; route it to the spy so tests can
@@ -44,6 +49,8 @@ describe('AuthContext', () => {
     preassignSpy.mockResolvedValue(null)
     fetchUserRole.mockReset()
     fetchUserRole.mockResolvedValue('asset_admin')
+    fetchUserProfileSpy.mockReset()
+    fetchUserProfileSpy.mockResolvedValue({ role: 'asset_admin', employeeId: null })
   })
 
   it('provides the super_admin mock user by default', () => {
@@ -61,6 +68,7 @@ describe('AuthContext', () => {
   })
 
   it('real path: starts loading then resolves ready with role from users doc', async () => {
+    // fetchUserProfileSpy default returns { role: 'asset_admin', employeeId: null }
     let cb: (u: unknown) => void = () => {}
     onAuthStateChanged.mockImplementation((_a, c) => { cb = c; return () => {} })
     function StatusProbe() { const { status, role } = useAuth(); return <span data-testid="s">{status}:{role ?? '-'}</span> }
@@ -70,8 +78,8 @@ describe('AuthContext', () => {
     expect(screen.getByTestId('s').textContent).toBe('ready:asset_admin')
   })
 
-  it('self-heals the employee link when an employee account has no employeeId', async () => {
-    fetchUserRole.mockResolvedValue('employee')
+  it('self-heals the employee link when an employee account has no employeeId (pre-existing behavior)', async () => {
+    fetchUserProfileSpy.mockResolvedValue({ role: 'employee', employeeId: null })
     linkSpy.mockResolvedValue('emp_doc_7')
     let cb: (u: unknown) => void = () => {}
     onAuthStateChanged.mockImplementation((_a, c) => { cb = c; return () => {} })
@@ -82,17 +90,47 @@ describe('AuthContext', () => {
     expect(screen.getByTestId('s').textContent).toBe('ready:emp_doc_7')
   })
 
-  it('does NOT attempt the employee-link heal for an admin role', async () => {
-    fetchUserRole.mockResolvedValue('asset_admin')
+  it('self-heals the employee link for asset_admin with no employeeId (any-role behavior)', async () => {
+    // Regression guard: the self-heal now fires for ANY role when employeeId is null.
+    // Previously only role === 'employee' triggered it; now the condition is !employeeId.
+    fetchUserProfileSpy.mockResolvedValue({ role: 'asset_admin', employeeId: null })
+    linkSpy.mockResolvedValue('emp_admin_9')
     let cb: (u: unknown) => void = () => {}
     onAuthStateChanged.mockImplementation((_a, c) => { cb = c; return () => {} })
-    render(<AuthProvider><Probe /></AuthProvider>)
+    function IdProbe() { const { user, status } = useAuth(); return <span data-testid="s">{status}:{user.employeeId ?? '-'}</span> }
+    render(<AuthProvider><IdProbe /></AuthProvider>)
+    await act(async () => { cb({ uid: 'u1', email: 'a@x', displayName: 'A' }) })
+    expect(linkSpy).toHaveBeenCalledWith('u1', 'a@x')
+    expect(screen.getByTestId('s').textContent).toBe('ready:emp_admin_9')
+  })
+
+  it('self-heals the employee link for super_admin with no employeeId', async () => {
+    fetchUserProfileSpy.mockResolvedValue({ role: 'super_admin', employeeId: null })
+    linkSpy.mockResolvedValue('emp_sa_3')
+    let cb: (u: unknown) => void = () => {}
+    onAuthStateChanged.mockImplementation((_a, c) => { cb = c; return () => {} })
+    function IdProbe() { const { user } = useAuth(); return <span data-testid="s">{user.employeeId ?? '-'}</span> }
+    render(<AuthProvider><IdProbe /></AuthProvider>)
+    await act(async () => { cb({ uid: 'sa1', email: 'sa@x', displayName: 'SA' }) })
+    expect(linkSpy).toHaveBeenCalledWith('sa1', 'sa@x')
+    expect(screen.getByTestId('s').textContent).toBe('emp_sa_3')
+  })
+
+  it('does NOT call linkEmployeeByEmail when employeeId is already set', async () => {
+    // Case B: profile returns a non-null employeeId → the `if (!employeeId)` guard
+    // in AuthContext skips the self-heal entirely.
+    fetchUserProfileSpy.mockResolvedValue({ role: 'asset_admin', employeeId: 'e_77' })
+    let cb: (u: unknown) => void = () => {}
+    onAuthStateChanged.mockImplementation((_a, c) => { cb = c; return () => {} })
+    function IdProbe() { const { user, status } = useAuth(); return <span data-testid="s">{status}:{user.employeeId ?? '-'}</span> }
+    render(<AuthProvider><IdProbe /></AuthProvider>)
     await act(async () => { cb({ uid: 'u1', email: 'a@x', displayName: 'A' }) })
     expect(linkSpy).not.toHaveBeenCalled()
+    expect(screen.getByTestId('s').textContent).toBe('ready:e_77')
   })
 
   it('fires claimPendingUser exactly once on the no-role branch', async () => {
-    fetchUserRole.mockResolvedValue(null)
+    fetchUserProfileSpy.mockResolvedValue({ role: null, employeeId: null })
     let cb: (u: unknown) => void = () => {}
     onAuthStateChanged.mockImplementation((_a, c) => { cb = c; return () => {} })
     function StatusProbe() { const { status } = useAuth(); return <span data-testid="s">{status}</span> }
@@ -104,7 +142,7 @@ describe('AuthContext', () => {
   })
 
   it('applies a preassigned role (invited fallback) → ready, WITHOUT the no-role claim', async () => {
-    fetchUserRole.mockResolvedValue(null)
+    fetchUserProfileSpy.mockResolvedValue({ role: null, employeeId: null })
     preassignSpy.mockResolvedValue({ role: 'tech_admin', employeeId: 'emp_inv_3' })
     let cb: (u: unknown) => void = () => {}
     onAuthStateChanged.mockImplementation((_a, c) => { cb = c; return () => {} })

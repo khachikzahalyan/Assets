@@ -45,7 +45,7 @@ export function useEmployeesActions(d: EmployeesDataBag) {
     employees, former, catMap,
     assetCountOf, headOfficeBranchId,
     detailId, setDetailId,
-    detailLinkedAssets, setDetailLinkedAssets, setFormOpen, setFormInitial,
+    detailLinkedAssets, setDetailLinkedAssets, setDetailAssetsLoading, detailReqRef, setFormOpen, setFormInitial,
     handoverAssets, setHandoverTarget, setHandoverAssets,
     setPickerTarget, setPickerStock,
     setRestoreTarget,
@@ -130,19 +130,26 @@ export function useEmployeesActions(d: EmployeesDataBag) {
   }
 
   async function handleOpenDetail(empId: string) {
+    const token = ++detailReqRef.current
     setDetailId(empId)
+    setDetailLinkedAssets([])        // clear stale list immediately — no flash of previous employee's assets
+    setDetailAssetsLoading(true)
     try {
       const assets = await assetRepo.listAssetsForEmployee(empId)
+      if (token !== detailReqRef.current) return   // superseded by a newer open — leave state alone
       const linked: DrawerLinkedAsset[] = assets.map(a => {
         const cat = catMap.get(a.categoryId)
         const catName = cat?.name ?? ''
         const icon = cat?.lucideIcon ?? 'box'
         const title = a.brand && a.model ? `${a.brand} ${a.model}` : (catName || '—')
-        return { id: a.id, icon, title, invCode: a.invCode, cat: catName, transferredAt: a.updatedAt }
+        return { id: a.id, categoryId: a.categoryId, icon, title, invCode: a.invCode, cat: catName, transferredAt: a.updatedAt }
       })
       setDetailLinkedAssets(linked)
     } catch {
+      if (token !== detailReqRef.current) return
       setDetailLinkedAssets([])
+    } finally {
+      if (token === detailReqRef.current) setDetailAssetsLoading(false)
     }
   }
 
@@ -169,7 +176,7 @@ export function useEmployeesActions(d: EmployeesDataBag) {
           const catName = cat?.name ?? ''
           const icon = cat?.lucideIcon ?? 'box'
           const title = a.brand && a.model ? `${a.brand} ${a.model}` : (catName || '—')
-          return { id: a.id, icon, title, invCode: a.invCode, sn: a.serial ?? '' }
+          return { id: a.id, categoryId: a.categoryId, icon, title, invCode: a.invCode, sn: a.serial ?? '' }
         })
         setHandoverAssets(handAssets)
         setHandoverTarget(emp)
@@ -308,7 +315,7 @@ export function useEmployeesActions(d: EmployeesDataBag) {
         const icon = cat?.lucideIcon ?? 'box'
         const group = cat?.group ?? 'devices'
         const title = a.brand && a.model ? `${a.brand} ${a.model}` : (catName || '—')
-        return { id: a.id, title, invCode: a.invCode, cat: catName, icon, group }
+        return { id: a.id, categoryId: a.categoryId, title, invCode: a.invCode, cat: catName, icon, group }
       })
       setPickerStock(stock)
       setPickerTarget(emp)

@@ -191,11 +191,14 @@ function RealAuthProvider({ children }: { children: ReactNode }) {
             void claimPendingUser({ uid: shape.uid, email: shape.email, displayName: shape.displayName })
             return
           }
-          // Employee with no account↔HR link yet (account predates the
-          // beforeCreate provisioning / functions not deployed): self-heal by
-          // matching the employees record on email, so "My assets" resolves.
+          // Any role with no account↔HR link yet (account predates the
+          // beforeCreate provisioning / functions not deployed, OR an admin
+          // who personally holds assets): self-heal by matching the employees
+          // record on email, so "My assets" resolves via employeeId ?? uid.
+          // Admins may have an HR employees record with the same email address
+          // — when they do, their employeeId is now filled automatically.
           let resolvedEmployeeId = employeeId
-          if (role === 'employee' && !employeeId) {
+          if (!employeeId) {
             resolvedEmployeeId = await linkEmployeeByEmail(shape.uid, shape.email)
             if (!active) return
           }

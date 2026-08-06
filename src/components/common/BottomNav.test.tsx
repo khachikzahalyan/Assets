@@ -149,15 +149,17 @@ describe('BottomNav — navigation', () => {
 })
 
 describe('BottomNav — tech_admin', () => {
-  it('sees dashboard, assets, scan, licenses, parts (no employees or settings)', () => {
+  it('sees dashboard, my-assets, assets, scan, licenses, parts (no employees or settings)', () => {
     renderBottomNav('tech_admin', 'dashboard')
     expect(screen.getByText('Дашборд')).toBeInTheDocument()
+    // «Мои активы» is now in the nav for every role (admins may personally hold assets)
+    expect(screen.getByText('Мои активы')).toBeInTheDocument()
     expect(screen.getByText('Активы')).toBeInTheDocument()
     expect(screen.getByText('Сканировать')).toBeInTheDocument()
     expect(screen.getByText('Лицензии')).toBeInTheDocument()
     expect(screen.getByText('Запчасти')).toBeInTheDocument()
     expect(screen.queryByText('Сотрудники')).not.toBeInTheDocument()
     expect(screen.queryByText('Настройки')).not.toBeInTheDocument()
-    expect(screen.getAllByRole('button')).toHaveLength(5)
+    expect(screen.getAllByRole('button')).toHaveLength(6)
   })
 })

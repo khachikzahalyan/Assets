@@ -21,8 +21,10 @@ export async function fetchUserRole(uid: string): Promise<Role | null> {
 export interface UserProfile {
   role: Role | null
   /** Link to the employees/{id} HR record — set by server auto-provisioning
-   *  when the account was invited via /employees. Null for admin accounts and
-   *  legacy employee accounts whose employee doc id === uid. */
+   *  when the account was invited via /employees, OR self-healed at sign-in
+   *  when a matching HR record exists. May be non-null for admin accounts that
+   *  personally hold assets (admin added as employee with same email). Null
+   *  for accounts with no matching employees doc (legacy uid-path fallback). */
   employeeId: string | null
 }
 
@@ -56,13 +58,20 @@ export async function linkEmployeeByEmail(uid: string, email: string | null): Pr
   if (!trimmed) return null
   try {
     const lower = trimmed.toLowerCase()
-    const snaps = await Promise.all([
+    // Two queries (original-case + lowercase fallback). The rules allow a
+    // non-admin to read only the employees doc whose email (case-insensitively)
+    // equals their token email — so one of the two queries may be permission-
+    // denied for a mixed-case mailbox. Use allSettled so a single rejected
+    // query does NOT sink the whole link: keep whatever fulfilled results match.
+    const settled = await Promise.allSettled([
       getDocs(fsQuery(collection(db(), 'employees'), where('email', '==', trimmed), limit(1))),
       ...(lower !== trimmed
         ? [getDocs(fsQuery(collection(db(), 'employees'), where('email', '==', lower), limit(1)))]
         : []),
     ])
-    const match = snaps.flatMap(s => s.docs).find(d => (d.data() as { status?: string }).status !== 'terminated')
+    const match = settled
+      .flatMap(r => (r.status === 'fulfilled' ? r.value.docs : []))
+      .find(d => (d.data() as { status?: string }).status !== 'terminated')
     if (!match) return null
     // Persist the link so the server-side rules (myEmployeeId) permit the
     // employee to read their assigned assets/assignments/acts.

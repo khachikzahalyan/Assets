@@ -42,6 +42,12 @@ vi.mock('@/lib/auth', () => ({
   // onAuthStateChanged from firebase/auth directly. Route it through the
   // same fake so the smoke test resolves to a signed-in admin synchronously.
   subscribeToAuthState: (cb: (u: unknown) => void) => fakeOnAuthStateChanged({}, cb),
+  // AuthContext self-heals the account↔HR link for ANY role: with employeeId
+  // null it awaits linkEmployeeByEmail. If this export is missing the await
+  // throws and auth falls into the no-role branch, so the shell never renders.
+  linkEmployeeByEmail: vi.fn(async () => null),
+  claimPendingUser: vi.fn(async () => {}),
+  claimPreassignedRole: vi.fn(async () => null),
 }))
 
 // Pass-through react-router-dom so BrowserRouter/MemoryRouter work normally
