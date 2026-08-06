@@ -224,6 +224,15 @@ export function RolesPage({ repository }: RolesPageProps) {
   const [page, setPage] = useState(1)
   const [dialogUser, setDialogUser] = useState<User | null>(null)
 
+  const hasActiveFilters = search.trim() !== '' || roleFilter !== 'all' || statusFilter !== 'all'
+
+  const handleReset = useCallback(() => {
+    setSearch('')
+    setRoleFilter('all')
+    setStatusFilter('all')
+    setPage(1)
+  }, [])
+
   const load = useCallback(async () => {
     setLoading(true); setError(null)
     try {
@@ -297,7 +306,21 @@ export function RolesPage({ repository }: RolesPageProps) {
           headers={[t('col.user'), t('col.email'), t('col.role'), t('col.status'), '']}
         />
     if (error) return <ErrorState onRetry={load} />
-    if (filtered.length === 0) return <EmptyState icon="shield-check" title={t('empty.title')} description={t('empty.desc')} />
+    if (filtered.length === 0) return (
+      <EmptyState
+        icon={hasActiveFilters ? 'search-x' : 'shield-check'}
+        title={t(hasActiveFilters ? 'empty.titleFiltered' : 'empty.titleEmpty')}
+        description={t(hasActiveFilters ? 'empty.descFiltered' : 'empty.descEmpty')}
+        {...(hasActiveFilters ? {
+          action: (
+            <Btn variant="primary" size="sm" onClick={handleReset}>
+              <Icon name="rotate-ccw" size={13} />
+              {t('empty.reset')}
+            </Btn>
+          ),
+        } : {})}
+      />
+    )
 
     if (isMobile) {
       const placeholderCount = Math.max(0, PAGE_SIZE - pageRows.length)

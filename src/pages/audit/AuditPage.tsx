@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import {
   ListCard, ListPageShell,
   EmptyState, TableSkeleton, ErrorState, CardListSkeleton,
+  Btn, Icon,
 } from '@/components/ui'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { AuditFilterBar, AuditTable, AuditPagination } from '@/components/features/audit'
@@ -30,6 +31,18 @@ export function AuditPage({ repository }: AuditPageProps) {
 
   const [query, setQuery] = useState<AuditLogQuery>({ ...DEFAULT_QUERY })
 
+  const hasActiveFilters =
+    query.entityType !== 'all' ||
+    query.action !== 'all' ||
+    query.actorUid !== 'all' ||
+    (query.fromDate ?? null) !== null ||
+    (query.toDate ?? null) !== null ||
+    (query.search ?? '').trim() !== ''
+
+  const handleReset = useCallback(() => {
+    setQuery({ ...DEFAULT_QUERY })
+  }, [])
+
   const handleQueryChange = useCallback((patch: Partial<AuditLogQuery>) => {
     setQuery(prev => ({ ...prev, ...patch }))
   }, [])
@@ -47,9 +60,17 @@ export function AuditPage({ repository }: AuditPageProps) {
     if (rows.length === 0) {
       return (
         <EmptyState
-          icon="history"
-          title={t('empty.title')}
-          description={t('empty.desc')}
+          icon={hasActiveFilters ? 'search-x' : 'history'}
+          title={t(hasActiveFilters ? 'empty.titleFiltered' : 'empty.titleEmpty')}
+          description={t(hasActiveFilters ? 'empty.descFiltered' : 'empty.descEmpty')}
+          {...(hasActiveFilters ? {
+            action: (
+              <Btn variant="primary" size="sm" onClick={handleReset}>
+                <Icon name="rotate-ccw" size={13} />
+                {t('empty.reset')}
+              </Btn>
+            ),
+          } : {})}
         />
       )
     }

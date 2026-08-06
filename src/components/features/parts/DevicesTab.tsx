@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { EmptyState, SearchInput } from '@/components/ui'
+import { EmptyState, SearchInput, Btn, Icon } from '@/components/ui'
 import { DeviceGridCard } from './DeviceGridCard'
 import { InstalledDetailPanel } from './InstalledDetailPanel'
 import { DeviceDetailMobileView } from './DeviceDetailMobileView'
@@ -101,6 +101,13 @@ export function DevicesTab({
     })
   }, [partsAssets, search, family])
 
+  const hasActiveFilters = family !== 'all' || search.trim() !== ''
+
+  const handleReset = useCallback(() => {
+    setFamily('all')
+    onSearchChange('')
+  }, [onSearchChange])
+
   const selectedAsset = useMemo(
     () => partsAssets.find(a => a.id === selectedId) ?? null,
     [partsAssets, selectedId],
@@ -181,8 +188,20 @@ export function DevicesTab({
               can never be overridden by a Tailwind responsive class (inline wins).
               grid-cols-1 collapses to 1 col on mobile; md:grid-cols-2 expands on ≥768px. */}
           {filtered.length === 0 ? (
-            <div className="px-3 py-6 text-14 text-text-subtle text-center">
-              {t('devices.emptyFiltered')}
+            <div className="flex-1 flex items-center justify-center min-h-0 py-4">
+              <EmptyState
+                icon="search-x"
+                title={t('devices.emptyTitle')}
+                description={t('devices.emptyDescFiltered')}
+                {...(hasActiveFilters ? {
+                  action: (
+                    <Btn variant="primary" size="sm" onClick={handleReset}>
+                      <Icon name="rotate-ccw" size={13} />
+                      {t('devices.emptyReset')}
+                    </Btn>
+                  ),
+                } : {})}
+              />
             </div>
           ) : (
             <div

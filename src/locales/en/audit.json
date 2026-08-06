@@ -63,6 +63,11 @@
   },
   "empty": {
     "title": "No entries",
-    "desc": "Audit log entries will appear here as changes are made in the system."
+    "desc": "Audit log entries will appear here as changes are made in the system.",
+    "titleFiltered": "No entries found",
+    "descFiltered": "Try changing the filter or search query.",
+    "titleEmpty": "No entries",
+    "descEmpty": "Audit log entries will appear here as changes are made in the system.",
+    "reset": "Reset filters"
   }
 }

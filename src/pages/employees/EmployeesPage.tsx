@@ -15,7 +15,7 @@ import {
 import type { AssetRepository, AssetWriteRepository, RefRow } from '@/domain/asset'
 import type { Employee, EmployeeRepository } from '@/domain/employee'
 import type { AssignmentRepository } from '@/domain/assignment'
-import { PAGE_SIZE } from './employeesHelpers'
+import { PAGE_SIZE, DEFAULT_QUERY } from './employeesHelpers'
 import { useEmployeesData } from './useEmployeesData'
 import { useEmployeesActions } from './useEmployeesActions'
 import { EmployeesPagination } from './EmployeesPagination'
@@ -82,6 +82,18 @@ export function EmployeesPage({
     reload,
   } = data
 
+  const hasActiveFilters =
+    query.status !== DEFAULT_QUERY.status ||
+    query.branchId !== DEFAULT_QUERY.branchId ||
+    query.departmentId !== DEFAULT_QUERY.departmentId ||
+    search.trim() !== ''
+
+  const handleReset = useCallback(() => {
+    handleQueryChange({ ...DEFAULT_QUERY })
+    setSearch('')
+    setPage(1)
+  }, [handleQueryChange, setSearch, setPage])
+
   // ── Pagination ────────────────────────────────────────────────────────────
   const totalCount = sorted.length
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
@@ -135,7 +147,19 @@ export function EmployeesPage({
     if (sorted.length === 0) {
       return (
         <div className="flex-1 flex items-center justify-center">
-          <EmptyState icon="users" title={t('empty.title')} description={t('empty.desc')} />
+          <EmptyState
+            icon={hasActiveFilters ? 'search-x' : 'users'}
+            title={t(hasActiveFilters ? 'empty.titleFiltered' : 'empty.titleEmpty')}
+            description={t(hasActiveFilters ? 'empty.descFiltered' : 'empty.descEmpty')}
+            {...(hasActiveFilters ? {
+              action: (
+                <Btn variant="primary" size="sm" onClick={handleReset}>
+                  <Icon name="rotate-ccw" size={13} />
+                  {t('empty.reset')}
+                </Btn>
+              ),
+            } : {})}
+          />
         </div>
       )
     }

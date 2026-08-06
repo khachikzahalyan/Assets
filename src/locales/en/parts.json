@@ -60,7 +60,8 @@
   "devices": {
     "compShort": "comp.",
     "emptyDesc": "PC / Laptop / Server assets will appear here",
-    "emptyFiltered": "No devices match the current filters",
+    "emptyDescFiltered": "Try changing the filter or search query.",
+    "emptyReset": "Reset filters",
     "emptyTitle": "No devices",
     "familyAll": "All",
     "familyDesktop": "Desktop",

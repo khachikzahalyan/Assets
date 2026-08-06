@@ -8,7 +8,7 @@
   "role": { "none": "No role" },
   "status": { "active": "Active", "invited": "Invited", "no-role": "No role", "terminated": "Terminated" },
   "change": "Change role",
-  "empty": { "title": "No users found", "desc": "Adjust filters or search" },
+  "empty": { "title": "No users found", "desc": "Adjust filters or search", "titleFiltered": "No users found", "descFiltered": "Try changing the filter or search query.", "titleEmpty": "No users", "descEmpty": "Assign roles to users via this page.", "reset": "Reset filters" },
   "dialog": {
     "title": "Change role",
     "role": "New role",
