@@ -14,6 +14,8 @@ export interface GroupTabsProps {
   selected: string
   onSelect: (id: string) => void
   counts: Record<string, number>
+  /** While true the per-tab COUNT (async data) shows a skeleton; labels/tabs stay. */
+  loading?: boolean
 }
 
 /**
@@ -24,7 +26,7 @@ export interface GroupTabsProps {
  *   count badge with tinted bg (active) or muted (inactive/zero).
  *   The bg-surface-2 / border-b strip is applied by AssetsToolbar's wrapper div, not here.
  */
-export const GroupTabs = memo(function GroupTabs({ tabs, selected, onSelect, counts }: GroupTabsProps) {
+export const GroupTabs = memo(function GroupTabs({ tabs, selected, onSelect, counts, loading = false }: GroupTabsProps) {
   return (
     <div
       className={[
@@ -85,27 +87,35 @@ export const GroupTabs = memo(function GroupTabs({ tabs, selected, onSelect, cou
               <span aria-hidden="true">{tab.label}</span>
             )}
 
-            {/* Count badge */}
-            <span
-              aria-hidden="true"
-              className={[
-                // Desktop count — subtle text
-                'tabular-nums text-12',
-                active ? 'text-white/70' : 'text-text-subtle',
-                // Mobile count — badge pill
-                'max-md:text-10 max-md:font-bold max-md:rounded-[10px]',
-                active
-                  // Active: accent bg + white text
-                  ? 'max-md:bg-accent max-md:text-white max-md:px-1.5 max-md:py-[1px]'
-                  : count === 0
-                    // Zero count: no bg, extra-muted text
-                    ? 'max-md:text-text-subtle max-md:opacity-60 max-md:px-[0.3125rem] max-md:py-[1px]'
-                    // Non-zero inactive: faint bg
-                    : 'max-md:bg-surface max-md:text-text-subtle max-md:px-1.5 max-md:py-[1px]',
-              ].join(' ')}
-            >
-              {count}
-            </span>
+            {/* Count badge — the number is async data, so it shows a fixed-width
+                skeleton while loading (label stays visible; no layout shift). */}
+            {loading ? (
+              <span
+                aria-hidden="true"
+                className="inline-block w-3 h-3 max-md:w-3.5 max-md:h-3.5 rounded anim-skeleton align-middle"
+              />
+            ) : (
+              <span
+                aria-hidden="true"
+                className={[
+                  // Desktop count — subtle text
+                  'tabular-nums text-12',
+                  active ? 'text-white/70' : 'text-text-subtle',
+                  // Mobile count — badge pill
+                  'max-md:text-10 max-md:font-bold max-md:rounded-[10px]',
+                  active
+                    // Active: accent bg + white text
+                    ? 'max-md:bg-accent max-md:text-white max-md:px-1.5 max-md:py-[1px]'
+                    : count === 0
+                      // Zero count: no bg, extra-muted text
+                      ? 'max-md:text-text-subtle max-md:opacity-60 max-md:px-[0.3125rem] max-md:py-[1px]'
+                      // Non-zero inactive: faint bg
+                      : 'max-md:bg-surface max-md:text-text-subtle max-md:px-1.5 max-md:py-[1px]',
+                ].join(' ')}
+              >
+                {count}
+              </span>
+            )}
 
             {/* Mobile active underline — absolute bar at bottom of the strip */}
             {active && (

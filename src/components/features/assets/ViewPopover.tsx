@@ -205,9 +205,6 @@ export function ViewPopover({
         >
           {activeOpt?.shortLabel ?? activeOpt?.label ?? ''}
         </span>
-        {!isDefault && (
-          <span className="w-1.5 h-1.5 rounded-full bg-accent-light flex-shrink-0" aria-hidden="true" />
-        )}
         <Icon
           name="chevron-down"
           size={12}

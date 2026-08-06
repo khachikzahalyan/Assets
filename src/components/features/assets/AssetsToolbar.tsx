@@ -16,6 +16,8 @@ export interface AssetsToolbarProps {
   onExport: () => void
   onNavigateCreate: () => void
   onNavigateImport?: () => void
+  /** While true the group-tab counts (async data) render as skeletons. */
+  loading?: boolean
 }
 
 /**
@@ -37,6 +39,7 @@ export function AssetsToolbar({
   onExport,
   onNavigateCreate,
   onNavigateImport,
+  loading = false,
 }: AssetsToolbarProps) {
   const { t } = useTranslation('assets')
 
@@ -107,6 +110,7 @@ export function AssetsToolbar({
           selected={activeGroup}
           onSelect={handleGroupSelect}
           counts={groupCounts}
+          loading={loading}
         />
       </div>
 

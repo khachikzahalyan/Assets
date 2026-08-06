@@ -324,6 +324,10 @@ export function AssetsPage({ repository }: AssetsPageProps) {
               onExport={handleExport}
               onNavigateCreate={handleNavigateCreate}
               onNavigateImport={handleNavigateImport}
+              // Skeleton async counts only on INITIAL load (ref still null) — matches
+              // the filter chips; SWR keeps ref across refetches so filter changes
+              // don't re-flash skeletons.
+              loading={!ref}
             />
 
             {/* Divider between Row 1 and Row 2 */}

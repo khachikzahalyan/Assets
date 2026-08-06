@@ -61,15 +61,33 @@ export function AssetsFilterBar({
   ]
 
   // ── Branch options (per-branch icon+color) ────────────────────────────────
+  // Never surface a raw slug id: the head-office branch («br_main») falls back to
+  // a friendly localized name when its stored name is missing or still the slug.
+  const branchLabel = (b: { id: string; name: string }): string => {
+    const n = (b.name ?? '').trim()
+    if (n && n !== b.id) return n
+    return b.id === HEAD_OFFICE_BRANCH_ID ? t('filters.headOffice') : b.id
+  }
+  const rawBranches = refData?.branches ?? []
   const branchOptions: SelectMiniOption[] = [
     { value: 'all', label: t('filters.allBranches') },
-    ...(refData?.branches ?? []).map(b => ({
+    ...rawBranches.map(b => ({
       value: b.id,
-      label: b.name,
+      label: branchLabel(b),
       icon:      b.id === HEAD_OFFICE_BRANCH_ID ? 'landmark' : 'building',
       iconColor: b.id === HEAD_OFFICE_BRANCH_ID ? '#10B981'  : '#38BDF8',
     })),
   ]
+  // Guarantee a head-office option even if the branches list omits it, so the
+  // chip never falls back to the raw «br_main» value.
+  if (!rawBranches.some(b => b.id === HEAD_OFFICE_BRANCH_ID)) {
+    branchOptions.splice(1, 0, {
+      value: HEAD_OFFICE_BRANCH_ID,
+      label: t('filters.headOffice'),
+      icon: 'landmark',
+      iconColor: '#10B981',
+    })
+  }
 
   // ── Sort / view options ───────────────────────────────────────────────────
   const sortOptions: ViewSortOption[] = [
@@ -115,6 +133,12 @@ export function AssetsFilterBar({
     },
   ]
 
+  // Status + Branch labels come from refData (statuses/branches). Until it loads
+  // a selected id has no matching option yet, so the chip would briefly show the
+  // raw id (e.g. «br_main»). Render skeleton chips during that window so no
+  // transient raw text ever flashes.
+  const dataLoading = refData === null
+
   const dirty = isDirty(query, showTemp)
 
   function handleReset() {
@@ -141,27 +165,38 @@ export function AssetsFilterBar({
         'no-scrollbar max-md:scroll-fade-x',
       ].join(' ')}
     >
-      {/* Status */}
-      <SelectMini
-        id="assets-status"
-        label={t('filters.status')}
-        leadingIcon="circle-dot"
-        leadingIconMobile="alert-circle"
-        value={query.statusId ?? 'all'}
-        onChange={v => onChange({ statusId: v })}
-        options={statusOptions}
-      />
+      {dataLoading ? (
+        <>
+          {/* Skeleton chips for the two data-dependent filters (async-only shimmer,
+              same h-9 footprint) — prevents a raw-id flash before refData resolves. */}
+          <div className="h-9 max-md:h-[var(--ctl-h-sm)] w-[8.5rem] rounded-lg anim-skeleton shrink-0" aria-hidden="true" />
+          <div className="h-9 max-md:h-[var(--ctl-h-sm)] w-[9rem] rounded-lg anim-skeleton shrink-0" aria-hidden="true" />
+        </>
+      ) : (
+        <>
+          {/* Status */}
+          <SelectMini
+            id="assets-status"
+            label={t('filters.status')}
+            leadingIcon="circle-dot"
+            leadingIconMobile="alert-circle"
+            value={query.statusId ?? 'all'}
+            onChange={v => onChange({ statusId: v })}
+            options={statusOptions}
+          />
 
-      {/* Branch */}
-      <SelectMini
-        id="assets-branch"
-        label={t('filters.branch')}
-        leadingIcon="building"
-        leadingIconMobile="house"
-        value={query.branchId ?? 'all'}
-        onChange={v => onChange({ branchId: v })}
-        options={branchOptions}
-      />
+          {/* Branch */}
+          <SelectMini
+            id="assets-branch"
+            label={t('filters.branch')}
+            leadingIcon="building"
+            leadingIconMobile="house"
+            value={query.branchId ?? 'all'}
+            onChange={v => onChange({ branchId: v })}
+            options={branchOptions}
+          />
+        </>
+      )}
 
       {/* View / Sort popover */}
       <ViewPopover
@@ -193,15 +228,21 @@ export function AssetsFilterBar({
           className={showTemp ? 'text-white' : 'text-text-tertiary'}
         />
         <span>{t('filters.temp')}</span>
-        <span
-          aria-hidden="true"
-          className={[
-            'tabular-nums text-13',
-            showTemp ? 'text-emerald-100' : 'text-text-subtle',
-          ].join(' ')}
-        >
-          {tempCount}
-        </span>
+        {/* Count is async data → skeleton while loading; the «Временно выданные»
+            label above stays static. */}
+        {dataLoading ? (
+          <span aria-hidden="true" className="inline-block w-3 h-3 rounded anim-skeleton align-middle" />
+        ) : (
+          <span
+            aria-hidden="true"
+            className={[
+              'tabular-nums text-13',
+              showTemp ? 'text-emerald-100' : 'text-text-subtle',
+            ].join(' ')}
+          >
+            {tempCount}
+          </span>
+        )}
       </button>
 
       {/* Reset — desktop only (prototype mobile row has no reset chip) */}
