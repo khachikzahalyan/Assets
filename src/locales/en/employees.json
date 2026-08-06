@@ -22,7 +22,12 @@
   },
   "empty": {
     "desc": "Add the first employee",
-    "title": "No employees yet"
+    "title": "No employees yet",
+    "titleFiltered": "No employees found",
+    "descFiltered": "Try changing the filter or search query.",
+    "titleEmpty": "No employees yet",
+    "descEmpty": "Add the first employee",
+    "reset": "Reset filters"
   },
   "filter": {
     "all": "All",
@@ -70,11 +75,17 @@
     "confirmReceipt": "Confirm receipt",
     "confirmReceiptDone": "Receipt confirmed",
     "confirmReceiptFailed": "Could not confirm. Please try again later.",
+    "handedOverAt": "Issued",
     "myActs": "My acts",
     "myAssets": "My assets",
+    "myProperty": "My property",
+    "mySubscriptions": "My subscriptions",
+    "needsConfirmation": "Needs confirmation",
     "noActs": "You have no signed acts",
     "noAssets": "No assets are assigned to you",
     "noProfile": "Your profile is not set up yet. Please contact an administrator.",
+    "onHand": "On hand",
+    "pendingConfirmation": "Awaiting confirmation",
     "profile": "My profile"
   },
   "status": {
