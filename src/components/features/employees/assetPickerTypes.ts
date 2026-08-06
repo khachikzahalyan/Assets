@@ -2,6 +2,7 @@
 
 export interface PickerStockRow {
   id: string
+  categoryId: string
   title: string
   invCode: string
   cat: string

@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from 'react'
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { Employee, EmployeeListQuery, EmployeeRepository, SortValue } from '@/domain/employee'
 import type { AssetRepository, AssetWriteRepository, RefRow, CategoryRow } from '@/domain/asset'
@@ -106,6 +106,8 @@ export function useEmployeesData({
   const [formInitial, setFormInitial]       = useState<Employee | null>(null)
   const [detailId, setDetailId]             = useState<string | null>(null)
   const [detailLinkedAssets, setDetailLinkedAssets] = useState<DrawerLinkedAsset[]>([])
+  const [detailAssetsLoading, setDetailAssetsLoading] = useState(false)
+  const detailReqRef = useRef(0)
   const [handoverTarget, setHandoverTarget] = useState<Employee | null>(null)
   const [handoverAssets, setHandoverAssets] = useState<HandoverAsset[]>([])
   const [pickerTarget, setPickerTarget]     = useState<Employee | null>(null)
@@ -283,6 +285,7 @@ export function useEmployeesData({
     formInitial, setFormInitial,
     detailId, setDetailId,
     detailLinkedAssets, setDetailLinkedAssets,
+    detailAssetsLoading, setDetailAssetsLoading, detailReqRef,
     handoverTarget, setHandoverTarget,
     handoverAssets, setHandoverAssets,
     pickerTarget, setPickerTarget,

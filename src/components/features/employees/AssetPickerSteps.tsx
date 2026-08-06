@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { Icon, Btn } from '@/components/ui'
 import type { PickerStockRow, GroupToneKey } from './assetPickerTypes'
 import { ASSET_GROUPS, ASSET_GROUP_TONES } from './assetPickerTypes'
+import { resolveCategoryColor } from '@/components/common/categoryColors'
 
 // ── Step 1 — Group selection ──────────────────────────────────────────────────
 
@@ -179,7 +180,10 @@ export function AssetPickerItemsStep({
                     >
                       {isSel && <Icon name="check" size={11} />}
                     </span>
-                    <span className="w-8 h-8 rounded-md bg-surface-2 text-text-tertiary flex items-center justify-center shrink-0">
+                    <span
+                      className="w-8 h-8 rounded-md bg-surface-2 text-text-tertiary flex items-center justify-center shrink-0"
+                      style={(() => { const catColor = resolveCategoryColor(a.categoryId, a.icon); return catColor ? { backgroundColor: catColor.bg, color: catColor.icon } : undefined })()}
+                    >
                       <Icon name={a.icon} size={13} />
                     </span>
                     <div className="flex-1 min-w-0">
@@ -248,7 +252,10 @@ export function AssetPickerReviewStep({
               <ul className="divide-y divide-border rounded-lg border border-border/70 overflow-hidden bg-surface">
                 {grp.rows.map((a) => (
                   <li key={a.id} className="flex items-center gap-3 px-3 py-2.5">
-                    <span className="w-8 h-8 rounded-md bg-surface-2 text-text-tertiary flex items-center justify-center shrink-0">
+                    <span
+                      className="w-8 h-8 rounded-md bg-surface-2 text-text-tertiary flex items-center justify-center shrink-0"
+                      style={(() => { const catColor = resolveCategoryColor(a.categoryId, a.icon); return catColor ? { backgroundColor: catColor.bg, color: catColor.icon } : undefined })()}
+                    >
                       <Icon name={a.icon} size={13} />
                     </span>
                     <div className="flex-1 min-w-0">

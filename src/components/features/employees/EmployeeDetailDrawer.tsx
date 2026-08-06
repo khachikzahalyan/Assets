@@ -7,11 +7,13 @@ import { Chip } from '@/components/ui/chip'
 import { EmployeeAvatar } from './EmployeeAvatar'
 import { formatLocalPhone, formatDateRu } from './employeeFormat'
 import { DestPicker, type Destination } from './DestPicker'
+import { resolveCategoryColor } from '@/components/common/categoryColors'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export interface DrawerLinkedAsset {
   id: string
+  categoryId: string
   icon: string
   title: string
   invCode: string
@@ -39,6 +41,8 @@ export interface EmployeeDetailDrawerProps {
   /** Department display name resolved by the parent page */
   departmentName: string
   linkedAssets: DrawerLinkedAsset[]
+  /** Assets list is loading — show skeleton instead of empty/stale list */
+  loading?: boolean
   onClose: () => void
   /** Opens the employee form in edit mode (position / phone / department). */
   onEdit?: (id: string) => void
@@ -168,6 +172,7 @@ export function EmployeeDetailDrawer({
   branchName,
   departmentName,
   linkedAssets,
+  loading = false,
   onClose,
   onEdit,
   onArchive,
@@ -351,7 +356,9 @@ export function EmployeeDetailDrawer({
         <h3 className="flex items-center min-w-0 overflow-hidden text-13 max-md:text-11 font-semibold text-text-tertiary tracking-[0.06em] max-md:tracking-[0.03em] uppercase">
           <span className="truncate whitespace-nowrap">{t('detail.assets')}</span>
           <span className="ml-2 shrink-0 inline-flex items-center justify-center min-w-[1.125rem] h-[1.125rem] px-1 rounded-full bg-surface-2 text-text-tertiary text-12.5 font-semibold tabular-nums">
-            {linkedAssets.length}
+            {loading
+              ? <span className="w-2.5 h-2.5 rounded anim-skeleton" />
+              : linkedAssets.length}
           </span>
           {selectMode && linkedAssets.length > 0 && (
             <button
@@ -395,7 +402,22 @@ export function EmployeeDetailDrawer({
           flex-1 min-h-0 is required so overflow engages.
           ────────────────────────────────────────────── */}
       <div className="flex-1 min-h-0 overflow-y-auto px-5 py-3">
-        {linkedAssets.length === 0 ? (
+        {loading ? (
+          <ul className="space-y-1.5" aria-hidden="true" data-testid="drawer-assets-skeleton">
+            {[0, 1, 2].map((i) => (
+              <li key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-lg border border-border/60 bg-surface">
+                <span className="w-8 h-8 rounded-lg anim-skeleton shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="h-3.5 w-1/2 rounded anim-skeleton" />
+                    <span className="h-5 w-16 rounded anim-skeleton shrink-0" />
+                  </div>
+                  <span className="h-3 w-2/5 rounded anim-skeleton mt-1 block" />
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : linkedAssets.length === 0 ? (
           <div className="text-14.5 text-text-subtle italic px-3 py-6 rounded-lg border border-dashed border-border text-center">
             {t('detail.noAssets')}
           </div>
@@ -443,7 +465,10 @@ export function EmployeeDetailDrawer({
                     </span>
                   )}
 
-                  <span className="w-8 h-8 rounded-lg bg-surface-2 flex items-center justify-center text-text-tertiary shrink-0">
+                  <span
+                    className="w-8 h-8 rounded-lg bg-surface-2 flex items-center justify-center text-text-tertiary shrink-0"
+                    style={(() => { const catColor = resolveCategoryColor(a.categoryId, a.icon); return catColor ? { backgroundColor: catColor.bg, color: catColor.icon } : undefined })()}
+                  >
                     <Icon name={a.icon} size={15} />
                   </span>
                   <div className="min-w-0 flex-1">

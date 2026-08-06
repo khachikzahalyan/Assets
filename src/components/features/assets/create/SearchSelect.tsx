@@ -31,6 +31,8 @@ interface PortalPos {
   top: number
   left: number
   width: number
+  maxHeight: number
+  direction: 'down' | 'up'
 }
 
 /**
@@ -86,7 +88,22 @@ export function SearchSelect({
     if (left + popWidth > window.innerWidth - 8) left = window.innerWidth - popWidth - 8
     if (left < 8) left = 8
     const width = Math.min(popWidth, window.innerWidth - 16)
-    setPos({ top: r.bottom + 4, left, width })
+
+    // Flip-up logic: compare available space below vs above (both minus a small margin).
+    const MARGIN = 8
+    const MIN_HEIGHT = 160 // minimum usable dropdown height in pixels
+    const spaceBelow = window.innerHeight - r.bottom - MARGIN
+    const spaceAbove = r.top - MARGIN
+    // Prefer opening downward; flip up only when there is meaningfully more space above.
+    const direction: 'down' | 'up' = spaceBelow >= MIN_HEIGHT || spaceBelow >= spaceAbove ? 'down' : 'up'
+    // Cap to the available space in the chosen direction (max 20rem ≈ 320px).
+    const MAX_HEIGHT_PX = 320
+    const maxHeight = direction === 'down'
+      ? Math.min(MAX_HEIGHT_PX, Math.max(spaceBelow, MIN_HEIGHT))
+      : Math.min(MAX_HEIGHT_PX, Math.max(spaceAbove, MIN_HEIGHT))
+    const top = direction === 'down' ? r.bottom + 4 : r.top - maxHeight - 4
+
+    setPos({ top, left, width, maxHeight, direction })
   }
 
   useLayoutEffect(() => {
@@ -218,8 +235,9 @@ export function SearchSelect({
         </div>
       </div>
 
-      {/* Option list — desktop caps at max-h-72; inside the mobile sheet it flex-fills. */}
-      <div ref={listRef} className="overflow-y-auto py-1 md:max-h-72 max-md:flex-1 max-md:min-h-0" role="listbox">
+      {/* Option list — desktop: flex-fills the bounded portal container and scrolls within it;
+          mobile sheet: flex-fills the sheet height. Both use overflow-y-auto for internal scroll. */}
+      <div ref={listRef} className="overflow-y-auto py-1 flex-1 min-h-0" role="listbox">
         {filtered.length === 0 ? (
           <div className="px-3 py-6 text-center text-14 text-text-primary">
             {t('placeholders.noResults')}
@@ -330,7 +348,7 @@ export function SearchSelect({
         </MobileSheet>
       )}
 
-      {/* Desktop: clamped portal dropdown */}
+      {/* Desktop: clamped portal dropdown — flips up when space below is tight */}
       {!isMobile && open && pos && createPortal(
         <div
           data-ss-portal="true"
@@ -339,9 +357,10 @@ export function SearchSelect({
             top: pos.top,
             left: pos.left,
             width: pos.width,
+            maxHeight: pos.maxHeight,
             zIndex: 1000,
           }}
-          className="bg-surface ring-1 ring-border/80 rounded-xl shadow-lg shadow-slate-900/10 light:shadow-slate-300/40 anim-fade-slide-in overflow-hidden"
+          className="bg-surface ring-1 ring-border/80 rounded-xl shadow-lg shadow-slate-900/10 light:shadow-slate-300/40 anim-fade-slide-in overflow-hidden flex flex-col"
         >
           {listContent}
         </div>,

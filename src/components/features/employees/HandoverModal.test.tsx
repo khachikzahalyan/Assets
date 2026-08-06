@@ -22,8 +22,8 @@ const EMP: HandoverModalProps['emp'] = {
 }
 
 const ASSETS: HandoverAsset[] = [
-  { id: 'a1', icon: 'laptop', title: 'MacBook Pro', invCode: 'COMP/001', sn: 'SN001' },
-  { id: 'a2', icon: 'monitor', title: 'Dell Monitor', invCode: 'MON/001', sn: 'SN002' },
+  { id: 'a1', categoryId: 'cat_laptop', icon: 'laptop', title: 'MacBook Pro', invCode: 'COMP/001', sn: 'SN001' },
+  { id: 'a2', categoryId: 'cat_monitor', icon: 'monitor', title: 'Dell Monitor', invCode: 'MON/001', sn: 'SN002' },
 ]
 
 const EMPLOYEES = [

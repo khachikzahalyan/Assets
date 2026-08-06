@@ -20,7 +20,7 @@ export function EmployeesModals({ data, actions, currentUserId }: EmployeesModal
     formOpen, setFormOpen,
     formInitial,
     detailId, setDetailId,
-    detailLinkedAssets,
+    detailLinkedAssets, detailAssetsLoading,
     handoverTarget, setHandoverTarget,
     handoverAssets,
     pickerTarget, setPickerTarget,
@@ -75,6 +75,7 @@ export function EmployeesModals({ data, actions, currentUserId }: EmployeesModal
         branchName={detailBranchName}
         departmentName={detailDeptName}
         linkedAssets={detailLinkedAssets}
+        loading={detailAssetsLoading}
         onClose={() => setDetailId(null)}
         onEdit={() => { if (detailEmp) actions.handleEdit(detailEmp) }}
         onArchive={id => { void actions.handleArchive(id) }}

@@ -39,6 +39,7 @@ const TERMINATED_EMP: EmployeeDetailDrawerProps['emp'] = {
 const LINKED_ASSETS: DrawerLinkedAsset[] = [
   {
     id: 'asset_1',
+    categoryId: 'cat_laptop',
     icon: 'laptop',
     title: 'MacBook Pro 14"',
     invCode: 'COMP/001',
@@ -47,6 +48,7 @@ const LINKED_ASSETS: DrawerLinkedAsset[] = [
   },
   {
     id: 'asset_2',
+    categoryId: 'cat_monitor',
     icon: 'monitor',
     title: 'Dell Monitor 27"',
     invCode: 'MON/042',
@@ -55,6 +57,7 @@ const LINKED_ASSETS: DrawerLinkedAsset[] = [
   },
   {
     id: 'asset_3',
+    categoryId: 'cat_iphone',
     icon: 'smartphone',
     title: 'iPhone 14',
     invCode: 'PHONE/007',
@@ -80,6 +83,7 @@ function renderDrawer(overrides: Partial<EmployeeDetailDrawerProps> = {}) {
         branchName={overrides.branchName ?? 'Головной офис'}
         departmentName={overrides.departmentName ?? 'IT'}
         linkedAssets={overrides.linkedAssets ?? []}
+        {...(overrides.loading !== undefined ? { loading: overrides.loading } : {})}
         onClose={onClose}
         onArchive={onArchive}
         onRestore={onRestore}
@@ -194,6 +198,22 @@ describe('EmployeeDetailDrawer — linked assets', () => {
   it('shows the count of linked assets', () => {
     renderDrawer({ linkedAssets: LINKED_ASSETS })
     expect(screen.getByText('3')).toBeInTheDocument()
+  })
+
+  it('loading=true renders skeleton and NOT the empty state', () => {
+    renderDrawer({ loading: true, linkedAssets: [] })
+    // skeleton is aria-hidden — query via DOM directly (testing-library screen
+    // respects aria-hidden by default, so we reach into the container)
+    expect(document.querySelector('[data-testid="drawer-assets-skeleton"]')).not.toBeNull()
+    expect(screen.queryByText(/Нет закреплённых активов/i)).toBeNull()
+  })
+
+  it('loading=true does not render "0" in the count badge', () => {
+    renderDrawer({ loading: true, linkedAssets: [] })
+    // skeleton renders instead of the count
+    expect(document.querySelector('[data-testid="drawer-assets-skeleton"]')).not.toBeNull()
+    // Query for a "0" text node — should not exist as an isolated text in the badge
+    expect(screen.queryByText(/^0$/)).toBeNull()
   })
 })
 

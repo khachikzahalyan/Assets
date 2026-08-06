@@ -16,6 +16,7 @@ import { useModalA11y } from '@/components/ui/useModalA11y'
 import { RoleIcon } from '@/components/ui/RoleIcon'
 import { DestPicker } from './DestPicker'
 import type { Destination } from './DestPicker'
+import { resolveCategoryColor } from '@/components/common/categoryColors'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -23,6 +24,7 @@ export type { Destination }
 
 export interface HandoverAsset {
   id: string
+  categoryId: string
   icon: string
   title: string
   invCode: string
@@ -51,24 +53,6 @@ export interface HandoverModalProps {
 interface HandoverRow extends HandoverAsset {
   received: boolean
   destination: Destination
-}
-
-// ── Icon tile colour by asset icon name ──────────────────────────────────────
-
-function iconTileCls(iconName: string): string {
-  const map: Record<string, string> = {
-    laptop: 'bg-accent/10 text-accent',
-    desktop: 'bg-accent/10 text-accent',
-    monitor: 'bg-accent/10 text-accent',
-    computer: 'bg-accent/10 text-accent',
-    smartphone: 'bg-violet-500/10 text-violet-300 light:text-violet-700',
-    tablet: 'bg-violet-500/10 text-violet-300 light:text-violet-700',
-    printer: 'bg-bg text-text-tertiary',
-    keyboard: 'bg-sky-500/10 text-sky-300 light:text-sky-700',
-    mouse: 'bg-sky-500/10 text-sky-300 light:text-sky-700',
-    armchair: 'bg-amber-500/10 text-amber-300 light:text-amber-700',
-  }
-  return map[iconName] ?? 'bg-bg text-text-tertiary'
 }
 
 // ── Step indicator strip (module scope — stable component identity) ───────────
@@ -361,7 +345,8 @@ export function HandoverModal({
 
                 {/* Category-tinted icon tile */}
                 <span
-                  className={`ams-handover-icontile w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${iconTileCls(row.icon)}`}
+                  className="ams-handover-icontile w-9 h-9 rounded-lg flex items-center justify-center shrink-0 bg-surface-2 text-text-tertiary"
+                  style={(() => { const catColor = resolveCategoryColor(row.categoryId, row.icon); return catColor ? { backgroundColor: catColor.bg, color: catColor.icon } : undefined })()}
                 >
                   <Icon name={row.icon} size={16} />
                 </span>
@@ -400,7 +385,8 @@ export function HandoverModal({
 
                 {/* Category-tinted icon tile */}
                 <span
-                  className={`ams-handover-icontile w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${iconTileCls(row.icon)}`}
+                  className="ams-handover-icontile w-9 h-9 rounded-lg flex items-center justify-center shrink-0 bg-surface-2 text-text-tertiary"
+                  style={(() => { const catColor = resolveCategoryColor(row.categoryId, row.icon); return catColor ? { backgroundColor: catColor.bg, color: catColor.icon } : undefined })()}
                 >
                   <Icon name={row.icon} size={16} />
                 </span>

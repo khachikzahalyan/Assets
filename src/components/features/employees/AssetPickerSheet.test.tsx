@@ -23,11 +23,11 @@ const EMP: AssetPickerSheetProps['emp'] = {
 }
 
 const STOCK: PickerStockRow[] = [
-  { id: 'a1', title: 'MacBook Pro 14', invCode: 'COMP/001', cat: 'Ноутбук', icon: 'laptop', group: 'devices' },
-  { id: 'a2', title: 'MacBook Air 13', invCode: 'COMP/002', cat: 'Ноутбук', icon: 'laptop', group: 'devices' },
-  { id: 'a3', title: 'Dell Monitor 27', invCode: 'MON/001', cat: 'Монитор', icon: 'monitor', group: 'devices' },
-  { id: 'a4', title: 'Cisco Router', invCode: 'NET/001', cat: 'Роутер', icon: 'router', group: 'network' },
-  { id: 'a5', title: 'Офисное кресло', invCode: 'FURN/001', cat: 'Кресло', icon: 'armchair', group: 'furniture' },
+  { id: 'a1', categoryId: 'cat_laptop', title: 'MacBook Pro 14', invCode: 'COMP/001', cat: 'Ноутбук', icon: 'laptop', group: 'devices' },
+  { id: 'a2', categoryId: 'cat_macbook_air', title: 'MacBook Air 13', invCode: 'COMP/002', cat: 'Ноутбук', icon: 'laptop', group: 'devices' },
+  { id: 'a3', categoryId: 'cat_monitor', title: 'Dell Monitor 27', invCode: 'MON/001', cat: 'Монитор', icon: 'monitor', group: 'devices' },
+  { id: 'a4', categoryId: 'cat_router', title: 'Cisco Router', invCode: 'NET/001', cat: 'Роутер', icon: 'router', group: 'network' },
+  { id: 'a5', categoryId: 'cat_office_chair', title: 'Офисное кресло', invCode: 'FURN/001', cat: 'Кресло', icon: 'armchair', group: 'furniture' },
 ]
 
 function renderSheet(overrides: Partial<AssetPickerSheetProps> = {}) {
