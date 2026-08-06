@@ -58,12 +58,20 @@ export function DetailHero({
             <h1 className="text-18 max-md:text-15 font-bold text-text-primary leading-snug mb-1.5 max-md:mb-1 truncate">
               {assetTitle(asset, category?.name, category?.group)}
             </h1>
+            {/* Furniture: the free-text «Тип» as a subtitle (the title is the
+                category «Сейф»; the type «Test 1» would otherwise be invisible). */}
+            {category?.group === 'furniture' && asset.type && (
+              <p className="text-13 max-md:text-11 text-text-tertiary leading-snug -mt-0.5 mb-1.5 max-md:mb-1 truncate">
+                {asset.type}
+              </p>
+            )}
             <div className="flex flex-wrap items-center gap-2 max-md:gap-1.5">
               {/* Neutral mono chip, white text (priority identifier), no # — owner request */}
               <span className="inline-flex items-center font-mono text-13 max-md:text-11 font-bold bg-surface-2 text-text-primary ring-1 ring-border px-2 py-0.5 rounded-md">
                 {asset.invCode}
               </span>
-              {category && <Chip color="blue">{category.name}</Chip>}
+              {/* Category chip omitted for furniture — the title already IS the category. */}
+              {category && category.group !== 'furniture' && <Chip color="blue">{category.name}</Chip>}
               {asset.serial && (
                 <span className="inline-flex items-center gap-1.5 text-text-tertiary max-md:text-12">
                   <span className="uppercase tracking-wide text-12 max-md:text-10 text-text-subtle">SN</span>

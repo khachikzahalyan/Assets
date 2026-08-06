@@ -8,6 +8,7 @@ import type { EmployeeFormSubmit } from '@/components/features/employees/Employe
 import type { Destination } from '@/components/features/employees/DestPicker'
 import { destToPatch } from './employeesHelpers'
 import { sendAccessEmail } from '@/lib/notifications/sendAccessEmail'
+import { assetTitle } from '@/components/features/assets/assetFormat'
 import { ASSET_STATUS } from '@/domain/asset'
 import { getSharedSubscriptionRepository } from '@/infra/repositories/factories'
 import type { Actor } from '@/domain/asset'
@@ -141,7 +142,7 @@ export function useEmployeesActions(d: EmployeesDataBag) {
         const cat = catMap.get(a.categoryId)
         const catName = cat?.name ?? ''
         const icon = cat?.lucideIcon ?? 'box'
-        const title = a.brand && a.model ? `${a.brand} ${a.model}` : (catName || '—')
+        const title = assetTitle(a, catName || '—', cat?.group)
         return { id: a.id, categoryId: a.categoryId, icon, title, invCode: a.invCode, cat: catName, transferredAt: a.updatedAt }
       })
       setDetailLinkedAssets(linked)
@@ -175,7 +176,7 @@ export function useEmployeesActions(d: EmployeesDataBag) {
           const cat = catMap.get(a.categoryId)
           const catName = cat?.name ?? ''
           const icon = cat?.lucideIcon ?? 'box'
-          const title = a.brand && a.model ? `${a.brand} ${a.model}` : (catName || '—')
+          const title = assetTitle(a, catName || '—', cat?.group)
           return { id: a.id, categoryId: a.categoryId, icon, title, invCode: a.invCode, sn: a.serial ?? '' }
         })
         setHandoverAssets(handAssets)
@@ -314,7 +315,7 @@ export function useEmployeesActions(d: EmployeesDataBag) {
         const catName = cat?.name ?? ''
         const icon = cat?.lucideIcon ?? 'box'
         const group = cat?.group ?? 'devices'
-        const title = a.brand && a.model ? `${a.brand} ${a.model}` : (catName || '—')
+        const title = assetTitle(a, catName || '—', group)
         return { id: a.id, categoryId: a.categoryId, title, invCode: a.invCode, cat: catName, icon, group }
       })
       setPickerStock(stock)

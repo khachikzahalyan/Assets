@@ -10,6 +10,7 @@ import {
   deriveDisplayStatus,
   STATUS_CHIP_COLOR,
   assetTitle,
+  assetSubtitle,
   relativeBucket,
   fmtDate,
   isTemporaryAssignment,
@@ -183,6 +184,12 @@ describe('assetTitle (extended)', () => {
     expect(assetTitle(asset, 'Офисный стул', 'furniture')).toBe('Офисный стул')
   })
 
+  it('furniture title stays the category even when a type is set', () => {
+    // The bold title is the category «Сейф»; the type goes on the subtitle line.
+    const asset: Asset = { ...base, brand: null, model: null, type: 'Test 1' }
+    expect(assetTitle(asset, 'Сейф', 'furniture')).toBe('Сейф')
+  })
+
   it('categoryName without group → categoryName (not invCode)', () => {
     // Arrange
     const asset: Asset = { ...base, brand: null, model: null }
@@ -202,6 +209,23 @@ describe('assetTitle (extended)', () => {
     const asset: Asset = { ...base, brand: 'HP', model: 'EliteBook' }
     // Act + Assert
     expect(assetTitle(asset, 'Laptop', 'devices')).toBe('HP EliteBook')
+  })
+})
+
+describe('assetSubtitle', () => {
+  it('furniture → the free-text type (NOT a repeat of the category)', () => {
+    const asset: Asset = { ...base, brand: null, model: null, type: 'Test 1' }
+    expect(assetSubtitle(asset, 'Сейф', 'furniture')).toBe('Test 1')
+  })
+
+  it('furniture without a type → falls back to categoryName', () => {
+    const asset: Asset = { ...base, brand: null, model: null }
+    expect(assetSubtitle(asset, 'Сейф', 'furniture')).toBe('Сейф')
+  })
+
+  it('devices/network → categoryName (brand/model live on the title)', () => {
+    const asset: Asset = { ...base, brand: 'Dell', model: 'Latitude' }
+    expect(assetSubtitle(asset, 'Ноутбук', 'devices')).toBe('Ноутбук')
   })
 })
 

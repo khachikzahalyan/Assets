@@ -10,6 +10,7 @@ import {
   statusLabel,
   STATUS_CHIP_COLOR,
   assetTitle,
+  assetSubtitle,
   isTemporaryAssignment,
   assigneeKind,
 } from './assetFormat'
@@ -210,7 +211,9 @@ export function AssetsTable({
           const title        = assetTitle(a, categoryName, cat?.group)
           const catColor     = resolveCategoryColor(a.categoryId, cat?.lucideIcon)
           const isRemote     = a.assignment?.workMode === 'remote'
-          const subBase      = categoryName || a.brand || '—'
+          // Furniture: subtitle is the free-text «Тип» (never a repeat of the
+          // category the title already shows). Devices/network: category name.
+          const subBase      = assetSubtitle(a, categoryName, cat?.group) || a.brand || '—'
           const sub          = a.serial ? `${subBase} · ${a.serial}` : subBase
           return (
             <>

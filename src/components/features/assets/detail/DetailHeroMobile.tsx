@@ -64,7 +64,12 @@ export function DetailHeroMobile({
           <h1 className="text-17 font-bold text-text-primary leading-snug truncate">
             {assetTitle(asset, category?.name, category?.group)}
           </h1>
-          {category && (
+          {/* Furniture: free-text «Тип» as subtitle (title is the category). */}
+          {category?.group === 'furniture' && asset.type && (
+            <p className="text-12 text-text-tertiary leading-snug mt-0.5 truncate">{asset.type}</p>
+          )}
+          {/* Category chip omitted for furniture — the title already IS the category. */}
+          {category && category.group !== 'furniture' && (
             <div className="mt-0.5">
               <Chip color="blue" size="sm">{category.name}</Chip>
             </div>

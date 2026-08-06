@@ -58,13 +58,14 @@ export const STATUS_CHIP_COLOR: Record<string, ChipColor> = {
 // ---------------------------------------------------------------------------
 
 /**
- * Derives a display title for an asset.
+ * Derives the PRIMARY display line for an asset (the bold title).
  *
  * Priority:
- *   1. brand + model (Tier-4 fields)
- *   2. categoryName when group === 'furniture'
- *   3. categoryName (any group)
- *   4. invCode fallback
+ *   1. brand + model (Tier-4 fields — devices/network)
+ *   2. categoryName (furniture has no brand/model, so its category IS its
+ *      identity — «Сейф»; the operator's free-text «Тип» renders on the
+ *      SECONDARY line via {@link assetSubtitle}, not here)
+ *   3. invCode fallback
  *
  * Single-arg call `assetTitle(a)` is still valid — falls through to invCode.
  */
@@ -77,6 +78,27 @@ export function assetTitle(
   if (group === 'furniture' && categoryName) return categoryName
   if (categoryName) return categoryName
   return a.invCode
+}
+
+/**
+ * Derives the SECONDARY display line (the subtle subtitle under the title).
+ *
+ * - Furniture: the free-text «Тип» the operator entered (e.g. «Test 1»,
+ *   «Сейф офисный»). This is the whole point — the title already shows the
+ *   category «Сейф», so the subtitle must NOT repeat it.
+ * - Devices/network: the category name (e.g. «Ноутбук»); brand/model already
+ *   occupy the title.
+ * Falls back to categoryName when a furniture asset has no type, so the line is
+ * never empty. Returns '' only when there is genuinely nothing to show — callers
+ * decide whether to render an em-dash.
+ */
+export function assetSubtitle(
+  a: Asset,
+  categoryName?: string | null,
+  group?: string | null,
+): string {
+  if (group === 'furniture') return a.type || categoryName || ''
+  return categoryName || ''
 }
 
 // ---------------------------------------------------------------------------
