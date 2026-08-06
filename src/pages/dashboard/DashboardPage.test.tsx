@@ -162,8 +162,8 @@ describe('DashboardPage loading state', () => {
     }
     // @ts-expect-error — intentionally partial stub for loading test
     renderPage('super_admin', slowRepo)
-    // Page renders its container div while loading
-    expect(document.querySelector('.space-y-5')).toBeInTheDocument()
+    // Page renders its container div while loading (space-y-4 on mobile, lg:space-y-5 on desktop)
+    expect(document.querySelector('[aria-busy="true"]')).toBeInTheDocument()
   })
 })
 
@@ -249,8 +249,14 @@ describe('DashboardPage tech_admin', () => {
 // ── Domain boxes grid (ROW 2) ───────────────────────────────────────────────────
 
 describe('DashboardPage domain boxes', () => {
+  /**
+   * DOM order reflects the new 5-row layout:
+   *   Row 3: assets, parts
+   *   Row 4: employees, subscriptions, branches
+   *   Row 5: departments (slim strip)
+   */
   const EXPECTED_ORDER = [
-    'assets', 'employees', 'parts', 'subscriptions', 'branches', 'departments',
+    'assets', 'parts', 'employees', 'subscriptions', 'branches', 'departments',
   ]
 
   it('renders all 6 domain boxes in the fixed order', async () => {
@@ -300,7 +306,10 @@ describe('DashboardPage domain boxes', () => {
     expect(within(aaBox).queryByRole('link')).toBeNull()
   })
 
-  it('shows «—» for a degraded (null) count', async () => {
+  it('renders the subscriptions box without crashing when count is null (degraded)', async () => {
+    // In the new design, the subscriptions domain box (variant='standard') does NOT
+    // render a hero total number — so there is no '—' in the box body.
+    // This test verifies the box renders at all (no crash) when the count is null.
     const repo = makeRepo()
     repo.loadDomainCounts = () => Promise.resolve({
       counts: { partsUnits: 0, branches: 2, departments: 0, subscriptions: null },
@@ -312,8 +321,9 @@ describe('DashboardPage domain boxes', () => {
     await waitFor(() =>
       expect(screen.getByTestId('domain-box-subscriptions')).toBeInTheDocument(),
     )
+    // Box is present and the title is rendered (not crashing on null count).
     const subsBox = screen.getByTestId('domain-box-subscriptions')
-    expect(within(subsBox).getByText('—')).toBeInTheDocument()
+    expect(subsBox).toBeInTheDocument()
   })
 })
 

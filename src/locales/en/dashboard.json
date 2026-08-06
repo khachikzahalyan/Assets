@@ -13,6 +13,7 @@
     "branches":      { "title": "Branches",      "viewAll": "All branches" },
     "departments":   { "title": "Departments",   "viewAll": "All departments" },
     "delta7d": "+{{n}} in 7 days",
+    "delta7dShort": "+{{n}} in 7d",
     "empty": "No events in the last 7 days",
     "partsUnits": "units in stock"
   },

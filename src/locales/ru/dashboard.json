@@ -13,6 +13,7 @@
     "branches":      { "title": "Филиалы",    "viewAll": "Все филиалы" },
     "departments":   { "title": "Отделы",     "viewAll": "Все отделы" },
     "delta7d": "+{{n}} за 7 дней",
+    "delta7dShort": "+{{n}} за 7д",
     "empty": "Нет событий за 7 дней",
     "partsUnits": "единиц на складе"
   },

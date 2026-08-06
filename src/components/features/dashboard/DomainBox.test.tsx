@@ -76,28 +76,31 @@ describe('DomainBox — title, total, delta chip', () => {
     expect(screen.getByText('Активы')).toBeInTheDocument()
   })
 
-  it('renders the total number', () => {
-    wrap(<DomainBox {...BASE_PROPS} />)
+  // total number and delta chip are rendered by the 'parts' variant (hero row).
+  // In 'standard' variant the total/delta row is omitted per design spec.
+  it('renders the total number (variant=parts)', () => {
+    wrap(<DomainBox {...BASE_PROPS} variant="parts" />)
     expect(screen.getByText('42')).toBeInTheDocument()
   })
 
-  it('renders the delta chip with +3 за 7 дней in ru locale (boxes.delta7d)', () => {
-    wrap(<DomainBox {...BASE_PROPS} delta7d={3} />)
+  it('renders the delta chip with +3 за 7 дней in ru locale (variant=parts)', () => {
+    wrap(<DomainBox {...BASE_PROPS} variant="parts" delta7d={3} />)
     // ru: "+{{n}} за 7 дней" → "+3 за 7 дней"
     expect(screen.getByText('+3 за 7 дней')).toBeInTheDocument()
   })
 })
 
 // ── 2. total = null → em dash ─────────────────────────────────────────────────
+// Total is shown only in 'parts' variant (hero-number block).
 
 describe('DomainBox — total = null', () => {
-  it('renders em dash when total is null', () => {
-    wrap(<DomainBox {...BASE_PROPS} total={null} />)
+  it('renders em dash when total is null (variant=parts)', () => {
+    wrap(<DomainBox {...BASE_PROPS} variant="parts" total={null} />)
     expect(screen.getByText('—')).toBeInTheDocument()
   })
 
-  it('does not render a numeric total when total is null', () => {
-    wrap(<DomainBox {...BASE_PROPS} total={null} />)
+  it('does not render a numeric total when total is null (variant=parts)', () => {
+    wrap(<DomainBox {...BASE_PROPS} variant="parts" total={null} />)
     expect(screen.queryByText('42')).not.toBeInTheDocument()
   })
 })
@@ -132,15 +135,16 @@ describe('DomainBox — viewAllTo prop', () => {
   it('does NOT render a link with viewAllLabel when viewAllTo is undefined', () => {
     wrap(<DomainBox {...BASE_PROPS} />)
     const links = screen.queryAllByRole('link')
-    const viewAllLinks = links.filter(l => l.textContent === 'Все активы')
+    // viewAllLabel may include a trailing «→» arrow span per design spec.
+    const viewAllLinks = links.filter(l => l.textContent?.includes('Все активы'))
     expect(viewAllLinks).toHaveLength(0)
   })
 
   it('renders link(s) with viewAllLabel and href /assets when viewAllTo is provided', () => {
     wrap(<DomainBox {...BASE_PROPS} viewAllTo="/assets" />)
     const links = screen.getAllByRole('link')
-    const viewAllLinks = links.filter(l => l.textContent === 'Все активы')
-    // Two links: one mobile (lg:hidden) + one desktop (hidden lg:block).
+    // viewAllLabel may include a trailing «→» arrow span per design spec.
+    const viewAllLinks = links.filter(l => l.textContent?.includes('Все активы'))
     expect(viewAllLinks.length).toBeGreaterThanOrEqual(1)
     viewAllLinks.forEach(l => expect(l).toHaveAttribute('href', '/assets'))
   })
@@ -190,15 +194,15 @@ describe('DomainBox — secondary line', () => {
 
 // ── 7. totalCaption ───────────────────────────────────────────────────────────
 
+// totalCaption is shown only in the 'parts' variant (alongside the hero number).
 describe('DomainBox — totalCaption', () => {
-  it('renders the totalCaption text when provided', () => {
-    wrap(<DomainBox {...BASE_PROPS} totalCaption="единиц на складе" />)
+  it('renders the totalCaption text when provided (variant=parts)', () => {
+    wrap(<DomainBox {...BASE_PROPS} variant="parts" totalCaption="единиц на складе" />)
     expect(screen.getByText('единиц на складе')).toBeInTheDocument()
   })
 
-  it('does not render a caption element when totalCaption is not provided', () => {
-    // BASE_PROPS has no totalCaption.
-    wrap(<DomainBox {...BASE_PROPS} />)
+  it('does not render a caption element when totalCaption is not provided (variant=parts)', () => {
+    wrap(<DomainBox {...BASE_PROPS} variant="parts" />)
     expect(screen.queryByText('единиц на складе')).not.toBeInTheDocument()
   })
 })
@@ -259,25 +263,27 @@ describe('MiniBarChart', () => {
 // the render in act() keeps Testing Library happy and avoids the "not wrapped
 // in act" console warning.
 
+// delta chip is rendered by 'parts' and 'slim' variants.
+// Use variant='parts' here (same localisation path for all variants that show the chip).
 describe('DomainBox — i18n delta7d across locales', () => {
-  it('renders the ru translation of boxes.delta7d', async () => {
+  it('renders the ru translation of boxes.delta7d (variant=parts)', async () => {
     // ru: "+{{n}} за 7 дней"
     await act(async () => { await i18n.changeLanguage('ru') })
-    wrap(<DomainBox {...BASE_PROPS} delta7d={5} />)
+    wrap(<DomainBox {...BASE_PROPS} variant="parts" delta7d={5} />)
     expect(screen.getByText('+5 за 7 дней')).toBeInTheDocument()
   })
 
-  it('renders the en translation of boxes.delta7d', async () => {
+  it('renders the en translation of boxes.delta7d (variant=parts)', async () => {
     // en: "+{{n}} in 7 days"
     await act(async () => { await i18n.changeLanguage('en') })
-    wrap(<DomainBox {...BASE_PROPS} delta7d={5} />)
+    wrap(<DomainBox {...BASE_PROPS} variant="parts" delta7d={5} />)
     expect(screen.getByText('+5 in 7 days')).toBeInTheDocument()
   })
 
-  it('renders the hy translation of boxes.delta7d', async () => {
+  it('renders the hy translation of boxes.delta7d (variant=parts)', async () => {
     // hy: "+{{n}} 7 օրում"
     await act(async () => { await i18n.changeLanguage('hy') })
-    wrap(<DomainBox {...BASE_PROPS} delta7d={5} />)
+    wrap(<DomainBox {...BASE_PROPS} variant="parts" delta7d={5} />)
     expect(screen.getByText('+5 7 օրում')).toBeInTheDocument()
   })
 })

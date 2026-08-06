@@ -33,6 +33,12 @@ export interface SectionCardProps {
   className?: string
   /** Extra classes applied to the inner body wrapper (the div that wraps children). */
   bodyClassName?: string
+  /**
+   * When true the <section> becomes flex-col h-full and the body div becomes
+   * flex-col flex-1 min-h-0 so children using flex-1 fill remaining space.
+   * Used by Ряд-3 boxes (АКТИВЫ, ЗАПЧАСТИ) to enforce equal card height.
+   */
+  fillHeight?: boolean
 }
 
 export function SectionCard({
@@ -44,14 +50,22 @@ export function SectionCard({
   noHeader = false,
   className = '',
   bodyClassName = '',
+  fillHeight = false,
 }: SectionCardProps) {
+  const sectionClass = fillHeight
+    ? `bg-surface border border-border rounded-xl overflow-hidden flex flex-col h-full ${className}`
+    : `bg-surface border border-border rounded-xl overflow-hidden ${className}`
+  const bodyClass = fillHeight
+    ? `p-5 max-md:p-3.5 flex flex-col flex-1 min-h-0 ${bodyClassName}`
+    : `p-5 max-md:p-3.5 ${bodyClassName}`
+
   return (
     <section
-      className={`bg-surface border border-border rounded-xl overflow-hidden ${className}`}
+      className={sectionClass}
       style={{ boxShadow: 'var(--shadow-card)' }}
     >
       {!noHeader && (
-        <header className="flex items-center justify-between px-5 py-3.5 max-md:px-3.5 max-md:py-3 border-b border-border gap-2">
+        <header className="flex items-center justify-between px-5 py-3.5 max-md:px-3.5 max-md:py-3 border-b border-border gap-2 flex-shrink-0">
           <div className="flex items-center gap-2.5 min-w-0">
             {icon && (
               <span className={`w-7 h-7 max-md:w-[26px] max-md:h-[26px] rounded-md inline-flex items-center justify-center flex-shrink-0 ${iconTone ? ICON_TONES[iconTone] : 'bg-surface-2 text-text-tertiary'}`}>
@@ -67,7 +81,7 @@ export function SectionCard({
           {action && <div className="flex items-center gap-2 flex-shrink-0">{action}</div>}
         </header>
       )}
-      <div className={`p-5 max-md:p-3.5 ${bodyClassName}`}>{children}</div>
+      <div className={bodyClass}>{children}</div>
     </section>
   )
 }
