@@ -180,6 +180,9 @@
     "colVersion": "Տարբերակ",
     "emptyDesc": "Ընտրված ֆիլտրի համար բանալիներ չեն գտնվել։",
     "emptyTitle": "Բանալիներ չկան",
+    "emptyTitleFiltered": "Բանալիներ չեն գտնվել",
+    "emptyDescFiltered": "Փորձեք փոխել ֆիլտրը կամ որոնման հարցումը։",
+    "emptyReset": "Զրոյացնել ֆիլտրերը",
     "freedOn": "Ազատվել է {{date}}",
     "searchPlaceholder": "Որոնում...",
     "sectionTitle": "Windows Key",
@@ -187,6 +190,8 @@
     "statusInUse": "Օգտ."
   },
   "subs": {
+    "colAccount": "Հաշիվ",
+    "colSubscription": "Բաժանորդագրություն",
     "details": "Մանրամասներ",
     "emptyDesc": "Ավելացրեք առաջին բաժանորդագրությունը «Ավելացնել լիցենզիա» կոճակով։",
     "emptyTitle": "Բաժանորդագրություններ չկան",

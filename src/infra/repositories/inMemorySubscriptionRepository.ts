@@ -51,6 +51,13 @@ export class InMemorySubscriptionRepository implements SubscriptionRepository {
     return results.sort((a, b) => a.name.localeCompare(b.name, 'ru'))
   }
 
+  async listSubscriptionsForEmployee(employeeDocId: string): Promise<Subscription[]> {
+    const results = Array.from(this.docs.values())
+      .filter(s => s.assignedEmployeeIds.includes(employeeDocId))
+      .map(s => this.cloneDoc(s))
+    return results.sort((a, b) => a.name.localeCompare(b.name, 'ru'))
+  }
+
   // ---- Mutations -------------------------------------------------------------
 
   async createSubscription(

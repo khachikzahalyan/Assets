@@ -482,7 +482,7 @@ export function LicensesPage({
               </div>
             </section>
           )}
-          {wError && <ErrorState onRetry={loadWorkstation} />}
+          {wError && <ErrorState onRetry={loadWorkstation} compact />}
           {!wLoading && !wError && (
             <WindowsKeysSection
               licenses={wRows}
@@ -494,6 +494,7 @@ export function LicensesPage({
               actor={actor}
               wRepo={wRepo}
               search={keySearch}
+              onSearchReset={() => setKeySearch('')}
               onActivated={handleActivated}
             />
           )}
@@ -520,7 +521,7 @@ export function LicensesPage({
               </SectionCard>
             </div>
           )}
-          {subsError && <ErrorState onRetry={loadSubs} />}
+          {subsError && <ErrorState onRetry={loadSubs} compact />}
           {!subsLoading && !subsError && (
             <SubscriptionsSection
               subs={subs}

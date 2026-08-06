@@ -123,6 +123,9 @@
     "colVersion": "Версия",
     "emptyDesc": "По выбранному фильтру ключей не найдено.",
     "emptyTitle": "Нет ключей",
+    "emptyTitleFiltered": "Ключей не найдено",
+    "emptyDescFiltered": "Попробуйте сменить фильтр или поисковый запрос.",
+    "emptyReset": "Сбросить фильтры",
     "freedOn": "Освобождён {{date}}",
     "searchPlaceholder": "Поиск...",
     "sectionTitle": "Windows Key",
@@ -170,6 +173,8 @@
     "retired": "Снята"
   },
   "subs": {
+    "colAccount": "Аккаунт",
+    "colSubscription": "Подписка",
     "details": "Детали",
     "emptyDesc": "Добавьте первую подписку кнопкой «Добавить лицензию».",
     "emptyTitle": "Нет подписок",

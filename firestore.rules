@@ -234,15 +234,25 @@ service cloud.firestore {
     }
 
     // ---- /subscriptions — seat-based SaaS subscriptions ----
-    // Read: super_admin OR tech_admin only. The Licenses route is gated to
-    //   these two roles; subscription assignee lists are employee PII that
-    //   asset_admin does not need to access.
+    // Read: super_admin OR tech_admin (full list). Additionally, an active
+    //   (non-terminated) employee may read any doc where their own uid or linked
+    //   employeeId appears in assignedEmployeeIds — the secure-list pattern: a
+    //   client list query must be constrained with array-contains on the caller's
+    //   uid or linked employeeId so the rule can prove self-scope at doc-level;
+    //   an unconstrained list query remains denied for employees. Terminated
+    //   accounts lose the self-scope (mirrors isSelfEmployee semantics).
     // Write (create/update): super_admin OR tech_admin. Shape guard requires
     //   assignedEmployeeIds to be a list — defense-in-depth against a malformed
     //   privileged client corrupting the field.
     // Delete: forbidden for all principals.
     match /subscriptions/{id} {
-      allow read: if isSuperAdmin() || isTechAdmin();
+      allow read: if isSuperAdmin() || isTechAdmin()
+        || (
+          isSignedIn()
+          && userDoc().get('status', '') != 'terminated'
+          && (request.auth.uid in resource.data.assignedEmployeeIds
+              || myEmployeeId() in resource.data.assignedEmployeeIds)
+        );
       allow create, update: if (isSuperAdmin() || isTechAdmin())
         && request.resource.data.assignedEmployeeIds is list;
       allow delete: if false;

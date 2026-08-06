@@ -375,6 +375,7 @@ describe('LicensesPage — new two-tab shape', () => {
       getSubscription: (id: string) => seedRepo.getSubscription(id),
       createSubscription: (input, actor) => seedRepo.createSubscription(input, actor),
       updateAssignees: () => Promise.reject(new Error('permission-denied')),
+      listSubscriptionsForEmployee: () => Promise.resolve([]),
     }
     const employees: Employee[] = [{
       id: 'emp_1', firstName: 'Anna', lastName: 'Petrova', email: 'anna@example.test',

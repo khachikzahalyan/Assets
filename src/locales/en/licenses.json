@@ -180,6 +180,9 @@
     "colVersion": "Version",
     "emptyDesc": "No keys found for the selected filter.",
     "emptyTitle": "No keys",
+    "emptyTitleFiltered": "No keys found",
+    "emptyDescFiltered": "Try changing the filter or search query.",
+    "emptyReset": "Reset filters",
     "freedOn": "Freed {{date}}",
     "searchPlaceholder": "Search...",
     "sectionTitle": "Windows Keys",
@@ -187,6 +190,8 @@
     "statusInUse": "In use"
   },
   "subs": {
+    "colAccount": "Account",
+    "colSubscription": "Subscription",
     "details": "Details",
     "emptyDesc": "Add the first subscription using the «Add license» button.",
     "emptyTitle": "No subscriptions",

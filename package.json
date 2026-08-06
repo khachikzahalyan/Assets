@@ -12,7 +12,7 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:rules": "firebase emulators:exec --project demo-ams --only firestore,storage \"vitest run tests/rules\"",
+    "test:rules": "firebase emulators:exec --project demo-ams --only firestore,storage \"vitest run --config vitest.rules.config.ts\"",
     "typecheck": "tsc --noEmit",
     "build:functions": "cd functions && npm ci && npm run build",
     "deploy:rules": "npx firebase deploy --only firestore:rules,storage:rules,firestore:indexes",
@@ -28,6 +28,7 @@
     "migrate:category-groups": "tsx scripts/migrate-category-groups.ts",
     "clear:assets": "tsx scripts/clearAssets.ts",
     "delete:asset": "tsx scripts/deleteAsset.ts",
+    "seed:assets": "tsx scripts/seed-assets.ts",
     "typecheck:scripts": "tsc --noEmit -p tsconfig.scripts.json"
   },
   "dependencies": {

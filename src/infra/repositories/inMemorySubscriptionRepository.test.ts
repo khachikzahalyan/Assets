@@ -240,6 +240,103 @@ describe('InMemorySubscriptionRepository', () => {
     })
   })
 
+  // ---- listSubscriptionsForEmployee -----------------------------------------
+
+  describe('listSubscriptionsForEmployee', () => {
+    it('returns only subscriptions whose assignedEmployeeIds include the given id', async () => {
+      // Arrange
+      const { repo } = makeRepo()
+      await repo.createSubscription(
+        { name: 'Figma', seatsTotal: 5, assignedEmployeeIds: ['emp_1', 'emp_2'] },
+        ACTOR,
+      )
+      await repo.createSubscription(
+        { name: 'Slack', seatsTotal: 10, assignedEmployeeIds: ['emp_2'] },
+        ACTOR,
+      )
+      await repo.createSubscription(
+        { name: 'Notion', seatsTotal: 3, assignedEmployeeIds: [] },
+        ACTOR,
+      )
+
+      // Act
+      const results = await repo.listSubscriptionsForEmployee('emp_1')
+
+      // Assert
+      expect(results).toHaveLength(1)
+      expect(results[0]!.name).toBe('Figma')
+    })
+
+    it('returns empty array when no subscriptions contain the given employee id', async () => {
+      // Arrange
+      const { repo } = makeRepo()
+      await repo.createSubscription(
+        { name: 'Jira', seatsTotal: 20, assignedEmployeeIds: ['emp_other'] },
+        ACTOR,
+      )
+
+      // Act
+      const results = await repo.listSubscriptionsForEmployee('emp_nobody')
+
+      // Assert
+      expect(results).toHaveLength(0)
+    })
+
+    it('returns subscriptions sorted by name (ru locale) when multiple match', async () => {
+      // Arrange
+      const { repo } = makeRepo()
+      await repo.createSubscription(
+        { name: 'Zoom', seatsTotal: 5, assignedEmployeeIds: ['emp_1'] },
+        ACTOR,
+      )
+      await repo.createSubscription(
+        { name: 'Adobe CC', seatsTotal: 2, assignedEmployeeIds: ['emp_1'] },
+        ACTOR,
+      )
+      await repo.createSubscription(
+        { name: 'Microsoft 365', seatsTotal: 50, assignedEmployeeIds: ['emp_1'] },
+        ACTOR,
+      )
+
+      // Act
+      const results = await repo.listSubscriptionsForEmployee('emp_1')
+
+      // Assert
+      expect(results).toHaveLength(3)
+      expect(results[0]!.name).toBe('Adobe CC')
+      expect(results[1]!.name).toBe('Microsoft 365')
+      expect(results[2]!.name).toBe('Zoom')
+    })
+
+    it('returns empty array when the repository has no subscriptions at all', async () => {
+      // Arrange
+      const { repo } = makeRepo()
+
+      // Act
+      const results = await repo.listSubscriptionsForEmployee('emp_1')
+
+      // Assert
+      expect(results).toHaveLength(0)
+    })
+
+    it('does not mutate the stored assignedEmployeeIds (returns clones)', async () => {
+      // Arrange
+      const { repo } = makeRepo()
+      await repo.createSubscription(
+        { name: 'Slack', seatsTotal: 10, assignedEmployeeIds: ['emp_1'] },
+        ACTOR,
+      )
+
+      // Act
+      const results = await repo.listSubscriptionsForEmployee('emp_1')
+      results[0]!.assignedEmployeeIds.push('mutated')
+
+      // Assert — re-fetching returns the original, unmutated array
+      const again = await repo.listSubscriptionsForEmployee('emp_1')
+      expect(again[0]!.assignedEmployeeIds).toEqual(['emp_1'])
+    })
+  })
+
   // ---- Audit log counts -----------------------------------------------------
 
   describe('audit log counts', () => {

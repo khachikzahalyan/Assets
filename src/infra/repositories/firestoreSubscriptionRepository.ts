@@ -1,5 +1,5 @@
 import {
-  collection, doc, getDoc, getDocs, serverTimestamp,
+  collection, doc, getDoc, getDocs, query, where, serverTimestamp,
   type Firestore,
 } from 'firebase/firestore'
 import type { Actor } from '@/domain/asset'
@@ -52,6 +52,18 @@ export class FirestoreSubscriptionRepository implements SubscriptionRepository {
       )
     }
 
+    return results.sort((a, b) => a.name.localeCompare(b.name, 'ru'))
+  }
+
+  async listSubscriptionsForEmployee(employeeDocId: string): Promise<Subscription[]> {
+    // array-contains is required so Firestore rules can prove the self-scope at
+    // the list level. orderBy is intentionally omitted to avoid a composite index.
+    const q = query(
+      collection(this.db, COL),
+      where('assignedEmployeeIds', 'array-contains', employeeDocId),
+    )
+    const snap = await getDocs(q)
+    const results = snap.docs.map(d => toSubscription(d.id, d.data() as Record<string, unknown>))
     return results.sort((a, b) => a.name.localeCompare(b.name, 'ru'))
   }
 

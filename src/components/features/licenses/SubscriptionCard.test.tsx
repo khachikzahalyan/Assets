@@ -205,7 +205,48 @@ describe('SubscriptionCard', () => {
     expect(screen.getByTestId('manage-btn-sub_mgmt')).toBeInTheDocument()
   })
 
-  // ── 6. Vendor email ─────────────────────────────────────────────────────────
+  // ── 6. readOnly prop ────────────────────────────────────────────────────────
+
+  it('readOnly=true hides the manage button while still rendering sub name and seat info', () => {
+    // Arrange — card in read-only mode (self-service page); onUpdateAssignees provided
+    // but must be ignored because readOnly takes precedence.
+    const sub = makeSub({ id: 'sub_ro', name: 'Figma Teams', seatsTotal: 5, assignedEmployeeIds: ['e1', 'e2'] })
+    const onUpdate = vi.fn()
+
+    // Act
+    render(
+      <I18nextProvider i18n={i18n}>
+        <SubscriptionCard sub={sub} employees={[]} onUpdateAssignees={onUpdate} readOnly />
+      </I18nextProvider>,
+    )
+
+    // Assert — sub name and seat count still visible
+    expect(screen.getByText('Figma Teams')).toBeInTheDocument()
+    const card = screen.getByTestId('sub-card-sub_ro')
+    expect(card.textContent).toContain('2')
+    expect(card.textContent).toContain('5')
+
+    // Assert — manage button is NOT in the document
+    expect(document.querySelector('[data-testid="manage-btn-sub_ro"]')).toBeNull()
+  })
+
+  it('(regression) default render (no readOnly) still shows the manage button', () => {
+    // Arrange — normal admin view
+    const sub = makeSub({ id: 'sub_normal' })
+    const onUpdate = vi.fn()
+
+    // Act
+    render(
+      <I18nextProvider i18n={i18n}>
+        <SubscriptionCard sub={sub} employees={[]} onUpdateAssignees={onUpdate} />
+      </I18nextProvider>,
+    )
+
+    // Assert — manage button present (readOnly defaults to false)
+    expect(screen.getByTestId('manage-btn-sub_normal')).toBeInTheDocument()
+  })
+
+  // ── 7. Vendor email ─────────────────────────────────────────────────────────
 
   it('shows vendor email when present', () => {
     // Arrange

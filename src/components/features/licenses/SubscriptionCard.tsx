@@ -12,13 +12,29 @@ import { daysUntil, fmtDate, pluralEmp } from './licenseHelpers'
 
 export interface SubscriptionCardProps {
   sub: Subscription
-  employees: Employee[]
-  onUpdateAssignees: (subId: string, ids: string[]) => Promise<void>
+  /**
+   * Full employee list for the ManageAssigneesModal.
+   * Optional when `readOnly` is true — the modal is never opened in read-only mode.
+   */
+  employees?: Employee[]
+  /**
+   * Callback for the manage-assignees action.
+   * When omitted (or when `readOnly` is true) the «Details» button is hidden.
+   */
+  onUpdateAssignees?: (subId: string, ids: string[]) => Promise<void>
+  /**
+   * When true, hides the manage button and never mounts ManageAssigneesModal.
+   * Use on self-service pages where employees must not access the assignee list.
+   */
+  readOnly?: boolean
 }
 
-export function SubscriptionCard({ sub, employees, onUpdateAssignees }: SubscriptionCardProps) {
+export function SubscriptionCard({ sub, employees, onUpdateAssignees, readOnly = false }: SubscriptionCardProps) {
   const { t, i18n } = useTranslation('licenses')
   const [manageOpen, setManageOpen] = useState(false)
+
+  /** True only when the manage action is available and the card is not read-only. */
+  const canManage = !readOnly && typeof onUpdateAssignees === 'function'
 
   const seatsUsed = sub.assignedEmployeeIds.length
   const days = daysUntil(sub.expiryDate)
@@ -103,28 +119,30 @@ export function SubscriptionCard({ sub, employees, onUpdateAssignees }: Subscrip
           ) : (
             <span className="text-12.5 text-text-subtle italic">{t('subs.notAssigned')}</span>
           )}
-          <button
-            type="button"
-            onClick={() => setManageOpen(true)}
-            data-testid={`manage-btn-${sub.id}`}
-            className="inline-flex items-center gap-1 text-12 font-medium text-text-tertiary hover:text-text-primary transition-colors"
-          >
-            {t('subs.details')}
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-              <path d="m9 18 6-6-6-6"/>
-            </svg>
-          </button>
+          {canManage && (
+            <button
+              type="button"
+              onClick={() => setManageOpen(true)}
+              data-testid={`manage-btn-${sub.id}`}
+              className="inline-flex items-center gap-1 text-12 font-medium text-text-tertiary hover:text-text-primary transition-colors"
+            >
+              {t('subs.details')}
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                <path d="m9 18 6-6-6-6"/>
+              </svg>
+            </button>
+          )}
         </div>
       </div>
 
-      {manageOpen && (
+      {canManage && manageOpen && (
         <ManageAssigneesModal
           subId={sub.id}
           subName={sub.name}
           seatsTotal={sub.seatsTotal}
           initialAssignedIds={sub.assignedEmployeeIds}
-          employees={employees}
-          onUpdateAssignees={onUpdateAssignees}
+          employees={employees ?? []}
+          onUpdateAssignees={onUpdateAssignees!}
           onClose={() => setManageOpen(false)}
         />
       )}

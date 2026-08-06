@@ -9,7 +9,7 @@
  */
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Chip, Icon, DataTable, TabStrip, MobileListPlaceholders } from '@/components/ui'
+import { Chip, Icon, DataTable, TabStrip, MobileListPlaceholders, EmptyState, Btn } from '@/components/ui'
 import type { DataTableColumn, TabStripItem } from '@/components/ui'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import type { WorkstationLicense } from '@/domain/license'
@@ -82,6 +82,8 @@ export interface WindowsKeysSectionProps {
   wRepo: WorkstationLicenseRepository
   /** Search query from parent tab strip */
   search?: string
+  /** Called when the user clicks «Reset filters» in the filtered empty state */
+  onSearchReset?: () => void
   /** Callback after a key is activated (parent reloads) */
   onActivated?: () => void
 }
@@ -96,11 +98,13 @@ export function WindowsKeysSection({
   actor,
   wRepo,
   search = '',
+  onSearchReset,
   onActivated,
 }: WindowsKeysSectionProps) {
   const { t } = useTranslation('licenses')
   const isMobile = useIsMobile()
   const [filter, setFilter] = useState<KeyStatus>('in_use')
+  const hasActiveSearch = search.trim() !== ''
   const [page, setPage] = useState(1)
   const [detailsId, setDetailsId] = useState<string | null>(null)
   const [activatingId, setActivatingId] = useState<string | null>(null)
@@ -326,12 +330,20 @@ export function WindowsKeysSection({
 
         {rows.length === 0 ? (
           /* flex-1 keeps the empty state vertically centered in the stretched card */
-          <div className="flex flex-col items-center justify-center px-6 py-12 text-center flex-1">
-            <span className="w-12 h-12 rounded-xl bg-surface-2 text-text-subtle inline-flex items-center justify-center mb-3">
-              <Icon name="key-round" size={20} />
-            </span>
-            <p className="text-14.5 font-semibold text-text-primary mb-1">{t('keys.emptyTitle')}</p>
-            <p className="text-13 text-text-tertiary">{t('keys.emptyDesc')}</p>
+          <div className="flex flex-1 items-center justify-center">
+            <EmptyState
+              icon={hasActiveSearch ? 'search-x' : 'key-round'}
+              title={t(hasActiveSearch ? 'keys.emptyTitleFiltered' : 'keys.emptyTitle')}
+              description={t(hasActiveSearch ? 'keys.emptyDescFiltered' : 'keys.emptyDesc')}
+              {...(hasActiveSearch && onSearchReset ? {
+                action: (
+                  <Btn variant="primary" size="sm" onClick={onSearchReset}>
+                    <Icon name="rotate-ccw" size={13} />
+                    {t('keys.emptyReset')}
+                  </Btn>
+                ),
+              } : {})}
+            />
           </div>
         ) : (
           <div className="flex flex-col flex-1 min-h-0">
