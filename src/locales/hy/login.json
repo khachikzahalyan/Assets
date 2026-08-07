@@ -6,8 +6,6 @@
     "passwordLabel": "Գաղտնաբառ",
     "loginPlaceholder": "Մուտքագրեք մուտքանունը",
     "passwordPlaceholder": "Մուտքագրեք գաղտնաբառը",
-    "forgotPassword": "Մոռացե՞լ եք գաղտնաբառը",
-    "forgotHint": "Գաղտնաբառը վերականգնելու համար դիմեք համակարգի ադմինիստրատորին:",
     "rememberMe": "Հիշել ինձ",
     "signInBtn": "Մուտք",
     "signingIn": "Մուտք…",
@@ -16,10 +14,6 @@
     "googleBtn": "Sign in with Google"
   },
   "divider": "կամ",
-  "demo": {
-    "label": "Դեմո մուտք",
-    "fill": "Լրացնել"
-  },
   "employee": {
     "label": "For employees",
     "emailPlaceholder": "Enter your email",

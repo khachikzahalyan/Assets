@@ -18,7 +18,6 @@ export function useLoginForm() {
   const [rememberMe, setRememberMe] = useState(true)
   const [pwBusy, setPwBusy] = useState(false)
   const [pwError, setPwError] = useState<string | null>(null)
-  const [forgotHint, setForgotHint] = useState<string | null>(null)
 
   async function handleGoogle() {
     setGoogleError(null)
@@ -43,13 +42,8 @@ export function useLoginForm() {
     }
   }
 
-  function handleForgotPassword() {
-    setForgotHint(t('admin.forgotHint'))
-  }
-
   async function handlePasswordSignIn() {
     setPwError(null)
-    setForgotHint(null)
     if (login.trim().length === 0 || password.length === 0) {
       setPwError(t('error.password.empty'))
       return
@@ -86,9 +80,6 @@ export function useLoginForm() {
     pwBusy,
     pwError,
     setPwError,
-    forgotHint,
-    setForgotHint,
-    handleForgotPassword,
     handlePasswordSignIn,
     handleGoogle,
   }

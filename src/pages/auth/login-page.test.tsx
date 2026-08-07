@@ -104,10 +104,9 @@ describe('LoginPage', () => {
     })
   })
 
-  it('renders the remember-me checkbox and forgot-password link', () => {
+  it('renders the remember-me checkbox', () => {
     renderLoginPage()
     expect(screen.getByText('Запомнить меня')).toBeInTheDocument()
-    expect(screen.getByText('Забыли пароль?')).toBeInTheDocument()
   })
 
   it('passes remember=false to sign-in when "remember me" is unchecked', async () => {
@@ -121,20 +120,6 @@ describe('LoginPage', () => {
     })
   })
 
-  it('shows a hint when "forgot password" is clicked', () => {
-    renderLoginPage()
-    fireEvent.click(screen.getByText('Забыли пароль?'))
-    expect(
-      screen.getByText('Для сброса пароля обратитесь к администратору системы.'),
-    ).toBeInTheDocument()
-  })
-
-  it('the demo "Заполнить" button pre-fills the login and password', () => {
-    renderLoginPage()
-    fireEvent.click(screen.getByText('Заполнить'))
-    expect((screen.getByPlaceholderText('Введите логин') as HTMLInputElement).value).toBe('superadmin')
-    expect((screen.getByPlaceholderText('Введите пароль') as HTMLInputElement).value).toBe('ams123')
-  })
 
   it('shows an inline error and does not sign in when fields are empty', async () => {
     renderLoginPage()

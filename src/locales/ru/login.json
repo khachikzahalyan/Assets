@@ -6,8 +6,6 @@
     "passwordLabel": "Пароль",
     "loginPlaceholder": "Введите логин",
     "passwordPlaceholder": "Введите пароль",
-    "forgotPassword": "Забыли пароль?",
-    "forgotHint": "Для сброса пароля обратитесь к администратору системы.",
     "rememberMe": "Запомнить меня",
     "signInBtn": "Войти",
     "signingIn": "Вход…",
@@ -16,10 +14,6 @@
     "googleBtn": "Войти через Google"
   },
   "divider": "или",
-  "demo": {
-    "label": "Демо-доступ",
-    "fill": "Заполнить"
-  },
   "employee": {
     "label": "Для сотрудников",
     "emailPlaceholder": "Введите ваш email",

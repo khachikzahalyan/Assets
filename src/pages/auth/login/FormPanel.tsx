@@ -4,11 +4,6 @@ import { Icon } from '@/components/ui/icon'
 import { ErrorBanner } from './ErrorBanner'
 import { useLoginForm } from './useLoginForm'
 
-// Public demo credentials — a permanent guest super_admin so anyone can sign in
-// and explore the project. Kept in sync with scripts/create-admin-login.ts.
-const DEMO_LOGIN = 'superadmin'
-const DEMO_PASSWORD = 'ams123'
-
 /** Left form panel: login+password and Google sign-in (unified for all roles). */
 export function FormPanel() {
   const { t } = useTranslation('login')
@@ -24,19 +19,11 @@ export function FormPanel() {
     pwBusy,
     pwError,
     setPwError,
-    forgotHint,
-    handleForgotPassword,
     handlePasswordSignIn,
     handleGoogle,
   } = useLoginForm()
 
   const [showPassword, setShowPassword] = useState(false)
-
-  function fillDemo() {
-    setLogin(DEMO_LOGIN)
-    setPassword(DEMO_PASSWORD)
-    setPwError(null)
-  }
 
   // Split footer note on newline for <br/> rendering
   const footerLines = t('footer.note').split('\n')
@@ -113,19 +100,9 @@ export function FormPanel() {
 
             {/* Password field — label row with "forgot password" link */}
             <div className="mb-4">
-              <div className="flex items-center justify-between mb-1.5">
-                <label htmlFor="admin-password" className="text-13 font-medium text-[#c8ccd6] light:text-text-secondary">
-                  {t('admin.passwordLabel')}
-                </label>
-                <button
-                  type="button"
-                  onClick={handleForgotPassword}
-                  className="text-12 font-medium text-accent hover:text-accent-hover transition-colors"
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-                >
-                  {t('admin.forgotPassword')}
-                </button>
-              </div>
+              <label htmlFor="admin-password" className="block mb-1.5 text-13 font-medium text-[#c8ccd6] light:text-text-secondary">
+                {t('admin.passwordLabel')}
+              </label>
               <div className="relative">
                 <span className="absolute left-3.5 top-0 bottom-0 flex items-center text-[#6b7280] light:text-text-tertiary pointer-events-none">
                   <Icon name="lock" size={17} />
@@ -160,11 +137,6 @@ export function FormPanel() {
                   <Icon name={showPassword ? 'eye-off' : 'eye'} size={18} />
                 </button>
               </div>
-              {forgotHint && (
-                <p className="mt-1.5 text-11.5 text-[#c8ccd6]/70 light:text-text-tertiary">
-                  {forgotHint}
-                </p>
-              )}
             </div>
 
             {/* Remember me */}
@@ -231,29 +203,6 @@ export function FormPanel() {
             )}
             {t('admin.googleBtn')}
           </button>
-
-          {/* Demo access hint — permanent guest super_admin for exploring the project */}
-          <div className="mt-4 flex items-center justify-between gap-3 rounded-[10px] border border-dashed px-3.5 py-2.5
-            lg:border-[#2e3347] lg:bg-[#131620]/40
-            max-lg:border-[#252940] max-lg:bg-[#13151f]/40
-            light:border-border-strong light:bg-surface">
-            <div className="min-w-0">
-              <p className="text-10 font-semibold uppercase text-[#6b7280] light:text-text-tertiary" style={{ letterSpacing: '1px' }}>
-                {t('demo.label')}
-              </p>
-              <p className="text-12.5 font-mono truncate text-[#c8ccd6] light:text-text-secondary">
-                {DEMO_LOGIN} / {DEMO_PASSWORD}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={fillDemo}
-              className="flex-shrink-0 text-12 font-semibold text-accent hover:text-accent-hover transition-colors"
-              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-            >
-              {t('demo.fill')}
-            </button>
-          </div>
         </section>
 
         {/* Footer note — mt-auto pushes it to bottom of column on mobile */}
