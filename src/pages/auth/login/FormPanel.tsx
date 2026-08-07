@@ -1,28 +1,42 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Icon } from '@/components/ui/icon'
 import { ErrorBanner } from './ErrorBanner'
 import { useLoginForm } from './useLoginForm'
 
-/** Left form panel: logo, employee email-link form, admin Google sign-in. */
+// Public demo credentials — a permanent guest super_admin so anyone can sign in
+// and explore the project. Kept in sync with scripts/create-admin-login.ts.
+const DEMO_LOGIN = 'superadmin'
+const DEMO_PASSWORD = 'ams123'
+
+/** Left form panel: login+password and Google sign-in (unified for all roles). */
 export function FormPanel() {
   const { t } = useTranslation('login')
   const {
-    linkCheckError,
-    linkChecking,
     googleError,
     googleBusy,
-    email,
-    setEmail,
-    emailError,
-    setEmailError,
-    linkBusy,
-    linkError,
-    setLinkError,
-    linkSent,
-    setLinkSent,
+    login,
+    setLogin,
+    password,
+    setPassword,
+    rememberMe,
+    setRememberMe,
+    pwBusy,
+    pwError,
+    setPwError,
+    forgotHint,
+    handleForgotPassword,
+    handlePasswordSignIn,
     handleGoogle,
-    handleSendLink,
   } = useLoginForm()
+
+  const [showPassword, setShowPassword] = useState(false)
+
+  function fillDemo() {
+    setLogin(DEMO_LOGIN)
+    setPassword(DEMO_PASSWORD)
+    setPwError(null)
+  }
 
   // Split footer note on newline for <br/> rendering
   const footerLines = t('footer.note').split('\n')
@@ -31,38 +45,6 @@ export function FormPanel() {
     <div
       className="w-full lg:w-[44%] relative flex lg:items-center lg:justify-center lg:px-16 lg:py-[3.75rem] max-lg:flex-1 max-lg:flex-col max-lg:px-6 max-lg:pt-7 max-lg:pb-5 max-lg:min-h-0 max-lg:overflow-y-auto"
     >
-
-      {/* Logo — desktop only: position:absolute top-left, out of flex flow */}
-      <div
-        className="hidden lg:flex absolute top-9 left-12"
-        style={{
-          alignItems: 'center',
-          gap: '10px',
-          animation: 'fadeInUp .5s ease both',
-        }}
-      >
-        <div
-          style={{
-            width: '34px',
-            height: '34px',
-            background: '#E8692A',
-            borderRadius: '9px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-          }}
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="white" strokeWidth="1.8" strokeLinejoin="round" />
-            <path d="M2 17l10 5 10-5" stroke="white" strokeWidth="1.8" strokeLinejoin="round" />
-            <path d="M2 12l10 5 10-5" stroke="white" strokeWidth="1.8" strokeLinejoin="round" />
-          </svg>
-        </div>
-        <span className="text-white light:text-text-primary" style={{ fontSize: '15px', fontWeight: 600, letterSpacing: '.3px' }}>
-          AMS
-        </span>
-      </div>
 
       {/* Form content — full-width column on mobile; max-25rem centered on desktop */}
       <div
@@ -91,147 +73,136 @@ export function FormPanel() {
           </p>
         </div>
 
-        {/* Email-link check error banner */}
-        {linkCheckError && !linkChecking && (
-          <div className="mb-5">
-            <ErrorBanner message={linkCheckError} />
-          </div>
-        )}
-
-        {/* Loading indicator for email link completion */}
-        {linkChecking && (
-          <div className="flex items-center gap-2 py-2 mb-4">
-            <Icon name="loader-circle" size={16} className="animate-spin text-accent" />
-            <span className="text-12.5 text-white/40 light:text-text-tertiary">
-              {t('loading')}
-            </span>
-          </div>
-        )}
-
-        {/* ── Employee section (moved above admin per request) ── */}
-        <section aria-labelledby="employee-section-lbl" className="lg:mb-7 max-lg:mb-5">
-          <p
-            id="employee-section-lbl"
-            className="max-lg:text-9 lg:text-10 max-lg:mb-2.5 lg:mb-3 max-lg:text-[#3a4055] lg:text-[#4a5065] light:text-text-tertiary"
-            style={{
-              fontWeight: 600,
-              letterSpacing: '1.2px',
-              textTransform: 'uppercase',
-            }}
+        {/* ── Sign-in section: login+password, then Google (unified for all roles) ── */}
+        <section aria-label={t('page.title')}>
+          {/* Login + password credentials — real Firebase email/password sign-in */}
+          <form
+            className="lg:mb-5 max-lg:mb-4"
+            onSubmit={(e) => { e.preventDefault(); void handlePasswordSignIn() }}
           >
-            {t('employee.label')}
-          </p>
+            {pwError && <div className="mb-3"><ErrorBanner message={pwError} /></div>}
 
-          {linkSent ? (
-            /* Success state */
-            <div className="flex flex-col items-center text-center gap-2.5 py-5">
-              <span
-                className="w-11 h-11 rounded-full inline-flex items-center justify-center bg-emerald-500/10 border border-emerald-500/30 light:bg-emerald-50 light:border-emerald-200"
-              >
-                <Icon name="mail-check" size={20} className="text-emerald-400 light:text-emerald-700" />
-              </span>
-              <p className="text-14.5 font-semibold text-white light:text-text-primary">
-                {t('employee.successTitle')}
-              </p>
-              <p className="text-12.5 max-w-xs text-white/40 light:text-text-tertiary">
-                {t('employee.successDesc', { email: email.trim() })}
-              </p>
-              <button
-                type="button"
-                onClick={() => { setLinkSent(false); setEmail(''); setLinkError(null) }}
-                className="mt-1 text-12 underline underline-offset-2 transition-opacity hover:opacity-70 text-white/35 light:text-text-subtle"
-                style={{ background: 'none', border: 'none', cursor: 'pointer' }}
-              >
-                {t('employee.tryAnother')}
-              </button>
-            </div>
-          ) : (
-            /* Input form */
-            <div className="space-y-3">
-              {linkError && <ErrorBanner message={linkError} />}
-
-              <div>
-                <label htmlFor="employee-email" className="sr-only">
-                  {t('employee.emailPlaceholder')}
-                </label>
+            {/* Login field */}
+            <div className="mb-4">
+              <label htmlFor="admin-login" className="block mb-1.5 text-13 font-medium text-[#c8ccd6] light:text-text-secondary">
+                {t('admin.loginLabel')}
+              </label>
+              <div className="relative">
+                <span className="absolute left-3.5 top-0 bottom-0 flex items-center text-[#6b7280] light:text-text-tertiary pointer-events-none">
+                  <Icon name="user" size={17} />
+                </span>
                 <input
-                  id="employee-email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => { setEmail(e.target.value); setEmailError(null) }}
-                  placeholder={t('employee.emailPlaceholder')}
-                  disabled={linkBusy}
-                  className="w-full placeholder:text-[#4a5065] light:placeholder:text-text-subtle outline-none block border text-[#e5e7eb] light:text-text-primary text-14 px-4
+                  id="admin-login"
+                  type="text"
+                  autoComplete="username"
+                  value={login}
+                  onChange={(e) => { setLogin(e.target.value); setPwError(null) }}
+                  placeholder={t('admin.loginPlaceholder')}
+                  disabled={pwBusy}
+                  className="w-full placeholder:text-[#4a5065] light:placeholder:text-text-subtle outline-none block border text-[#e5e7eb] light:text-text-primary text-14 pl-11 pr-4
                     lg:bg-[#131620] lg:border-[#2e3347] lg:rounded-[10px] lg:py-[0.8125rem]
                     max-lg:bg-[#13151f] max-lg:border-[#252940] max-lg:rounded-[12px] max-lg:py-3.5
                     light:lg:bg-surface light:lg:border-border-strong
                     light:max-lg:bg-surface light:max-lg:border-border-strong"
-                  style={{
-                    boxSizing: 'border-box',
-                    opacity: linkBusy ? 0.5 : 1,
-                    transition: 'border-color 0.15s, box-shadow 0.15s',
-                  }}
-                  onFocus={(e) => {
-                    e.currentTarget.style.borderColor = '#E8692A'
-                    e.currentTarget.style.boxShadow = '0 0 0 2px rgba(232,105,42,0.2)'
-                  }}
-                  onBlur={(e) => {
-                    e.currentTarget.style.borderColor = ''
-                    e.currentTarget.style.boxShadow = 'none'
-                  }}
+                  style={{ boxSizing: 'border-box', opacity: pwBusy ? 0.5 : 1, transition: 'border-color 0.15s, box-shadow 0.15s' }}
+                  onFocus={(e) => { e.currentTarget.style.borderColor = '#E8692A'; e.currentTarget.style.boxShadow = '0 0 0 2px rgba(232,105,42,0.2)' }}
+                  onBlur={(e) => { e.currentTarget.style.borderColor = ''; e.currentTarget.style.boxShadow = 'none' }}
                 />
-                {emailError && (
-                  <p role="alert" className="mt-1.5 text-11.5 text-[#FDA4AF] light:text-rose-700">
-                    {emailError}
-                  </p>
-                )}
               </div>
-
-              <button
-                type="button"
-                onClick={() => { void handleSendLink() }}
-                disabled={linkBusy}
-                className="w-full flex items-center justify-center gap-2 bg-accent text-white text-14 font-semibold disabled:opacity-60 transition-colors duration-150 cursor-pointer border-0 px-5
-                  max-lg:rounded-[12px] max-lg:py-3.5 max-lg:hover:bg-accent-hover
-                  lg:rounded-[10px] lg:py-[0.8125rem] lg:hover:bg-accent-hover"
-                style={{ letterSpacing: '.2px' }}
-              >
-                {linkBusy && (
-                  <Icon name="loader-circle" size={16} className="animate-spin" />
-                )}
-                {linkBusy ? t('employee.sending') : t('employee.linkBtn')}
-              </button>
             </div>
-          )}
-        </section>
 
-        {/* ── Divider ── */}
-        <div
-          className="flex items-center gap-3 lg:mb-7 max-lg:mb-5"
-          aria-hidden="true"
-        >
-          <div className="flex-1 h-px lg:bg-[#22263a] max-lg:bg-[#1e2235] light:bg-border" />
-          <span
-            className="max-lg:text-11 lg:text-12 max-lg:text-[#2e3450] lg:text-[#3a3f55] light:text-text-subtle"
-          >
-            {t('divider')}
-          </span>
-          <div className="flex-1 h-px lg:bg-[#22263a] max-lg:bg-[#1e2235] light:bg-border" />
-        </div>
+            {/* Password field — label row with "forgot password" link */}
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-1.5">
+                <label htmlFor="admin-password" className="text-13 font-medium text-[#c8ccd6] light:text-text-secondary">
+                  {t('admin.passwordLabel')}
+                </label>
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  className="text-12 font-medium text-accent hover:text-accent-hover transition-colors"
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                >
+                  {t('admin.forgotPassword')}
+                </button>
+              </div>
+              <div className="relative">
+                <span className="absolute left-3.5 top-0 bottom-0 flex items-center text-[#6b7280] light:text-text-tertiary pointer-events-none">
+                  <Icon name="lock" size={17} />
+                </span>
+                <input
+                  id="admin-password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => { setPassword(e.target.value); setPwError(null) }}
+                  placeholder={t('admin.passwordPlaceholder')}
+                  disabled={pwBusy}
+                  className="w-full placeholder:text-[#4a5065] light:placeholder:text-text-subtle outline-none block border text-[#e5e7eb] light:text-text-primary text-14 pl-11 pr-11
+                    lg:bg-[#131620] lg:border-[#2e3347] lg:rounded-[10px] lg:py-[0.8125rem]
+                    max-lg:bg-[#13151f] max-lg:border-[#252940] max-lg:rounded-[12px] max-lg:py-3.5
+                    light:lg:bg-surface light:lg:border-border-strong
+                    light:max-lg:bg-surface light:max-lg:border-border-strong"
+                  style={{ boxSizing: 'border-box', opacity: pwBusy ? 0.5 : 1, transition: 'border-color 0.15s, box-shadow 0.15s' }}
+                  onFocus={(e) => { e.currentTarget.style.borderColor = '#E8692A'; e.currentTarget.style.boxShadow = '0 0 0 2px rgba(232,105,42,0.2)' }}
+                  onBlur={(e) => { e.currentTarget.style.borderColor = ''; e.currentTarget.style.boxShadow = 'none' }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  disabled={pwBusy}
+                  aria-label={t(showPassword ? 'admin.hidePassword' : 'admin.showPassword')}
+                  aria-pressed={showPassword}
+                  tabIndex={-1}
+                  className="absolute right-0 top-0 bottom-0 flex items-center justify-center w-11 text-[#6b7280] light:text-text-tertiary transition-colors hover:text-[#e5e7eb] light:hover:text-text-primary disabled:opacity-50"
+                  style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+                >
+                  <Icon name={showPassword ? 'eye-off' : 'eye'} size={18} />
+                </button>
+              </div>
+              {forgotHint && (
+                <p className="mt-1.5 text-11.5 text-[#c8ccd6]/70 light:text-text-tertiary">
+                  {forgotHint}
+                </p>
+              )}
+            </div>
 
-        {/* ── Admin section (moved below employee per request) ── */}
-        <section aria-labelledby="admin-section-lbl">
-          <p
-            id="admin-section-lbl"
-            className="max-lg:text-9 lg:text-10 max-lg:mb-2.5 lg:mb-3 max-lg:text-[#3a4055] lg:text-[#4a5065] light:text-text-tertiary"
-            style={{
-              fontWeight: 600,
-              letterSpacing: '1.2px',
-              textTransform: 'uppercase',
-            }}
-          >
-            {t('admin.label')}
-          </p>
+            {/* Remember me */}
+            <label className="flex items-center gap-2 mb-5 cursor-pointer select-none w-fit">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                disabled={pwBusy}
+                className="w-4 h-4 rounded accent-accent cursor-pointer"
+              />
+              <span className="text-12.5 text-[#c8ccd6] light:text-text-secondary">
+                {t('admin.rememberMe')}
+              </span>
+            </label>
+
+            <button
+              type="submit"
+              disabled={pwBusy}
+              className="w-full flex items-center justify-center gap-2 bg-accent text-white text-14 font-semibold disabled:opacity-60 transition-colors duration-150 cursor-pointer border-0 px-5
+                shadow-[0_10px_28px_-8px_rgba(232,105,42,0.65)] hover:shadow-[0_12px_32px_-6px_rgba(232,105,42,0.75)]
+                max-lg:rounded-[12px] max-lg:py-3.5 max-lg:hover:bg-accent-hover
+                lg:rounded-[10px] lg:py-[0.8125rem] lg:hover:bg-accent-hover"
+              style={{ letterSpacing: '.2px', transition: 'background-color .15s, box-shadow .15s' }}
+            >
+              {pwBusy && <Icon name="loader-circle" size={16} className="animate-spin" />}
+              {pwBusy ? t('admin.signingIn') : t('admin.signInBtn')}
+            </button>
+          </form>
+
+          {/* ── Divider ── */}
+          <div className="flex items-center gap-3 lg:mb-5 max-lg:mb-4" aria-hidden="true">
+            <div className="flex-1 h-px lg:bg-[#22263a] max-lg:bg-[#1e2235] light:bg-border" />
+            <span className="max-lg:text-11 lg:text-12 max-lg:text-[#2e3450] lg:text-[#3a3f55] light:text-text-subtle">
+              {t('divider')}
+            </span>
+            <div className="flex-1 h-px lg:bg-[#22263a] max-lg:bg-[#1e2235] light:bg-border" />
+          </div>
 
           {googleError && (
             <div style={{ marginBottom: '12px' }}>
@@ -260,6 +231,29 @@ export function FormPanel() {
             )}
             {t('admin.googleBtn')}
           </button>
+
+          {/* Demo access hint — permanent guest super_admin for exploring the project */}
+          <div className="mt-4 flex items-center justify-between gap-3 rounded-[10px] border border-dashed px-3.5 py-2.5
+            lg:border-[#2e3347] lg:bg-[#131620]/40
+            max-lg:border-[#252940] max-lg:bg-[#13151f]/40
+            light:border-border-strong light:bg-surface">
+            <div className="min-w-0">
+              <p className="text-10 font-semibold uppercase text-[#6b7280] light:text-text-tertiary" style={{ letterSpacing: '1px' }}>
+                {t('demo.label')}
+              </p>
+              <p className="text-12.5 font-mono truncate text-[#c8ccd6] light:text-text-secondary">
+                {DEMO_LOGIN} / {DEMO_PASSWORD}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={fillDemo}
+              className="flex-shrink-0 text-12 font-semibold text-accent hover:text-accent-hover transition-colors"
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+            >
+              {t('demo.fill')}
+            </button>
+          </div>
         </section>
 
         {/* Footer note — mt-auto pushes it to bottom of column on mobile */}

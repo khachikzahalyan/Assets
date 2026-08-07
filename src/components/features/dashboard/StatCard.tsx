@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom'
-import { useTranslation } from 'react-i18next'
 import { Icon } from '@/components/ui/icon'
 import { cn } from '@/lib/utils'
 import { MiniBarChart } from './MiniBarChart'
@@ -115,11 +114,9 @@ export function StatCard({
   featured = false,
   heroStats,
   days,
-  delta7d,
   barClass,
   testId,
 }: StatCardProps) {
-  const { t } = useTranslation('dashboard')
   const cls = ACCENT[accent]
   const effectiveVariant: StatCardVariant = variant ?? 'wide'
 
@@ -202,7 +199,7 @@ export function StatCard({
           aria-hidden="true"
         />
         <div className="relative flex flex-col h-full">
-          {/* Top row: icon-box + delta chip */}
+          {/* Top row: icon-box */}
           <div className="flex items-center justify-between flex-shrink-0">
             {/* Icon box: 38px (2.375rem), radius 11px */}
             <span
@@ -216,15 +213,6 @@ export function StatCard({
             >
               <Icon name={icon} size={18} />
             </span>
-            {/* Delta chip: font 12px, py 4px px 10px, rounded-full, green */}
-            {delta7d !== undefined && (
-              <span
-                className="inline-flex items-center rounded-full font-medium tabular-nums text-success bg-success/10 flex-shrink-0"
-                style={{ fontSize: '0.75rem', paddingTop: '0.25rem', paddingBottom: '0.25rem', paddingLeft: '0.625rem', paddingRight: '0.625rem' }}
-              >
-                {t('boxes.delta7dShort', { n: delta7d })}
-              </span>
-            )}
           </div>
 
           {/* Number: 52px (3.25rem) bold white, letter-spacing -0.03em, mt 22px */}

@@ -8,23 +8,23 @@ import i18n from '@/lib/i18n'
 // Using ReturnType<typeof vi.fn> to preserve mock methods while typing is loose
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type LooseMock = ReturnType<typeof vi.fn<any>>
-const mockCompleteEmailLinkIfPresent = vi.fn(async (_prompt?: string) => false) as LooseMock
-const mockSendEmployeeLink = vi.fn(async (_email: string) => undefined) as LooseMock
 const mockSignInWithGoogle = vi.fn(async () => undefined) as LooseMock
+const mockSignInWithUsernamePassword = vi.fn(async (_login: string, _password: string, _remember?: boolean) => undefined) as LooseMock
 
 vi.mock('@/lib/auth', async (importOriginal) => {
-  // Keep mapGoogleSignInError real so the mapping logic is actually exercised.
+  // Keep mapGoogleSignInError / mapPasswordSignInError real so the mapping logic
+  // is actually exercised.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const actual = await importOriginal<any>()
   return {
     ...actual,
-    completeEmailLinkIfPresent: (prompt?: string) => mockCompleteEmailLinkIfPresent(prompt),
-    sendEmployeeLink: (email: string) => mockSendEmployeeLink(email),
     signInWithGoogle: () => mockSignInWithGoogle(),
+    signInWithUsernamePassword: (login: string, password: string, remember?: boolean) =>
+      mockSignInWithUsernamePassword(login, password, remember),
     signOutUser: vi.fn(),
     subscribeToAuthState: vi.fn(() => () => {}),
     fetchUserRole: vi.fn(async () => null),
-  fetchUserProfile: vi.fn(async () => ({ role: null, employeeId: null })),
+    fetchUserProfile: vi.fn(async () => ({ role: null, employeeId: null })),
     claimPendingUser: vi.fn(async () => undefined),
   }
 })
@@ -69,13 +69,10 @@ beforeAll(async () => {
 })
 
 beforeEach(() => {
-  mockCompleteEmailLinkIfPresent.mockReset()
-  mockSendEmployeeLink.mockReset()
   mockSignInWithGoogle.mockReset()
-  // Default: resolve without triggering auth state changes
-  mockCompleteEmailLinkIfPresent.mockResolvedValue(false)
-  mockSendEmployeeLink.mockResolvedValue(undefined)
+  mockSignInWithUsernamePassword.mockReset()
   mockSignInWithGoogle.mockResolvedValue(undefined)
+  mockSignInWithUsernamePassword.mockResolvedValue(undefined)
 })
 
 describe('LoginPage', () => {
@@ -84,102 +81,111 @@ describe('LoginPage', () => {
     expect(screen.getByText('Войти через Google')).toBeInTheDocument()
   })
 
-  it('renders the email input', () => {
+  it('renders the login and password inputs', () => {
     renderLoginPage()
-    expect(screen.getByPlaceholderText('Введите ваш email')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Введите логин')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Введите пароль')).toBeInTheDocument()
   })
 
-  it('renders the "Получить ссылку" button', () => {
+  it('renders the "Войти" submit button', () => {
     renderLoginPage()
-    expect(screen.getByText('Получить ссылку для входа')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Войти' })).toBeInTheDocument()
   })
 
-  it('calls completeEmailLinkIfPresent on mount', async () => {
+  // ── Login + password sign-in ──────────────────────────────────────────────
+
+  it('entering login+password and submitting calls signInWithUsernamePassword', async () => {
     renderLoginPage()
+    fireEvent.change(screen.getByPlaceholderText('Введите логин'), { target: { value: 'superadmin' } })
+    fireEvent.change(screen.getByPlaceholderText('Введите пароль'), { target: { value: 'ams123' } })
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Войти' })) })
     await waitFor(() => {
-      expect(mockCompleteEmailLinkIfPresent).toHaveBeenCalledTimes(1)
+      expect(mockSignInWithUsernamePassword).toHaveBeenCalledWith('superadmin', 'ams123', true)
     })
   })
 
-  it('completeEmailLinkIfPresent is called with the translated prompt string', async () => {
+  it('renders the remember-me checkbox and forgot-password link', () => {
     renderLoginPage()
+    expect(screen.getByText('Запомнить меня')).toBeInTheDocument()
+    expect(screen.getByText('Забыли пароль?')).toBeInTheDocument()
+  })
+
+  it('passes remember=false to sign-in when "remember me" is unchecked', async () => {
+    renderLoginPage()
+    fireEvent.change(screen.getByPlaceholderText('Введите логин'), { target: { value: 'superadmin' } })
+    fireEvent.change(screen.getByPlaceholderText('Введите пароль'), { target: { value: 'ams123' } })
+    fireEvent.click(screen.getByRole('checkbox'))
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Войти' })) })
     await waitFor(() => {
-      expect(mockCompleteEmailLinkIfPresent).toHaveBeenCalledWith(
-        'Введите email, на который была отправлена ссылка для входа',
-      )
+      expect(mockSignInWithUsernamePassword).toHaveBeenCalledWith('superadmin', 'ams123', false)
     })
   })
 
-  it('entering a valid email and clicking the link button calls sendEmployeeLink', async () => {
-    mockSendEmployeeLink.mockResolvedValueOnce(undefined)
+  it('shows a hint when "forgot password" is clicked', () => {
     renderLoginPage()
+    fireEvent.click(screen.getByText('Забыли пароль?'))
+    expect(
+      screen.getByText('Для сброса пароля обратитесь к администратору системы.'),
+    ).toBeInTheDocument()
+  })
 
-    const emailInput = screen.getByPlaceholderText('Введите ваш email')
-    fireEvent.change(emailInput, { target: { value: 'test@example.com' } })
+  it('the demo "Заполнить" button pre-fills the login and password', () => {
+    renderLoginPage()
+    fireEvent.click(screen.getByText('Заполнить'))
+    expect((screen.getByPlaceholderText('Введите логин') as HTMLInputElement).value).toBe('superadmin')
+    expect((screen.getByPlaceholderText('Введите пароль') as HTMLInputElement).value).toBe('ams123')
+  })
 
-    const linkBtn = screen.getByText('Получить ссылку для входа')
-    await act(async () => { fireEvent.click(linkBtn) })
+  it('shows an inline error and does not sign in when fields are empty', async () => {
+    renderLoginPage()
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Войти' })) })
+    expect(screen.getByText('Введите логин и пароль')).toBeInTheDocument()
+    expect(mockSignInWithUsernamePassword).not.toHaveBeenCalled()
+  })
 
+  it('shows the invalid-credentials message when sign-in rejects with auth/invalid-credential', async () => {
+    const err = Object.assign(new Error('bad'), { code: 'auth/invalid-credential' })
+    mockSignInWithUsernamePassword.mockRejectedValueOnce(err)
+    renderLoginPage()
+    fireEvent.change(screen.getByPlaceholderText('Введите логин'), { target: { value: 'superadmin' } })
+    fireEvent.change(screen.getByPlaceholderText('Введите пароль'), { target: { value: 'wrong' } })
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Войти' })) })
     await waitFor(() => {
-      expect(mockSendEmployeeLink).toHaveBeenCalledWith('test@example.com')
+      expect(screen.getByText('Неверный логин или пароль')).toBeInTheDocument()
     })
   })
 
-  it('shows the confirmation message after successful link send', async () => {
-    mockSendEmployeeLink.mockResolvedValueOnce(undefined)
+  it('shows the provider-off message when sign-in rejects with auth/operation-not-allowed', async () => {
+    const err = Object.assign(new Error('off'), { code: 'auth/operation-not-allowed' })
+    mockSignInWithUsernamePassword.mockRejectedValueOnce(err)
     renderLoginPage()
-
-    const emailInput = screen.getByPlaceholderText('Введите ваш email')
-    fireEvent.change(emailInput, { target: { value: 'worker@company.org' } })
-
-    const linkBtn = screen.getByText('Получить ссылку для входа')
-    await act(async () => { fireEvent.click(linkBtn) })
-
+    fireEvent.change(screen.getByPlaceholderText('Введите логин'), { target: { value: 'superadmin' } })
+    fireEvent.change(screen.getByPlaceholderText('Введите пароль'), { target: { value: 'ams123' } })
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Войти' })) })
     await waitFor(() => {
-      expect(screen.getByText('Проверьте почту')).toBeInTheDocument()
-    })
-    // Confirmation text contains the email
-    expect(screen.getByText(/worker@company\.org/)).toBeInTheDocument()
-  })
-
-  it('shows an inline error when email is empty and link button is clicked', async () => {
-    renderLoginPage()
-    const linkBtn = screen.getByText('Получить ссылку для входа')
-    await act(async () => { fireEvent.click(linkBtn) })
-    expect(screen.getByText('Введите корректный email')).toBeInTheDocument()
-    expect(mockSendEmployeeLink).not.toHaveBeenCalled()
-  })
-
-  it('shows an inline error when email is invalid format', async () => {
-    renderLoginPage()
-    const emailInput = screen.getByPlaceholderText('Введите ваш email')
-    fireEvent.change(emailInput, { target: { value: 'not-an-email' } })
-    const linkBtn = screen.getByText('Получить ссылку для входа')
-    await act(async () => { fireEvent.click(linkBtn) })
-    expect(screen.getByText('Введите корректный email')).toBeInTheDocument()
-    expect(mockSendEmployeeLink).not.toHaveBeenCalled()
-  })
-
-  it('shows an error banner when sendEmployeeLink throws', async () => {
-    mockSendEmployeeLink.mockRejectedValueOnce(new Error('network error'))
-    renderLoginPage()
-
-    const emailInput = screen.getByPlaceholderText('Введите ваш email')
-    fireEvent.change(emailInput, { target: { value: 'fail@test.com' } })
-
-    const linkBtn = screen.getByText('Получить ссылку для входа')
-    await act(async () => { fireEvent.click(linkBtn) })
-
-    await waitFor(() => {
-      expect(screen.getByRole('alert')).toBeInTheDocument()
+      expect(
+        screen.getByText('Вход по паролю недоступен. Обратитесь к администратору системы.'),
+      ).toBeInTheDocument()
     })
   })
+
+  // ── Password reveal toggle ────────────────────────────────────────────────
+
+  it('toggles the password field between hidden and visible', () => {
+    renderLoginPage()
+    const pw = screen.getByPlaceholderText('Введите пароль') as HTMLInputElement
+    expect(pw.type).toBe('password')
+    fireEvent.click(screen.getByRole('button', { name: 'Показать пароль' }))
+    expect(pw.type).toBe('text')
+    fireEvent.click(screen.getByRole('button', { name: 'Скрыть пароль' }))
+    expect(pw.type).toBe('password')
+  })
+
+  // ── Google sign-in ────────────────────────────────────────────────────────
 
   it('calls signInWithGoogle when the Google button is clicked', async () => {
-    mockSignInWithGoogle.mockResolvedValueOnce(undefined)
     renderLoginPage()
-    const googleBtn = screen.getByText('Войти через Google')
-    await act(async () => { fireEvent.click(googleBtn) })
+    await act(async () => { fireEvent.click(screen.getByText('Войти через Google')) })
     await waitFor(() => {
       expect(mockSignInWithGoogle).toHaveBeenCalledTimes(1)
     })
@@ -188,20 +194,9 @@ describe('LoginPage', () => {
   it('shows error banner when signInWithGoogle throws', async () => {
     mockSignInWithGoogle.mockRejectedValueOnce(new Error('popup closed'))
     renderLoginPage()
-    const googleBtn = screen.getByText('Войти через Google')
-    await act(async () => { fireEvent.click(googleBtn) })
+    await act(async () => { fireEvent.click(screen.getByText('Войти через Google')) })
     await waitFor(() => {
       expect(screen.getAllByRole('alert').length).toBeGreaterThanOrEqual(1)
-    })
-  })
-
-  it('shows an email link error banner when completeEmailLinkIfPresent throws', async () => {
-    mockCompleteEmailLinkIfPresent.mockRejectedValueOnce(new Error('bad link'))
-    renderLoginPage()
-    await waitFor(() => {
-      expect(
-        screen.getByText('Ссылка недействительна или устарела. Запросите новую.'),
-      ).toBeInTheDocument()
     })
   })
 
@@ -211,8 +206,7 @@ describe('LoginPage', () => {
     const err = Object.assign(new Error('unauthorized'), { code: 'auth/unauthorized-domain' })
     mockSignInWithGoogle.mockRejectedValueOnce(err)
     renderLoginPage()
-    const googleBtn = screen.getByText('Войти через Google')
-    await act(async () => { fireEvent.click(googleBtn) })
+    await act(async () => { fireEvent.click(screen.getByText('Войти через Google')) })
     await waitFor(() => {
       expect(
         screen.getByText('Адрес этого приложения не авторизован для входа. Обратитесь к администратору системы.'),
@@ -224,8 +218,7 @@ describe('LoginPage', () => {
     const err = Object.assign(new Error('popup closed'), { code: 'auth/popup-closed-by-user' })
     mockSignInWithGoogle.mockRejectedValueOnce(err)
     renderLoginPage()
-    const googleBtn = screen.getByText('Войти через Google')
-    await act(async () => { fireEvent.click(googleBtn) })
+    await act(async () => { fireEvent.click(screen.getByText('Войти через Google')) })
     await waitFor(() => {
       expect(
         screen.getByText('Окно входа было закрыто. Попробуйте ещё раз.'),
@@ -236,8 +229,7 @@ describe('LoginPage', () => {
   it('shows generic googleFailed message when signInWithGoogle rejects with a plain Error', async () => {
     mockSignInWithGoogle.mockRejectedValueOnce(new Error('something unexpected'))
     renderLoginPage()
-    const googleBtn = screen.getByText('Войти через Google')
-    await act(async () => { fireEvent.click(googleBtn) })
+    await act(async () => { fireEvent.click(screen.getByText('Войти через Google')) })
     await waitFor(() => {
       expect(
         screen.getByText('Не удалось войти через Google. Попробуйте ещё раз.'),

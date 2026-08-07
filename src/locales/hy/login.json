@@ -2,9 +2,24 @@
   "page": { "title": "Մուտք գործել համակարգ", "subtitle": "Asset Management System — Ձեր ընկերության ակտիվների հաշվառում" },
   "admin": {
     "label": "For administrators",
+    "loginLabel": "Մուտքանուն",
+    "passwordLabel": "Գաղտնաբառ",
+    "loginPlaceholder": "Մուտքագրեք մուտքանունը",
+    "passwordPlaceholder": "Մուտքագրեք գաղտնաբառը",
+    "forgotPassword": "Մոռացե՞լ եք գաղտնաբառը",
+    "forgotHint": "Գաղտնաբառը վերականգնելու համար դիմեք համակարգի ադմինիստրատորին:",
+    "rememberMe": "Հիշել ինձ",
+    "signInBtn": "Մուտք",
+    "signingIn": "Մուտք…",
+    "showPassword": "Ցույց տալ գաղտնաբառը",
+    "hidePassword": "Թաքցնել գաղտնաբառը",
     "googleBtn": "Sign in with Google"
   },
   "divider": "կամ",
+  "demo": {
+    "label": "Դեմո մուտք",
+    "fill": "Լրացնել"
+  },
   "employee": {
     "label": "For employees",
     "emailPlaceholder": "Enter your email",
@@ -43,7 +58,16 @@
       "network": "Ցանցի սխալ: Ստուգեք կապը և կրկին փորձեք:"
     },
     "linkFailed": "Could not send the link. Check your email and try again.",
-    "emailLinkFailed": "The link is invalid or expired. Please request a new one."
+    "emailLinkFailed": "The link is invalid or expired. Please request a new one.",
+    "password": {
+      "empty": "Մուտքագրեք մուտքանունը և գաղտնաբառը",
+      "invalid": "Սխալ մուտքանուն կամ գաղտնաբառ",
+      "tooMany": "Չափազանց շատ փորձեր: Փորձեք ավելի ուշ:",
+      "disabled": "Հաշիվն անջատված է: Դիմեք համակարգի ադմինիստրատորին:",
+      "notEnabled": "Գաղտնաբառով մուտքն անհասանելի է: Դիմեք համակարգի ադմինիստրատորին:",
+      "network": "Ցանցի սխալ: Ստուգեք կապը և կրկին փորձեք:",
+      "unknown": "Չհաջողվեց մուտք գործել: Կրկին փորձեք:"
+    }
   },
   "loading": "Verifying sign-in link…"
 }

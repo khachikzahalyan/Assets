@@ -2,9 +2,24 @@
   "page": { "title": "Sign in to AMS", "subtitle": "Enterprise Asset Management" },
   "admin": {
     "label": "For administrators",
+    "loginLabel": "Login",
+    "passwordLabel": "Password",
+    "loginPlaceholder": "Enter your login",
+    "passwordPlaceholder": "Enter your password",
+    "forgotPassword": "Forgot password?",
+    "forgotHint": "To reset your password, please contact your system administrator.",
+    "rememberMe": "Remember me",
+    "signInBtn": "Sign in",
+    "signingIn": "Signing in…",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
     "googleBtn": "Sign in with Google"
   },
   "divider": "or",
+  "demo": {
+    "label": "Demo access",
+    "fill": "Fill in"
+  },
   "employee": {
     "label": "For employees",
     "emailPlaceholder": "Enter your email",
@@ -39,7 +54,16 @@
       "network": "Network error. Check your connection and try again."
     },
     "linkFailed": "Could not send the link. Check your email and try again.",
-    "emailLinkFailed": "The link is invalid or expired. Please request a new one."
+    "emailLinkFailed": "The link is invalid or expired. Please request a new one.",
+    "password": {
+      "empty": "Enter your login and password",
+      "invalid": "Incorrect login or password",
+      "tooMany": "Too many sign-in attempts. Please try again later.",
+      "disabled": "This account is disabled. Please contact your system administrator.",
+      "notEnabled": "Password sign-in is unavailable. Please contact your system administrator.",
+      "network": "Network error. Check your connection and try again.",
+      "unknown": "Could not sign in. Please try again."
+    }
   },
   "loading": "Verifying sign-in link…",
   "hero": {

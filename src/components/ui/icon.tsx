@@ -174,6 +174,9 @@ import {
   Moon,
   // Nav icons
   Backpack,
+  // Password reveal
+  Eye,
+  EyeOff,
   type LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -354,6 +357,9 @@ const REGISTRY: Record<string, LucideIcon> = {
   briefcase: Briefcase,
   // Nav icons
   backpack: Backpack,
+  // Password reveal
+  eye: Eye,
+  'eye-off': EyeOff,
 }
 
 export interface IconProps {

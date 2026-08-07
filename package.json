@@ -24,6 +24,7 @@
     "seed": "tsx scripts/seed.ts",
     "seed:emulator": "cross-env FIRESTORE_EMULATOR_HOST=localhost:8080 GOOGLE_CLOUD_PROJECT=demo-ams tsx scripts/seed.ts",
     "grant:super-admin": "tsx scripts/grant-super-admin.ts",
+    "create:admin-login": "tsx scripts/create-admin-login.ts",
     "backfill:category-caps": "tsx scripts/backfill-category-caps.ts",
     "migrate:category-groups": "tsx scripts/migrate-category-groups.ts",
     "clear:assets": "tsx scripts/clearAssets.ts",

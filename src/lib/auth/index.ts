@@ -1,7 +1,8 @@
 import {
   GoogleAuthProvider, signInWithPopup, sendSignInLinkToEmail,
-  signInWithEmailLink, isSignInWithEmailLink, signOut as fbSignOut,
-  onAuthStateChanged, type User,
+  signInWithEmailLink, isSignInWithEmailLink, signInWithEmailAndPassword,
+  setPersistence, browserLocalPersistence, browserSessionPersistence,
+  signOut as fbSignOut, onAuthStateChanged, type User,
 } from 'firebase/auth'
 import {
   doc, getDoc, setDoc, serverTimestamp,
@@ -90,6 +91,37 @@ export async function signInWithGoogle(): Promise<void> {
   await signInWithPopup(auth(), provider)
 }
 
+/** Synthetic-email domain for username-based admin accounts (e.g. "superadmin"
+ *  → "superadmin@ams.local"). Firebase Auth requires an email; usernames without
+ *  an "@" are expanded onto this domain. Kept in one place so the provisioning
+ *  script (scripts/create-admin-login.ts) and the client agree on the mapping. */
+export const USERNAME_EMAIL_DOMAIN = 'ams.local'
+
+/** Expand a bare username to its synthetic email; pass-through if already an email. */
+export function usernameToEmail(login: string): string {
+  const v = login.trim()
+  return v.includes('@') ? v.toLowerCase() : `${v.toLowerCase()}@${USERNAME_EMAIL_DOMAIN}`
+}
+
+/**
+ * Admin sign-in by login + password. The login is a bare username ("superadmin")
+ * mapped to a synthetic email, or a full email typed as-is. Produces a real
+ * Firebase session (token) — so Firestore security rules apply exactly as for
+ * any other account; the role still comes from users/{uid}. Requires the
+ * Email/Password provider to be enabled in Firebase Auth.
+ *
+ * `remember` maps to Firebase persistence: true → browserLocal (survives a
+ * browser restart, the "Remember me" default), false → browserSession (cleared
+ * when the tab/browser closes).
+ */
+export async function signInWithUsernamePassword(
+  login: string, password: string, remember = true,
+): Promise<void> {
+  const a = auth()
+  await setPersistence(a, remember ? browserLocalPersistence : browserSessionPersistence)
+  await signInWithEmailAndPassword(a, usernameToEmail(login), password)
+}
+
 function actionCodeSettings() {
   return { url: window.location.origin + '/login', handleCodeInApp: true }
 }
@@ -125,3 +157,4 @@ export function subscribeToAuthState(callback: (user: User | null) => void): () 
 export { claimPendingUser, type ClaimInput } from './claimPendingUser'
 export { claimPreassignedRole, type PreassignedClaim } from './claimPreassignedRole'
 export { mapGoogleSignInError, type GoogleSignInErrorKind } from './mapGoogleSignInError'
+export { mapPasswordSignInError, type PasswordSignInErrorKind } from './mapPasswordSignInError'

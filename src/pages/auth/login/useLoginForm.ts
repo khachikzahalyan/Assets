@@ -1,49 +1,24 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { completeEmailLinkIfPresent, sendEmployeeLink, signInWithGoogle, mapGoogleSignInError } from '@/lib/auth'
-
-/** Minimal email validity check — non-empty and contains @. */
-function isValidEmail(v: string): boolean {
-  return v.trim().length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim())
-}
+import {
+  signInWithGoogle, mapGoogleSignInError,
+  signInWithUsernamePassword, mapPasswordSignInError,
+} from '@/lib/auth'
 
 export function useLoginForm() {
   const { t } = useTranslation('login')
-
-  // Email-link completion state
-  const [linkCheckError, setLinkCheckError] = useState<string | null>(null)
-  const [linkChecking, setLinkChecking] = useState(false)
 
   // Google sign-in state
   const [googleError, setGoogleError] = useState<string | null>(null)
   const [googleBusy, setGoogleBusy] = useState(false)
 
-  // Employee email-link request state
-  const [email, setEmail] = useState('')
-  const [emailError, setEmailError] = useState<string | null>(null)
-  const [linkBusy, setLinkBusy] = useState(false)
-  const [linkError, setLinkError] = useState<string | null>(null)
-  const [linkSent, setLinkSent] = useState(false)
-
-  // On mount: complete email link if current URL is a sign-in link
-  useEffect(() => {
-    let cancelled = false
-    setLinkChecking(true)
-    void completeEmailLinkIfPresent(t('confirmEmailPrompt'))
-      .then(() => {
-        if (!cancelled) setLinkChecking(false)
-        // Auth state is driven by AuthProvider; no manual navigate needed.
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setLinkChecking(false)
-          setLinkCheckError(t('error.emailLinkFailed'))
-        }
-      })
-    return () => { cancelled = true }
-  // Run once on mount only — t is stable
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  // Login + password sign-in state
+  const [login, setLogin] = useState('')
+  const [password, setPassword] = useState('')
+  const [rememberMe, setRememberMe] = useState(true)
+  const [pwBusy, setPwBusy] = useState(false)
+  const [pwError, setPwError] = useState<string | null>(null)
+  const [forgotHint, setForgotHint] = useState<string | null>(null)
 
   async function handleGoogle() {
     setGoogleError(null)
@@ -68,39 +43,53 @@ export function useLoginForm() {
     }
   }
 
-  async function handleSendLink() {
-    setEmailError(null)
-    setLinkError(null)
-    if (!isValidEmail(email)) {
-      setEmailError(t('employee.invalidEmail'))
+  function handleForgotPassword() {
+    setForgotHint(t('admin.forgotHint'))
+  }
+
+  async function handlePasswordSignIn() {
+    setPwError(null)
+    setForgotHint(null)
+    if (login.trim().length === 0 || password.length === 0) {
+      setPwError(t('error.password.empty'))
       return
     }
-    setLinkBusy(true)
+    setPwBusy(true)
     try {
-      await sendEmployeeLink(email.trim())
-      setLinkSent(true)
-    } catch {
-      setLinkError(t('error.linkFailed'))
+      await signInWithUsernamePassword(login, password, rememberMe)
+      // AuthProvider's onAuthStateChanged takes over from here.
+    } catch (err) {
+      const kind = mapPasswordSignInError(err)
+      const keyMap: Record<typeof kind, string> = {
+        'invalid-credentials':   'error.password.invalid',
+        'too-many-requests':     'error.password.tooMany',
+        'user-disabled':         'error.password.disabled',
+        'operation-not-allowed': 'error.password.notEnabled',
+        'network':               'error.password.network',
+        'unknown':               'error.password.unknown',
+      }
+      setPwError(t(keyMap[kind]))
     } finally {
-      setLinkBusy(false)
+      setPwBusy(false)
     }
   }
 
   return {
-    linkCheckError,
-    linkChecking,
     googleError,
     googleBusy,
-    email,
-    setEmail,
-    emailError,
-    setEmailError,
-    linkBusy,
-    linkError,
-    setLinkError,
-    linkSent,
-    setLinkSent,
+    login,
+    setLogin,
+    password,
+    setPassword,
+    rememberMe,
+    setRememberMe,
+    pwBusy,
+    pwError,
+    setPwError,
+    forgotHint,
+    setForgotHint,
+    handleForgotPassword,
+    handlePasswordSignIn,
     handleGoogle,
-    handleSendLink,
   }
 }
