@@ -92,7 +92,13 @@ export const GroupTabs = memo(function GroupTabs({ tabs, selected, onSelect, cou
             {loading ? (
               <span
                 aria-hidden="true"
-                className="inline-block w-3 h-3 max-md:w-3.5 max-md:h-3.5 rounded anim-skeleton align-middle"
+                className={[
+                  'inline-block w-3 h-3 max-md:w-3.5 max-md:h-3.5 rounded align-middle',
+                  // Active chip has an accent (orange) bg — a dark skeleton reads as a
+                  // black block there. Use a faint white placeholder so it blends in;
+                  // inactive chips keep the standard skeleton shimmer on their surface bg.
+                  active ? 'bg-white/25' : 'anim-skeleton',
+                ].join(' ')}
               />
             ) : (
               <span
