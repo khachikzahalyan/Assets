@@ -12,11 +12,15 @@ export interface AssetStats {
   byStatus: Record<AssetStatusId, number>
   byGroup: GroupCount[]
   topBranches: BranchCount[]
-  /** assetId → «{invCode} · {brand model}» display label. Built by reduceAssetStats
-   *  from the already-loaded assets collection (ноль новых чтений). Keyed by asset
-   *  DOC ID so the assets-box event first-line join (which uses entityId /
-   *  after.assetId) matches. Only assets with a non-empty invCode appear. */
+  /** assetId → first-line label (invCode, or brand/model / category when the
+   *  asset has no invCode — NEVER a raw doc id). Built by reduceAssetStats from
+   *  the already-loaded assets collection (ноль новых чтений). Keyed by asset
+   *  DOC ID so the assets-box event join (entityId / after.assetId) matches.
+   *  Every loaded asset gets an entry — that's what kills the raw-id leak. */
   labelById: Record<string, string>
+  /** assetId → second-line meta «{категория} · {brand model}» (e.g.
+   *  «Компьютер · Asus H310»). Shown under the invCode in the assets feed. */
+  metaById: Record<string, string>
 }
 
 export interface WorkstationLicenseStats {
@@ -52,6 +56,7 @@ export function emptyAssetStats(): AssetStats {
     byGroup: ASSET_GROUPS.map(group => ({ group, count: 0 })),
     topBranches: [],
     labelById: {},
+    metaById: {},
   }
 }
 

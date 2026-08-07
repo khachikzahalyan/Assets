@@ -442,26 +442,29 @@ describe('groupDomainEvents', () => {
     })
   })
 
-  // ── Test 12: secondary field (actorName) ──────────────────────────────────
-  describe('secondary field', () => {
+  // ── Test 12: secondary field ───────────────────────────────────────────────
+  // Audit boxes (employees/branches/departments/subscriptions) put the actorName
+  // in secondary. The ASSETS box instead puts the asset meta «{категория} · {brand
+  // model}» there (owner request) — see the dedicated block below.
+  describe('secondary field (audit boxes → actorName)', () => {
     it('actorName present → trimmed value in secondary', () => {
-      const log = makeLog({ id: 'sec1', entityType: 'asset', action: 'created', entityId: 'e-sec1', actorName: '  Alice Admin  ', after: {} })
+      const log = makeLog({ id: 'sec1', entityType: 'employee', action: 'created', entityId: 'e-sec1', actorName: '  Alice Admin  ', after: {} })
       const result = groupDomainEvents({ auditLogs: [log], partInstalls: [], partNames: {}, now: NOW })
-      expect(result.assets.events[0]?.secondary).toBe('Alice Admin')
+      expect(result.employees.events[0]?.secondary).toBe('Alice Admin')
     })
 
     it('actorName undefined → secondary is null', () => {
-      const { actorName: _omit, ...rest } = makeLog({ entityType: 'asset', action: 'created', entityId: 'e-sec2', after: {} })
+      const { actorName: _omit, ...rest } = makeLog({ entityType: 'employee', action: 'created', entityId: 'e-sec2', after: {} })
       void _omit
       const log = rest as AuditLog
       const result = groupDomainEvents({ auditLogs: [log], partInstalls: [], partNames: {}, now: NOW })
-      expect(result.assets.events[0]?.secondary).toBeNull()
+      expect(result.employees.events[0]?.secondary).toBeNull()
     })
 
     it('actorName null → secondary is null', () => {
-      const log = makeLog({ entityType: 'asset', action: 'created', entityId: 'e-sec3', actorName: null, after: {} })
+      const log = makeLog({ entityType: 'employee', action: 'created', entityId: 'e-sec3', actorName: null, after: {} })
       const result = groupDomainEvents({ auditLogs: [log], partInstalls: [], partNames: {}, now: NOW })
-      expect(result.assets.events[0]?.secondary).toBeNull()
+      expect(result.employees.events[0]?.secondary).toBeNull()
     })
 
     it('actorName empty string → secondary is null', () => {
@@ -780,6 +783,30 @@ describe('groupDomainEvents — assets typed feed', () => {
     const ev = result.assets.events[0]
     expect(ev?.kind).toBe('returned')
     expect(ev?.linkTo).toBe('/assets/asset-ret')
+  })
+
+  it('assets feed secondary = asset meta «{категория} · {brand model}» (joined by after.assetId), not the actor', () => {
+    const log = makeLog({
+      id: 'meta1', entityType: 'assignment', action: 'assigned', entityId: 'asgn-m',
+      at: localIso(2026, 7, 31), after: { assetId: 'asset-m' }, actorName: 'Khach 09',
+    })
+    const result = groupDomainEvents({
+      auditLogs: [log], partInstalls: [], partNames: {}, now: NOW,
+      assetLabels: { 'asset-m': '459/8923492' },
+      assetMeta:   { 'asset-m': 'Компьютер · Asus H310' },
+    })
+    const ev = result.assets.events[0]
+    expect(ev?.primary).toBe('459/8923492')          // line 1: invCode
+    expect(ev?.secondary).toBe('Компьютер · Asus H310') // line 2: category · brand model (NOT «Khach 09»)
+  })
+
+  it('assets feed secondary is null when no meta is available for the asset', () => {
+    const log = makeLog({
+      id: 'meta2', entityType: 'asset', action: 'created', entityId: 'a-nometa',
+      at: localIso(2026, 7, 31), after: { invCode: 'LAP/00001' }, actorName: 'Khach 09',
+    })
+    const result = groupDomainEvents({ auditLogs: [log], partInstalls: [], partNames: {}, now: NOW })
+    expect(result.assets.events[0]?.secondary).toBeNull()
   })
 
   it('delta7d/days count only created; feed carries all typed events with correct kinds', () => {

@@ -46,7 +46,9 @@ export function Sidebar({ currentRoute, onNavigate }: SidebarProps) {
       {/* ── Brand row ──────────────────────────────────────────────── */}
       <div className="sidebar-brand">
         <span className="sidebar-brand-logo">
-          <span className="text-13.5 font-extrabold tracking-tight leading-none select-none">
+          {/* Slightly smaller than the 32px box so the wordmark has breathing
+              room on all sides (owner: «немного отступы padding внутри»). */}
+          <span className="text-11 font-extrabold tracking-tight leading-none select-none">
             AMS
           </span>
         </span>

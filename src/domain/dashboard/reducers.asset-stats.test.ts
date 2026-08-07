@@ -244,54 +244,65 @@ describe('reduceAssetStats — topBranches', () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 describe('reduceAssetStats — labelById', () => {
-  it('composes «INV · Brand Model» when invCode + brand + model present (keyed by asset id)', () => {
+  // REF with a category so metaById / category-fallback can be exercised.
+  const REF_WITH_CAT: AssetReferenceData = {
+    ...EMPTY_REF,
+    categories: [
+      { id: 'cat_laptop', name: 'Ноутбук', categoryGroupId: 'g', group: 'devices', lucideIcon: 'laptop' },
+    ],
+  }
+
+  it('first-line label is the invCode (line 1); meta is «{категория} · {brand model}» (line 2)', () => {
     const assets: AssetForStats[] = [
       makeAsset('a1', ASSET_STATUS.assigned, { invCode: 'LAP/00001', brand: 'Dell', model: 'XPS 13' }),
     ]
-    const stats = reduceAssetStats(assets, EMPTY_REF, 5)
-    expect(stats.labelById['a1']).toBe('LAP/00001 · Dell XPS 13')
+    const stats = reduceAssetStats(assets, REF_WITH_CAT, 5)
+    expect(stats.labelById['a1']).toBe('LAP/00001')
+    expect(stats.metaById['a1']).toBe('Ноутбук · Dell XPS 13')
   })
 
-  it('invCode-only asset → label is just the invCode (no separator)', () => {
+  it('invCode-only asset → label is the invCode; meta is just the category', () => {
     const assets: AssetForStats[] = [
       makeAsset('a1', ASSET_STATUS.warehouse, { invCode: 'DT/00099', brand: null, model: null }),
     ]
-    const stats = reduceAssetStats(assets, EMPTY_REF, 5)
+    const stats = reduceAssetStats(assets, REF_WITH_CAT, 5)
     expect(stats.labelById['a1']).toBe('DT/00099')
+    expect(stats.metaById['a1']).toBe('Ноутбук')
   })
 
-  it('invCode + brand only (model absent) → «INV · Brand»', () => {
-    const assets: AssetForStats[] = [
-      makeAsset('a1', ASSET_STATUS.warehouse, { invCode: 'MON/00003', brand: 'LG', model: null }),
-    ]
-    const stats = reduceAssetStats(assets, EMPTY_REF, 5)
-    expect(stats.labelById['a1']).toBe('MON/00003 · LG')
-  })
-
-  it('asset without invCode gets NO entry', () => {
+  it('asset WITHOUT invCode → label falls back to brand/model (never the raw id)', () => {
     const assets: AssetForStats[] = [
       makeAsset('a1', ASSET_STATUS.assigned, { brand: 'Dell', model: 'XPS' }),
     ]
     const stats = reduceAssetStats(assets, EMPTY_REF, 5)
-    expect(Object.keys(stats.labelById)).toHaveLength(0)
+    expect(stats.labelById['a1']).toBe('Dell XPS')
+    expect(stats.metaById['a1']).toBe('Dell XPS')
   })
 
-  it('asset with blank/whitespace invCode gets NO entry', () => {
+  it('asset with no invCode and no brand/model → label falls back to the category name', () => {
+    const assets: AssetForStats[] = [
+      makeAsset('a1', ASSET_STATUS.assigned, { brand: null, model: null }),
+    ]
+    const stats = reduceAssetStats(assets, REF_WITH_CAT, 5)
+    expect(stats.labelById['a1']).toBe('Ноутбук')
+  })
+
+  it('blank/whitespace invCode → falls back to brand/model, not the raw id', () => {
     const assets: AssetForStats[] = [
       makeAsset('a1', ASSET_STATUS.assigned, { invCode: '   ', brand: 'Dell', model: 'XPS' }),
     ]
     const stats = reduceAssetStats(assets, EMPTY_REF, 5)
-    expect(Object.keys(stats.labelById)).toHaveLength(0)
+    expect(stats.labelById['a1']).toBe('Dell XPS')
   })
 
-  it('builds entries for multiple assets keyed by asset id', () => {
+  it('builds line-1 entries (invCode) for multiple assets keyed by asset id', () => {
     const assets: AssetForStats[] = [
       makeAsset('a1', ASSET_STATUS.assigned, { invCode: 'LAP/00001', brand: 'Dell', model: 'XPS' }),
       makeAsset('a2', ASSET_STATUS.warehouse, { invCode: 'DT/00002' }),
     ]
     const stats = reduceAssetStats(assets, EMPTY_REF, 5)
     expect(stats.labelById).toEqual({
-      a1: 'LAP/00001 · Dell XPS',
+      a1: 'LAP/00001',
       a2: 'DT/00002',
     })
   })

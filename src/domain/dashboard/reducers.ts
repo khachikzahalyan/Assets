@@ -15,10 +15,12 @@ type AssetForStats = Pick<Asset, 'id' | 'categoryId' | 'statusId' | 'branchId' |
 export function reduceAssetStats(assets: AssetForStats[], ref: AssetReferenceData, topBranches: number): AssetStats {
   const byStatus = { ...EMPTY_STATUS_COUNTS }
   const catGroup = new Map(ref.categories.map(c => [c.id, c.group as AssetGroup]))
+  const catName = new Map(ref.categories.map(c => [c.id, c.name]))
   const branchName = new Map(ref.branches.map(b => [b.id, b.name]))
   const groupCounts = new Map<AssetGroup, number>(ASSET_GROUPS.map(g => [g, 0]))
   const branchCounts = new Map<string, number>()
   const labelById: Record<string, string> = {}
+  const metaById: Record<string, string> = {}
 
   for (const a of assets) {
     if (isAssetStatusId(a.statusId)) byStatus[a.statusId] += 1
@@ -26,17 +28,23 @@ export function reduceAssetStats(assets: AssetForStats[], ref: AssetReferenceDat
     if (g) groupCounts.set(g, (groupCounts.get(g) ?? 0) + 1)
     branchCounts.set(a.branchId, (branchCounts.get(a.branchId) ?? 0) + 1)
 
-    // Build first-line label «{invCode} · {brand model}», keyed by asset DOC ID.
-    // The assets-box feed joins on the asset document id (audit entityId /
-    // assignment after.assetId are both ref.id), so the map MUST be id-keyed —
-    // keying by invCode would never match and the label would silently vanish.
-    // Only assets with a non-empty invCode get an entry (invCode is the label's
-    // primary token; label-less assets fall back to the feed's own fallback).
+    // Labels are keyed by asset DOC ID — the assets-box feed joins on the asset
+    // document id (audit entityId / assignment after.assetId are both ref.id),
+    // so id-keyed is mandatory (invCode-keyed would never match).
+    //
+    // EVERY loaded asset gets a first-line label — this is the fix for the
+    // raw-id leak (issued/returned events for invCode-less assets used to fall
+    // through to the raw doc id like «N80oZkW9YHhRm4Et3Ury»). Preference:
+    // invCode → brand/model → category name (never the id).
     const invCode = str(a.invCode)
-    if (invCode) {
-      const bm = [str(a.brand), str(a.model)].filter(Boolean).join(' ')
-      labelById[a.id] = [invCode, bm].filter(Boolean).join(' · ')
-    }
+    const brandModel = [str(a.brand), str(a.model)].filter(Boolean).join(' ')
+    const category = str(catName.get(a.categoryId))
+    const line1 = invCode || brandModel || category
+    if (line1) labelById[a.id] = line1
+
+    // Second line: «{категория} · {brand model}» (e.g. «Компьютер · Asus H310»).
+    const meta = [category, brandModel].filter(Boolean).join(' · ')
+    if (meta) metaById[a.id] = meta
   }
 
   const topB = [...branchCounts.entries()]
@@ -50,6 +58,7 @@ export function reduceAssetStats(assets: AssetForStats[], ref: AssetReferenceDat
     byGroup: ASSET_GROUPS.map(group => ({ group, count: groupCounts.get(group) ?? 0 })),
     topBranches: topB,
     labelById,
+    metaById,
   }
 }
 
@@ -188,10 +197,13 @@ export interface GroupDomainEventsInput {
    *  are filtered to this set. When absent (loadPeopleStats failed), no filtering
    *  is applied — graceful degradation. */
   activeEmployeeIds?: readonly string[]
-  /** assetId → «{invCode} · {brand model}» label map (from AssetStats.labelById).
-   *  Used to enrich the assets-box event first line. Absent → fallback chain in
-   *  groupDomainEvents. Keyed by the join id (asset entityId / assignment after.assetId). */
+  /** assetId → first-line label (from AssetStats.labelById). Enriches the
+   *  assets-box event first line. Absent → fallback chain in groupDomainEvents.
+   *  Keyed by the join id (asset entityId / assignment after.assetId). */
   assetLabels?: Record<string, string>
+  /** assetId → second-line meta «{категория} · {brand model}» (AssetStats.metaById).
+   *  Shown under the invCode in the assets feed (replaces the actor there). */
+  assetMeta?: Record<string, string>
 }
 
 const LIST_ROUTE: Record<Exclude<DomainBoxKey, 'assets'>, string> = {
@@ -231,16 +243,23 @@ export function groupDomainEvents(input: GroupDomainEventsInput): Record<DomainB
       const joinId = l.entityType === 'assignment'
         ? (str(l.after?.assetId) || str(l.before?.assetId))
         : l.entityId
-      // primary fallback chain: assetLabels[joinId] → assetEventLabel (asset events only) → joinId → entityId.
+      // First line: assetLabels[joinId] → assetEventLabel (asset events only) →
+      // joinId. assetLabels now covers EVERY loaded asset, so a resolvable asset
+      // never shows the raw id; the joinId fallback only survives for an asset
+      // absent from the collection (rare — assets are soft-deleted, not removed).
       const labelHit = joinId ? input.assetLabels?.[joinId] : undefined
       const primary = labelHit
         || (l.entityType === 'asset' ? assetEventLabel(l) : '')
         || joinId
         || l.entityId
+      // Second line for the assets feed is the asset meta «{категория} · {brand
+      // model}» (owner request), NOT the actor — the coloured dot already conveys
+      // the kind and DomainBox prepends the kind label.
+      const meta = joinId ? input.assetMeta?.[joinId] : undefined
       return {
         id: l.id,
         primary,
-        secondary: l.actorName?.trim() || null,
+        secondary: meta?.trim() || null,
         at: l.at,
         linkTo: joinId ? `/assets/${joinId}` : '/assets',
         kind, // present on every assets-box event

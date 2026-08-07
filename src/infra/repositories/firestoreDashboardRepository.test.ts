@@ -384,7 +384,7 @@ describe('FirestoreDashboardRepository', () => {
       ])
     })
 
-    it('populates labelById from invCode/brand/model; docs without invCode contribute no entry', async () => {
+    it('populates labelById (line 1) + metaById (line 2) for EVERY asset — invCode-less ones fall back to category, never the raw id', async () => {
       // Same single getDocs call — no new reads added.
       mockGetDocs
         .mockResolvedValueOnce(makeSnap(assetDocs))    // assets
@@ -394,13 +394,21 @@ describe('FirestoreDashboardRepository', () => {
       const repo = new FirestoreDashboardRepository(fakeDb)
       const s = await repo.loadAssetStats(5)
 
-      // labelById is keyed by asset DOC ID (the feed's join key), value carries invCode.
-      // a_1: invCode='INV/001', brand='Dell', model='XPS 15'  → 'INV/001 · Dell XPS 15'
-      expect(s.labelById['a_1']).toBe('INV/001 · Dell XPS 15')
-      // a_3: invCode='INV/003', brand='Cisco', model=null      → brand only, no trailing space
-      expect(s.labelById['a_3']).toBe('INV/003 · Cisco')
-      // a_2, a_4: no invCode field → no entry in labelById
-      expect(Object.keys(s.labelById)).toHaveLength(2)
+      // labelById is keyed by asset DOC ID (the feed's join key). Line 1 = invCode
+      // when present, else brand/model, else category — never the raw doc id.
+      expect(s.labelById['a_1']).toBe('INV/001')          // has invCode
+      expect(s.labelById['a_3']).toBe('INV/003')          // has invCode
+      expect(s.labelById['a_2']).toBe('Laptop')           // no invCode → category name
+      expect(s.labelById['a_4']).toBe('Desk')             // no invCode → category name
+      // EVERY loaded asset gets an entry (this is the raw-id-leak fix).
+      expect(Object.keys(s.labelById)).toHaveLength(4)
+
+      // metaById is line 2 «{категория} · {brand model}».
+      expect(s.metaById['a_1']).toBe('Laptop · Dell XPS 15')
+      expect(s.metaById['a_3']).toBe('Router · Cisco')
+      expect(s.metaById['a_2']).toBe('Laptop')
+      expect(s.metaById['a_4']).toBe('Desk')
+
       // confirm getDocs was called exactly 3 times (assets + branches + categories) — zero new reads
       expect(mockGetDocs).toHaveBeenCalledTimes(3)
     })
