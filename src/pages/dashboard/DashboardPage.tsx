@@ -284,7 +284,7 @@ export function DashboardPage({ repo }: DashboardPageProps) {
             icon="arrow-right"
             label={t('kpi.currentlyOut')}
             value={assets.byStatus[ASSET_STATUS.assigned]}
-            to="/assets"
+            to={`/assets?status=${ASSET_STATUS.assigned}`}
             accent="green"
             variant="wide"
           />
@@ -294,7 +294,7 @@ export function DashboardPage({ repo }: DashboardPageProps) {
             icon="inbox"
             label={t('kpi.inWarehouse')}
             value={assets.byStatus[ASSET_STATUS.warehouse]}
-            to="/assets"
+            to={`/assets?status=${ASSET_STATUS.warehouse}`}
             accent="blue"
             variant="wide"
           />

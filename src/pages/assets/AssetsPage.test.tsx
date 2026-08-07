@@ -135,6 +135,19 @@ function renderPage(role: Role, repository?: AssetRepository) {
   )
 }
 
+// Render at a specific URL — used to exercise the ?status= deep-link seed.
+function renderPageAt(role: Role, initialEntry: string, repository?: AssetRepository) {
+  return render(
+    <I18nextProvider i18n={i18n}>
+      <MemoryRouter initialEntries={[initialEntry]}>
+        <AuthProvider initialRole={role}>
+          <AssetsPage {...(repository ? { repository } : {})} />
+        </AuthProvider>
+      </MemoryRouter>
+    </I18nextProvider>,
+  )
+}
+
 // ── Tests ─────────────────────────────────────────────────────────────────────
 describe('AssetsPage', () => {
   it('(a) renders rows after loading — known invCode appears', async () => {
@@ -172,6 +185,18 @@ describe('AssetsPage', () => {
       expect(screen.getByText('LAP/001')).toBeInTheDocument()
     })
     expect(screen.queryByText('Создать')).toBeNull()
+  })
+
+  it('(c2) ?status=st_warehouse deep-link pre-filters to warehouse assets only', async () => {
+    const repo = new InMemoryAssetRepository(ASSETS, REF)
+    renderPageAt('asset_admin', '/assets?status=st_warehouse', repo)
+    // Warehouse rows show; assigned (LAP/001) and repair (CHR/001) are filtered out.
+    await waitFor(() => {
+      expect(screen.getByText('MON/001')).toBeInTheDocument()
+    })
+    expect(screen.getByText('NET/001')).toBeInTheDocument()
+    expect(screen.queryByText('LAP/001')).toBeNull()
+    expect(screen.queryByText('CHR/001')).toBeNull()
   })
 
   it('(d) typing in search narrows rows', async () => {

@@ -12,7 +12,7 @@ import type { AssetRepository } from '@/domain/asset/AssetRepository'
 import { getSharedAssetRepository } from '@/infra/repositories'
 import type { ExportRow } from '@/lib/exportXlsx'
 import { deriveDisplayStatusId, isTemporaryAssignment } from '@/components/features/assets/assetFormat'
-import { resolveCategoryCapabilities, matchesAssetSearch } from '@/domain/asset'
+import { resolveCategoryCapabilities, matchesAssetSearch, isAssetStatusId } from '@/domain/asset'
 
 const PAGE_SIZE = 10
 
@@ -42,7 +42,12 @@ export function AssetsPage({ repository }: AssetsPageProps) {
   const isMobile = useIsMobile()
 
   const [searchParams, setSearchParams] = useSearchParams()
-  const [query, setQuery] = useState<AssetListQuery>({ ...DEFAULT_QUERY })
+  // Seed the status filter from ?status=<id> so dashboard cards can deep-link into
+  // a pre-filtered list (e.g. "Выдано сейчас" → st_assigned). Cleared after mount.
+  const [query, setQuery] = useState<AssetListQuery>(() => {
+    const s = searchParams.get('status')
+    return s !== null && isAssetStatusId(s) ? { ...DEFAULT_QUERY, statusId: s } : { ...DEFAULT_QUERY }
+  })
   const [page, setPage] = useState(1)
   const [showTemp, setShowTemp] = useState(false)
   const [focusId, setFocusId] = useState<string | null>(null)
@@ -149,6 +154,16 @@ export function AssetsPage({ repository }: AssetsPageProps) {
     setSearchParams({}, { replace: true })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rawFocusParam, loading, ref])
+
+  // ── Clear ?status= after it seeds the initial filter ─────────────────────────
+  // The status param is consumed by the lazy query initializer above; strip it
+  // from the URL so a refresh (or clearing the filter in the toolbar) doesn't
+  // silently re-apply it.
+  useEffect(() => {
+    if (!searchParams.get('status')) return
+    setSearchParams(prev => { prev.delete('status'); return prev }, { replace: true })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // ── Pagination jump to the focused row ──────────────────────────────────────
   // After displayed list settles, jump to the page that contains the focused asset.
